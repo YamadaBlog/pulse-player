@@ -260,15 +260,16 @@ onUnmounted(() => {
          dashboard). Disable with `:noise="false"`. -->
     <div v-if="noise" class="mp__noise" aria-hidden="true"></div>
 
-    <!-- Ambient EQ — subtle FFT bars flush to the bottom of the player,
-         spanning the full width. Behind the body content. Driven by the
-         same `store.eqBars` as the inline / FAB equaliser. Opt-in. -->
+    <!-- Ambient EQ — Spotify-style ambient visualiser flush to the
+         bottom edge of the player, spanning the full width (no padding).
+         64 thin bars driven by the 32-bin FFT (each pair of bars shares
+         a bin so the wave reads smoothly). Subtle and short by design. -->
     <div v-if="ambientEq" class="mp__ambient" aria-hidden="true">
-      <i v-for="n in 28" :key="n"
+      <i v-for="n in 64" :key="n"
          :style="{
            height: (store.isPlaying
-             ? Math.max(8, store.eqBars[(n - 1) % store.eqBars.length] * 100)
-             : 8) + '%'
+             ? Math.max(6, store.eqAmbientBars[Math.floor((n - 1) / 2)] * 100)
+             : 6) + '%'
          }"></i>
     </div>
 
@@ -787,35 +788,33 @@ onUnmounted(() => {
 }
 
 /* ─── Ambient EQ ────────────────────────────────────────────
-   FFT-driven bars flush to the bottom edge of the player, full
-   width. Sits behind .mp__art / .mp__body but above the .mp__bg.
-   Subtle by design (opacity 0.18, max 35 % of player height) so
-   it never competes with the title or controls. */
+   Spotify-style background visualiser: many thin bars flush to
+   the bottom edge, edge-to-edge full width. Subtle, low, musical. */
 .mp__ambient {
   position: absolute;
   left: 0;
   right: 0;
   bottom: var(--pulse-bar-h); /* sits just above the progress bar */
-  height: 35%;
-  max-height: 64px;
+  height: 22%;
+  max-height: 28px;
   display: flex;
   align-items: flex-end;
-  gap: 2px;
-  padding: 0 calc(var(--pulse-pad) * 0.5);
+  gap: 1px;
+  padding: 0;                  /* TRULY edge-to-edge */
   pointer-events: none;
   z-index: 0;
-  opacity: 0.18;
+  opacity: 0.32;
   overflow: hidden;
 }
 .mp__ambient i {
-  flex: 1;
-  min-width: 2px;
+  flex: 1 1 0;
+  min-width: 0;                /* let bars get truly thin */
   border-radius: 1px 1px 0 0;
-  background: linear-gradient(to top, #1DB954, rgba(29, 185, 84, 0.05));
-  transition: height 0.12s linear;
+  background: linear-gradient(to top, #1DB954, rgba(29, 185, 84, 0.10));
+  transition: height 0.10s linear;
 }
-/* On light variant: bars use the same hue but tuned for the light bg. */
-.mp[data-variant="light"] .mp__ambient { opacity: 0.22; }
+/* On light variant: bars need a touch more density to stay visible. */
+.mp[data-variant="light"] .mp__ambient { opacity: 0.38; }
 /* In FAB mode the ambient EQ is hidden — the FAB has its own chrome. */
 .mp[data-fab="true"] .mp__ambient { display: none; }
 

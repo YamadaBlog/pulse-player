@@ -45,6 +45,10 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
   const currentTime = ref(0)
   const duration = ref(0)
   const eqBars = ref<number[]>([0, 0, 0, 0])
+  /** Wider 32-bin FFT array for the ambient EQ visualiser. Same source
+   *  as `eqBars`, just the raw bins (not condensed) so a row of many
+   *  thin bars feels musical and responsive instead of repetitive. */
+  const eqAmbientBars = ref<number[]>(new Array(32).fill(0))
   const isVisible = ref(false)       // mini-player visible
   const hasBeenOpened = ref(false)    // user started playback at least once
 
@@ -77,8 +81,8 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     try {
       audioCtx = new AudioContext()
       analyser = audioCtx.createAnalyser()
-      analyser.fftSize = 32
-      analyser.smoothingTimeConstant = 0.7
+      analyser.fftSize = 64                  // 32 bins for the ambient EQ
+      analyser.smoothingTimeConstant = 0.75  // a touch more smoothing on the wider FFT
       sourceNode = audioCtx.createMediaElementSource(a)
       sourceNode.connect(analyser)
       analyser.connect(audioCtx.destination)
@@ -92,7 +96,15 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     function tick() {
       if (!analyser) return
       analyser.getByteFrequencyData(data)
-      eqBars.value = [data[1] / 255, data[3] / 255, data[5] / 255, data[2] / 255]
+      // 4-bar condensed visualiser (NOW PLAYING / FAB chrome).
+      // Pick 4 spread bins so the four bars feel distinct from each other
+      // even on a wider FFT.
+      eqBars.value = [data[2] / 255, data[6] / 255, data[12] / 255, data[20] / 255]
+      // Wider 32-bin array for the ambient EQ — pure raw bins.
+      const n = Math.min(32, data.length)
+      const ambient = new Array(n)
+      for (let i = 0; i < n; i++) ambient[i] = data[i] / 255
+      eqAmbientBars.value = ambient
       eqRaf = requestAnimationFrame(tick)
     }
     tick()
@@ -153,7 +165,7 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
 
   return {
     // State
-    currentTrack, isPlaying, currentTime, duration, eqBars,
+    currentTrack, isPlaying, currentTime, duration, eqBars, eqAmbientBars,
     isVisible, hasBeenOpened,
     // Getters
     progress, track, tracks,
