@@ -106,7 +106,9 @@ function onPointerMove(e: PointerEvent) {
   if (!isDragging.value) return
   const dx = e.clientX - dragStartMouse.x
   const dy = e.clientY - dragStartMouse.y
-  if (!hasMoved.value && Math.abs(dx) + Math.abs(dy) > 5) {
+  // Threshold raised from 5 → 10 (Euclidean distance) so a tap with a
+  // tiny mouse jitter still registers as a click instead of a drag.
+  if (!hasMoved.value && Math.sqrt(dx * dx + dy * dy) > 10) {
     hasMoved.value = true
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null }
     menuOpen.value = false
@@ -342,7 +344,7 @@ onUnmounted(() => {
 
 /* Button heartbeat — subtle scale, two quick beats, then rest. */
 .fab--pulso .fab__btn {
-  animation: pulso-heartbeat 3s ease-out infinite;
+  animation: pulso-heartbeat 5s ease-out infinite;
 }
 .fab--pulso .fab__btn:hover { animation: none; transform: scale(1.06); }
 .fab--pulso.fab--dragging .fab__btn { animation: none; }
@@ -371,7 +373,7 @@ onUnmounted(() => {
   pointer-events: none;
   opacity: 0;
   z-index: 1;
-  animation: pulso-wave-lub 3s ease-out infinite;
+  animation: pulso-wave-lub 5s ease-out infinite;
 }
 /* Second ring fires on the "dub" beat instead. */
 .fab--pulso::after { animation-name: pulso-wave-dub; }
@@ -412,7 +414,7 @@ onUnmounted(() => {
     0 4px 20px rgba(0, 0, 0, 0.5),
     0 0 0 1px rgba(255, 255, 255, 0.1),
     0 0 24px rgba(61, 189, 167, 0.15);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.5s ease;
 }
 
 /* Variant backgrounds (when no cover art is rendered) */
@@ -477,7 +479,7 @@ onUnmounted(() => {
 .fab__cover { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; }
 .fab__cover-img {
   position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; opacity: 0; transition: opacity 0.3s ease;
+  object-fit: cover; opacity: 0; transition: opacity 0.5s ease;
 }
 .fab__cover-img--active { opacity: 1; }
 
@@ -530,7 +532,7 @@ onUnmounted(() => {
 .fab__ring-progress {
   stroke: var(--pulse-accent, #3DBDA7);
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.3s ease;
+  transition: stroke-dashoffset 0.5s ease;
 }
 
 .fab__menu { position: absolute; inset: 0; pointer-events: none; }

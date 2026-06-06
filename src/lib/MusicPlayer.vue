@@ -177,14 +177,10 @@ onUnmounted(() => {
   if (resizeObs) { resizeObs.disconnect(); resizeObs = null }
 })
 
-// When the inline player is resized below FAB_THRESHOLD, it really
-// turns into the floating FAB — `store.open()` makes the global
-// <MiniPlayer /> visible. When the user drags the inline back out
-// past the threshold, leave the FAB visible (user controls it via
-// the FAB itself).
-watch(isFab, (now) => {
-  if (now) store.open()
-})
+// When the inline transforms into a FAB, we DON'T call store.open() —
+// the inline morphs IN PLACE into a circular FAB (see the CSS for
+// `[data-fab="true"]`). Clicking the artwork still toggles play/pause
+// via the existing `.mp__art` @click handler.
 </script>
 
 <template>
@@ -419,43 +415,54 @@ watch(isFab, (now) => {
 }
 .mp[data-variant="custom"] { background: var(--pulse-custom-bg, transparent); }
 
-/* ─── FAB transformation ────────────────────────────────────
-   Below FAB_THRESHOLD (110 px) the inline player REALLY transforms
-   into the floating MiniPlayer FAB — `store.open()` (called from
-   the watch in the script) makes the global <MiniPlayer /> visible.
-   The inline shell becomes invisible (visibility: hidden) but stays
-   in the DOM so the ResizeObserver keeps observing and the user
-   can drag back up via the floating resize handle. */
+/* ─── FAB transformation (in-place) ─────────────────────────
+   Below FAB_THRESHOLD (110 px) the inline player morphs into a
+   circular disc IN PLACE — it stays where it was mounted (does
+   not teleport anywhere). Cover artwork fills the disc, clicking
+   it toggles play/pause via the existing .mp__art handler. */
 .mp[data-fab="true"] {
-  visibility: hidden;
-  pointer-events: none;
-  box-shadow: none;
-  background: none;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  border-radius: 50%;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  background: var(--pulse-bg, #14141a);
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.10);
 }
+.mp[data-fab="true"] .mp__body,
+.mp[data-fab="true"] .mp__bar,
 .mp[data-fab="true"] .mp__bg,
 .mp[data-fab="true"] .mp__noise { display: none; }
-/* The resize handle floats next to the FAB so the user can grab
-   it to drag the inline player back out. Visible again, pointer
-   events on. */
+.mp[data-fab="true"] .mp__art {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: 50%;
+  box-shadow: none;
+  cursor: pointer;
+}
+.mp[data-fab="true"] .mp__art-img { border-radius: 50%; }
+.mp[data-fab="true"] .mp__art-hover { background: rgba(0, 0, 0, 0.45); }
+.mp[data-fab="true"] .mp__art-hover svg { width: 32%; height: 32%; }
+/* Resize handle stays at bottom-right of the disc, small and discreet. */
 .mp[data-fab="true"] .mp__resize {
-  position: fixed;
-  bottom: 16px;
-  right: 80px;
-  width: 28px;
-  height: 28px;
-  visibility: visible;
-  pointer-events: auto;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  bottom: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.5);
   border-radius: 50%;
   color: rgba(255, 255, 255, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 901;
-  cursor: nw-resize;
+  z-index: 5;
 }
-.mp[data-fab="true"] .mp__resize svg { width: 12px; height: 12px; }
+.mp[data-fab="true"] .mp__resize svg { width: 9px; height: 9px; }
 
 /* ─── Compact mode ──────────────────────────────────────────
    Triggered automatically when the container is < 240 px wide.
