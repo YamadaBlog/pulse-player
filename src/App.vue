@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { MusicPlayer, MiniPlayer, useAudioStore, type MusicPlayerVariant } from './lib'
 import { useDemoTour, type DemoStep } from './composables/useDemoTour'
 
@@ -111,12 +111,20 @@ const tour = useDemoTour()
 // the floating FAB. `null` = release control.
 const tourDragWidth = ref<number | null>(null)
 const tourFabPos = ref<{ x: number; y: number } | null>(null)
+// When true, a dim spotlight overlay dims the page so the FAB stands
+// alone — used during the FAB-centric steps (7, 8, 9).
+const fabFocused = ref(false)
 
 const demoSteps: DemoStep[] = [
   // ─── 1. Welcome — calm intro, breathing room ─────────────────
   {
     title: 'Welcome',
     run: async (ctx) => {
+      // Reset programmatic levers so jumping back here from any later
+      // step restores a clean starting state.
+      tourDragWidth.value = null
+      tourFabPos.value = null
+      fabFocused.value = false
       ctx.setMessage('A premium drop-in music player for Vue 3. Sit back.')
       await ctx.scrollTo('.hero', { speed: 'slow' })
       await ctx.delay(3200)
@@ -200,25 +208,39 @@ const demoSteps: DemoStep[] = [
     },
   },
 
-  // ─── 5. "Pick a mood." — gentle scroll into the theme grid
+  // ─── 5. "Pick a mood." — slow scroll into the theme grid, long
+  //        holds so the user can clearly see and understand the range.
   {
     title: 'Pick a mood',
     run: async (ctx) => {
+      // Slow scroll explicitly — the user asked for a real "product
+      // presentation" pace here, not a transit.
       await ctx.scrollTo('.variants', { speed: 'slow' })
-      await ctx.delay(1400)
-      ctx.setMessage('Nine themes ship in — each one tuned, not just tinted.')
-      await ctx.delay(2800)
-      ctx.setMessage('Mix them with your own accent colour. Brand fit, every time.')
-      await ctx.delay(2600)
+      await ctx.delay(2400)
+      ctx.setMessage('Nine carefully tuned themes ship in — not just colour swatches.')
+      await ctx.delay(4400)
+      ctx.setMessage('Auto, Midnight, Sunset, Aurora, Vinyl, Dark, Light, Transparent, Custom.')
+      await ctx.delay(4200)
+      ctx.setMessage('Pair any of them with your own accent colour. Brand fit, every time.')
+      await ctx.delay(3800)
     },
   },
+
+  // Helper used by steps 6-9: each one ensures the user is on the FAB
+  // section AND the FAB is visible AND focused — so jumping straight
+  // here from the pill always works.
+  //
+  // Inlined as plain code below.
 
   // ─── 6. Boost to the bottom — fast scroll to the FAB section
   {
     title: 'Floating FAB',
     run: async (ctx) => {
       ctx.setMessage('Now meet the persistent floating FAB.')
-      // The "boost" scroll the user asked for — quick, decelerating.
+      // Make sure we leave the resize section in a clean state if the
+      // user jumped straight here.
+      tourDragWidth.value = null
+      // The "boost" scroll — quick, decelerating.
       await ctx.scrollTo('.palette', { speed: 'fast' })
       await ctx.delay(1400)
       if (!store.isVisible) store.open()
@@ -228,24 +250,38 @@ const demoSteps: DemoStep[] = [
 
   // ─── 7. Drag the FAB toward the viewport — horizontal centre,
   //        65 % from the top. Pulled DOWN from dead centre on purpose
-  //        so the top guidance pill and caption never crowd the FAB
-  //        or the user's eye line.
+  //        so the top guidance pill and caption never crowd the FAB.
+  //        A dim spotlight overlay (`fabFocused`) isolates the FAB
+  //        visually for the rest of the FAB sequence.
   {
     title: 'Drag anywhere',
     run: async (ctx) => {
+      // Preconditions: ensure the FAB is here, visible, and in its
+      // corner. Lets the user jump straight here from any earlier step.
+      if (!store.isVisible) store.open()
+      if (tourFabPos.value === null) tourFabPos.value = { x: 0, y: 0 }
+      await ctx.scrollTo('.palette', { speed: 'gentle' })
+      await ctx.delay(700)
+
       ctx.setMessage('Drag it anywhere — it remembers where you left it.')
+      // Engage the spotlight BEFORE the tween so the FAB pulls free from
+      // the page content as soon as it starts moving.
+      fabFocused.value = true
+      await ctx.delay(500)
+
       const fabSize = 56
       const anchorRight = 16
       const anchorBottom = 32
       const targetX = -(window.innerWidth / 2 - anchorRight - fabSize / 2)
-      // 65 % from top → 35 % from bottom. Frees the upper third for the
-      // guidance overlay so the FAB stays clearly in view.
       const targetY = -(window.innerHeight * 0.35 - anchorBottom - fabSize / 2)
-      tourFabPos.value = { x: 0, y: 0 }
+      const startPos = tourFabPos.value
       await ctx.tween((t) => {
-        tourFabPos.value = { x: targetX * t, y: targetY * t }
-      }, 0, 1, 2600, 'outQuart')
-      await ctx.delay(1800)
+        tourFabPos.value = {
+          x: startPos.x + (targetX - startPos.x) * t,
+          y: startPos.y + (targetY - startPos.y) * t,
+        }
+      }, 0, 1, 2800, 'outQuart')
+      await ctx.delay(2000)
     },
   },
 
@@ -253,12 +289,25 @@ const demoSteps: DemoStep[] = [
   {
     title: 'Vinyl & Aurora',
     run: async (ctx) => {
+      // Preconditions identical to step 7 — let users jump here too.
+      if (!store.isVisible) store.open()
+      fabFocused.value = true
+      if (tourFabPos.value === null) {
+        await ctx.scrollTo('.palette', { speed: 'gentle' })
+        await ctx.delay(500)
+        const fabSize = 56
+        const targetX = -(window.innerWidth / 2 - 16 - fabSize / 2)
+        const targetY = -(window.innerHeight * 0.35 - 32 - fabSize / 2)
+        tourFabPos.value = { x: targetX, y: targetY }
+        await ctx.delay(400)
+      }
+
       ctx.setMessage('A warm Vinyl mood — gold border, analog feel.')
       activeFabVariant.value = 'vinyl'
-      await ctx.delay(3200)
+      await ctx.delay(3400)
       ctx.setMessage('And a cool Aurora — teal night, cyan accent.')
       activeFabVariant.value = 'aurora'
-      await ctx.delay(3200)
+      await ctx.delay(3400)
     },
   },
 
@@ -266,6 +315,19 @@ const demoSteps: DemoStep[] = [
   {
     title: 'Pulso',
     run: async (ctx) => {
+      // Preconditions: FAB visible, centered, spotlight on.
+      if (!store.isVisible) store.open()
+      fabFocused.value = true
+      if (tourFabPos.value === null) {
+        await ctx.scrollTo('.palette', { speed: 'gentle' })
+        await ctx.delay(500)
+        const fabSize = 56
+        const targetX = -(window.innerWidth / 2 - 16 - fabSize / 2)
+        const targetY = -(window.innerHeight * 0.35 - 32 - fabSize / 2)
+        tourFabPos.value = { x: targetX, y: targetY }
+        await ctx.delay(400)
+      }
+
       ctx.setMessage('Pulso — a heartbeat ripple that only animates while the music plays.')
       fabPulso.value = true
       await ctx.delay(5200)
@@ -274,16 +336,18 @@ const demoSteps: DemoStep[] = [
     },
   },
 
-  // ─── 10. Outro — calm return, glide the FAB home, retire control
+  // ─── 10. Outro — drop the spotlight, glide the FAB home, scroll back
   {
     title: 'You’re in',
     run: async (ctx) => {
       ctx.setMessage('That’s pulse-player. Drop it in. Make it yours.')
-      // Glide the FAB back to its corner before the curtain.
+      // Release the spotlight first so the page comes back to life as
+      // the FAB returns to its corner.
+      fabFocused.value = false
       const start = tourFabPos.value ?? { x: 0, y: 0 }
       await ctx.tween((t) => {
         tourFabPos.value = { x: start.x * (1 - t), y: start.y * (1 - t) }
-      }, 0, 1, 1400, 'outQuart')
+      }, 0, 1, 1600, 'outQuart')
       tourFabPos.value = null
       await ctx.scrollTo('.hero', { speed: 'slow' })
       await ctx.delay(2400)
@@ -353,8 +417,10 @@ function restoreFromDemo() {
   sliderWidth.value = preDemoState.sliderWidth
   // Drag-stage MusicPlayer — release programmatic width so user can drag.
   tourDragWidth.value = null
-  // FAB — release programmatic position, snap pulso, restore variant.
+  // FAB — release programmatic position, drop spotlight, snap pulso,
+  // restore variant.
   tourFabPos.value = null
+  fabFocused.value = false
   fabPulso.value = preDemoState.fabPulso
   activeFabVariant.value = preDemoState.fabVariant
   // Ambient EQ — keep it ON if the demo finished (it's the highlight),
@@ -368,6 +434,12 @@ function restoreFromDemo() {
   }
   preDemoState = null
 }
+
+// Toggle a body class while the tour runs, so MusicPlayer transitions
+// can opt into a slower, more buttery curve via a global selector.
+watch(() => tour.isRunning.value, (running) => {
+  document.body.classList.toggle('tour-running', !!running)
+})
 
 onMounted(() => {
   document.addEventListener('fullscreenchange', onFullscreenChange)
@@ -408,6 +480,12 @@ const hero = computed(() => ({
          control pill. Discreet, premium, dismissible. Lives ONLY while
          the guided tour runs.
          ═══════════════════════════════════════════════════════════════ -->
+    <!-- FAB spotlight — dims the page when the demo brings the FAB into
+         focus, isolating it visually so no text bleeds through behind. -->
+    <Transition name="fab-spotlight">
+      <div v-if="fabFocused" class="fab-spotlight" aria-hidden="true"></div>
+    </Transition>
+
     <Transition name="demo-overlay">
       <div v-if="tour.isRunning.value" class="demo-overlay" role="region" aria-label="Pulse demo controls">
         <!-- Control pill at the TOP — dots + counter + prev / next / stop. -->
@@ -450,6 +528,21 @@ const hero = computed(() => ({
           <span class="demo-pill__count" aria-live="polite">
             {{ tour.currentStep.value + 1 }} / {{ tour.totalSteps.value }}
           </span>
+
+          <button
+            class="demo-pill__pause"
+            :class="{ 'demo-pill__pause--paused': tour.isPaused.value }"
+            @click="tour.togglePause"
+            :aria-label="tour.isPaused.value ? 'Resume demo' : 'Pause demo'"
+          >
+            <svg v-if="tour.isPaused.value" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+              <path d="M3.5 2 L9.5 6 L3.5 10 Z" fill="currentColor"/>
+            </svg>
+            <svg v-else viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+              <rect x="3" y="2.5" width="2" height="7" rx="0.4" fill="currentColor"/>
+              <rect x="7" y="2.5" width="2" height="7" rx="0.4" fill="currentColor"/>
+            </svg>
+          </button>
 
           <button class="demo-pill__stop" @click="stopDemo" aria-label="Stop demo">
             <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
@@ -938,6 +1031,45 @@ code {
 .cta__arrow { transition: transform 0.15s ease; }
 .cta:hover .cta__arrow { transform: translateX(3px); }
 
+/* ─── FAB SPOTLIGHT ───────────────────────────────────────
+   Dims the page so the floating FAB stands clear of any text. */
+.fab-spotlight {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 65%, rgba(0, 0, 0, 0.50) 0%, rgba(0, 0, 0, 0.78) 70%);
+  z-index: 800;            /* under the FAB (z-index 900) and pill (1000) */
+  pointer-events: none;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+.fab-spotlight-enter-active,
+.fab-spotlight-leave-active {
+  transition: opacity 0.6s ease, backdrop-filter 0.6s ease;
+}
+.fab-spotlight-enter-from,
+.fab-spotlight-leave-to { opacity: 0; }
+
+/* ─── MUSIC-PLAYER TRANSITIONS while the tour runs ─────────
+   Buttery 0.55s curves replace the default 0.40s so the morph
+   between every size feels continuous, not stepped. */
+body.tour-running .mp,
+body.tour-running .mp[data-fab="true"] {
+  transition-duration: 0.55s !important;
+  transition-timing-function: cubic-bezier(0.65, 0, 0.35, 1) !important;
+}
+body.tour-running .mp .mp__body,
+body.tour-running .mp[data-fab="true"] .mp__body,
+body.tour-running .mp .mp__bar,
+body.tour-running .mp[data-fab="true"] .mp__bar,
+body.tour-running .mp .mp__art,
+body.tour-running .mp[data-fab="true"] .mp__art,
+body.tour-running .mp .mp__fab-chrome,
+body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
+  transition-duration: 0.55s !important;
+  transition-timing-function: cubic-bezier(0.65, 0, 0.35, 1) !important;
+}
+
 /* ─── DEMO OVERLAY (subtitle + floating pill) ────────────── */
 .demo-overlay {
   position: fixed;
@@ -1056,6 +1188,30 @@ code {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+
+/* Pause / Resume — neutral colour, sits between counter and Stop. */
+.demo-pill__pause {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease, color 0.15s ease;
+  font-family: inherit;
+}
+.demo-pill__pause:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.demo-pill__pause:active { transform: scale(0.92); }
+.demo-pill__pause--paused {
+  background: rgba(29, 185, 84, 0.18);
+  border-color: rgba(29, 185, 84, 0.40);
+  color: #1DB954;
+}
+.demo-pill__pause--paused:hover { background: rgba(29, 185, 84, 0.28); }
 
 .demo-pill__stop {
   display: inline-flex;

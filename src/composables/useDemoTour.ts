@@ -88,11 +88,17 @@ export interface DemoStartOptions {
 
 export function useDemoTour() {
   const isRunning: Ref<boolean> = ref(false)
+  const isPaused: Ref<boolean> = ref(false)
   const currentStep: Ref<number> = ref(0)
   const totalSteps: Ref<number> = ref(0)
   const title: Ref<string> = ref('')
   const message: Ref<string> = ref('')
   const progress: Ref<number> = ref(0)
+
+  // Pause gate — read by every rAF-driven helper. While `isPaused` is
+  // true, helpers stop advancing their internal time accumulators, so
+  // the entire timeline freezes in place. Resume just flips the flag.
+  const checkPaused = () => isPaused.value
 
   // Two-tier abort scheme:
   //  - `tourController` is the master abort. When it fires, the whole
@@ -131,10 +137,10 @@ export function useDemoTour() {
 
         const ctx: DemoStepContext = {
           signal: stepSignal,
-          delay: (ms) => abortableDelay(ms, stepSignal),
+          delay: (ms) => abortableDelay(ms, stepSignal, checkPaused),
           tween: (setter, from, to, ms, easing = 'outQuart') =>
-            abortableTween(setter, from, to, ms, EASINGS[easing], stepSignal),
-          scrollTo: (target, opts) => abortableScrollTo(target, stepSignal, opts),
+            abortableTween(setter, from, to, ms, EASINGS[easing], stepSignal, checkPaused),
+          scrollTo: (target, opts) => abortableScrollTo(target, stepSignal, checkPaused, opts),
           setMessage: (m) => { message.value = m },
         }
 
@@ -169,6 +175,7 @@ export function useDemoTour() {
       stepController = null
       pendingJump = null
       isRunning.value = false
+      isPaused.value = false
       currentStep.value = 0
       title.value = ''
       message.value = ''
@@ -179,6 +186,26 @@ export function useDemoTour() {
 
   function stop() {
     if (tourController) tourController.abort()
+    isPaused.value = false
+  }
+
+  /** Pause the tour in place. Every in-flight delay / tween / scroll
+   *  stops consuming time. Resume picks up exactly where the user left it. */
+  function pause() {
+    if (!isRunning.value) return
+    isPaused.value = true
+  }
+
+  /** Resume after a pause. No-op if not paused. */
+  function resume() {
+    if (!isRunning.value) return
+    isPaused.value = false
+  }
+
+  /** Convenience toggle for the demo pill's play / pause button. */
+  function togglePause() {
+    if (!isRunning.value) return
+    isPaused.value = !isPaused.value
   }
 
   /** Jump to a specific step index (0-based). Aborts the current step's
@@ -211,10 +238,14 @@ export function useDemoTour() {
   return {
     start,
     stop,
+    pause,
+    resume,
+    togglePause,
     goToStep,
     next,
     prev,
     isRunning: computed(() => isRunning.value),
+    isPaused: computed(() => isPaused.value),
     currentStep: computed(() => currentStep.value),
     totalSteps: computed(() => totalSteps.value),
     title: computed(() => title.value),
@@ -248,18 +279,35 @@ function abortError(): Error {
   return e
 }
 
-function abortableDelay(ms: number, signal: AbortSignal): Promise<void> {
+function abortableDelay(
+  ms: number,
+  signal: AbortSignal,
+  isPaused: () => boolean,
+): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal.aborted) { reject(abortError()); return }
-    const timer = window.setTimeout(() => {
-      signal.removeEventListener('abort', onAbort)
-      resolve()
-    }, ms)
+    let remaining = ms
+    let lastNow = performance.now()
+    let raf = 0
     const onAbort = () => {
-      window.clearTimeout(timer)
+      cancelAnimationFrame(raf)
       reject(abortError())
     }
     signal.addEventListener('abort', onAbort, { once: true })
+    function tick(now: number) {
+      const dt = now - lastNow
+      lastNow = now
+      // Only burn down the remaining time when not paused — that way Pause
+      // freezes the delay in place and Resume picks up where it stopped.
+      if (!isPaused()) remaining -= dt
+      if (remaining <= 0) {
+        signal.removeEventListener('abort', onAbort)
+        resolve()
+        return
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
   })
 }
 
@@ -270,10 +318,12 @@ function abortableTween(
   duration: number,
   easing: (t: number) => number,
   signal: AbortSignal,
+  isPaused: () => boolean,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal.aborted) { reject(abortError()); return }
-    const startTime = performance.now()
+    let elapsed = 0
+    let lastNow = performance.now()
     let raf = 0
     const onAbort = () => {
       cancelAnimationFrame(raf)
@@ -281,7 +331,10 @@ function abortableTween(
     }
     signal.addEventListener('abort', onAbort, { once: true })
     function tick(now: number) {
-      const t = Math.min(1, (now - startTime) / duration)
+      const dt = now - lastNow
+      lastNow = now
+      if (!isPaused()) elapsed += dt
+      const t = Math.min(1, elapsed / duration)
       setter(from + (to - from) * easing(t))
       if (t < 1 && !signal.aborted) {
         raf = requestAnimationFrame(tick)
@@ -297,6 +350,7 @@ function abortableTween(
 function abortableScrollTo(
   target: string | Element | null,
   signal: AbortSignal,
+  isPaused: () => boolean,
   opts: ScrollToOptions = {},
 ): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -310,7 +364,6 @@ function abortableScrollTo(
     const startY = window.scrollY
     const distance = targetY - startY
     if (Math.abs(distance) < 4) { resolve(); return }
-    // Premium scroll feel: longer baselines, deceleration easings.
     const speed = opts.speed ?? 'gentle'
     const speedProfile = SCROLL_SPEED[speed]
     const duration = Math.max(
@@ -318,7 +371,8 @@ function abortableScrollTo(
       Math.min(speedProfile.max, speedProfile.base + Math.abs(distance) * speedProfile.perPx),
     )
     const easing = EASINGS[opts.easing ?? speedProfile.easing]
-    const startTime = performance.now()
+    let elapsed = 0
+    let lastNow = performance.now()
     let raf = 0
     const onAbort = () => {
       cancelAnimationFrame(raf)
@@ -326,7 +380,10 @@ function abortableScrollTo(
     }
     signal.addEventListener('abort', onAbort, { once: true })
     function tick(now: number) {
-      const t = Math.min(1, (now - startTime) / duration)
+      const dt = now - lastNow
+      lastNow = now
+      if (!isPaused()) elapsed += dt
+      const t = Math.min(1, elapsed / duration)
       const eased = easing(t)
       window.scrollTo(0, startY + distance * eased)
       if (t < 1 && !signal.aborted) {
