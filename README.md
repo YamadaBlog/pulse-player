@@ -2,7 +2,9 @@
 
 # pulse-player
 
-**A drop-in Vue 3 music player — floating FAB + inline card, one persistent global store.**
+**A Vue 3 music player that grows with the page.**
+A drop-in inline card and a floating draggable FAB — every visible
+dimension scales from a single CSS variable.
 
 [![Vue 3](https://img.shields.io/badge/Vue-3.4+-42b883?logo=vue.js&logoColor=white)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -18,109 +20,104 @@
 
 ---
 
-`pulse-player` is two Vue 3 single-file components and one Pinia store.
-Embed the inline **`MusicPlayer`** card anywhere in a page, drop the floating
-**`MiniPlayer`** FAB at the root of your app, and the same global audio
-session powers both — playback survives navigation, the FAB persists across
-routes, the component scales fluidly to its container.
+`pulse-player` ships two Vue 3 single-file components — **`MusicPlayer`**
+(inline card) and **`MiniPlayer`** (floating FAB) — plus a tiny Pinia store
+that owns the audio session.
 
-- **9 background variants** + a custom-CSS escape hatch
-- **Container-query responsive** typography (mobile-first, scales to desktop)
-- FFT equalizer bars (4 bands, Web Audio API)
-- Circular progress ring on the FAB, hover-to-scrub progress bar inline
-- Draggable FAB, swipe-to-dismiss, long-press radial menu
-- Opt-in GitHub / Spotify link icons
-- Themable accent via a single CSS variable
-- Zero business / domain code — pure UI library, MIT licensed
-- **~41 kB gzipped** (JS + CSS combined)
+The unusual bit is the sizing model. Every visible dimension — artwork,
+title, NOW PLAYING label, GitHub / Spotify icons, prev / next buttons,
+padding, border-radius, shadows, EQ bars, progress bar and gaps — is
+derived from a single CSS custom property: `--pulse-scale`. A
+ResizeObserver computes it from the container width, or you can override
+it with a `size` prop. The result is a player that **actually grows** —
+not a stretched mobile one.
 
-## Variants
+```text
+container width  →  --pulse-scale
+─────────────────────────────────
+   240 px        →     0.70   (compact / sidebar)
+   360 px        →     0.94   (base)
+   480 px        →     1.17
+   640 px        →     1.49
+   800 px+       →     1.80   (large / hero)
+```
+
+## It scales — for real
+
+Same component, three sizes. Title, artwork, icons, padding and chrome all
+breathe together.
 
 <table>
   <tr>
     <td align="center" width="33%">
-      <img src="./docs/screenshots/variant-auto.png" width="280" alt="auto variant" />
-      <br><sub><code>variant="auto"</code> — cover art blur</sub>
+      <img src="./docs/screenshots/scale-s.png" alt="scale 0.75 — small / sidebar" width="100%" />
+      <br><sub><strong>S</strong> · <code>size={0.75}</code></sub>
     </td>
     <td align="center" width="33%">
-      <img src="./docs/screenshots/variant-vinyl.png" width="280" alt="vinyl dark variant" />
+      <img src="./docs/screenshots/scale-m.png" alt="scale 1.00 — base / card" width="100%" />
+      <br><sub><strong>M</strong> · <code>size={1.0}</code></sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="./docs/screenshots/scale-xl.png" alt="scale 1.70 — XL / hero" width="100%" />
+      <br><sub><strong>XL</strong> · <code>size={1.7}</code></sub>
+    </td>
+  </tr>
+</table>
+
+The demo includes a live slider — open <http://localhost:5174/> after
+`npm run dev` and drag the scale knob.
+
+## Variants
+
+Nine curated background presets ship out of the box, plus a `custom`
+escape hatch for any CSS background. `accentColor` retunes the EQ bars
++ progress hue.
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="./docs/screenshots/variant-auto.png" width="100%" alt="auto variant" />
+      <br><sub><code>variant="auto"</code> — live cover-art blur</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="./docs/screenshots/variant-vinyl.png" width="100%" alt="vinyl variant" />
       <br><sub><code>variant="vinyl"</code> — warm analog</sub>
-    </td>
-    <td align="center" width="33%">
-      <img src="./docs/screenshots/variant-sunset.png" width="280" alt="sunset variant" />
-      <br><sub><code>variant="sunset"</code> — sepia / brown</sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <img src="./docs/screenshots/variant-midnight.png" width="280" alt="midnight variant" />
-      <br><sub><code>variant="midnight"</code> — deep navy</sub>
+      <img src="./docs/screenshots/variant-sunset.png" width="100%" alt="sunset variant" />
+      <br><sub><code>variant="sunset"</code> — sepia / brown</sub>
     </td>
     <td align="center">
-      <img src="./docs/screenshots/variant-aurora.png" width="280" alt="aurora variant" />
+      <img src="./docs/screenshots/variant-midnight.png" width="100%" alt="midnight variant" />
+      <br><sub><code>variant="midnight"</code> — deep navy</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./docs/screenshots/variant-aurora.png" width="100%" alt="aurora variant" />
       <br><sub><code>variant="aurora"</code> — teal night</sub>
     </td>
     <td align="center">
-      <img src="./docs/screenshots/variant-dark.png" width="280" alt="dark variant" />
+      <img src="./docs/screenshots/variant-dark.png" width="100%" alt="dark variant" />
       <br><sub><code>variant="dark"</code> — neutral dark</sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <img src="./docs/screenshots/variant-light.png" width="280" alt="light variant" />
+      <img src="./docs/screenshots/variant-light.png" width="100%" alt="light variant" />
       <br><sub><code>variant="light"</code> — light theme</sub>
     </td>
     <td align="center">
-      <img src="./docs/screenshots/variant-transparent.png" width="280" alt="transparent variant" />
-      <br><sub><code>variant="transparent"</code> — frameless</sub>
-    </td>
-    <td align="center">
-      <img src="./docs/screenshots/variant-custom.png" width="280" alt="custom chocolate variant" />
-      <br><sub><code>variant="custom"</code> + your CSS</sub>
+      <img src="./docs/screenshots/variant-custom.png" width="100%" alt="custom chocolate variant" />
+      <br><sub><code>variant="custom"</code> — your CSS</sub>
     </td>
   </tr>
 </table>
 
-Every variant ships with a tasteful default accent. Override locally with
-`accentColor="#hex"` (EQ bars, scrub hover, FAB ring).
-
-## Responsive
-
-Typography is sized with **container queries**, not viewport media queries —
-the component reads its own width and scales the title + artwork + chrome
-accordingly. Drop it in a 320 px sidebar or a 720 px hero, it stays clean.
-
-<div align="center">
-
-<img src="./docs/screenshots/responsive-320.png" alt="320 px container" width="320" />
-<br><sub>320 px</sub>
-<br><br>
-<img src="./docs/screenshots/responsive-480.png" alt="480 px container" width="480" />
-<br><sub>480 px</sub>
-<br><br>
-<img src="./docs/screenshots/responsive-720.png" alt="720 px container" width="680" />
-<br><sub>720 px — same component, fluid typography, no layout breaks</sub>
-
-</div>
-
-## Floating FAB
-
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <img src="./docs/screenshots/fab-auto.png" width="80" alt="FAB auto (cover art)" />
-      <br><sub><code>variant="auto"</code> — cover art</sub>
-    </td>
-    <td align="center" width="50%">
-      <img src="./docs/screenshots/fab-vinyl.png" width="80" alt="FAB vinyl" />
-      <br><sub><code>variant="vinyl"</code> — gold ring</sub>
-    </td>
-  </tr>
-</table>
-
-A 56 px circular button (configurable). Draggable, swipe down/right to
-dismiss, long-press for the radial menu (next + close). Progress ring runs
-around the edge.
+There is also a `transparent` variant for placing the player over your own
+background.
 
 ## Install
 
@@ -128,11 +125,11 @@ around the edge.
 git clone https://github.com/YamadaBlog/pulse-player.git
 cd pulse-player
 npm install
-npm run dev       # demo on http://localhost:5174
+npm run dev       # http://localhost:5174 — demo with the live size slider
 ```
 
-For your own Vue 3 app, copy [`src/lib/`](./src/lib) into your project — it
-has no other source dependency. Then:
+To consume the library in your own Vue 3 app, copy [`src/lib/`](./src/lib)
+into your project — it has no other source dependency. Then:
 
 ```bash
 npm install vue pinia lucide-vue-next
@@ -157,7 +154,7 @@ const store = useAudioStore()
 </script>
 
 <template>
-  <!-- Inline card — embed anywhere. Both icons appear by default. -->
+  <!-- Inline card. Icons (GitHub + Spotify) appear by default. -->
   <MusicPlayer
     variant="sunset"
     accent-color="#F59E0B"
@@ -175,8 +172,38 @@ const store = useAudioStore()
 </template>
 ```
 
-No provider, no plugin registration — Pinia is the only thing that needs to
-be installed once.
+No provider, no plugin registration — Pinia is the only thing that needs
+to be installed once at the app root.
+
+## How sizing works
+
+The component watches its own container with a `ResizeObserver`. From the
+container width it computes a unitless scale factor (0.70 — 1.80) and writes
+it to `--pulse-scale` as an inline style. All dimensions are CSS `calc()`
+of a base value × `var(--pulse-scale)`:
+
+```css
+.mp {
+  --pulse-scale: 1;                       /* set inline by JS */
+
+  --pulse-pad:    calc(14px * var(--pulse-scale));
+  --pulse-radius: calc(18px * var(--pulse-scale));
+  --pulse-art:    calc(112px * var(--pulse-scale));
+  --pulse-title:  calc(22px  * var(--pulse-scale));
+  --pulse-icon:   calc(17px  * var(--pulse-scale));
+  --pulse-btn:    calc(34px  * var(--pulse-scale));
+  --pulse-bar-h:  calc(3px   * var(--pulse-scale));
+  /* …and a dozen more — see MusicPlayer.vue */
+}
+```
+
+Pass the `size` prop (a number) to override the auto-scale entirely:
+
+```vue
+<MusicPlayer :size="0.75" />   <!-- compact sidebar -->
+<MusicPlayer :size="1.0"  />   <!-- card -->
+<MusicPlayer :size="1.7"  />   <!-- hero -->
+```
 
 ## Change the music
 
@@ -196,8 +223,6 @@ setAudioTracks([
   { title: 'YOUR TRACK',  src: '/music/01.mp3', cover: '/img/01.jpg', coverPos: '50% 40%' },
   { title: 'ANOTHER ONE', src: '/music/02.mp3', cover: '/img/02.jpg', coverPos: 'center', coverScale: 1.1 },
 ])
-
-createApp(App).use(createPinia()).mount('#app')
 ```
 
 ```ts
@@ -214,12 +239,13 @@ interface Track {
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `variant` | `'auto' \| 'transparent' \| 'solid' \| 'dark' \| 'light' \| 'sunset' \| 'midnight' \| 'aurora' \| 'vinyl' \| 'custom'` | `'auto'` | Visual background preset. |
+| `variant` | `'auto' \| 'transparent' \| 'solid' \| 'dark' \| 'light' \| 'sunset' \| 'midnight' \| 'aurora' \| 'vinyl' \| 'custom'` | `'auto'` | Background preset. |
 | `customBackground` | `string` | — | Any CSS `background` value. Used when `variant="custom"`. |
-| `accentColor` | `string` | — | Overrides the local accent (EQ bars, scrub hover, focus). |
-| `githubUrl` | `string` | — | If set, the GitHub icon becomes a link to this URL. Without it, the icon is decorative. |
-| `spotifyUrl` | `string` | — | If set, the Spotify icon becomes a link (e.g. to the album / playlist). Without it, decorative. |
+| `accentColor` | `string` | — | Overrides the local accent (EQ bars, scrub hover, focus ring). |
+| `githubUrl` | `string` | — | If set, the GitHub icon becomes a link. Without it, the icon is decorative. |
+| `spotifyUrl` | `string` | — | If set, the Spotify icon becomes a link (album, playlist, profile). Without it, decorative. |
 | `hideIcons` | `boolean` | `false` | Hide BOTH icons entirely. |
+| `size` | `number` | _(auto)_ | Override the auto-responsive scale. Range `0.6` – `1.8`. |
 
 ## Props — `<MiniPlayer />`
 
@@ -228,10 +254,10 @@ interface Track {
 | `variant` | same set as `MusicPlayer` | `'auto'` | `'auto'` shows the cover art inside the circle; presets fill with a solid / gradient. |
 | `customBackground` | `string` | — | CSS background for `variant="custom"`. |
 | `accentColor` | `string` | — | Overrides the ring + EQ accent locally. |
-| `size` | `number` | `56` | Diameter in pixels (min recommended 40). |
+| `size` | `number` | `56` | FAB diameter in pixels (min recommended 40). |
 | `offset` | `{ bottom?: number; right?: number }` | `{ bottom: 32, right: 16 }` | Position offset from the bottom-right corner. |
 
-## CSS variables (global theming)
+## CSS variables (global)
 
 ```css
 :root {
@@ -246,28 +272,31 @@ absent, so they work out of the box without theming work.
 ## Examples
 
 ```vue
-<!-- Vinyl Dark — warm analog with gold accent (matches the variant aesthetic) -->
+<!-- Vinyl Dark — warm analog with gold accent -->
 <MusicPlayer variant="vinyl" accent-color="#C8A97E" />
 
-<!-- Midnight with brand violet -->
-<MusicPlayer variant="midnight" accent-color="#8B5CF6"
-             spotify-url="https://open.spotify.com/playlist/abc" />
+<!-- Midnight with Spotify deep link -->
+<MusicPlayer
+  variant="midnight"
+  accent-color="#8B5CF6"
+  spotify-url="https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M"
+/>
 
-<!-- Light theme inversion -->
-<MusicPlayer variant="light" accent-color="#6750A4" />
-
-<!-- Fully custom — pass any CSS background -->
+<!-- Fully custom background -->
 <MusicPlayer
   variant="custom"
   :custom-background="'linear-gradient(135deg, #2c1610 0%, #4a2c1f 45%, #6b4226 100%)'"
   accent-color="#E8A87C"
 />
 
-<!-- Bigger FAB, pinned higher -->
-<MiniPlayer variant="aurora" :size="72" :offset="{ bottom: 56, right: 24 }" />
+<!-- Sidebar widget — pinned size, no icons -->
+<MusicPlayer variant="dark" :size="0.75" hide-icons />
 
-<!-- Headless mode: hide both icons -->
-<MusicPlayer variant="midnight" hide-icons />
+<!-- Headline hero — large fixed size -->
+<MusicPlayer variant="auto" :size="1.6" github-url="https://github.com/you" />
+
+<!-- Bigger floating FAB, pinned higher -->
+<MiniPlayer variant="aurora" :size="72" :offset="{ bottom: 56, right: 24 }" />
 ```
 
 ## Store API — `useAudioStore`
@@ -317,8 +346,8 @@ absent, so they work out of the box without theming work.
 
 A single `<audio>` element + Web Audio API analyser live in the Pinia store —
 outside the Vue component tree. Mount / unmount either UI component freely:
-nothing ever stops playback. For embedding patterns + FAQ, see
-[`docs/USAGE.md`](./docs/USAGE.md).
+nothing ever stops playback. For embedding patterns and the integration FAQ,
+see [`docs/USAGE.md`](./docs/USAGE.md).
 
 ## Dependencies
 
@@ -329,15 +358,14 @@ Runtime:
 
 Browser APIs:
 - `HTMLAudioElement`
-- Web Audio API: `AudioContext` + `AnalyserNode` + `MediaElementAudioSourceNode` (used only for the EQ bars — try/catch wrapped, bars stay flat if unavailable)
-- `ResizeObserver`
-- CSS container queries (Chrome 105+, Safari 16+, Firefox 110+)
-- Vue 3 `<Teleport>` (built-in)
+- Web Audio API: `AudioContext` + `AnalyserNode` + `MediaElementAudioSourceNode` (try/catch wrapped — bars stay flat if unavailable)
+- `ResizeObserver` — drives the auto-scale
+- Vue 3 `<Teleport>` — drives the FAB mount-to-body
 
 Build / dev only: `vite ^5`, `@vitejs/plugin-vue ^5`, `typescript ^5.4`, `vue-tsc ^2`.
 > ⚠ `vue-tsc 1.x` is incompatible with TypeScript 5.3+ (`supportedTSExtensions` crash). Use `^2`.
 
-**Bundle:** ~96 kB JS + ~15 kB CSS (≈ **41 kB gzipped** combined).
+**Bundle:** ~98 kB JS + ~16 kB CSS (≈ **42 kB gzipped** combined).
 
 ## Limits
 
@@ -348,7 +376,7 @@ Build / dev only: `vite ^5`, `@vitejs/plugin-vue ^5`, `typescript ^5.4`, `vue-ts
   only the EQ bars stay flat.
 - First play must follow a user gesture (standard autoplay policy).
 - No volume slider, shuffle or repeat in the default UI — the store actions
-  exist, you can wire your own controls.
+  exist; wire your own controls if you need them.
 
 ## Roadmap
 
@@ -358,16 +386,17 @@ Build / dev only: `vite ^5`, `@vitejs/plugin-vue ^5`, `typescript ^5.4`, `vue-ts
 - [ ] Keyboard shortcuts (`Space`, `←`, `→`)
 - [ ] Media Session API (hardware media keys + lock-screen art)
 - [ ] Waveform variant (canvas-rendered alternative to the EQ bars)
-- [ ] Published as a standalone npm package
+- [ ] Publish as a standalone npm package
 
 ## License
 
-[MIT](./LICENSE). The two demo tracks under `public/audio/` are shipped for
-local testing only and are **not** part of the MIT-licensed source — replace
-them with content you own before redistributing.
+[MIT](./LICENSE). The two demo tracks under `public/audio/` are shipped
+for local testing only and are **not** part of the MIT-licensed source —
+replace them with content you own before redistributing.
 
 <div align="center">
 
-<sub>Built with Vue 3, Pinia, and a small amount of obsessive responsive tuning.</sub>
+<sub>Built with Vue 3, Pinia, a ResizeObserver, and a small amount of
+obsessive proportional tuning.</sub>
 
 </div>
