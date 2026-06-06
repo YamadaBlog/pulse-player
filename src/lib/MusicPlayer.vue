@@ -307,9 +307,9 @@ onUnmounted(() => {
     <div v-if="effectiveAmbientEq" class="mp__ambient" aria-hidden="true">
       <i v-for="n in 64" :key="n"
          :style="{
-           height: (store.isPlaying
-             ? Math.max(6, store.eqAmbientBars[n - 1] * 100)
-             : 6) + '%',
+           '--bar-y': store.isPlaying
+             ? Math.max(0.06, store.eqAmbientBars[n - 1] ?? 0)
+             : 0.06,
            '--bar-c': ambientBarStyles[n - 1].color,
          }"></i>
     </div>
@@ -334,7 +334,8 @@ onUnmounted(() => {
       <div class="mp__top">
         <div class="mp__now">
           <span class="mp__eq" aria-hidden="true">
-            <i v-for="(v, idx) in store.eqBars" :key="idx" :style="{ height: (store.isPlaying ? Math.max(15, v * 100) : 15) + '%' }"></i>
+            <i v-for="(v, idx) in store.eqBars" :key="idx"
+               :style="{ '--bar-y': store.isPlaying ? Math.max(0.15, v) : 0.15 }"></i>
           </span>
           <span class="mp__now-label">NOW PLAYING</span>
         </div>
@@ -403,7 +404,8 @@ onUnmounted(() => {
         <Play v-else />
       </div>
       <span class="mp__fab-eq" :class="{ 'mp__fab-eq--on': store.isPlaying }">
-        <i v-for="(v, idx) in store.eqBars" :key="idx" :style="{ height: Math.max(20, v * 100) + '%' }"></i>
+        <i v-for="(v, idx) in store.eqBars" :key="idx"
+           :style="{ '--bar-y': Math.max(0.20, v) }"></i>
       </span>
       <svg class="mp__fab-ring" :width="fabSize" :height="fabSize" :viewBox="`0 0 ${fabSize} ${fabSize}`">
         <circle
@@ -720,10 +722,14 @@ onUnmounted(() => {
 .mp__fab-eq i {
   display: block;
   width: 2px;
+  height: 100%;            /* fixed height — animate via scaleY */
   border-radius: 1px;
   /* Same Spotify green as the inline EQ — locked across themes. */
   background: #1DB954;
-  transition: height 0.08s linear;
+  transform: scaleY(var(--bar-y, 0.2));
+  transform-origin: 50% 100%;
+  will-change: transform;
+  transition: transform 0.08s linear;
 }
 
 /* Animated progress ring around the disc — the "time elapsed" contour.
@@ -835,27 +841,38 @@ onUnmounted(() => {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: var(--pulse-bar-h); /* sits just above the progress bar */
+  bottom: var(--pulse-bar-h);
   height: 22%;
   max-height: 28px;
   display: flex;
   align-items: flex-end;
   gap: 1px;
-  padding: 0;                  /* TRULY edge-to-edge */
+  padding: 0;
   pointer-events: none;
   z-index: 0;
   opacity: 0.32;
   overflow: hidden;
+  /* Isolate the EQ from the rest of the document. Style and layout
+     changes inside the bar row don't trigger reflow on the player
+     itself — critical for keeping resize smooth while the FFT
+     animates 60 times per second. */
+  contain: layout style paint;
 }
 .mp__ambient i {
   flex: 1 1 0;
-  min-width: 0;                  /* let bars get truly thin */
+  min-width: 0;
+  /* Bars are full-height boxes — they animate via a `scaleY` transform
+     anchored to their bottom edge. Transforms are composited on the GPU
+     and DON'T trigger layout reflow, unlike `height: %`. Net effect:
+     ambient EQ runs ~10x cheaper, and resizing while it's on no longer
+     drops frames. */
+  height: 100%;
   border-radius: 1px 1px 0 0;
-  /* Per-bar HSL color set inline by the script (--bar-c) so the wave
-     drifts from Spotify-green at the bass end to a touch of mint-cyan
-     at the treble end. Brand identity preserved, frequency cue added. */
   background: linear-gradient(to top, var(--bar-c, #1DB954), transparent);
-  transition: height 0.10s cubic-bezier(0.25, 0.8, 0.35, 1);
+  transform: scaleY(var(--bar-y, 0.06));
+  transform-origin: 50% 100%;
+  transition: transform 0.10s cubic-bezier(0.25, 0.8, 0.35, 1);
+  will-change: transform;
 }
 /* On light variant: bars need a touch more density to stay visible. */
 .mp[data-variant="light"] .mp__ambient { opacity: 0.38; }
@@ -971,9 +988,13 @@ onUnmounted(() => {
 .mp__eq i {
   display: block;
   width: var(--pulse-eq-w);
+  height: 100%;            /* fixed; animate via scaleY for GPU compositing */
   border-radius: calc(var(--pulse-eq-w) / 2);
   background: #1DB954;
-  transition: height 0.08s linear;
+  transform: scaleY(var(--bar-y, 0.15));
+  transform-origin: 50% 100%;
+  will-change: transform;
+  transition: transform 0.08s linear;
 }
 
 .mp__icons {

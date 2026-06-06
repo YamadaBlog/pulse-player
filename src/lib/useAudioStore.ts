@@ -112,25 +112,29 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
       const r = i / (N - 1)
       binMap[i] = Math.round(minBin * Math.pow(maxBin / minBin, r))
     }
+    let frame = 0
     function tick() {
       if (!analyser) return
       analyser.getByteFrequencyData(data)
-      // 4-bar condensed visualiser (NOW PLAYING / FAB chrome).
+      // 4-bar condensed visualiser (NOW PLAYING / FAB chrome) — kept
+      // at the full 60 fps so the focal bars feel responsive.
       eqBars.value = [data[3] / 255, data[8] / 255, data[18] / 255, data[36] / 255]
-      // 64-bar ambient EQ. Each bar gets its OWN log-mapped bin so
-      // adjacent bars react to different frequencies and the wave
-      // reads as movement. Power 0.55 boosts mid-low values, the
-      // gentle per-bar gain (0.65 → 1.15) tilts the response toward
-      // the high end without clipping the lows. Final clamp to 1.0
-      // is a guard, almost never reached now.
-      const ambient = new Array(N)
-      for (let i = 0; i < N; i++) {
-        const r = i / (N - 1)
-        const raw = data[binMap[i]] / 255
-        const gain = 0.65 + r * 0.50
-        ambient[i] = Math.min(1, Math.pow(raw, 0.55) * gain)
+      // 64-bar ambient EQ — throttled to ~30 fps. The Vue reactive
+      // update on a 64-element array fans out to every <MusicPlayer />
+      // showing the ambient (15+ instances on the landing page). Halving
+      // the cadence cuts the per-frame render budget in half without any
+      // visible loss in smoothness — the eye still reads 30 fps as
+      // continuous on this kind of spectrum visualiser.
+      if ((frame++ & 1) === 0) {
+        const ambient = new Array(N)
+        for (let i = 0; i < N; i++) {
+          const r = i / (N - 1)
+          const raw = data[binMap[i]] / 255
+          const gain = 0.65 + r * 0.50
+          ambient[i] = Math.min(1, Math.pow(raw, 0.55) * gain)
+        }
+        eqAmbientBars.value = ambient
       }
-      eqAmbientBars.value = ambient
       eqRaf = requestAnimationFrame(tick)
     }
     tick()
