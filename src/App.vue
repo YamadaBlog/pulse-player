@@ -378,7 +378,7 @@ code {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 80px 64px;
+  padding: clamp(24px, 6vw, 80px) clamp(20px, 5vw, 64px);
 }
 .showcase__backdrop {
   position: absolute;
@@ -399,7 +399,7 @@ code {
   background: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, rgba(0, 0, 0, 0.35) 100%);
 }
 .showcase__player {
-  width: min(720px, 90%);
+  width: min(720px, 100%);
   filter: drop-shadow(0 24px 50px rgba(0, 0, 0, 0.45));
 }
 

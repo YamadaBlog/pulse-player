@@ -65,15 +65,18 @@ const store = useAudioStore()
 // 800 px+ → 1.80  (large / hero)
 const containerRef = ref<HTMLElement | null>(null)
 const autoScale = ref(1.0)
+const containerWidth = ref(360)
+const isCompact = computed(() => containerWidth.value < COMPACT_THRESHOLD)
 let resizeObs: ResizeObserver | null = null
 
+/** Below this container width the layout collapses to compact mode. */
+const COMPACT_THRESHOLD = 240
+
 function computeScale(width: number): number {
-  // Smooth piecewise-linear ramp.
-  // Target: at 360 px (typical mobile) scale ≈ 1.0 so the artwork lands
-  // around 40 % of the container — matches the original dashboard ratio
-  // and keeps mobile/tablet/desktop visually consistent.
+  // Smooth piecewise-linear ramp tuned so the artwork sits at ~33 % of
+  // the container at every breakpoint (matches the original dashboard).
   const s = 0.75 + ((width - 280) / 600) * 1.05
-  return Math.max(0.75, Math.min(1.8, Number(s.toFixed(3))))
+  return Math.max(0.6, Math.min(1.8, Number(s.toFixed(3))))
 }
 
 const scale = computed(() =>
@@ -100,8 +103,10 @@ onMounted(() => {
   nextTick(() => {
     if (!containerRef.value) return
     autoScale.value = computeScale(containerRef.value.clientWidth)
+    containerWidth.value = containerRef.value.clientWidth
     resizeObs = new ResizeObserver(entries => {
       for (const entry of entries) {
+        containerWidth.value = entry.contentRect.width
         autoScale.value = computeScale(entry.contentRect.width)
       }
     })
@@ -115,7 +120,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="mp" ref="containerRef" :data-variant="variant" :style="rootStyle">
+  <div
+    class="mp"
+    ref="containerRef"
+    :data-variant="variant"
+    :data-compact="isCompact ? 'true' : undefined"
+    :style="rootStyle"
+  >
     <svg class="mp__filters" aria-hidden="true">
       <defs>
         <filter id="pulseMpBlur">
@@ -295,6 +306,32 @@ onUnmounted(() => {
   color: #F5F0E8;
 }
 .mp[data-variant="custom"] { background: var(--pulse-custom-bg, transparent); }
+
+/* ─── Compact mode ──────────────────────────────────────────
+   Triggered automatically when the container is < 240 px wide.
+   Keeps the artwork + title + play, hides the secondary chrome.
+   The component stays readable and interactive at any size. */
+.mp[data-compact="true"] {
+  --pulse-art:   calc(80px * var(--pulse-scale));
+  --pulse-title: calc(15px * var(--pulse-scale));
+  --pulse-pad:   calc(10px * var(--pulse-scale));
+}
+.mp[data-compact="true"] .mp__top,
+.mp[data-compact="true"] .mp__spacer { display: none; }
+.mp[data-compact="true"] .mp__body {
+  justify-content: center;
+  gap: calc(var(--pulse-pad) * 0.4);
+}
+.mp[data-compact="true"] .mp__meta { margin-bottom: 0; }
+.mp[data-compact="true"] .mp__controls { gap: calc(var(--pulse-pad) * 0.4); }
+.mp[data-compact="true"] .mp__btn {
+  width: calc(var(--pulse-btn) * 0.75);
+  height: calc(var(--pulse-btn) * 0.75);
+}
+.mp[data-compact="true"] .mp__btn svg {
+  width: calc(var(--pulse-btn-icon) * 0.8);
+  height: calc(var(--pulse-btn-icon) * 0.8);
+}
 
 .mp__filters { position: absolute; width: 0; height: 0; overflow: hidden; }
 
