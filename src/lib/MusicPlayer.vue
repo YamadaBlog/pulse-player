@@ -63,6 +63,12 @@ const props = withDefaults(defineProps<{
    *  Leave `undefined` (the default) to follow the global toggle on
    *  `store.ambientEq`. Pass an explicit boolean to override locally. */
   ambientEq?: boolean
+  /** Programmatic width override. When set (e.g. by the guided demo
+   *  controller) the player is rendered at this width — the internal
+   *  `userWidth` is synced so all derived state (`isFab`, FAB clamp,
+   *  resize handle baseline) stays consistent. Pass `null` to release
+   *  control and return to user-driven sizing. */
+  width?: number | null
 }>(), {
   variant: 'auto',
   hideIcons: false,
@@ -71,6 +77,7 @@ const props = withDefaults(defineProps<{
   minWidth: 60,
   maxWidth: 720,
   ambientEq: undefined,
+  width: null,
 })
 
 const store = useAudioStore()
@@ -111,6 +118,13 @@ const containerWidth = ref(360)
 // User-driven width set by the resize handle (null until first drag).
 // Declared up front so the `isFab` computed below can reference it.
 const userWidth = ref<number | null>(null)
+// Programmatic width override — when a parent passes `:width`, push it
+// straight into `userWidth` so all derived state (`isFab`, FAB clamp,
+// resize handle baseline, drag-stage rendering) stays consistent.
+watch(() => props.width, (w) => {
+  if (w === null || w === undefined) return
+  userWidth.value = w
+}, { immediate: true })
 // Tiered responsive states (progressive instead of one drastic switch):
 //  - default      : full layout (NOW PLAYING + icons + title + controls)
 //  - data-narrow  : NOW PLAYING label hidden, GitHub + Spotify icons stay

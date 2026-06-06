@@ -100,89 +100,155 @@ const fabPalette: { id: MusicPlayerVariant; label: string; accent?: string }[] =
 // ═══════════════════════════════════════════════════════════════
 const tour = useDemoTour()
 
-const THEME_SHOWCASE: { variant: MusicPlayerVariant; accent?: string; label: string }[] = [
-  { variant: 'auto',     label: 'Auto' },
-  { variant: 'midnight', label: 'Midnight', accent: '#8B5CF6' },
-  { variant: 'sunset',   label: 'Sunset',   accent: '#F59E0B' },
-  { variant: 'aurora',   label: 'Aurora',   accent: '#06B6D4' },
-  { variant: 'vinyl',    label: 'Vinyl',    accent: '#C8A97E' },
-]
+// Programmatic levers used by the demo to drive the drag-stage player and
+// the floating FAB. `null` = release control.
+const tourDragWidth = ref<number | null>(null)
+const tourFabPos = ref<{ x: number; y: number } | null>(null)
 
 const demoSteps: DemoStep[] = [
+  // ─── 1. Welcome — calm intro, breathing room ─────────────────
   {
     title: 'Welcome',
     run: async (ctx) => {
-      ctx.setMessage('A drop-in music player for Vue 3 — let me show you around.')
-      await ctx.scrollTo('.hero')
-      await ctx.delay(2200)
-    },
-  },
-  {
-    title: 'Press play',
-    run: async (ctx) => {
-      ctx.setMessage('Real audio. Real FFT. The bars react to the track.')
-      if (!store.isPlaying) store.toggle()
+      ctx.setMessage('A premium drop-in music player for Vue 3. Sit back.')
+      await ctx.scrollTo('.hero', { speed: 'slow' })
       await ctx.delay(3200)
     },
   },
+
+  // ─── 2. Press play — start audio, let FFT come alive ─────────
   {
-    title: 'Responsive scaling',
+    title: 'Press play',
     run: async (ctx) => {
-      ctx.setMessage('One CSS variable scales every dimension — try the slider yourself after.')
+      ctx.setMessage('Real audio · real FFT. The bars react to the track itself.')
+      if (!store.isPlaying) store.toggle()
+      await ctx.delay(3800)
+    },
+  },
+
+  // ─── 3. SHORT preview on "Resize it. Everything follows."
+  //        Just tap a smaller preset to prove the scale is reactive.
+  {
+    title: 'Container-aware',
+    run: async (ctx) => {
       await ctx.scrollTo('.resize-stage')
-      await ctx.delay(400)
-      await ctx.tween((v) => { userScale.value = v }, userScale.value, 0.75, 900)
-      await ctx.delay(600)
-      await ctx.tween((v) => { userScale.value = v }, 0.75, 1.7, 1100)
-      await ctx.delay(600)
-      await ctx.tween((v) => { userScale.value = v }, 1.7, 1.0, 900)
-      await ctx.delay(500)
+      await ctx.delay(900)
+      ctx.setMessage('Tap a smaller size — every dimension follows the same variable.')
+      await ctx.tween((v) => { userScale.value = v }, userScale.value, 0.75, 1200, 'outQuart')
+      await ctx.delay(2200)
+      await ctx.tween((v) => { userScale.value = v }, userScale.value, 1.0, 900, 'outQuart')
+      await ctx.delay(700)
     },
   },
+
+  // ─── 4. MAIN resize show on "Grab the corner. Resize it yourself."
+  //        Activate ambient EQ + animate the drag-stage player small → big.
   {
-    title: 'Themes',
+    title: 'Drag-to-resize',
     run: async (ctx) => {
-      ctx.setMessage('Nine themes, one component. Same player, every mood.')
-      await ctx.scrollTo('.hero__player')
-      for (const t of THEME_SHOWCASE) {
-        if (ctx.signal.aborted) return
-        heroVariant.value = t.variant
-        heroAccent.value = t.accent
-        ctx.setMessage(`Theme · ${t.label}`)
-        await ctx.delay(1300)
-      }
-      heroVariant.value = 'auto'
-      heroAccent.value = undefined
-      await ctx.delay(300)
-    },
-  },
-  {
-    title: 'Ambient EQ',
-    run: async (ctx) => {
-      ctx.setMessage('Ambient EQ — 64 spectrum-coloured bars across every player.')
+      await ctx.scrollTo('.drag-stage', { speed: 'slow' })
+      await ctx.delay(1100)
+      ctx.setMessage('Ambient EQ on — let the wave settle in under the music.')
       store.ambientEq = true
-      await ctx.delay(3000)
+      await ctx.delay(2400)
+
+      ctx.setMessage('Now grab the corner — from the smallest size all the way up to hero width.')
+      // Start tiny — into FAB territory.
+      tourDragWidth.value = 90
+      await ctx.delay(1700)
+      // Grow gently from FAB → full hero size. Long decelerating tween.
+      await ctx.tween((v) => { tourDragWidth.value = Math.round(v) }, 90, 700, 4400, 'outQuart')
+      await ctx.delay(1800)
+      // Pull it back to a comfortable medium size to wrap the demo.
+      ctx.setMessage('And back to a comfortable mid-size — every step is smooth.')
+      await ctx.tween((v) => { tourDragWidth.value = Math.round(v) }, 700, 320, 2400, 'inOutQuart')
+      await ctx.delay(1400)
+      // Release programmatic control so the user can grab the handle after.
+      tourDragWidth.value = null
     },
   },
+
+  // ─── 5. "Pick a mood." — gentle scroll into the theme grid
+  {
+    title: 'Pick a mood',
+    run: async (ctx) => {
+      await ctx.scrollTo('.variants', { speed: 'slow' })
+      await ctx.delay(1400)
+      ctx.setMessage('Nine themes ship in — each one tuned, not just tinted.')
+      await ctx.delay(2800)
+      ctx.setMessage('Mix them with your own accent colour. Brand fit, every time.')
+      await ctx.delay(2600)
+    },
+  },
+
+  // ─── 6. Boost to the bottom — fast scroll to the FAB section
   {
     title: 'Floating FAB',
     run: async (ctx) => {
-      ctx.setMessage('A persistent floating FAB — draggable, dismissible, always in sync.')
-      await ctx.scrollTo('.palette')
+      ctx.setMessage('Now meet the persistent floating FAB.')
+      // The "boost" scroll the user asked for — quick, decelerating.
+      await ctx.scrollTo('.palette', { speed: 'fast' })
+      await ctx.delay(1400)
       if (!store.isVisible) store.open()
       await ctx.delay(900)
-      fabPulso.value = true
-      ctx.setMessage('Pulso — a heartbeat ripple that only animates while the music plays.')
-      await ctx.delay(3000)
-      fabPulso.value = false
-      await ctx.delay(300)
     },
   },
+
+  // ─── 7. Drag the FAB to the centre of the viewport
+  {
+    title: 'Drag anywhere',
+    run: async (ctx) => {
+      ctx.setMessage('Drag it anywhere — it remembers where you left it.')
+      const fabSize = 56
+      const anchorRight = 16
+      const anchorBottom = 32
+      const targetX = -(window.innerWidth / 2 - anchorRight - fabSize / 2)
+      const targetY = -(window.innerHeight / 2 - anchorBottom - fabSize / 2)
+      tourFabPos.value = { x: 0, y: 0 }
+      await ctx.tween((t) => {
+        tourFabPos.value = { x: targetX * t, y: targetY * t }
+      }, 0, 1, 2400, 'outQuart')
+      await ctx.delay(1600)
+    },
+  },
+
+  // ─── 8. Vinyl + Aurora — show two distinct moods on the FAB
+  {
+    title: 'Vinyl & Aurora',
+    run: async (ctx) => {
+      ctx.setMessage('A warm Vinyl mood — gold border, analog feel.')
+      activeFabVariant.value = 'vinyl'
+      await ctx.delay(3200)
+      ctx.setMessage('And a cool Aurora — teal night, cyan accent.')
+      activeFabVariant.value = 'aurora'
+      await ctx.delay(3200)
+    },
+  },
+
+  // ─── 9. Pulso — heartbeat ripple
+  {
+    title: 'Pulso',
+    run: async (ctx) => {
+      ctx.setMessage('Pulso — a heartbeat ripple that only animates while the music plays.')
+      fabPulso.value = true
+      await ctx.delay(5200)
+      fabPulso.value = false
+      await ctx.delay(400)
+    },
+  },
+
+  // ─── 10. Outro — calm return, glide the FAB home, retire control
   {
     title: 'You’re in',
     run: async (ctx) => {
-      ctx.setMessage('That’s pulse-player. Drop it in. Ship it. Have fun exploring.')
-      await ctx.scrollTo('.hero')
+      ctx.setMessage('That’s pulse-player. Drop it in. Make it yours.')
+      // Glide the FAB back to its corner before the curtain.
+      const start = tourFabPos.value ?? { x: 0, y: 0 }
+      await ctx.tween((t) => {
+        tourFabPos.value = { x: start.x * (1 - t), y: start.y * (1 - t) }
+      }, 0, 1, 1400, 'outQuart')
+      tourFabPos.value = null
+      await ctx.scrollTo('.hero', { speed: 'slow' })
       await ctx.delay(2400)
     },
   },
@@ -196,7 +262,7 @@ let preDemoState: {
   ambientEq: boolean
   userScale: number
   fabPulso: boolean
-  wasPlaying: boolean
+  fabVariant: MusicPlayerVariant
   fabVisible: boolean
 } | null = null
 
@@ -208,7 +274,7 @@ function startDemo() {
     ambientEq: store.ambientEq,
     userScale: userScale.value,
     fabPulso: fabPulso.value,
-    wasPlaying: store.isPlaying,
+    fabVariant: activeFabVariant.value,
     fabVisible: store.isVisible,
   }
   tour.start(demoSteps, { onStop: restoreFromDemo })
@@ -220,18 +286,25 @@ function stopDemo() {
 
 function restoreFromDemo() {
   if (!preDemoState) return
-  // Keep audio playing if the user started it — most pleasant outcome.
-  if (preDemoState.heroVariant !== heroVariant.value) heroVariant.value = preDemoState.heroVariant
+  const earlyStop = tour.progress.value < 0.85
+  // Hero
+  heroVariant.value = preDemoState.heroVariant
   heroAccent.value = preDemoState.heroAccent
-  // Keep ambient EQ ON after a successful tour (it was the highlight) —
-  // but if user hit Stop early, restore. Heuristic: progress < 0.9 = stop.
-  if (tour.progress.value < 0.85 && !preDemoState.ambientEq) {
+  // Inline-resize slider
+  userScale.value = preDemoState.userScale
+  // Drag-stage MusicPlayer — release programmatic width so user can drag.
+  tourDragWidth.value = null
+  // FAB — release programmatic position, snap pulso, restore variant.
+  tourFabPos.value = null
+  fabPulso.value = preDemoState.fabPulso
+  activeFabVariant.value = preDemoState.fabVariant
+  // Ambient EQ — keep it ON if the demo finished (it's the highlight),
+  // restore the pre-demo value on early stop.
+  if (earlyStop && !preDemoState.ambientEq) {
     store.ambientEq = false
   }
-  userScale.value = preDemoState.userScale
-  fabPulso.value = preDemoState.fabPulso
-  // FAB visibility: keep the demo's outcome (visible) unless it was hidden
-  if (!preDemoState.fabVisible && tour.progress.value < 0.85) {
+  // FAB visibility — keep visible if demo completed, restore if early stop.
+  if (earlyStop && !preDemoState.fabVisible) {
     store.close()
   }
   preDemoState = null
@@ -414,6 +487,7 @@ const hero = computed(() => ({
           accent-color="#8B5CF6"
           resizable
           :min-width="60"
+          :width="tourDragWidth"
           github-url="https://github.com/YamadaBlog/pulse-player"
           spotify-url="https://open.spotify.com/"
         />
@@ -564,6 +638,7 @@ const hero = computed(() => ({
       :variant="activeFabVariant"
       :accent-color="fabPalette.find(p => p.id === activeFabVariant)?.accent"
       :pulso="fabPulso"
+      :position="tourFabPos"
     />
   </div>
 </template>

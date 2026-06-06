@@ -18,7 +18,7 @@
  *  - `size`: diameter in px. Defaults to 56. Min recommended 40.
  *  - `offset`: bottom/right offset in px. Defaults to `{ bottom: 32, right: 16 }`.
  */
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Play, Pause, SkipForward, X } from 'lucide-vue-next'
 import { useAudioStore } from './useAudioStore'
 
@@ -45,11 +45,17 @@ const props = withDefaults(defineProps<{
   persistKey?: string
   /** Add a subtle pulse + audio-wave ripple around the FAB. Off by default. */
   pulso?: boolean
+  /** Programmatic position override — translate offset from the FAB's
+   *  bottom-right anchor. Pass `null` (the default) to leave drag-driven
+   *  positioning alone. Used by the guided demo to slide the FAB into
+   *  the centre of the viewport. */
+  position?: { x: number; y: number } | null
 }>(), {
   variant: 'auto',
   size: 56,
   persistKey: 'pulse-player-fab-pos',
   pulso: false,
+  position: null,
 })
 
 const store = useAudioStore()
@@ -84,6 +90,12 @@ function onDocClick(e: MouseEvent) {
 // ═ DRAG
 const isDragging = ref(false)
 const position = ref({ x: 0, y: 0 })
+// Programmatic position pushes the internal position ref. Lets the guided
+// demo controller animate the FAB into the centre of the screen.
+watch(() => props.position, (p) => {
+  if (!p) return
+  position.value = { x: p.x, y: p.y }
+}, { immediate: true })
 const hasMoved = ref(false)
 let dragStartPos = { x: 0, y: 0 }
 let dragStartMouse = { x: 0, y: 0 }

@@ -43,6 +43,24 @@
  */
 import { ref, computed, type Ref } from 'vue'
 
+export type EasingName =
+  | 'inOutCubic'
+  | 'outQuart'
+  | 'outQuint'
+  | 'inOutQuart'
+  | 'outExpo'
+
+export interface ScrollToOptions {
+  /** How urgently to move. Most steps should stay on `gentle`.
+   *  `fast` is the "boost" used for skipping to the bottom of the page,
+   *  `slow` is for a luxurious focus shift between adjacent sections. */
+  speed?: 'gentle' | 'fast' | 'slow'
+  /** Override the easing (default depends on `speed`). */
+  easing?: EasingName
+  /** Pixels from the top of the viewport where the target should land. */
+  offset?: number
+}
+
 export interface DemoStepContext {
   signal: AbortSignal
   delay: (ms: number) => Promise<void>
@@ -51,9 +69,9 @@ export interface DemoStepContext {
     from: number,
     to: number,
     duration: number,
-    easing?: (t: number) => number,
+    easing?: EasingName,
   ) => Promise<void>
-  scrollTo: (target: string | Element | null) => Promise<void>
+  scrollTo: (target: string | Element | null, opts?: ScrollToOptions) => Promise<void>
   setMessage: (m: string) => void
 }
 
@@ -95,9 +113,9 @@ export function useDemoTour() {
     const ctx: DemoStepContext = {
       signal,
       delay: (ms) => abortableDelay(ms, signal),
-      tween: (setter, from, to, ms, easing = easeInOutCubic) =>
-        abortableTween(setter, from, to, ms, easing, signal),
-      scrollTo: (target) => abortableScrollTo(target, signal),
+      tween: (setter, from, to, ms, easing = 'outQuart') =>
+        abortableTween(setter, from, to, ms, EASINGS[easing], signal),
+      scrollTo: (target, opts) => abortableScrollTo(target, signal, opts),
       setMessage: (m) => { message.value = m },
     }
 
@@ -203,21 +221,27 @@ function abortableTween(
 function abortableScrollTo(
   target: string | Element | null,
   signal: AbortSignal,
+  opts: ScrollToOptions = {},
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal.aborted) { reject(abortError()); return }
     const el =
       typeof target === 'string' ? document.querySelector(target) : target
     if (!el) { resolve(); return }
+    const offsetTop = opts.offset ?? window.innerHeight * 0.18
     const rect = (el as Element).getBoundingClientRect()
-    const targetY = Math.max(
-      0,
-      rect.top + window.scrollY - window.innerHeight * 0.18,
-    )
+    const targetY = Math.max(0, rect.top + window.scrollY - offsetTop)
     const startY = window.scrollY
     const distance = targetY - startY
     if (Math.abs(distance) < 4) { resolve(); return }
-    const duration = Math.min(1100, 280 + Math.abs(distance) * 0.7)
+    // Premium scroll feel: longer baselines, deceleration easings.
+    const speed = opts.speed ?? 'gentle'
+    const speedProfile = SCROLL_SPEED[speed]
+    const duration = Math.max(
+      speedProfile.min,
+      Math.min(speedProfile.max, speedProfile.base + Math.abs(distance) * speedProfile.perPx),
+    )
+    const easing = EASINGS[opts.easing ?? speedProfile.easing]
     const startTime = performance.now()
     let raf = 0
     const onAbort = () => {
@@ -227,7 +251,7 @@ function abortableScrollTo(
     signal.addEventListener('abort', onAbort, { once: true })
     function tick(now: number) {
       const t = Math.min(1, (now - startTime) / duration)
-      const eased = easeInOutCubic(t)
+      const eased = easing(t)
       window.scrollTo(0, startY + distance * eased)
       if (t < 1 && !signal.aborted) {
         raf = requestAnimationFrame(tick)
@@ -240,6 +264,26 @@ function abortableScrollTo(
   })
 }
 
-function easeInOutCubic(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+// ─── Easings ────────────────────────────────────────────────────
+const EASINGS: Record<EasingName, (t: number) => number> = {
+  inOutCubic: (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
+  outQuart:   (t) => 1 - Math.pow(1 - t, 4),
+  outQuint:   (t) => 1 - Math.pow(1 - t, 5),
+  inOutQuart: (t) => (t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2),
+  outExpo:    (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t)),
+}
+
+const SCROLL_SPEED: Record<'gentle' | 'fast' | 'slow', {
+  min: number
+  max: number
+  base: number
+  perPx: number
+  easing: EasingName
+}> = {
+  // Default — luxurious decelerate over an honest distance.
+  gentle: { min: 900, max: 2200, base: 600, perPx: 0.85, easing: 'outQuart' },
+  // Used for the "boost" scroll to the bottom of the page.
+  fast:   { min: 700, max: 1400, base: 350, perPx: 0.40, easing: 'outQuint' },
+  // For very tiny focus shifts between adjacent sections.
+  slow:   { min: 1400, max: 2800, base: 900, perPx: 1.20, easing: 'inOutQuart' },
 }
