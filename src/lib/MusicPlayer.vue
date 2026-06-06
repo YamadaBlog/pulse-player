@@ -321,21 +321,21 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- ── FAB-mode chrome (rendered only when the inline morphs into
-            the circular FAB at small widths). Mirrors the real
-            MiniPlayer FAB look: cover-blur backdrop, dark cover overlay,
-            play/pause icon, EQ bars, animated progress ring. -->
-    <template v-if="isFab">
-      <div class="mp__fab-bg" :style="{ backgroundImage: `url(${store.track.cover})` }" aria-hidden="true"></div>
-      <div class="mp__fab-overlay" aria-hidden="true"></div>
-      <div class="mp__fab-icon" aria-hidden="true">
+    <!-- ── FAB-mode chrome.
+            ALWAYS rendered (not v-if) so the transition can cross-fade
+            them in/out via CSS opacity. Visibility / pointer-events
+            are gated on `data-fab="true"` in the CSS below. -->
+    <div class="mp__fab-chrome" aria-hidden="true">
+      <div class="mp__fab-bg" :style="{ backgroundImage: `url(${store.track.cover})` }"></div>
+      <div class="mp__fab-overlay"></div>
+      <div class="mp__fab-icon">
         <Pause v-if="store.isPlaying" />
         <Play v-else />
       </div>
-      <span v-if="store.isPlaying" class="mp__fab-eq" aria-hidden="true">
+      <span class="mp__fab-eq" :class="{ 'mp__fab-eq--on': store.isPlaying }">
         <i v-for="(v, idx) in store.eqBars" :key="idx" :style="{ height: Math.max(20, v * 100) + '%' }"></i>
       </span>
-      <svg class="mp__fab-ring" :width="fabSize" :height="fabSize" :viewBox="`0 0 ${fabSize} ${fabSize}`" aria-hidden="true">
+      <svg class="mp__fab-ring" :width="fabSize" :height="fabSize" :viewBox="`0 0 ${fabSize} ${fabSize}`">
         <circle
           class="mp__fab-ring-track"
           :cx="fabSize / 2" :cy="fabSize / 2" :r="fabRadius"
@@ -349,7 +349,7 @@ onUnmounted(() => {
           :stroke-dashoffset="fabRingOffset"
         />
       </svg>
-    </template>
+    </div>
 
     <!-- Drag-to-resize handle (bottom-right corner). Pointer events =
          single code path for mouse, touch and pen. -->
@@ -421,8 +421,10 @@ onUnmounted(() => {
   color: var(--pulse-text, #ffffff);
   background: var(--pulse-bg, #14141a);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  /* Classic state: only background is transitioned. Going FAB → classic
+     SNAPS the shape (max-width, border-radius, padding, gap) so the user
+     never sees the rugby-ball intermediate shape. */
   transition: background 0.3s ease;
-  /* Font sizing as the base unit for em-based children */
   font-size: var(--pulse-title);
   line-height: 1.1;
 }
@@ -470,18 +472,18 @@ onUnmounted(() => {
 }
 .mp[data-variant="custom"] { background: var(--pulse-custom-bg, transparent); }
 
-/* ─── FAB transformation (in-place) ─────────────────────────
+/* ─── FAB transformation (in-place, with smooth morph) ──────
    Below FAB_THRESHOLD (110 px) the inline player morphs IN PLACE
-   into a circular FAB that mirrors the real MiniPlayer chrome:
-   cover-blur backdrop, dark cover overlay, play/pause icon,
-   FFT EQ bars and the animated progress ring.
-   Overflow is visible so the resize grip can sit in the
-   bounding-box corner outside the round disc. */
+   into a circular FAB that mirrors the real MiniPlayer chrome.
+   The morph is one coordinated, staggered transition:
+     Phase 1 (0 – 200 ms)   body fades out + collapses to zero
+     Phase 2 (50 – 500 ms)  shell reshapes: padding / radius / max-width
+     Phase 3 (200 – 500 ms) FAB chrome fades in (chrome layer + ring + EQ)
+   Reverse plays in the opposite order on exit — same easing both ways. */
+
 .mp[data-fab="true"] {
-  /* Cap the visible FAB to ~half the threshold so the transition from
-     compact inline → circular FAB doesn't feel like a sudden jump in
-     size. The bounding-box width is whatever the user dragged the
-     resize handle to; the visual is capped at 56 px. */
+  /* Cap the visible FAB to ~half the threshold so the classic → FAB
+     transition is a continuous shrink, never a size jump. */
   max-width: 56px;
   aspect-ratio: 1 / 1;
   height: auto;
@@ -493,25 +495,94 @@ onUnmounted(() => {
   box-shadow:
     0 6px 24px rgba(0, 0, 0, 0.5),
     0 0 0 1px rgba(255, 255, 255, 0.10);
+  /* Transitions live on the DESTINATION state — they only apply when
+     ENTERING this state (classic → FAB). When leaving FAB (data-fab is
+     removed), the classic-state transition rule applies, which transitions
+     only `background`. The shape snaps back instantly → no rugby. */
+  transition:
+    max-width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    gap 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.3s ease;
 }
-.mp[data-fab="true"] .mp__body,
-.mp[data-fab="true"] .mp__bar,
+
+/* Body / progress bar / inline backdrop layers fade out smoothly when
+   ENTERING the FAB (transitions live on the destination state). On exit
+   they snap back to classic instantly so no "rugby" intermediate shape
+   appears mid-morph. */
+.mp__body {
+  max-width: 999px;
+  max-height: 999px;
+  opacity: 1;
+}
+.mp[data-fab="true"] .mp__body {
+  opacity: 0;
+  max-width: 0;
+  max-height: 0;
+  padding: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.22s ease,
+    max-width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mp__bar { opacity: 1; }
+.mp[data-fab="true"] .mp__bar {
+  opacity: 0;
+  height: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease, height 0.3s ease;
+}
+
 .mp[data-fab="true"] .mp__bg,
-.mp[data-fab="true"] .mp__noise { display: none; }
+.mp[data-fab="true"] .mp__noise {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Artwork morphs from the small rounded square in the inline layout
+   to a full-disc cover ONLY when entering FAB. Snap on exit avoids
+   the rugby-ball pass-through. */
 .mp[data-fab="true"] .mp__art {
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
-  margin: 0;
   border-radius: 50%;
   box-shadow: none;
   cursor: pointer;
-  overflow: hidden;
   z-index: 1;
+  transition:
+    width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.4s ease;
 }
 .mp[data-fab="true"] .mp__art-img { border-radius: 50%; }
-.mp[data-fab="true"] .mp__art-hover { display: none; }
+.mp[data-fab="true"] .mp__art-hover { opacity: 0 !important; pointer-events: none; }
+
+/* ─── FAB chrome layer ───────────────────────────────────────
+   The chrome (cover-blur backdrop, dark scrim, icon, EQ, ring) is
+   ALWAYS in the DOM but invisible by default. CSS reveals it in
+   sync with the shell morph using a tiny delay so the body has
+   time to fade out first. */
+.mp__fab-chrome {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 2;
+}
+.mp[data-fab="true"] .mp__fab-chrome {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.30s ease 0.18s,
+    visibility 0s;
+}
 
 /* Cover-blur backdrop — soft glow behind the disc, picked from
    the live cover art so the FAB feels grounded to the music. */
@@ -526,7 +597,6 @@ onUnmounted(() => {
   opacity: 0.55;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 0;
   transition: background-image 0.5s ease;
 }
 
@@ -539,7 +609,6 @@ onUnmounted(() => {
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   pointer-events: none;
-  z-index: 2;
 }
 
 /* Play / pause icon — centered, scales with the FAB size. */
@@ -550,7 +619,6 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   color: rgba(255, 255, 255, 0.95);
-  z-index: 3;
   pointer-events: none;
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
 }
@@ -566,9 +634,11 @@ onUnmounted(() => {
   align-items: flex-end;
   gap: 1.5px;
   height: 11%;
-  z-index: 4;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
+.mp__fab-eq--on { opacity: 1; }
 .mp__fab-eq i {
   display: block;
   width: 2px;
@@ -577,12 +647,12 @@ onUnmounted(() => {
   transition: height 0.08s linear;
 }
 
-/* Animated progress ring around the disc — the "time elapsed" contour. */
+/* Animated progress ring around the disc — the "time elapsed" contour.
+   Lives inside .mp__fab-chrome so it inherits the chrome fade. */
 .mp__fab-ring {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 5;
   transform: rotate(-90deg);
 }
 .mp__fab-ring-track {
@@ -595,7 +665,8 @@ onUnmounted(() => {
 }
 
 /* Resize grip — small circular nub in the bottom-right corner of the
-   bounding box, just outside the round disc. Matches the FAB language. */
+   bounding box, just outside the round disc. Style transitions only
+   when entering FAB; snap back when leaving. */
 .mp[data-fab="true"] .mp__resize {
   bottom: -2px;
   right: -2px;
@@ -612,6 +683,17 @@ onUnmounted(() => {
   z-index: 6;
   cursor: nwse-resize;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  transition:
+    color 0.15s ease,
+    transform 0.15s ease,
+    background 0.35s ease,
+    border 0.35s ease,
+    border-radius 0.35s ease,
+    width 0.35s ease,
+    height 0.35s ease,
+    bottom 0.35s ease,
+    right 0.35s ease,
+    box-shadow 0.35s ease;
 }
 .mp[data-fab="true"] .mp__resize svg { width: 11px; height: 11px; }
 
