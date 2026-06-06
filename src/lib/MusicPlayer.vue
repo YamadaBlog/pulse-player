@@ -21,7 +21,7 @@
  *  - `hideIcons`: hide both icons entirely.
  *  - `size`: override the auto-scale (0.6 – 2.0).
  */
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { Play, Pause, SkipBack, SkipForward } from 'lucide-vue-next'
 import { useAudioStore } from './useAudioStore'
 
@@ -61,7 +61,7 @@ const props = withDefaults(defineProps<{
   hideIcons: false,
   noise: true,
   resizable: false,
-  minWidth: 100,
+  minWidth: 60,
 })
 
 const store = useAudioStore()
@@ -77,12 +77,14 @@ const containerRef = ref<HTMLElement | null>(null)
 const autoScale = ref(1.0)
 const containerWidth = ref(360)
 const isCompact = computed(() => containerWidth.value < COMPACT_THRESHOLD)
+const isFab = computed(() => containerWidth.value < FAB_THRESHOLD)
 let resizeObs: ResizeObserver | null = null
 
-/** Below this container width the layout collapses to compact mode.
- *  Kept low (170 px) so we shrink everything progressively first and
- *  only flip to compact once the body genuinely cannot hold the title. */
+/** Below this container width the layout collapses to compact mode. */
 const COMPACT_THRESHOLD = 170
+/** Below this width the player morphs into a circular FAB (just the cover
+ *  artwork as a clickable disc). */
+const FAB_THRESHOLD = 110
 
 function computeScale(width: number): number {
   // Two-zone ramp:
@@ -174,6 +176,15 @@ onMounted(() => {
 onUnmounted(() => {
   if (resizeObs) { resizeObs.disconnect(); resizeObs = null }
 })
+
+// When the inline player is resized below FAB_THRESHOLD, it really
+// turns into the floating FAB — `store.open()` makes the global
+// <MiniPlayer /> visible. When the user drags the inline back out
+// past the threshold, leave the FAB visible (user controls it via
+// the FAB itself).
+watch(isFab, (now) => {
+  if (now) store.open()
+})
 </script>
 
 <template>
@@ -182,6 +193,7 @@ onUnmounted(() => {
     ref="containerRef"
     :data-variant="variant"
     :data-compact="isCompact ? 'true' : undefined"
+    :data-fab="isFab ? 'true' : undefined"
     :style="rootStyle"
   >
     <svg class="mp__filters" aria-hidden="true">
@@ -406,6 +418,44 @@ onUnmounted(() => {
   color: #F5F0E8;
 }
 .mp[data-variant="custom"] { background: var(--pulse-custom-bg, transparent); }
+
+/* ─── FAB transformation ────────────────────────────────────
+   Below FAB_THRESHOLD (110 px) the inline player REALLY transforms
+   into the floating MiniPlayer FAB — `store.open()` (called from
+   the watch in the script) makes the global <MiniPlayer /> visible.
+   The inline shell becomes invisible (visibility: hidden) but stays
+   in the DOM so the ResizeObserver keeps observing and the user
+   can drag back up via the floating resize handle. */
+.mp[data-fab="true"] {
+  visibility: hidden;
+  pointer-events: none;
+  box-shadow: none;
+  background: none;
+}
+.mp[data-fab="true"] .mp__bg,
+.mp[data-fab="true"] .mp__noise { display: none; }
+/* The resize handle floats next to the FAB so the user can grab
+   it to drag the inline player back out. Visible again, pointer
+   events on. */
+.mp[data-fab="true"] .mp__resize {
+  position: fixed;
+  bottom: 16px;
+  right: 80px;
+  width: 28px;
+  height: 28px;
+  visibility: visible;
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 901;
+  cursor: nw-resize;
+}
+.mp[data-fab="true"] .mp__resize svg { width: 12px; height: 12px; }
 
 /* ─── Compact mode ──────────────────────────────────────────
    Triggered automatically when the container is < 240 px wide.

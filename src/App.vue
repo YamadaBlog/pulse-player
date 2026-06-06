@@ -223,7 +223,7 @@ const hero = computed(() => ({
           variant="midnight"
           accent-color="#8B5CF6"
           resizable
-          :min-width="120"
+          :min-width="60"
           :max-width="900"
           github-url="https://github.com/YamadaBlog/pulse-player"
           spotify-url="https://open.spotify.com/"

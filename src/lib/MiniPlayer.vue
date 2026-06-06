@@ -367,7 +367,7 @@ onUnmounted(() => {
   width: var(--fab-size, 56px);
   height: var(--fab-size, 56px);
   border-radius: 50%;
-  border: 1.5px solid var(--pulse-accent, #3DBDA7);
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
   pointer-events: none;
   opacity: 0;
   z-index: 1;
