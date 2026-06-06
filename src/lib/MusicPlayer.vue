@@ -53,15 +53,22 @@ const props = withDefaults(defineProps<{
   noise?: boolean
   /** Enable the drag-to-resize handle in the bottom-right corner. */
   resizable?: boolean
-  /** Min / max width when resizable. Defaults: 180 / Infinity (no cap). */
+  /** Min / max width when resizable. Defaults: 60 / 720 (hero size).
+   *  The 720 cap keeps the player from being dragged into a
+   *  disproportionate stretch on wide screens. */
   minWidth?: number
   maxWidth?: number
+  /** Subtle FFT-driven equaliser drawn behind the body, flush to the
+   *  bottom of the player. Adds musical motion without intruding. */
+  ambientEq?: boolean
 }>(), {
   variant: 'auto',
   hideIcons: false,
   noise: true,
   resizable: false,
   minWidth: 60,
+  maxWidth: 720,
+  ambientEq: false,
 })
 
 const store = useAudioStore()
@@ -252,6 +259,18 @@ onUnmounted(() => {
          texture is part of the component's identity (matches the original
          dashboard). Disable with `:noise="false"`. -->
     <div v-if="noise" class="mp__noise" aria-hidden="true"></div>
+
+    <!-- Ambient EQ — subtle FFT bars flush to the bottom of the player,
+         spanning the full width. Behind the body content. Driven by the
+         same `store.eqBars` as the inline / FAB equaliser. Opt-in. -->
+    <div v-if="ambientEq" class="mp__ambient" aria-hidden="true">
+      <i v-for="n in 28" :key="n"
+         :style="{
+           height: (store.isPlaying
+             ? Math.max(8, store.eqBars[(n - 1) % store.eqBars.length] * 100)
+             : 8) + '%'
+         }"></i>
+    </div>
 
     <div class="mp__art" @click="store.toggle">
       <img
@@ -660,7 +679,8 @@ onUnmounted(() => {
   display: block;
   width: 2px;
   border-radius: 1px;
-  background: var(--pulse-accent, #3DBDA7);
+  /* Same Spotify green as the inline EQ — locked across themes. */
+  background: #1DB954;
   transition: height 0.08s linear;
 }
 
@@ -766,6 +786,39 @@ onUnmounted(() => {
   transition: background-image 0.6s ease;
 }
 
+/* ─── Ambient EQ ────────────────────────────────────────────
+   FFT-driven bars flush to the bottom edge of the player, full
+   width. Sits behind .mp__art / .mp__body but above the .mp__bg.
+   Subtle by design (opacity 0.18, max 35 % of player height) so
+   it never competes with the title or controls. */
+.mp__ambient {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--pulse-bar-h); /* sits just above the progress bar */
+  height: 35%;
+  max-height: 64px;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 0 calc(var(--pulse-pad) * 0.5);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.18;
+  overflow: hidden;
+}
+.mp__ambient i {
+  flex: 1;
+  min-width: 2px;
+  border-radius: 1px 1px 0 0;
+  background: linear-gradient(to top, #1DB954, rgba(29, 185, 84, 0.05));
+  transition: height 0.12s linear;
+}
+/* On light variant: bars use the same hue but tuned for the light bg. */
+.mp[data-variant="light"] .mp__ambient { opacity: 0.22; }
+/* In FAB mode the ambient EQ is hidden — the FAB has its own chrome. */
+.mp[data-fab="true"] .mp__ambient { display: none; }
+
 /* ─── Always-on noise overlay ───────────────────────────────
    A fixed SVG fractal-noise pattern, encoded as a data URI so it
    renders identically on every variant (including dark, light, vinyl,
@@ -870,11 +923,13 @@ onUnmounted(() => {
 .mp[data-variant="vinyl"] .mp__now-label { color: rgba(245, 240, 232, 0.5); }
 
 .mp__eq { display: flex; align-items: flex-end; gap: var(--pulse-eq-gap); height: var(--pulse-eq-h); }
+/* EQ bars locked to Spotify green for brand consistency.
+   Themes (accent override, variant) do NOT touch this color. */
 .mp__eq i {
   display: block;
   width: var(--pulse-eq-w);
   border-radius: calc(var(--pulse-eq-w) / 2);
-  background: var(--pulse-accent, #3DBDA7);
+  background: #1DB954;
   transition: height 0.08s linear;
 }
 

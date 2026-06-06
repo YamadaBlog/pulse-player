@@ -78,6 +78,7 @@ const responsiveWidths = [320, 480, 720] as const
 // ─── FAB switcher ─────────────────────────────────────────────
 const activeFabVariant = ref<MusicPlayerVariant>('auto')
 const fabPulso = ref(false)
+const dragAmbientEq = ref(false)
 const fabPalette: { id: MusicPlayerVariant; label: string; accent?: string }[] = [
   { id: 'auto',     label: 'Auto' },
   { id: 'vinyl',    label: 'Vinyl',    accent: '#C8A97E' },
@@ -224,10 +225,15 @@ const hero = computed(() => ({
           accent-color="#8B5CF6"
           resizable
           :min-width="60"
-          :max-width="900"
+          :ambient-eq="dragAmbientEq"
           github-url="https://github.com/YamadaBlog/pulse-player"
           spotify-url="https://open.spotify.com/"
         />
+        <label class="ambient-toggle" :class="{ 'ambient-toggle--on': dragAmbientEq }">
+          <input type="checkbox" v-model="dragAmbientEq" />
+          <span class="ambient-toggle__dot"></span>
+          <span class="ambient-toggle__label">Ambient EQ</span>
+        </label>
       </div>
     </section>
 
@@ -867,6 +873,44 @@ code {
 @keyframes pulso-toggle-pulse {
   0%, 100% { box-shadow: 0 0 0 3px rgba(61, 189, 167, 0.25); }
   50% { box-shadow: 0 0 0 6px rgba(61, 189, 167, 0.10); }
+}
+
+/* ─── Ambient EQ toggle (Spotify green accent) ──────────────── */
+.ambient-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 9px 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--pg-text-mid);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.ambient-toggle:hover { color: var(--pg-text); background: rgba(255, 255, 255, 0.08); }
+.ambient-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.ambient-toggle__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.ambient-toggle--on {
+  color: #1DB954;
+  background: rgba(29, 185, 84, 0.10);
+  border-color: rgba(29, 185, 84, 0.40);
+}
+.ambient-toggle--on .ambient-toggle__dot {
+  background: #1DB954;
+  box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.22);
 }
 
 /* ─── FOOTER ───────────────────────────────────────────────── */
