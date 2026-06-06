@@ -78,6 +78,15 @@ const autoScale = ref(1.0)
 const containerWidth = ref(360)
 const isCompact = computed(() => containerWidth.value < COMPACT_THRESHOLD)
 const isFab = computed(() => containerWidth.value < FAB_THRESHOLD)
+
+// ─── FAB chrome geometry (only used when isFab is true) ─────────
+const FAB_STROKE = 2.5
+const fabSize = computed(() => Math.max(40, Math.round(containerWidth.value)))
+const fabRadius = computed(() => (fabSize.value - FAB_STROKE) / 2)
+const fabCircumference = computed(() => 2 * Math.PI * fabRadius.value)
+const fabRingOffset = computed(
+  () => fabCircumference.value - (store.progress / 100) * fabCircumference.value,
+)
 let resizeObs: ResizeObserver | null = null
 
 /** Below this container width the layout collapses to compact mode. */
@@ -296,6 +305,36 @@ onUnmounted(() => {
       </div>
     </div>
 
+    <!-- ── FAB-mode chrome (rendered only when the inline morphs into
+            the circular FAB at small widths). Mirrors the real
+            MiniPlayer FAB look: cover-blur backdrop, dark cover overlay,
+            play/pause icon, EQ bars, animated progress ring. -->
+    <template v-if="isFab">
+      <div class="mp__fab-bg" :style="{ backgroundImage: `url(${store.track.cover})` }" aria-hidden="true"></div>
+      <div class="mp__fab-overlay" aria-hidden="true"></div>
+      <div class="mp__fab-icon" aria-hidden="true">
+        <Pause v-if="store.isPlaying" />
+        <Play v-else />
+      </div>
+      <span v-if="store.isPlaying" class="mp__fab-eq" aria-hidden="true">
+        <i v-for="(v, idx) in store.eqBars" :key="idx" :style="{ height: Math.max(20, v * 100) + '%' }"></i>
+      </span>
+      <svg class="mp__fab-ring" :width="fabSize" :height="fabSize" :viewBox="`0 0 ${fabSize} ${fabSize}`" aria-hidden="true">
+        <circle
+          class="mp__fab-ring-track"
+          :cx="fabSize / 2" :cy="fabSize / 2" :r="fabRadius"
+          fill="none" :stroke-width="FAB_STROKE"
+        />
+        <circle
+          class="mp__fab-ring-progress"
+          :cx="fabSize / 2" :cy="fabSize / 2" :r="fabRadius"
+          fill="none" :stroke-width="FAB_STROKE"
+          :stroke-dasharray="fabCircumference"
+          :stroke-dashoffset="fabRingOffset"
+        />
+      </svg>
+    </template>
+
     <!-- Drag-to-resize handle (bottom-right corner). Pointer events =
          single code path for mouse, touch and pen. -->
     <div
@@ -416,53 +455,144 @@ onUnmounted(() => {
 .mp[data-variant="custom"] { background: var(--pulse-custom-bg, transparent); }
 
 /* ─── FAB transformation (in-place) ─────────────────────────
-   Below FAB_THRESHOLD (110 px) the inline player morphs into a
-   circular disc IN PLACE — it stays where it was mounted (does
-   not teleport anywhere). Cover artwork fills the disc, clicking
-   it toggles play/pause via the existing .mp__art handler. */
+   Below FAB_THRESHOLD (110 px) the inline player morphs IN PLACE
+   into a circular FAB that mirrors the real MiniPlayer chrome:
+   cover-blur backdrop, dark cover overlay, play/pause icon,
+   FFT EQ bars and the animated progress ring.
+   Overflow is visible so the resize grip can sit in the
+   bounding-box corner outside the round disc. */
 .mp[data-fab="true"] {
   aspect-ratio: 1 / 1;
   height: auto;
   border-radius: 50%;
   padding: 0;
   gap: 0;
-  overflow: hidden;
-  background: var(--pulse-bg, #14141a);
+  overflow: visible;
+  background: transparent;
   box-shadow:
     0 6px 24px rgba(0, 0, 0, 0.5),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.10);
+    0 0 0 1px rgba(255, 255, 255, 0.10);
 }
 .mp[data-fab="true"] .mp__body,
 .mp[data-fab="true"] .mp__bar,
 .mp[data-fab="true"] .mp__bg,
 .mp[data-fab="true"] .mp__noise { display: none; }
 .mp[data-fab="true"] .mp__art {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   margin: 0;
   border-radius: 50%;
   box-shadow: none;
   cursor: pointer;
+  overflow: hidden;
+  z-index: 1;
 }
 .mp[data-fab="true"] .mp__art-img { border-radius: 50%; }
-.mp[data-fab="true"] .mp__art-hover { background: rgba(0, 0, 0, 0.45); }
-.mp[data-fab="true"] .mp__art-hover svg { width: 32%; height: 32%; }
-/* Resize handle stays at bottom-right of the disc, small and discreet. */
-.mp[data-fab="true"] .mp__resize {
-  bottom: 4px;
-  right: 4px;
-  width: 16px;
-  height: 16px;
-  padding: 0;
-  background: rgba(0, 0, 0, 0.5);
+.mp[data-fab="true"] .mp__art-hover { display: none; }
+
+/* Cover-blur backdrop — soft glow behind the disc, picked from
+   the live cover art so the FAB feels grounded to the music. */
+.mp__fab-bg {
+  position: absolute;
+  inset: -18%;
+  width: 136%;
+  height: 136%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(22px) saturate(1.25);
+  opacity: 0.55;
   border-radius: 50%;
-  color: rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+  z-index: 0;
+  transition: background-image 0.5s ease;
+}
+
+/* Dark scrim on the cover so the play icon stays legible. */
+.mp__fab-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Play / pause icon — centered, scales with the FAB size. */
+.mp__fab-icon {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 5;
+  color: rgba(255, 255, 255, 0.95);
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
 }
-.mp[data-fab="true"] .mp__resize svg { width: 9px; height: 9px; }
+.mp__fab-icon svg { width: 36%; height: 36%; stroke-width: 2.5; }
+
+/* FFT equalizer bars at the bottom of the disc (only while playing). */
+.mp__fab-eq {
+  position: absolute;
+  bottom: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 11%;
+  z-index: 4;
+  pointer-events: none;
+}
+.mp__fab-eq i {
+  display: block;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--pulse-accent, #3DBDA7);
+  transition: height 0.08s linear;
+}
+
+/* Animated progress ring around the disc — the "time elapsed" contour. */
+.mp__fab-ring {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  transform: rotate(-90deg);
+}
+.mp__fab-ring-track {
+  stroke: rgba(255, 255, 255, 0.10);
+}
+.mp__fab-ring-progress {
+  stroke: var(--pulse-accent, #3DBDA7);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+/* Resize grip — small circular nub in the bottom-right corner of the
+   bounding box, just outside the round disc. Matches the FAB language. */
+.mp[data-fab="true"] .mp__resize {
+  bottom: -2px;
+  right: -2px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 6;
+  cursor: nwse-resize;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+.mp[data-fab="true"] .mp__resize svg { width: 11px; height: 11px; }
 
 /* ─── Compact mode ──────────────────────────────────────────
    Triggered automatically when the container is < 240 px wide.
