@@ -269,18 +269,21 @@ const demoSteps: DemoStep[] = [
       fabFocused.value = true
       await ctx.delay(500)
 
+      // Bring the FAB to the dead centre of the viewport — both axes 50 %.
+      // Slow drag (4.6 s) — matches a calm, deliberate hand movement, not
+      // a teleport.
       const fabSize = 56
       const anchorRight = 16
       const anchorBottom = 32
       const targetX = -(window.innerWidth / 2 - anchorRight - fabSize / 2)
-      const targetY = -(window.innerHeight * 0.35 - anchorBottom - fabSize / 2)
+      const targetY = -(window.innerHeight / 2 - anchorBottom - fabSize / 2)
       const startPos = tourFabPos.value
       await ctx.tween((t) => {
         tourFabPos.value = {
           x: startPos.x + (targetX - startPos.x) * t,
           y: startPos.y + (targetY - startPos.y) * t,
         }
-      }, 0, 1, 2800, 'outQuart')
+      }, 0, 1, 4600, 'inOutQuart')
       await ctx.delay(2000)
     },
   },
@@ -297,7 +300,7 @@ const demoSteps: DemoStep[] = [
         await ctx.delay(500)
         const fabSize = 56
         const targetX = -(window.innerWidth / 2 - 16 - fabSize / 2)
-        const targetY = -(window.innerHeight * 0.35 - 32 - fabSize / 2)
+        const targetY = -(window.innerHeight / 2 - 32 - fabSize / 2)
         tourFabPos.value = { x: targetX, y: targetY }
         await ctx.delay(400)
       }
@@ -323,7 +326,7 @@ const demoSteps: DemoStep[] = [
         await ctx.delay(500)
         const fabSize = 56
         const targetX = -(window.innerWidth / 2 - 16 - fabSize / 2)
-        const targetY = -(window.innerHeight * 0.35 - 32 - fabSize / 2)
+        const targetY = -(window.innerHeight / 2 - 32 - fabSize / 2)
         tourFabPos.value = { x: targetX, y: targetY }
         await ctx.delay(400)
       }
@@ -1037,7 +1040,7 @@ code {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 65%, rgba(0, 0, 0, 0.50) 0%, rgba(0, 0, 0, 0.78) 70%);
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.80) 70%);
   z-index: 800;            /* under the FAB (z-index 900) and pill (1000) */
   pointer-events: none;
   backdrop-filter: blur(2px);
@@ -1296,14 +1299,23 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
 .resize-stage {
   display: flex;
   flex-direction: column;
+  align-items: center;       /* keep every child centred */
   gap: 32px;
   padding: 28px;
   background: var(--pg-surface);
   border: 1px solid var(--pg-border);
   border-radius: 24px;
+  /* Hug the inline player's width when it grows past the stage's
+     natural mid-size — `fit-content` keeps the surface sized to the
+     widest child (the player) instead of forcing it back into the
+     section's max-width. */
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
 }
 .resize-stage__player {
-  margin: 0 auto;
+  display: flex;
+  justify-content: center;   /* center the inline player horizontally */
   width: 100%;
   transition: max-width 0.2s ease;
 }
@@ -1386,13 +1398,23 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
 /* ─── DRAG STAGE ──────────────────────────────────────────── */
 .drag-stage {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;       /* keep the hint pill, player and toggle centred */
+  gap: 22px;
   padding: 28px;
   background: var(--pg-surface);
   border: 1px solid var(--pg-border);
   border-radius: 24px;
+  /* Grow with the player when it is dragged past the section's natural
+     mid-size — same trick as .resize-stage. */
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
 }
 .drag-stage > .mp {
-  margin: 0 auto;
+  /* Already centred by the flex parent. */
+  margin: 0;
 }
 .drag-stage__hint {
   display: inline-flex;
