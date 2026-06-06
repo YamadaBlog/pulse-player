@@ -54,6 +54,10 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
   const eqAmbientBars = ref<number[]>(new Array(64).fill(0))
   const isVisible = ref(false)       // mini-player visible
   const hasBeenOpened = ref(false)    // user started playback at least once
+  /** Global ambient-EQ toggle. When true, every <MusicPlayer /> in the
+   *  app that doesn't explicitly override the `ambientEq` prop will show
+   *  the ambient visualiser. Flip from anywhere via `store.ambientEq`. */
+  const ambientEq = ref(false)
 
   // Audio internals — singleton, never reassigned after init.
   let audio: HTMLAudioElement | null = null
@@ -187,7 +191,7 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
 
   return {
     // State
-    currentTrack, isPlaying, currentTime, duration, eqBars, eqAmbientBars,
+    currentTrack, isPlaying, currentTime, duration, eqBars, eqAmbientBars, ambientEq,
     isVisible, hasBeenOpened,
     // Getters
     progress, track, tracks,

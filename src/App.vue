@@ -78,7 +78,6 @@ const responsiveWidths = [320, 480, 720] as const
 // ─── FAB switcher ─────────────────────────────────────────────
 const activeFabVariant = ref<MusicPlayerVariant>('auto')
 const fabPulso = ref(false)
-const dragAmbientEq = ref(false)
 const fabPalette: { id: MusicPlayerVariant; label: string; accent?: string }[] = [
   { id: 'auto',     label: 'Auto' },
   { id: 'vinyl',    label: 'Vinyl',    accent: '#C8A97E' },
@@ -225,14 +224,13 @@ const hero = computed(() => ({
           accent-color="#8B5CF6"
           resizable
           :min-width="60"
-          :ambient-eq="dragAmbientEq"
           github-url="https://github.com/YamadaBlog/pulse-player"
           spotify-url="https://open.spotify.com/"
         />
-        <label class="ambient-toggle" :class="{ 'ambient-toggle--on': dragAmbientEq }">
-          <input type="checkbox" v-model="dragAmbientEq" />
+        <label class="ambient-toggle" :class="{ 'ambient-toggle--on': store.ambientEq }">
+          <input type="checkbox" v-model="store.ambientEq" />
           <span class="ambient-toggle__dot"></span>
-          <span class="ambient-toggle__label">Ambient EQ</span>
+          <span class="ambient-toggle__label">Ambient EQ — global</span>
         </label>
       </div>
     </section>

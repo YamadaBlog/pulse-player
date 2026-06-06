@@ -59,7 +59,9 @@ const props = withDefaults(defineProps<{
   minWidth?: number
   maxWidth?: number
   /** Subtle FFT-driven equaliser drawn behind the body, flush to the
-   *  bottom of the player. Adds musical motion without intruding. */
+   *  bottom of the player. Adds musical motion without intruding.
+   *  Leave `undefined` (the default) to follow the global toggle on
+   *  `store.ambientEq`. Pass an explicit boolean to override locally. */
   ambientEq?: boolean
 }>(), {
   variant: 'auto',
@@ -68,10 +70,33 @@ const props = withDefaults(defineProps<{
   resizable: false,
   minWidth: 60,
   maxWidth: 720,
-  ambientEq: false,
+  ambientEq: undefined,
 })
 
 const store = useAudioStore()
+
+// Local prop takes precedence; otherwise inherit the app-wide setting.
+const effectiveAmbientEq = computed(() =>
+  props.ambientEq !== undefined ? props.ambientEq : store.ambientEq,
+)
+
+// Pre-compute per-bar HSL colour. Across 64 bars we sweep a small
+// hue range centred on Spotify-green (#1DB954 ≈ HSL 141, 73 %, 42 %)
+// toward a cooler mint-cyan (HSL 175, 68 %, 50 %). The shift is
+// subtle by design — it gives the wave a sense of "frequency spectrum"
+// without breaking brand identity.
+const ambientBarStyles = computed(() => {
+  const N = 64
+  const out: { color: string }[] = new Array(N)
+  for (let i = 0; i < N; i++) {
+    const r = i / (N - 1)
+    const h = Math.round(141 + r * 34)
+    const s = Math.round(73 - r * 5)
+    const l = Math.round(42 + r * 8)
+    out[i] = { color: `hsl(${h}, ${s}%, ${l}%)` }
+  }
+  return out
+})
 
 // ─── Auto-scale via ResizeObserver
 // Map container width to a unitless scale:
@@ -262,14 +287,16 @@ onUnmounted(() => {
 
     <!-- Ambient EQ — Spotify-style background visualiser flush to the
          bottom edge, edge-to-edge. Each bar reads its OWN log-mapped
-         FFT bin (computed in `useAudioStore.startEqLoop`) so neighbours
-         react independently and the high bars stay alive. -->
-    <div v-if="ambientEq" class="mp__ambient" aria-hidden="true">
+         FFT bin AND its own hue (subtle Spotify-green → mint-cyan
+         sweep across the spectrum). Globally toggleable via the
+         `ambientEq` ref on the audio store. -->
+    <div v-if="effectiveAmbientEq" class="mp__ambient" aria-hidden="true">
       <i v-for="n in 64" :key="n"
          :style="{
            height: (store.isPlaying
              ? Math.max(6, store.eqAmbientBars[n - 1] * 100)
-             : 6) + '%'
+             : 6) + '%',
+           '--bar-c': ambientBarStyles[n - 1].color,
          }"></i>
     </div>
 
@@ -808,10 +835,13 @@ onUnmounted(() => {
 }
 .mp__ambient i {
   flex: 1 1 0;
-  min-width: 0;                /* let bars get truly thin */
+  min-width: 0;                  /* let bars get truly thin */
   border-radius: 1px 1px 0 0;
-  background: linear-gradient(to top, #1DB954, rgba(29, 185, 84, 0.10));
-  transition: height 0.10s linear;
+  /* Per-bar HSL color set inline by the script (--bar-c) so the wave
+     drifts from Spotify-green at the bass end to a touch of mint-cyan
+     at the treble end. Brand identity preserved, frequency cue added. */
+  background: linear-gradient(to top, var(--bar-c, #1DB954), transparent);
+  transition: height 0.10s cubic-bezier(0.25, 0.8, 0.35, 1);
 }
 /* On light variant: bars need a touch more density to stay visible. */
 .mp[data-variant="light"] .mp__ambient { opacity: 0.38; }
