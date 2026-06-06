@@ -41,15 +41,22 @@ onMounted(() => {
 })
 
 // ─── Interactive size slider ───────────────────────────────────
-const userScale = ref(1.0)
+//   Drives the SAME `:width` prop the drag-stage uses, so the slider
+//   and the corner-drag handle now share the exact same responsive
+//   logic — the player crosses the same thresholds and goes through
+//   the same morph at the same widths.
+const SLIDER_MIN = 160
+const SLIDER_MAX = 720
+const sliderWidth = ref(440)  // mid-size default — comparable to the previous scale 1.0 visual
 const SIZE_PRESETS = [
-  { label: 'S',   value: 0.75 },
-  { label: 'M',   value: 1.0 },
-  { label: 'L',   value: 1.35 },
-  { label: 'XL',  value: 1.7 },
+  { label: 'XS', value: 160 },
+  { label: 'S',  value: 240 },
+  { label: 'M',  value: 360 },
+  { label: 'L',  value: 540 },
+  { label: 'XL', value: 720 },
 ] as const
 
-function setPreset(v: number) { userScale.value = v }
+function setPreset(v: number) { sliderWidth.value = v }
 
 // ─── Variants gallery ──────────────────────────────────────────
 interface VariantSpec {
@@ -127,24 +134,27 @@ const demoSteps: DemoStep[] = [
   },
 
   // ─── 3. SHORT preview on "Resize it. Everything follows."
-  //        Just tap a smaller preset to prove the scale is reactive.
+  //        Just one preset tap — the slider drives the SAME `:width`
+  //        prop the drag-stage uses, so the player crosses the same
+  //        thresholds. No second cycle: keep this section short.
   {
     title: 'Container-aware',
     run: async (ctx) => {
       await ctx.scrollTo('.resize-stage')
       await ctx.delay(900)
-      ctx.setMessage('Tap a smaller size — every dimension follows the same variable.')
-      await ctx.tween((v) => { userScale.value = v }, userScale.value, 0.75, 1200, 'outQuart')
+      ctx.setMessage('Drop it at any container width — no media queries needed.')
+      await ctx.tween((v) => { sliderWidth.value = Math.round(v) }, sliderWidth.value, 280, 1400, 'outQuart')
       await ctx.delay(2200)
-      await ctx.tween((v) => { userScale.value = v }, userScale.value, 1.0, 900, 'outQuart')
+      await ctx.tween((v) => { sliderWidth.value = Math.round(v) }, sliderWidth.value, 440, 1000, 'outQuart')
       await ctx.delay(700)
     },
   },
 
   // ─── 4. MAIN resize show on "Grab the corner. Resize it yourself."
-  //        Activate ambient EQ + animate the drag-stage player in STAGES,
-  //        pausing at each morph threshold so the user can clearly see
-  //        text, art and chrome retake their places before moving on.
+  //        Activate ambient EQ, ONE smooth growth to hero size, then a
+  //        LONG, progressive shrink with a real pause at each morph
+  //        threshold so the classic → compact → FAB transformation
+  //        reads as a continuous transition, not three hard jumps.
   //        Thresholds in MusicPlayer: FAB < 110, COMPACT < 130, NARROW < 220.
   {
     title: 'Drag-to-resize',
@@ -157,41 +167,33 @@ const demoSteps: DemoStep[] = [
 
       const set = (v: number) => { tourDragWidth.value = Math.round(v) }
 
-      // Stage 0 — Start at FAB form (< 110). Hold long enough for the disc
-      // to fully render with cover, progress ring and EQ overlay.
-      ctx.setMessage('Watch each piece find its place — we’ll start in FAB form.')
-      tourDragWidth.value = 95
+      // Stage A — Start small (~280), grow up ONCE to hero width.
+      // The growth is fast; the user has already seen the slider on
+      // step 3, no need to belabour it.
+      tourDragWidth.value = 280
+      await ctx.delay(800)
+      ctx.setMessage('Pull it open all the way to hero width — same component, never breaks.')
+      await ctx.tween(set, 280, 680, 3200, 'outQuart')
+      await ctx.delay(2200)
+
+      // Stage B — Slow shrink past the NARROW threshold (220).
+      // NOW PLAYING + the GitHub / Spotify icons fade out as we cross.
+      ctx.setMessage('And now gracefully back down — watch each piece retake its seat.')
+      await ctx.tween(set, 680, 235, 6000, 'inOutQuart')
+      await ctx.delay(2400)
+
+      // Stage C — Slow shrink past the COMPACT threshold (130).
+      // The body collapses, only artwork + title + controls remain.
+      ctx.setMessage('Past compact — the body folds in, artwork takes the floor.')
+      await ctx.tween(set, 235, 145, 4400, 'inOutQuart')
+      await ctx.delay(2400)
+
+      // Stage D — Slow shrink past the FAB threshold (110).
+      // The rectangle morphs into the circular FAB disc with chrome,
+      // cover, ring and EQ overlay all fading in together.
+      ctx.setMessage('And finally the FAB form — circular, autonomous, ready to drag.')
+      await ctx.tween(set, 145, 95, 4400, 'inOutQuart')
       await ctx.delay(2800)
-
-      // Stage 1 — Cross the FAB threshold into compact (~145). Slow tween,
-      // then a real pause so the compact layout (artwork + title + buttons)
-      // can fully settle — the user sees the morph back into a rectangle.
-      ctx.setMessage('Past the FAB threshold — the disc morphs back into an inline player.')
-      await ctx.tween(set, 95, 150, 2400, 'inOutQuart')
-      await ctx.delay(2200)
-
-      // Stage 2 — Cross the narrow threshold (~245). NOW PLAYING + the
-      // GitHub / Spotify icons fade back in. Pause to let them breathe.
-      ctx.setMessage('NOW PLAYING and the social icons fade back in.')
-      await ctx.tween(set, 150, 250, 2600, 'inOutQuart')
-      await ctx.delay(2200)
-
-      // Stage 3 — Mid-size (~420). Generous padding, larger artwork. Pause.
-      ctx.setMessage('Mid-size — every dimension scales together from a single variable.')
-      await ctx.tween(set, 250, 420, 2600, 'inOutQuart')
-      await ctx.delay(1700)
-
-      // Stage 4 — Full hero width (~680). Long tween, then linger.
-      ctx.setMessage('All the way up to hero width — same component, never breaks.')
-      await ctx.tween(set, 420, 680, 2800, 'inOutQuart')
-      await ctx.delay(2600)
-
-      // Stage 5 — Slow shrink back to a comfortable mid-size. Slower curve
-      // so the viewer can watch the title, art and controls retake their
-      // seats one by one as the thresholds are crossed in reverse.
-      ctx.setMessage('And gracefully back down — text, art and controls retake their seats.')
-      await ctx.tween(set, 680, 330, 5200, 'inOutQuart')
-      await ctx.delay(1800)
 
       // Release programmatic control so the user can grab the handle.
       tourDragWidth.value = null
@@ -224,7 +226,10 @@ const demoSteps: DemoStep[] = [
     },
   },
 
-  // ─── 7. Drag the FAB to the centre of the viewport
+  // ─── 7. Drag the FAB toward the viewport — horizontal centre,
+  //        65 % from the top. Pulled DOWN from dead centre on purpose
+  //        so the top guidance pill and caption never crowd the FAB
+  //        or the user's eye line.
   {
     title: 'Drag anywhere',
     run: async (ctx) => {
@@ -233,12 +238,14 @@ const demoSteps: DemoStep[] = [
       const anchorRight = 16
       const anchorBottom = 32
       const targetX = -(window.innerWidth / 2 - anchorRight - fabSize / 2)
-      const targetY = -(window.innerHeight / 2 - anchorBottom - fabSize / 2)
+      // 65 % from top → 35 % from bottom. Frees the upper third for the
+      // guidance overlay so the FAB stays clearly in view.
+      const targetY = -(window.innerHeight * 0.35 - anchorBottom - fabSize / 2)
       tourFabPos.value = { x: 0, y: 0 }
       await ctx.tween((t) => {
         tourFabPos.value = { x: targetX * t, y: targetY * t }
-      }, 0, 1, 2400, 'outQuart')
-      await ctx.delay(1600)
+      }, 0, 1, 2600, 'outQuart')
+      await ctx.delay(1800)
     },
   },
 
@@ -290,7 +297,7 @@ let preDemoState: {
   heroVariant: MusicPlayerVariant
   heroAccent: string | undefined
   ambientEq: boolean
-  userScale: number
+  sliderWidth: number
   fabPulso: boolean
   fabVariant: MusicPlayerVariant
   fabVisible: boolean
@@ -320,7 +327,7 @@ async function startDemo() {
     heroVariant: heroVariant.value,
     heroAccent: heroAccent.value,
     ambientEq: store.ambientEq,
-    userScale: userScale.value,
+    sliderWidth: sliderWidth.value,
     fabPulso: fabPulso.value,
     fabVariant: activeFabVariant.value,
     fabVisible: store.isVisible,
@@ -343,7 +350,7 @@ function restoreFromDemo() {
   heroVariant.value = preDemoState.heroVariant
   heroAccent.value = preDemoState.heroAccent
   // Inline-resize slider
-  userScale.value = preDemoState.userScale
+  sliderWidth.value = preDemoState.sliderWidth
   // Drag-stage MusicPlayer — release programmatic width so user can drag.
   tourDragWidth.value = null
   // FAB — release programmatic position, snap pulso, restore variant.
@@ -521,9 +528,9 @@ const hero = computed(() => ({
       </p>
 
       <div class="resize-stage">
-        <div class="resize-stage__player" :style="{ maxWidth: 360 + userScale * 280 + 'px' }">
+        <div class="resize-stage__player">
           <MusicPlayer
-            :size="userScale"
+            :width="sliderWidth"
             variant="midnight"
             accent-color="#8B5CF6"
             github-url="https://github.com/YamadaBlog/pulse-player"
@@ -537,19 +544,19 @@ const hero = computed(() => ({
               v-for="p in SIZE_PRESETS"
               :key="p.label"
               class="presets__btn"
-              :class="{ 'presets__btn--active': Math.abs(userScale - p.value) < 0.01 }"
+              :class="{ 'presets__btn--active': sliderWidth === p.value }"
               @click="setPreset(p.value)"
             >{{ p.label }}</button>
           </div>
           <label class="slider">
-            <span class="slider__label">Scale</span>
+            <span class="slider__label">Width</span>
             <input
               type="range"
-              min="0.6" max="1.8" step="0.01"
-              v-model.number="userScale"
-              aria-label="Component scale"
+              :min="SLIDER_MIN" :max="SLIDER_MAX" step="1"
+              v-model.number="sliderWidth"
+              aria-label="Component width in pixels"
             />
-            <span class="slider__value">×{{ userScale.toFixed(2) }}</span>
+            <span class="slider__value">{{ sliderWidth }} px</span>
           </label>
         </div>
       </div>
