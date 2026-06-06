@@ -403,18 +403,7 @@ const hero = computed(() => ({
          ═══════════════════════════════════════════════════════════════ -->
     <Transition name="demo-overlay">
       <div v-if="tour.isRunning.value" class="demo-overlay" role="region" aria-label="Pulse demo controls">
-        <!-- Transient caption (changes per step). No background — like
-             a subtitle. Re-keyed so each new message fades in/out. -->
-        <Transition name="demo-caption" mode="out-in">
-          <p
-            v-if="tour.message.value"
-            :key="tour.message.value"
-            class="demo-overlay__caption"
-            aria-live="polite"
-          >{{ tour.message.value }}</p>
-        </Transition>
-
-        <!-- Control pill. Dot progress + counter + prev / next / stop. -->
+        <!-- Control pill at the TOP — dots + counter + prev / next / stop. -->
         <div class="demo-pill" role="toolbar" aria-label="Demo controls">
           <button
             class="demo-pill__nav"
@@ -462,6 +451,17 @@ const hero = computed(() => ({
             <span class="demo-pill__stop-label">Stop</span>
           </button>
         </div>
+
+        <!-- Transient caption below the pill. No background — like a
+             subtitle. Re-keyed so each new message fades in/out. -->
+        <Transition name="demo-caption" mode="out-in">
+          <p
+            v-if="tour.message.value"
+            :key="tour.message.value"
+            class="demo-overlay__caption"
+            aria-live="polite"
+          >{{ tour.message.value }}</p>
+        </Transition>
       </div>
     </Transition>
 
@@ -940,9 +940,9 @@ code {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  padding: 0 24px 36px;
-  gap: 22px;
+  justify-content: flex-start; /* anchored to the TOP of the viewport */
+  padding: 24px 24px 0;
+  gap: 18px;
 }
 
 /* Subtitle — no background, just typography. Reads like Netflix
@@ -965,8 +965,10 @@ code {
 .demo-caption-leave-active {
   transition: opacity 0.32s ease, transform 0.32s ease;
 }
-.demo-caption-enter-from { opacity: 0; transform: translateY(4px); }
-.demo-caption-leave-to   { opacity: 0; transform: translateY(-4px); }
+/* Caption sits below the pill — fades in dropping a touch from above,
+   leaves drifting upward to follow the pill. */
+.demo-caption-enter-from { opacity: 0; transform: translateY(-4px); }
+.demo-caption-leave-to   { opacity: 0; transform: translateY(4px); }
 
 /* Control pill — small, tightly packed, glass background, premium feel. */
 .demo-pill {
@@ -1083,12 +1085,12 @@ code {
 }
 .demo-overlay-enter-from .demo-pill,
 .demo-overlay-leave-to   .demo-pill {
-  transform: translateY(24px);
+  transform: translateY(-24px);   /* slides in from above now that the pill is anchored top */
   opacity: 0;
 }
 
 @media (max-width: 640px) {
-  .demo-overlay { padding-bottom: 22px; gap: 14px; }
+  .demo-overlay { padding: 16px 12px 0; gap: 12px; }
   .demo-overlay__caption { font-size: 14px; max-width: 90vw; }
   .demo-pill__divider { display: none; }
   .demo-pill__count { display: none; }
