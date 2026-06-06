@@ -230,7 +230,11 @@ onUnmounted(() => {
       <div
         v-if="store.isVisible"
         class="fab"
-        :class="{ 'fab--dragging': isDragging, 'fab--menu-open': menuOpen, 'fab--pulso': pulso }"
+        :class="{
+          'fab--dragging': isDragging,
+          'fab--menu-open': menuOpen,
+          'fab--pulso': pulso && store.isPlaying,
+        }"
         :data-variant="variant"
         :style="fabStyle"
         @pointerdown="onPointerDown"
@@ -322,69 +326,70 @@ onUnmounted(() => {
 }
 .fab--dragging { cursor: grabbing; }
 
-/* ─── Pulso effect ───────────────────────────────────────────
-   FIX v0.9.1: rings were rendered as `.fab__btn::before/::after`
-   but `.fab__btn` has `overflow: hidden` (to clip the cover art
-   to the circle). That CLIPPED the expanding rings inside the
-   button — they animated but were never visible.
-   Rings are now on `.fab` (parent, overflow: visible) and the
-   breathe scale moved to `.fab__btn` (so drag's translate(x,y)
-   on `.fab` doesn't fight the scale on the button). */
+/* ─── Pulso effect ──────────────────────────────────────────
+   Heartbeat rhythm: lub-dub · pause · lub-dub · pause …
+   Only active while audio is playing (the class is applied via
+   `:class="{ 'fab--pulso': pulso && store.isPlaying }"` in the
+   template), so the FAB is perfectly still when paused.
 
-/* Rings — expand outward from the button. Live ON THE PARENT so
-   overflow: hidden on the button doesn't clip them. */
+   Timing (1.4 s cycle):
+     0 %  → 1st thump up
+     11 % → 1st thump down (~150 ms)
+     20 % → 2nd thump up
+     31 % → 2nd thump down (~150 ms)
+     31 → 100 % → long pause (~970 ms)
+   A wave is emitted at each thump, in sync with the scale peak. */
+
+/* Button heartbeat — subtle scale, two quick beats, then rest. */
+.fab--pulso .fab__btn {
+  animation: pulso-heartbeat 1.4s ease-out infinite;
+}
+.fab--pulso .fab__btn:hover { animation: none; transform: scale(1.06); }
+.fab--pulso.fab--dragging .fab__btn { animation: none; }
+
+@keyframes pulso-heartbeat {
+  0%   { transform: scale(1); }
+  6%   { transform: scale(1.05); }   /* lub */
+  12%  { transform: scale(1); }
+  20%  { transform: scale(1.05); }   /* dub */
+  26%  { transform: scale(1); }
+  100% { transform: scale(1); }      /* long pause */
+}
+
+/* Two waves — one per heartbeat thump. They live on the PARENT so
+   the button's overflow: hidden never clips them. Light, transparent,
+   they only flash for ~250 ms each time the FAB grows. */
 .fab--pulso::before,
 .fab--pulso::after {
   content: '';
   position: absolute;
-  /* Sized exactly like the button (anchored on the parent block
-     which is the button-sized inline-block of `.fab`). */
   inset: 0;
   width: var(--fab-size, 56px);
   height: var(--fab-size, 56px);
   border-radius: 50%;
-  border: 2.5px solid var(--pulse-accent, #3DBDA7);
+  border: 1.5px solid var(--pulse-accent, #3DBDA7);
   pointer-events: none;
   opacity: 0;
   z-index: 1;
-  animation: pulso-wave 2.2s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+  animation: pulso-wave-lub 1.4s ease-out infinite;
 }
-.fab--pulso::after { animation-delay: 1.1s; }
+/* Second ring fires on the "dub" beat instead. */
+.fab--pulso::after { animation-name: pulso-wave-dub; }
 
-@keyframes pulso-wave {
-  0%   { transform: scale(1);   opacity: 0.85; border-width: 2.5px; }
-  80%  { opacity: 0; border-width: 0.5px; }
-  100% { transform: scale(2.6); opacity: 0; border-width: 0.5px; }
+@keyframes pulso-wave-lub {
+  /* Wave appears at the lub thump and fades quickly. Stays dormant
+     the rest of the cycle. */
+  0%   { transform: scale(1);   opacity: 0.30; }
+  20%  { transform: scale(1.7); opacity: 0; }
+  100% { transform: scale(1.7); opacity: 0; }
 }
-
-/* The button BREATHES — wider scale range now that we can see it.
-   Lives on the button itself so it composes with hover/active
-   states gracefully (and so it doesn't fight the parent's
-   translate(x, y) when the user drags). */
-.fab--pulso .fab__btn {
-  animation: pulso-breathe 2.2s ease-in-out infinite,
-             pulso-glow 2.2s ease-in-out infinite;
-}
-.fab--pulso .fab__btn:hover { animation: none; transform: scale(1.10); }
-.fab--pulso.fab--dragging .fab__btn { animation: none; }
-
-@keyframes pulso-breathe {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.12); }
-}
-@keyframes pulso-glow {
-  0%, 100% {
-    box-shadow:
-      0 4px 20px rgba(0, 0, 0, 0.5),
-      0 0 0 1px rgba(255, 255, 255, 0.10),
-      0 0 16px rgba(61, 189, 167, 0.25);
-  }
-  50% {
-    box-shadow:
-      0 6px 28px rgba(0, 0, 0, 0.55),
-      0 0 0 1px rgba(255, 255, 255, 0.20),
-      0 0 44px rgba(61, 189, 167, 0.60);
-  }
+@keyframes pulso-wave-dub {
+  /* Same shape, fired at 14 % so it lines up with the second thump
+     peak (which is at 20 %). */
+  0%, 14%  { transform: scale(1);   opacity: 0; }
+  14.01%   { transform: scale(1);   opacity: 0.30; }
+  34%      { transform: scale(1.7); opacity: 0; }
+  100%     { transform: scale(1.7); opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
