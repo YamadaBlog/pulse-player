@@ -260,15 +260,15 @@ onUnmounted(() => {
          dashboard). Disable with `:noise="false"`. -->
     <div v-if="noise" class="mp__noise" aria-hidden="true"></div>
 
-    <!-- Ambient EQ — Spotify-style ambient visualiser flush to the
-         bottom edge of the player, spanning the full width (no padding).
-         64 thin bars driven by the 32-bin FFT (each pair of bars shares
-         a bin so the wave reads smoothly). Subtle and short by design. -->
+    <!-- Ambient EQ — Spotify-style background visualiser flush to the
+         bottom edge, edge-to-edge. Each bar reads its OWN log-mapped
+         FFT bin (computed in `useAudioStore.startEqLoop`) so neighbours
+         react independently and the high bars stay alive. -->
     <div v-if="ambientEq" class="mp__ambient" aria-hidden="true">
       <i v-for="n in 64" :key="n"
          :style="{
            height: (store.isPlaying
-             ? Math.max(6, store.eqAmbientBars[Math.floor((n - 1) / 2)] * 100)
+             ? Math.max(6, store.eqAmbientBars[n - 1] * 100)
              : 6) + '%'
          }"></i>
     </div>

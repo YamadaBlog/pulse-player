@@ -45,10 +45,13 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
   const currentTime = ref(0)
   const duration = ref(0)
   const eqBars = ref<number[]>([0, 0, 0, 0])
-  /** Wider 32-bin FFT array for the ambient EQ visualiser. Same source
-   *  as `eqBars`, just the raw bins (not condensed) so a row of many
-   *  thin bars feels musical and responsive instead of repetitive. */
-  const eqAmbientBars = ref<number[]>(new Array(32).fill(0))
+  /** Pre-mapped 64-value array for the ambient EQ visualiser.
+   *  Each value drives one bar directly. The mapping in startEqLoop()
+   *  spreads the FFT bins LOGARITHMICALLY (pitch is perceived
+   *  logarithmically, and most musical energy sits in the low bins)
+   *  and applies a frequency-dependent gain so the high-frequency
+   *  bars don't go quiet just because high-end bins have less energy. */
+  const eqAmbientBars = ref<number[]>(new Array(64).fill(0))
   const isVisible = ref(false)       // mini-player visible
   const hasBeenOpened = ref(false)    // user started playback at least once
 
@@ -81,8 +84,8 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     try {
       audioCtx = new AudioContext()
       analyser = audioCtx.createAnalyser()
-      analyser.fftSize = 64                  // 32 bins for the ambient EQ
-      analyser.smoothingTimeConstant = 0.75  // a touch more smoothing on the wider FFT
+      analyser.fftSize = 256                 // 128 bins — enough headroom for log mapping
+      analyser.smoothingTimeConstant = 0.5   // snappier so adjacent bars stop syncing
       sourceNode = audioCtx.createMediaElementSource(a)
       sourceNode.connect(analyser)
       analyser.connect(audioCtx.destination)
@@ -93,17 +96,36 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
   function startEqLoop() {
     if (!analyser) return
     const data = new Uint8Array(analyser.frequencyBinCount)
+    const N = 64
+    // Log-frequency map of bar index → FFT bin. minBin = 2 skips the
+    // DC bin. maxBin = 48 stays well inside the energetic part of a
+    // typical music spectrum (~ 8 kHz at 44.1 kHz / fftSize 256) so
+    // the high bars actually move instead of dying at silent bins.
+    const minBin = 2
+    const maxBin = Math.min(48, data.length - 1)
+    const binMap = new Array(N)
+    for (let i = 0; i < N; i++) {
+      const r = i / (N - 1)
+      binMap[i] = Math.round(minBin * Math.pow(maxBin / minBin, r))
+    }
     function tick() {
       if (!analyser) return
       analyser.getByteFrequencyData(data)
       // 4-bar condensed visualiser (NOW PLAYING / FAB chrome).
-      // Pick 4 spread bins so the four bars feel distinct from each other
-      // even on a wider FFT.
-      eqBars.value = [data[2] / 255, data[6] / 255, data[12] / 255, data[20] / 255]
-      // Wider 32-bin array for the ambient EQ — pure raw bins.
-      const n = Math.min(32, data.length)
-      const ambient = new Array(n)
-      for (let i = 0; i < n; i++) ambient[i] = data[i] / 255
+      eqBars.value = [data[3] / 255, data[8] / 255, data[18] / 255, data[36] / 255]
+      // 64-bar ambient EQ. Each bar gets its OWN log-mapped bin so
+      // adjacent bars react to different frequencies and the wave
+      // reads as movement. Power 0.55 boosts mid-low values, the
+      // gentle per-bar gain (0.65 → 1.15) tilts the response toward
+      // the high end without clipping the lows. Final clamp to 1.0
+      // is a guard, almost never reached now.
+      const ambient = new Array(N)
+      for (let i = 0; i < N; i++) {
+        const r = i / (N - 1)
+        const raw = data[binMap[i]] / 255
+        const gain = 0.65 + r * 0.50
+        ambient[i] = Math.min(1, Math.pow(raw, 0.55) * gain)
+      }
       eqAmbientBars.value = ambient
       eqRaf = requestAnimationFrame(tick)
     }
