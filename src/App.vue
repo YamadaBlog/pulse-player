@@ -1,13 +1,42 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { MusicPlayer, MiniPlayer, useAudioStore, type MusicPlayerVariant } from './lib'
 
 const store = useAudioStore()
 
 // ─── Showcase mode (?showcase=1 — used for README hero capture) ────────
-const showcase = computed(() => {
-  if (typeof window === 'undefined') return false
-  return new URLSearchParams(window.location.search).has('showcase')
+// Optional query params:
+//   ?showcase=1                 → default (auto variant)
+//   ?showcase=1&v=vinyl         → render that variant
+//   ?showcase=1&v=sunset&a=...  → variant + accent override
+const showcaseParams = () => {
+  if (typeof window === 'undefined') return null
+  return new URLSearchParams(window.location.search)
+}
+const showcase = computed(() => showcaseParams()?.has('showcase') ?? false)
+const showcaseVariant = computed<MusicPlayerVariant>(() => {
+  const v = showcaseParams()?.get('v') as MusicPlayerVariant | null
+  const allowed: MusicPlayerVariant[] = [
+    'auto', 'transparent', 'solid', 'dark', 'light',
+    'sunset', 'midnight', 'aurora', 'vinyl', 'custom',
+  ]
+  return v && allowed.includes(v) ? v : 'auto'
+})
+const SHOWCASE_ACCENTS: Partial<Record<MusicPlayerVariant, string>> = {
+  vinyl: '#C8A97E',
+  sunset: '#F59E0B',
+  midnight: '#8B5CF6',
+  aurora: '#06B6D4',
+  light: '#6750A4',
+}
+const showcaseAccent = computed(() =>
+  showcaseParams()?.get('a') ?? SHOWCASE_ACCENTS[showcaseVariant.value],
+)
+
+// Showcase mode starts on track 2 (white "a couple of good days" cover —
+// gives the backdrop a warm cream palette that reads cleanly on README).
+onMounted(() => {
+  if (showcase.value) store.loadTrack(1)
 })
 
 // ─── Interactive size slider ───────────────────────────────────
@@ -75,6 +104,8 @@ const hero = computed(() => ({
       <div class="showcase__backdrop" aria-hidden="true"></div>
       <div class="showcase__player">
         <MusicPlayer
+          :variant="showcaseVariant"
+          :accent-color="showcaseAccent"
           github-url="https://github.com/YamadaBlog/pulse-player"
           spotify-url="https://open.spotify.com/"
         />
