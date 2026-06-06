@@ -142,7 +142,10 @@ const demoSteps: DemoStep[] = [
   },
 
   // ─── 4. MAIN resize show on "Grab the corner. Resize it yourself."
-  //        Activate ambient EQ + animate the drag-stage player small → big.
+  //        Activate ambient EQ + animate the drag-stage player in STAGES,
+  //        pausing at each morph threshold so the user can clearly see
+  //        text, art and chrome retake their places before moving on.
+  //        Thresholds in MusicPlayer: FAB < 110, COMPACT < 130, NARROW < 220.
   {
     title: 'Drag-to-resize',
     run: async (ctx) => {
@@ -152,18 +155,45 @@ const demoSteps: DemoStep[] = [
       store.ambientEq = true
       await ctx.delay(2400)
 
-      ctx.setMessage('Now grab the corner — from the smallest size all the way up to hero width.')
-      // Start tiny — into FAB territory.
-      tourDragWidth.value = 90
+      const set = (v: number) => { tourDragWidth.value = Math.round(v) }
+
+      // Stage 0 — Start at FAB form (< 110). Hold long enough for the disc
+      // to fully render with cover, progress ring and EQ overlay.
+      ctx.setMessage('Watch each piece find its place — we’ll start in FAB form.')
+      tourDragWidth.value = 95
+      await ctx.delay(2800)
+
+      // Stage 1 — Cross the FAB threshold into compact (~145). Slow tween,
+      // then a real pause so the compact layout (artwork + title + buttons)
+      // can fully settle — the user sees the morph back into a rectangle.
+      ctx.setMessage('Past the FAB threshold — the disc morphs back into an inline player.')
+      await ctx.tween(set, 95, 150, 2400, 'inOutQuart')
+      await ctx.delay(2200)
+
+      // Stage 2 — Cross the narrow threshold (~245). NOW PLAYING + the
+      // GitHub / Spotify icons fade back in. Pause to let them breathe.
+      ctx.setMessage('NOW PLAYING and the social icons fade back in.')
+      await ctx.tween(set, 150, 250, 2600, 'inOutQuart')
+      await ctx.delay(2200)
+
+      // Stage 3 — Mid-size (~420). Generous padding, larger artwork. Pause.
+      ctx.setMessage('Mid-size — every dimension scales together from a single variable.')
+      await ctx.tween(set, 250, 420, 2600, 'inOutQuart')
       await ctx.delay(1700)
-      // Grow gently from FAB → full hero size. Long decelerating tween.
-      await ctx.tween((v) => { tourDragWidth.value = Math.round(v) }, 90, 700, 4400, 'outQuart')
+
+      // Stage 4 — Full hero width (~680). Long tween, then linger.
+      ctx.setMessage('All the way up to hero width — same component, never breaks.')
+      await ctx.tween(set, 420, 680, 2800, 'inOutQuart')
+      await ctx.delay(2600)
+
+      // Stage 5 — Slow shrink back to a comfortable mid-size. Slower curve
+      // so the viewer can watch the title, art and controls retake their
+      // seats one by one as the thresholds are crossed in reverse.
+      ctx.setMessage('And gracefully back down — text, art and controls retake their seats.')
+      await ctx.tween(set, 680, 330, 5200, 'inOutQuart')
       await ctx.delay(1800)
-      // Pull it back to a comfortable medium size to wrap the demo.
-      ctx.setMessage('And back to a comfortable mid-size — every step is smooth.')
-      await ctx.tween((v) => { tourDragWidth.value = Math.round(v) }, 700, 320, 2400, 'inOutQuart')
-      await ctx.delay(1400)
-      // Release programmatic control so the user can grab the handle after.
+
+      // Release programmatic control so the user can grab the handle.
       tourDragWidth.value = null
     },
   },
