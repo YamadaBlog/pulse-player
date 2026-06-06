@@ -323,46 +323,54 @@ onUnmounted(() => {
 .fab--dragging { cursor: grabbing; }
 
 /* ─── Pulso effect ───────────────────────────────────────────
-   The FAB really BREATHES: it grows and shrinks on a 2.2 s beat
-   while three soft accent rings expand outward like sound waves,
-   staggered so there is always at least one ring visible.
-   Premium, visible, never aggressive. */
+   FIX v0.9.1: rings were rendered as `.fab__btn::before/::after`
+   but `.fab__btn` has `overflow: hidden` (to clip the cover art
+   to the circle). That CLIPPED the expanding rings inside the
+   button — they animated but were never visible.
+   Rings are now on `.fab` (parent, overflow: visible) and the
+   breathe scale moved to `.fab__btn` (so drag's translate(x,y)
+   on `.fab` doesn't fight the scale on the button). */
 
-/* Container does the breathing — wraps button + rings together. */
-.fab--pulso { animation: pulso-breathe 2.2s ease-in-out infinite; }
-@keyframes pulso-breathe {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.08); }
-}
-/* When the user is dragging or interacting, pause the breathe so the
-   inline transform set by the drag JS is not fought over. */
-.fab--dragging.fab--pulso { animation: none; }
-
-/* Three rings, staggered ⅓ of the cycle apart, so a wave is always in
-   flight. They're rendered on the .fab__btn (positioned ::before /
-   ::after + a synthetic dedicated div). */
-.fab--pulso .fab__btn::before,
-.fab--pulso .fab__btn::after {
+/* Rings — expand outward from the button. Live ON THE PARENT so
+   overflow: hidden on the button doesn't clip them. */
+.fab--pulso::before,
+.fab--pulso::after {
   content: '';
   position: absolute;
-  inset: -3px;
+  /* Sized exactly like the button (anchored on the parent block
+     which is the button-sized inline-block of `.fab`). */
+  inset: 0;
+  width: var(--fab-size, 56px);
+  height: var(--fab-size, 56px);
   border-radius: 50%;
-  border: 2px solid var(--pulse-accent, #3DBDA7);
+  border: 2.5px solid var(--pulse-accent, #3DBDA7);
   pointer-events: none;
   opacity: 0;
+  z-index: 1;
   animation: pulso-wave 2.2s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
 }
-.fab--pulso .fab__btn::after { animation-delay: 1.1s; }
+.fab--pulso::after { animation-delay: 1.1s; }
 
 @keyframes pulso-wave {
-  0%   { transform: scale(1);   opacity: 0.75; border-width: 2px; }
+  0%   { transform: scale(1);   opacity: 0.85; border-width: 2.5px; }
   80%  { opacity: 0; border-width: 0.5px; }
-  100% { transform: scale(2.4); opacity: 0; border-width: 0.5px; }
+  100% { transform: scale(2.6); opacity: 0; border-width: 0.5px; }
 }
 
-/* Halo glow synced with the breathe — gives the FAB a "live mic" feel. */
+/* The button BREATHES — wider scale range now that we can see it.
+   Lives on the button itself so it composes with hover/active
+   states gracefully (and so it doesn't fight the parent's
+   translate(x, y) when the user drags). */
 .fab--pulso .fab__btn {
-  animation: pulso-glow 2.2s ease-in-out infinite;
+  animation: pulso-breathe 2.2s ease-in-out infinite,
+             pulso-glow 2.2s ease-in-out infinite;
+}
+.fab--pulso .fab__btn:hover { animation: none; transform: scale(1.10); }
+.fab--pulso.fab--dragging .fab__btn { animation: none; }
+
+@keyframes pulso-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.12); }
 }
 @keyframes pulso-glow {
   0%, 100% {
@@ -374,16 +382,15 @@ onUnmounted(() => {
   50% {
     box-shadow:
       0 6px 28px rgba(0, 0, 0, 0.55),
-      0 0 0 1px rgba(255, 255, 255, 0.18),
-      0 0 40px rgba(61, 189, 167, 0.55);
+      0 0 0 1px rgba(255, 255, 255, 0.20),
+      0 0 44px rgba(61, 189, 167, 0.60);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fab--pulso,
-  .fab--pulso .fab__btn,
-  .fab--pulso .fab__btn::before,
-  .fab--pulso .fab__btn::after { animation: none; }
+  .fab--pulso::before,
+  .fab--pulso::after,
+  .fab--pulso .fab__btn { animation: none; }
 }
 .fab__svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
