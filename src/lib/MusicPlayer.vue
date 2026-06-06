@@ -76,8 +76,16 @@ const store = useAudioStore()
 const containerRef = ref<HTMLElement | null>(null)
 const autoScale = ref(1.0)
 const containerWidth = ref(360)
+// User-driven width set by the resize handle (null until first drag).
+// Declared up front so the `isFab` computed below can reference it.
+const userWidth = ref<number | null>(null)
 const isCompact = computed(() => containerWidth.value < COMPACT_THRESHOLD)
-const isFab = computed(() => containerWidth.value < FAB_THRESHOLD)
+// Use the user's *intended* width when known, otherwise the rendered
+// width. This way the FAB display can be capped via CSS without
+// trapping the player in FAB mode forever — userWidth keeps growing
+// as the user drags the grip back out and eventually crosses the
+// threshold, lifting the cap.
+const isFab = computed(() => (userWidth.value ?? containerWidth.value) < FAB_THRESHOLD)
 
 // ─── FAB chrome geometry (only used when isFab is true) ─────────
 const FAB_STROKE = 2.5
@@ -138,7 +146,7 @@ function seek(e: MouseEvent) {
 }
 
 // ─── Manual resize via the bottom-right handle ───────────────────────
-const userWidth = ref<number | null>(null)
+// `userWidth` is declared above (forward-referenced by `isFab`).
 const isResizing = ref(false)
 let resizeStart = { x: 0, w: 0 }
 
@@ -147,7 +155,15 @@ function onResizePointerDown(e: PointerEvent) {
   e.preventDefault()
   e.stopPropagation()
   isResizing.value = true
-  resizeStart = { x: e.clientX, w: containerRef.value.getBoundingClientRect().width }
+  // Use the user's intended width as the drag baseline when we have it.
+  // In FAB mode the rendered width is capped (max-width: 56), so reading
+  // clientWidth would make the user need to drag 50+ px just to leave
+  // FAB mode. Using userWidth instead means the next pixel of drag
+  // already tracks their previous intent.
+  resizeStart = {
+    x: e.clientX,
+    w: userWidth.value ?? containerRef.value.getBoundingClientRect().width,
+  }
   ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
 }
 
@@ -462,6 +478,11 @@ onUnmounted(() => {
    Overflow is visible so the resize grip can sit in the
    bounding-box corner outside the round disc. */
 .mp[data-fab="true"] {
+  /* Cap the visible FAB to ~half the threshold so the transition from
+     compact inline → circular FAB doesn't feel like a sudden jump in
+     size. The bounding-box width is whatever the user dragged the
+     resize handle to; the visual is capped at 56 px. */
+  max-width: 56px;
   aspect-ratio: 1 / 1;
   height: auto;
   border-radius: 50%;
