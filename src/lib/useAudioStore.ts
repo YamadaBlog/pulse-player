@@ -1,0 +1,163 @@
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+
+export interface Track {
+  /** Display title. */
+  title: string
+  /** Audio source URL (any format the <audio> element accepts). */
+  src: string
+  /** Cover image URL. */
+  cover: string
+  /** CSS object-position value applied to the cover (`50% 50%`, `20% center`, ...). */
+  coverPos: string
+  /** Optional CSS scale applied to the cover (`1.25` zooms in slightly). */
+  coverScale?: number
+}
+
+const DEFAULT_TRACKS: Track[] = [
+  { title: 'MIDNIGHT RUN', src: '/audio/track1.webm', cover: '/audio/cover.webp', coverPos: '20% center' },
+  { title: 'DEEP FOCUS', src: '/audio/track2.webm', cover: '/audio/cover2.webp', coverPos: '50% 60%', coverScale: 1.25 },
+]
+
+let _tracks: Track[] = DEFAULT_TRACKS
+
+/**
+ * Replace the global track list **before** the audio store is consumed by any
+ * component. Calling this after playback started has no effect on the current
+ * audio element — call `loadTrack(0)` afterwards if you need to reset.
+ */
+export function setAudioTracks(tracks: Track[]): void {
+  if (!tracks.length) throw new Error('setAudioTracks: tracks must contain at least one entry')
+  _tracks = tracks.slice()
+}
+
+/**
+ * useAudioStore — Global audio state.
+ *
+ * Owns the singleton `<audio>` element + Web Audio API analyser (FFT for the
+ * equalizer bars). Lives outside the Vue component tree (Pinia) so playback
+ * survives page navigations and component unmounts.
+ */
+export const useAudioStore = defineStore('pulsePlayerAudio', () => {
+  // ═ STATE
+  const currentTrack = ref(0)
+  const isPlaying = ref(false)
+  const currentTime = ref(0)
+  const duration = ref(0)
+  const eqBars = ref<number[]>([0, 0, 0, 0])
+  const isVisible = ref(false)       // mini-player visible
+  const hasBeenOpened = ref(false)    // user started playback at least once
+
+  // Audio internals — singleton, never reassigned after init.
+  let audio: HTMLAudioElement | null = null
+  let audioCtx: AudioContext | null = null
+  let analyser: AnalyserNode | null = null
+  let sourceNode: MediaElementAudioSourceNode | null = null
+  let eqRaf: number | null = null
+
+  // ═ GETTERS
+  const progress = computed(() => {
+    if (duration.value === 0) return 0
+    return (currentTime.value / duration.value) * 100
+  })
+
+  const track = computed(() => _tracks[currentTrack.value])
+  const tracks = computed(() => _tracks)
+
+  // ═ ACTIONS
+  function initAudio() {
+    if (audio) return
+    const a = new Audio(_tracks[currentTrack.value].src)
+    a.volume = 0.7
+    a.addEventListener('timeupdate', () => { currentTime.value = a.currentTime })
+    a.addEventListener('loadedmetadata', () => { duration.value = a.duration })
+    a.addEventListener('ended', () => { next() })
+    audio = a
+
+    try {
+      audioCtx = new AudioContext()
+      analyser = audioCtx.createAnalyser()
+      analyser.fftSize = 32
+      analyser.smoothingTimeConstant = 0.7
+      sourceNode = audioCtx.createMediaElementSource(a)
+      sourceNode.connect(analyser)
+      analyser.connect(audioCtx.destination)
+      startEqLoop()
+    } catch { /* fallback: bars stay at 0 */ }
+  }
+
+  function startEqLoop() {
+    if (!analyser) return
+    const data = new Uint8Array(analyser.frequencyBinCount)
+    function tick() {
+      if (!analyser) return
+      analyser.getByteFrequencyData(data)
+      eqBars.value = [data[1] / 255, data[3] / 255, data[5] / 255, data[2] / 255]
+      eqRaf = requestAnimationFrame(tick)
+    }
+    tick()
+  }
+
+  function toggle() {
+    initAudio()
+    if (!audio) return
+    if (isPlaying.value) {
+      audio.pause()
+      isPlaying.value = false
+    } else {
+      audio.play()
+      isPlaying.value = true
+      hasBeenOpened.value = true
+      isVisible.value = true
+    }
+  }
+
+  function loadTrack(i: number) {
+    if (i < 0 || i >= _tracks.length) return
+    currentTrack.value = i
+    if (audio) {
+      audio.src = _tracks[i].src
+      audio.load()
+      currentTime.value = 0
+      duration.value = 0
+      if (isPlaying.value) audio.play()
+    }
+  }
+
+  function next() { loadTrack((currentTrack.value + 1) % _tracks.length) }
+
+  function prev() {
+    if (currentTime.value > 3 && audio) { audio.currentTime = 0; return }
+    loadTrack((currentTrack.value - 1 + _tracks.length) % _tracks.length)
+  }
+
+  function seek(fraction: number) {
+    if (!audio || duration.value === 0) return
+    audio.currentTime = Math.max(0, Math.min(1, fraction)) * duration.value
+  }
+
+  function open() {
+    isVisible.value = true
+  }
+
+  function close() {
+    if (audio) { audio.pause() }
+    isPlaying.value = false
+    isVisible.value = false
+  }
+
+  function fmt(s: number): string {
+    if (!s || isNaN(s)) return '0:00'
+    return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`
+  }
+
+  return {
+    // State
+    currentTrack, isPlaying, currentTime, duration, eqBars,
+    isVisible, hasBeenOpened,
+    // Getters
+    progress, track, tracks,
+    // Actions
+    toggle, next, prev, seek, open, close, fmt, initAudio, loadTrack,
+  }
+})
