@@ -79,6 +79,12 @@ const containerWidth = ref(360)
 // User-driven width set by the resize handle (null until first drag).
 // Declared up front so the `isFab` computed below can reference it.
 const userWidth = ref<number | null>(null)
+// Tiered responsive states (progressive instead of one drastic switch):
+//  - default      : full layout (NOW PLAYING + icons + title + controls)
+//  - data-narrow  : NOW PLAYING label hidden, GitHub + Spotify icons stay
+//  - data-compact : top row removed entirely (only artwork + title + controls)
+//  - data-fab     : circular FAB
+const isNarrow = computed(() => containerWidth.value < NARROW_THRESHOLD)
 const isCompact = computed(() => containerWidth.value < COMPACT_THRESHOLD)
 // Use the user's *intended* width when known, otherwise the rendered
 // width. This way the FAB display can be capped via CSS without
@@ -97,8 +103,10 @@ const fabRingOffset = computed(
 )
 let resizeObs: ResizeObserver | null = null
 
-/** Below this container width the layout collapses to compact mode. */
-const COMPACT_THRESHOLD = 170
+/** Hide just the NOW PLAYING label so icons (GitHub / Spotify) can stay. */
+const NARROW_THRESHOLD = 220
+/** Below this width the layout collapses to compact mode (icons hidden). */
+const COMPACT_THRESHOLD = 130
 /** Below this width the player morphs into a circular FAB (just the cover
  *  artwork as a clickable disc). */
 const FAB_THRESHOLD = 110
@@ -213,6 +221,7 @@ onUnmounted(() => {
     class="mp"
     ref="containerRef"
     :data-variant="variant"
+    :data-narrow="isNarrow ? 'true' : undefined"
     :data-compact="isCompact ? 'true' : undefined"
     :data-fab="isFab ? 'true' : undefined"
     :style="rootStyle"
@@ -421,10 +430,16 @@ onUnmounted(() => {
   color: var(--pulse-text, #ffffff);
   background: var(--pulse-bg, #14141a);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-  /* Classic state: only background is transitioned. Going FAB → classic
-     SNAPS the shape (max-width, border-radius, padding, gap) so the user
-     never sees the rugby-ball intermediate shape. */
-  transition: background 0.3s ease;
+  /* Bidirectional morph — every property uses the SAME duration + curve
+     so the whole player breathes as one block. No staggered delays =
+     no "stutters". */
+  transition:
+    max-width 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    gap 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.40s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: var(--pulse-title);
   line-height: 1.1;
 }
@@ -495,27 +510,27 @@ onUnmounted(() => {
   box-shadow:
     0 6px 24px rgba(0, 0, 0, 0.5),
     0 0 0 1px rgba(255, 255, 255, 0.10);
-  /* Transitions live on the DESTINATION state — they only apply when
-     ENTERING this state (classic → FAB). When leaving FAB (data-fab is
-     removed), the classic-state transition rule applies, which transitions
-     only `background`. The shape snaps back instantly → no rugby. */
+  /* Same unified transition both ways. */
   transition:
-    max-width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-    padding 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-    gap 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-    border-radius 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-    background 0.3s ease;
+    max-width 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    gap 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.40s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Body / progress bar / inline backdrop layers fade out smoothly when
-   ENTERING the FAB (transitions live on the destination state). On exit
-   they snap back to classic instantly so no "rugby" intermediate shape
-   appears mid-morph. */
+/* Body / progress bar / inline backdrop — bidirectional + unified
+   timing so nothing fights the shell's morph. Same 0.40 s curve. */
 .mp__body {
   max-width: 999px;
   max-height: 999px;
   opacity: 1;
+  transition:
+    opacity 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    max-width 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    max-height 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.40s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .mp[data-fab="true"] .mp__body {
   opacity: 0;
@@ -523,30 +538,34 @@ onUnmounted(() => {
   max-height: 0;
   padding: 0;
   pointer-events: none;
-  transition:
-    opacity 0.22s ease,
-    max-width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-    max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-    padding 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.mp__bar { opacity: 1; }
+.mp__bar {
+  opacity: 1;
+  transition:
+    opacity 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.40s cubic-bezier(0.4, 0, 0.2, 1);
+}
 .mp[data-fab="true"] .mp__bar {
   opacity: 0;
   height: 0;
   pointer-events: none;
-  transition: opacity 0.22s ease, height 0.3s ease;
 }
 
+.mp__bg, .mp__noise {
+  transition: opacity 0.40s cubic-bezier(0.4, 0, 0.2, 1);
+}
 .mp[data-fab="true"] .mp__bg,
-.mp[data-fab="true"] .mp__noise {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
+.mp[data-fab="true"] .mp__noise { opacity: 0; }
 
-/* Artwork morphs from the small rounded square in the inline layout
-   to a full-disc cover ONLY when entering FAB. Snap on exit avoids
-   the rugby-ball pass-through. */
+/* Artwork morphs round ↔ square in lock-step with the shell. */
+.mp__art {
+  transition:
+    width 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.40s cubic-bezier(0.4, 0, 0.2, 1);
+}
 .mp[data-fab="true"] .mp__art {
   width: 100%;
   height: 100%;
@@ -554,11 +573,6 @@ onUnmounted(() => {
   box-shadow: none;
   cursor: pointer;
   z-index: 1;
-  transition:
-    width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-    height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-    border-radius 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.4s ease;
 }
 .mp[data-fab="true"] .mp__art-img { border-radius: 50%; }
 .mp[data-fab="true"] .mp__art-hover { opacity: 0 !important; pointer-events: none; }
@@ -575,12 +589,15 @@ onUnmounted(() => {
   opacity: 0;
   visibility: hidden;
   z-index: 2;
+  transition:
+    opacity 0.40s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 0.40s;
 }
 .mp[data-fab="true"] .mp__fab-chrome {
   opacity: 1;
   visibility: visible;
   transition:
-    opacity 0.30s ease 0.18s,
+    opacity 0.40s cubic-bezier(0.4, 0, 0.2, 1),
     visibility 0s;
 }
 
@@ -697,10 +714,16 @@ onUnmounted(() => {
 }
 .mp[data-fab="true"] .mp__resize svg { width: 11px; height: 11px; }
 
-/* ─── Compact mode ──────────────────────────────────────────
-   Triggered automatically when the container is < 240 px wide.
-   Keeps the artwork + title + play, hides the secondary chrome.
-   The component stays readable and interactive at any size. */
+/* ─── Narrow mode (≤ 220 px) ─────────────────────────────────
+   Tier 1 of the progressive compaction. Hides only the NOW PLAYING
+   label so the GitHub / Spotify icons keep their place. The rest of
+   the layout still scales via --pulse-scale floors. */
+.mp[data-narrow="true"] .mp__now-label { display: none; }
+.mp[data-narrow="true"] .mp__icons { gap: max(4px, calc(6px * var(--pulse-scale))); }
+
+/* ─── Compact mode (≤ 130 px) ─────────────────────────────────
+   Tier 2 — there really is no room for the top row anymore. Hides
+   it and centers the artwork + title + controls. */
 .mp[data-compact="true"] {
   --pulse-art:   calc(80px * var(--pulse-scale));
   --pulse-title: calc(15px * var(--pulse-scale));
