@@ -14,7 +14,7 @@ dimension scales from a single CSS variable.
 
 <br>
 
-<img src="./docs/screenshots/hero.png" alt="pulse-player inline card with cover art, GitHub + Spotify icons, NOW PLAYING label and prev/next controls" width="680" />
+<img src="./docs/screenshots/hero.png" alt="pulse-player inline card centered on a blurred cover-art backdrop, with GitHub + Spotify icons and prev/next controls" width="100%" />
 
 </div>
 

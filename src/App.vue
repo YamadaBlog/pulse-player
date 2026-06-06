@@ -4,6 +4,12 @@ import { MusicPlayer, MiniPlayer, useAudioStore, type MusicPlayerVariant } from 
 
 const store = useAudioStore()
 
+// ─── Showcase mode (?showcase=1 — used for README hero capture) ────────
+const showcase = computed(() => {
+  if (typeof window === 'undefined') return false
+  return new URLSearchParams(window.location.search).has('showcase')
+})
+
 // ─── Interactive size slider ───────────────────────────────────
 const userScale = ref(1.0)
 const SIZE_PRESETS = [
@@ -60,6 +66,22 @@ const hero = computed(() => ({
 
 <template>
   <div class="app">
+    <!-- ═══════════════════════════════════════════════════════════════
+         SHOWCASE — clean hero capture for the README. Activate with
+         `?showcase=1`. Renders the player centered over a blurred
+         cover-art backdrop with rounded corners — no chrome, no text.
+         ═══════════════════════════════════════════════════════════════ -->
+    <section v-if="showcase" class="showcase" :style="hero">
+      <div class="showcase__backdrop" aria-hidden="true"></div>
+      <div class="showcase__player">
+        <MusicPlayer
+          github-url="https://github.com/YamadaBlog/pulse-player"
+          spotify-url="https://open.spotify.com/"
+        />
+      </div>
+    </section>
+
+    <template v-if="!showcase">
     <!-- ═══════════════════════════════════════════════════════════════
          HERO — Apple-grade showcase with blurred cover backdrop
          ═══════════════════════════════════════════════════════════════ -->
@@ -265,8 +287,11 @@ const hero = computed(() => ({
       </div>
     </footer>
 
-    <!-- Persistent FAB — global, survives navigation -->
+    </template>
+
+    <!-- Persistent FAB — global, survives navigation (hidden in showcase mode) -->
     <MiniPlayer
+      v-if="!showcase"
       :variant="activeFabVariant"
       :accent-color="fabPalette.find(p => p.id === activeFabVariant)?.accent"
     />
@@ -308,6 +333,44 @@ code {
 }
 
 .app { width: 100%; }
+
+/* ─── SHOWCASE — README hero capture ─────────────────────────
+   Activate with ?showcase=1. Designed to be screenshotted at
+   1280×500 and used as the README hero image. The blurred cover
+   fills every pixel so the captured PNG has no black borders. */
+.showcase {
+  position: relative;
+  isolation: isolate;
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 80px 64px;
+}
+.showcase__backdrop {
+  position: absolute;
+  inset: -40px;
+  background-image: var(--hero-cover);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(60px) saturate(1.4) brightness(0.85);
+  transform: scale(1.15);
+  z-index: -1;
+}
+.showcase__backdrop::after {
+  /* Subtle vignette so the player reads cleanly on any cover */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, rgba(0, 0, 0, 0.35) 100%);
+}
+.showcase__player {
+  width: min(720px, 90%);
+  filter: drop-shadow(0 24px 50px rgba(0, 0, 0, 0.45));
+}
 
 /* ─── HERO ─────────────────────────────────────────────────── */
 .hero {

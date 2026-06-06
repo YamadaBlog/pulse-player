@@ -68,9 +68,12 @@ const autoScale = ref(1.0)
 let resizeObs: ResizeObserver | null = null
 
 function computeScale(width: number): number {
-  // Smooth piecewise-linear ramp clamped at 0.7 … 1.8
-  const s = 0.7 + ((width - 240) / 560) * 1.1
-  return Math.max(0.7, Math.min(1.8, Number(s.toFixed(3))))
+  // Smooth piecewise-linear ramp.
+  // Target: at 360 px (typical mobile) scale ≈ 1.0 so the artwork lands
+  // around 40 % of the container — matches the original dashboard ratio
+  // and keeps mobile/tablet/desktop visually consistent.
+  const s = 0.75 + ((width - 280) / 600) * 1.05
+  return Math.max(0.75, Math.min(1.8, Number(s.toFixed(3))))
 }
 
 const scale = computed(() =>
@@ -221,12 +224,15 @@ onUnmounted(() => {
      in the component script. It can also be overridden by the `size` prop. */
   --pulse-scale: 1;
 
-  /* All dimensions derived from --pulse-scale */
-  --pulse-pad:        calc(14px * var(--pulse-scale));
-  --pulse-radius:     calc(18px * var(--pulse-scale));
-  --pulse-art:        calc(112px * var(--pulse-scale));
+  /* All dimensions derived from --pulse-scale.
+     Base values tuned so that at scale 1.0 (≈ 360 px container) the
+     artwork lands at ~40 % of the container width — same proportions as
+     the original dashboard component. */
+  --pulse-pad:        calc(14px  * var(--pulse-scale));
+  --pulse-radius:     calc(18px  * var(--pulse-scale));
+  --pulse-art:        calc(136px * var(--pulse-scale));
   --pulse-art-radius: calc(10px  * var(--pulse-scale));
-  --pulse-title:      calc(22px  * var(--pulse-scale));
+  --pulse-title:      calc(26px  * var(--pulse-scale));
   --pulse-meta:       calc(10px  * var(--pulse-scale));
   --pulse-icon:       calc(17px  * var(--pulse-scale));
   --pulse-btn:        calc(34px  * var(--pulse-scale));
@@ -358,12 +364,15 @@ onUnmounted(() => {
   align-self: stretch;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;  /* lock children to the left edge */
+  text-align: left;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
   padding-right: calc(var(--pulse-pad) / 2);
   z-index: 1;
 }
+.mp__top, .mp__meta, .mp__controls { width: 100%; }
 
 .mp__top {
   display: flex;
@@ -429,6 +438,7 @@ onUnmounted(() => {
   margin: 0;
   line-height: 1.1;
   letter-spacing: -0.01em;
+  text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
