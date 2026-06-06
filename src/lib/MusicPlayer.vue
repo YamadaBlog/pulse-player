@@ -140,8 +140,15 @@ onUnmounted(() => {
       </defs>
     </svg>
 
-    <!-- Cover-art blurred background, only when variant === 'auto' -->
-    <div v-if="variant === 'auto'" class="mp__bg" :class="{ 'mp__bg--active': store.isPlaying }"></div>
+    <!-- Cover-art blurred background + noise texture overlay.
+         Rendered for `auto` (blurs over the dark fill) and `transparent`
+         (gives the frameless player its premium gradient + noise identity,
+         matching the original dashboard look). -->
+    <div
+      v-if="variant === 'auto' || variant === 'transparent'"
+      class="mp__bg"
+      :class="{ 'mp__bg--active': store.isPlaying }"
+    ></div>
 
     <div class="mp__art" @click="store.toggle">
       <img
@@ -276,8 +283,19 @@ onUnmounted(() => {
 
 /* ─── Variants ──────────────────────────────────────────────── */
 .mp[data-variant="transparent"] {
+  /* Frameless — relies on the cover-blur + noise (.mp__bg) for identity.
+     Matches the original dashboard rendering exactly: subtle border, no fill,
+     the textured backdrop carries the visual weight. */
   background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10);
+}
+/* Make the noise/gradient a touch stronger on transparent so the player
+   keeps a clear identity even when the host background is bright. */
+.mp[data-variant="transparent"] .mp__bg {
+  opacity: 0.32;
+}
+.mp[data-variant="transparent"] .mp__bg--active {
+  opacity: 0.28;
 }
 .mp[data-variant="solid"] { background: var(--pulse-bg, #14141a); }
 .mp[data-variant="dark"]  { background: #0a0a0f; }
