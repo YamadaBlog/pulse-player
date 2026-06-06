@@ -1,52 +1,97 @@
 <script setup lang="ts">
 /**
- * MusicPlayer — Full-size inline player (artwork + title + controls + progress).
+ * MusicPlayer — Full-size inline player.
  *
- * Visually decoupled from playback: mounting/unmounting NEVER stops audio
- * (state lives in the global `useAudioStore`). Embed anywhere in a layout.
+ * Mounting / unmounting NEVER stops audio: playback state is owned by the
+ * global `useAudioStore` so the component is purely a projection.
  *
  * Props:
- *  - `githubUrl`: optional URL for an inline GitHub icon link (hidden when
- *    unset — keeps the component neutral by default).
- *  - `showSpotifyIcon`: show a decorative Spotify glyph (no link). Off by default.
+ *  - `variant`: visual background preset. `'auto'` keeps the signature
+ *    blurred cover-art background (default). Other presets (`'sunset'`,
+ *    `'midnight'`, `'aurora'`, `'dark'`, `'light'`, `'solid'`,
+ *    `'transparent'`) replace it with a curated background.
+ *  - `customBackground`: any CSS `background` value (gradient, image, etc.).
+ *    Used when `variant === 'custom'`.
+ *  - `accentColor`: override the local accent (EQ bars, hover progress).
+ *  - `githubUrl`: optional inline GitHub icon link (hidden when unset).
+ *  - `showSpotifyIcon`: opt-in decorative Spotify glyph (off by default).
  */
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { Play, Pause, SkipBack, SkipForward } from 'lucide-vue-next'
 import { useAudioStore } from './useAudioStore'
 
-defineProps<{
+export type MusicPlayerVariant =
+  | 'auto'
+  | 'transparent'
+  | 'solid'
+  | 'dark'
+  | 'light'
+  | 'sunset'
+  | 'midnight'
+  | 'aurora'
+  | 'custom'
+
+const props = withDefaults(defineProps<{
+  variant?: MusicPlayerVariant
+  customBackground?: string
+  accentColor?: string
   githubUrl?: string
   showSpotifyIcon?: boolean
-}>()
+}>(), {
+  variant: 'auto',
+  showSpotifyIcon: false,
+})
 
 const store = useAudioStore()
 
 const isHoveringBar = ref(false)
 const containerRef = ref<HTMLElement | null>(null)
-const artSize = ref(120)
-const containerHeight = ref(136)
 let resizeObs: ResizeObserver | null = null
+const containerWidth = ref(360)
 
-function calcArtSize() {
-  if (!containerRef.value) return
-  const w = containerRef.value.clientWidth
-  const s = Math.floor(w * 0.4) - 16
-  artSize.value = s
-  containerHeight.value = s + 16
-}
+/** Fluid container-driven scaling — keeps proportions clean from 240 to 800 px. */
+const sizing = computed(() => {
+  const w = containerWidth.value
+  // Artwork = 38% of container width, clamped to a tasteful range.
+  const art = Math.max(80, Math.min(220, Math.round(w * 0.38)))
+  const padY = Math.max(8, Math.round(art * 0.07))
+  return {
+    artPx: art,
+    heightPx: art + padY * 2,
+    paddingPx: padY,
+  }
+})
+
+const rootStyle = computed(() => {
+  const s: Record<string, string> = {
+    '--pulse-art-size': sizing.value.artPx + 'px',
+    '--pulse-frame-pad': sizing.value.paddingPx + 'px',
+    height: sizing.value.heightPx + 'px',
+  }
+  if (props.accentColor) s['--pulse-accent'] = props.accentColor
+  if (props.variant === 'custom' && props.customBackground) {
+    s['--pulse-custom-bg'] = props.customBackground
+  }
+  return s
+})
 
 function seek(e: MouseEvent) {
   const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
   store.seek((e.clientX - r.left) / r.width)
 }
 
+function onResize(entries: ResizeObserverEntry[]) {
+  for (const entry of entries) {
+    containerWidth.value = entry.contentRect.width
+  }
+}
+
 onMounted(() => {
   nextTick(() => {
-    calcArtSize()
-    if (containerRef.value) {
-      resizeObs = new ResizeObserver(() => calcArtSize())
-      resizeObs.observe(containerRef.value)
-    }
+    if (!containerRef.value) return
+    containerWidth.value = containerRef.value.clientWidth
+    resizeObs = new ResizeObserver(onResize)
+    resizeObs.observe(containerRef.value)
   })
 })
 
@@ -57,7 +102,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="mp" ref="containerRef" :style="{ height: containerHeight + 'px' }">
+  <div
+    class="mp"
+    ref="containerRef"
+    :data-variant="variant"
+    :style="rootStyle"
+  >
     <svg class="mp__filters" aria-hidden="true">
       <defs>
         <filter id="pulseMpBlur">
@@ -71,11 +121,12 @@ onUnmounted(() => {
       </defs>
     </svg>
 
-    <div class="mp__bg" :class="{ 'mp__bg--active': store.isPlaying }"></div>
+    <!-- Cover-art blurred background, only when variant === 'auto' -->
+    <div v-if="variant === 'auto'" class="mp__bg" :class="{ 'mp__bg--active': store.isPlaying }"></div>
 
     <div
       class="mp__art"
-      :style="{ width: artSize + 'px', height: artSize + 'px', minWidth: artSize + 'px', marginLeft: '8px' }"
+      :style="{ width: 'var(--pulse-art-size)', height: 'var(--pulse-art-size)' }"
       @click="store.toggle"
     >
       <img
@@ -96,7 +147,7 @@ onUnmounted(() => {
     <div class="mp__body">
       <div class="mp__top">
         <div class="mp__now">
-          <span class="mp__eq">
+          <span class="mp__eq" aria-hidden="true">
             <i v-for="(v, idx) in store.eqBars" :key="idx" :style="{ height: (store.isPlaying ? Math.max(15, v * 100) : 15) + '%' }"></i>
           </span>
           <span class="mp__now-label">NOW PLAYING</span>
@@ -138,19 +189,56 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* ═══════════════════════════════════════════════════════════════
+   Container — fluid, variant-driven background.
+   `container-type: inline-size` enables container queries for
+   typography that scales with the COMPONENT, not the viewport.
+   ═══════════════════════════════════════════════════════════════ */
 .mp {
   position: relative;
   display: flex;
   align-items: center;
+  gap: var(--pulse-frame-pad, 12px);
+  padding: var(--pulse-frame-pad, 12px);
   border-radius: 16px;
   overflow: hidden;
-  margin-top: 16px;
+  container-type: inline-size;
+  color: var(--pulse-text, #ffffff);
   background: var(--pulse-bg, #14141a);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: background 0.3s ease;
+}
+
+.mp[data-variant="transparent"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.mp[data-variant="solid"] { background: var(--pulse-bg, #14141a); }
+.mp[data-variant="dark"]  { background: #0a0a0f; }
+.mp[data-variant="light"] {
+  background: #f4f4f7;
+  color: #14141a;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.mp[data-variant="sunset"] {
+  background: linear-gradient(135deg, #1A1410 0%, #2D241C 50%, #4A3527 100%);
+  box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.18);
+}
+.mp[data-variant="midnight"] {
+  background: linear-gradient(135deg, #0a0a18 0%, #14142a 50%, #1a1a3a 100%);
+  box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.18);
+}
+.mp[data-variant="aurora"] {
+  background: linear-gradient(135deg, #061a1a 0%, #0a2e2e 40%, #103040 100%);
+  box-shadow: inset 0 0 0 1px rgba(6, 182, 212, 0.18);
+}
+.mp[data-variant="custom"] {
+  background: var(--pulse-custom-bg, transparent);
 }
 
 .mp__filters { position: absolute; width: 0; height: 0; overflow: hidden; }
 
+/* Cover-art blurred background (auto variant only) */
 .mp__bg {
   position: absolute;
   inset: -20%;
@@ -164,11 +252,13 @@ onUnmounted(() => {
 }
 .mp__bg--active { opacity: 0.18; }
 
+/* ═══════════════════════════════════════════════════════════════
+   Artwork — square, sized in JS via --pulse-art-size.
+   ═══════════════════════════════════════════════════════════════ */
 .mp__art {
   position: relative;
   z-index: 1;
   flex-shrink: 0;
-  margin: 8px 0;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -179,6 +269,12 @@ onUnmounted(() => {
     inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   overflow: hidden;
 }
+.mp[data-variant="light"] .mp__art {
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.15),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
 .mp__art-img {
   position: absolute;
   inset: 0;
@@ -190,6 +286,7 @@ onUnmounted(() => {
   transition: opacity 0.25s ease;
 }
 .mp__art-img--active { opacity: 1; }
+
 .mp__art-hover {
   position: absolute;
   inset: 0;
@@ -197,33 +294,38 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.5);
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   opacity: 0;
   transition: opacity 0.2s;
 }
 .mp__art:hover .mp__art-hover { opacity: 1; }
 
+/* ═══════════════════════════════════════════════════════════════
+   Body — flex column, holds NOW PLAYING / title / controls.
+   ═══════════════════════════════════════════════════════════════ */
 .mp__body {
   flex: 1;
   align-self: stretch;
   display: flex;
   flex-direction: column;
-  padding: 8px 16px 8px 16px;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  padding-right: calc(var(--pulse-frame-pad, 12px) / 2);
   z-index: 1;
 }
 
-.mp__top { display: flex; align-items: center; justify-content: space-between; }
+.mp__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
-.mp__now { display: flex; align-items: center; gap: 7px; }
+.mp__now { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
 .mp__now-label {
-  font-size: 10px;
+  font-size: clamp(9px, 2.1cqi, 11px);
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
-  letter-spacing: 0.1em;
+  color: var(--pulse-text-muted, rgba(255, 255, 255, 0.4));
+  letter-spacing: 0.12em;
+  white-space: nowrap;
 }
+.mp[data-variant="light"] .mp__now-label { color: rgba(20, 20, 26, 0.55); }
 
 .mp__eq { display: flex; align-items: flex-end; gap: 2px; height: 14px; }
 .mp__eq i {
@@ -234,31 +336,47 @@ onUnmounted(() => {
   transition: height 0.08s linear;
 }
 
-.mp__icons { display: flex; align-items: center; gap: 8px; }
+.mp__icons { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .mp__icon-link {
   display: flex; align-items: center; justify-content: center;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--pulse-text-muted, rgba(255, 255, 255, 0.35));
   transition: color 0.15s;
   text-decoration: none;
 }
-.mp__icon-link:hover { color: rgba(255, 255, 255, 0.8); }
+.mp__icon-link:hover { color: var(--pulse-text, rgba(255, 255, 255, 0.85)); }
+.mp[data-variant="light"] .mp__icon-link { color: rgba(20, 20, 26, 0.5); }
+.mp[data-variant="light"] .mp__icon-link:hover { color: #14141a; }
+
 .mp__icon-link--spotify { color: #1DB954; opacity: 0.85; }
 .mp__icon-link--spotify:hover { color: #1DB954; opacity: 1; }
 
-.mp__spacer { flex: 1; }
-.mp__meta { margin-bottom: 4px; }
+.mp__spacer { flex: 1; min-height: 4px; }
 
+.mp__meta {
+  margin-bottom: clamp(4px, 1cqi, 8px);
+  min-width: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Title — fluid type. Uses container queries (cqi) so the title
+   sizes to the COMPONENT width, not the viewport. Guarantees no
+   overflow because `min-width: 0` on parents + ellipsis fallback.
+   ═══════════════════════════════════════════════════════════════ */
 .mp__title {
-  font-size: 28px;
+  font-size: clamp(15px, 5.5cqi, 40px);
   font-weight: 800;
-  color: #ffffff;
+  color: var(--pulse-text, #ffffff);
   margin: 0;
   line-height: 1.1;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.005em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* Subtle text shadow on dark variants for legibility against blurred bg */
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
+.mp[data-variant="light"] .mp__title { text-shadow: none; color: #14141a; }
+.mp[data-variant="transparent"] .mp__title { text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4); }
 
 .mp__controls { display: flex; align-items: center; gap: 12px; }
 .mp__btn {
@@ -267,13 +385,22 @@ onUnmounted(() => {
   background: transparent;
   border: none;
   border-radius: 50%;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--pulse-text-muted, rgba(255, 255, 255, 0.45));
   cursor: pointer;
   padding: 0;
-  transition: all 0.12s;
+  transition: color 0.15s ease, transform 0.12s ease;
 }
-.mp__btn:hover { color: rgba(255, 255, 255, 0.85); transform: scale(1.1); }
+.mp__btn:hover { color: var(--pulse-text, rgba(255, 255, 255, 0.95)); transform: scale(1.1); }
+.mp__btn:focus-visible {
+  outline: 2px solid var(--pulse-accent, #3DBDA7);
+  outline-offset: 2px;
+}
+.mp[data-variant="light"] .mp__btn { color: rgba(20, 20, 26, 0.55); }
+.mp[data-variant="light"] .mp__btn:hover { color: #14141a; }
 
+/* ═══════════════════════════════════════════════════════════════
+   Progress bar — absolute bottom, full-width.
+   ═══════════════════════════════════════════════════════════════ */
 .mp__bar {
   position: absolute;
   bottom: 0; left: 0; right: 0;
@@ -283,6 +410,7 @@ onUnmounted(() => {
   transition: height 0.12s;
   z-index: 3;
 }
+.mp[data-variant="light"] .mp__bar { background: rgba(0, 0, 0, 0.06); }
 .mp__bar--hover { height: 5px; }
 .mp__fill {
   height: 100%;
@@ -290,6 +418,7 @@ onUnmounted(() => {
   position: relative;
   transition: background 0.12s;
 }
+.mp[data-variant="light"] .mp__fill { background: rgba(20, 20, 26, 0.35); }
 .mp__bar--hover .mp__fill { background: var(--pulse-accent, #3DBDA7); }
 .mp__dot {
   position: absolute;
@@ -304,19 +433,27 @@ onUnmounted(() => {
 }
 .mp__bar--hover .mp__dot { transform: translateY(-50%) scale(1); }
 
-@media (max-width: 480px) {
-  .mp { height: 180px; }
-  .mp__art { width: 110px; margin: 0 0 0 12px; }
-  .mp__title { font-size: 20px; }
-  .mp__body { padding: 14px 16px 12px 14px; }
+/* ═══════════════════════════════════════════════════════════════
+   Container-query tuning — uniformly elegant from 240 to 800 px.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Very narrow containers (e.g. portrait phone, sidebar) */
+@container (max-width: 320px) {
+  .mp { border-radius: 12px; }
+  .mp__title { letter-spacing: 0; }
+  .mp__btn { width: 28px; height: 28px; }
+  .mp__icons { display: none; } /* hide on very small to avoid clipping NOW PLAYING */
 }
-@media (max-width: 360px) {
-  .mp { height: 150px; }
-  .mp__art { width: 85px; margin: 0 0 0 10px; }
-  .mp__title { font-size: 17px; }
-  .mp__body { padding: 10px 12px 8px 10px; }
+
+/* Wide desktop containers — relax spacing a touch */
+@container (min-width: 640px) {
+  .mp { gap: calc(var(--pulse-frame-pad, 12px) * 1.4); }
+  .mp__body { padding-right: var(--pulse-frame-pad, 12px); }
+  .mp__title { letter-spacing: -0.01em; }
 }
+
 @media (prefers-reduced-motion: reduce) {
+  .mp, .mp__btn, .mp__bg, .mp__fill, .mp__bar, .mp__dot { transition: none; }
   .mp__eq i { transition: none; }
 }
 </style>

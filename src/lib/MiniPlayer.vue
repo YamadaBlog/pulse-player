@@ -1,22 +1,51 @@
 <script setup lang="ts">
 /**
- * MiniPlayer — Floating circle FAB (Floating Action Button)
+ * MiniPlayer — Floating circle FAB (Floating Action Button).
  *
  * A single round button in the bottom-right corner. Persistent across pages
  * via the global audio store. Tap to toggle play/pause. Long-press or
  * right-click opens a compact radial menu (next, close). Draggable. Swipe
  * down or right to dismiss.
  *
- * Renders only when `store.isVisible === true` (set by `store.toggle()` /
- * `store.open()`). Teleports to <body> so it's never clipped by parents.
+ * Renders only when `store.isVisible === true`. Teleports to `<body>` so it
+ * is never clipped by parents.
+ *
+ * Props:
+ *  - `variant`: visual preset. `'auto'` (default) uses the track cover art.
+ *    Other presets ignore the cover and use a solid/gradient background.
+ *  - `customBackground`: any CSS background value (used with `variant='custom'`).
+ *  - `accentColor`: overrides the ring + EQ accent.
+ *  - `size`: diameter in px. Defaults to 56. Min recommended 40.
+ *  - `offset`: bottom/right offset in px. Defaults to `{ bottom: 32, right: 16 }`.
  */
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Play, Pause, SkipForward, X } from 'lucide-vue-next'
 import { useAudioStore } from './useAudioStore'
 
+export type MiniPlayerVariant =
+  | 'auto'
+  | 'transparent'
+  | 'solid'
+  | 'dark'
+  | 'light'
+  | 'sunset'
+  | 'midnight'
+  | 'aurora'
+  | 'custom'
+
+const props = withDefaults(defineProps<{
+  variant?: MiniPlayerVariant
+  customBackground?: string
+  accentColor?: string
+  size?: number
+  offset?: { bottom?: number; right?: number }
+}>(), {
+  variant: 'auto',
+  size: 56,
+})
+
 const store = useAudioStore()
 
-// ═ MENU
 const menuOpen = ref(false)
 
 function togglePlay() {
@@ -38,7 +67,6 @@ function handleClose() {
   position.value = { x: 0, y: 0 }
 }
 
-// Close menu on outside click
 function onDocClick(e: MouseEvent) {
   if (menuOpen.value && !(e.target as HTMLElement).closest('.fab')) {
     menuOpen.value = false
@@ -61,7 +89,6 @@ function onPointerDown(e: PointerEvent) {
   dragStartPos = { ...position.value }
   ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
 
-  // Long press to open menu
   longPressTimer = setTimeout(() => {
     if (!hasMoved.value) openMenu()
   }, 500)
@@ -84,7 +111,6 @@ function onPointerUp() {
   if (!isDragging.value) return
   isDragging.value = false
 
-  // Swipe down or right to dismiss
   const dx = position.value.x - dragStartPos.x
   const dy = position.value.y - dragStartPos.y
   if ((dy > 80 || dx > 80) && hasMoved.value) {
@@ -92,8 +118,6 @@ function onPointerUp() {
     position.value = { x: 0, y: 0 }
     return
   }
-
-  // Snap back if not moved much
   if (!hasMoved.value) return
   position.value = { x: 0, y: 0 }
 }
@@ -103,15 +127,22 @@ function onContextMenu(e: Event) {
   openMenu()
 }
 
-// ═ PROGRESS RING
-const SIZE = 56
+// ═ PROGRESS RING — sized off `size` prop
 const STROKE = 3
-const RADIUS = (SIZE - STROKE) / 2
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS
-const ringOffset = computed(() => CIRCUMFERENCE - (store.progress / 100) * CIRCUMFERENCE)
+const RADIUS = computed(() => (props.size - STROKE) / 2)
+const CIRCUMFERENCE = computed(() => 2 * Math.PI * RADIUS.value)
+const ringOffset = computed(() => CIRCUMFERENCE.value - (store.progress / 100) * CIRCUMFERENCE.value)
 
 const fabStyle = computed(() => {
-  const base: Record<string, string> = {}
+  const base: Record<string, string> = {
+    '--fab-size': props.size + 'px',
+    '--fab-bottom': (props.offset?.bottom ?? 32) + 'px',
+    '--fab-right': (props.offset?.right ?? 16) + 'px',
+  }
+  if (props.accentColor) base['--pulse-accent'] = props.accentColor
+  if (props.variant === 'custom' && props.customBackground) {
+    base['--pulse-custom-bg'] = props.customBackground
+  }
   if (position.value.x !== 0 || position.value.y !== 0) {
     base.transform = `translate(${position.value.x}px, ${position.value.y}px)`
     base.transition = isDragging.value ? 'none' : 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
@@ -130,6 +161,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
         v-if="store.isVisible"
         class="fab"
         :class="{ 'fab--dragging': isDragging, 'fab--menu-open': menuOpen }"
+        :data-variant="variant"
         :style="fabStyle"
         @pointerdown="onPointerDown"
         @pointermove="onPointerMove"
@@ -152,7 +184,8 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
           @click="togglePlay"
           :aria-label="store.isPlaying ? 'Pause' : 'Play'"
         >
-          <div class="fab__cover">
+          <!-- Cover art (auto variant only) -->
+          <div v-if="variant === 'auto'" class="fab__cover">
             <img
               v-for="(t, i) in store.tracks"
               :key="t.cover"
@@ -167,24 +200,24 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
           </div>
 
           <div class="fab__icon">
-            <Pause v-if="store.isPlaying" :size="20" :stroke-width="2.5" />
-            <Play v-else :size="20" :stroke-width="2.5" style="margin-left: 2px;" />
+            <Pause v-if="store.isPlaying" :size="Math.round(size * 0.36)" :stroke-width="2.5" />
+            <Play v-else :size="Math.round(size * 0.36)" :stroke-width="2.5" :style="{ marginLeft: '2px' }" />
           </div>
 
           <span v-if="store.isPlaying" class="fab__eq">
             <i v-for="(v, idx) in store.eqBars" :key="idx" :style="{ height: Math.max(20, v * 100) + '%' }"></i>
           </span>
 
-          <svg class="fab__ring" :width="SIZE" :height="SIZE" viewBox="0 0 56 56">
+          <svg class="fab__ring" :width="size" :height="size" :viewBox="`0 0 ${size} ${size}`">
             <circle
               class="fab__ring-track"
-              :cx="SIZE / 2" :cy="SIZE / 2" :r="RADIUS"
+              :cx="size / 2" :cy="size / 2" :r="RADIUS"
               fill="none"
               :stroke-width="STROKE"
             />
             <circle
               class="fab__ring-progress"
-              :cx="SIZE / 2" :cy="SIZE / 2" :r="RADIUS"
+              :cx="size / 2" :cy="size / 2" :r="RADIUS"
               fill="none"
               :stroke-width="STROKE"
               :stroke-dasharray="CIRCUMFERENCE"
@@ -211,8 +244,8 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 <style scoped>
 .fab {
   position: fixed;
-  bottom: 32px;
-  right: 16px;
+  bottom: var(--fab-bottom, 32px);
+  right: var(--fab-right, 16px);
   z-index: 900;
   touch-action: none;
   user-select: none;
@@ -222,8 +255,8 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 
 .fab__btn {
   position: relative;
-  width: 56px;
-  height: 56px;
+  width: var(--fab-size, 56px);
+  height: var(--fab-size, 56px);
   border-radius: 50%;
   border: none;
   padding: 0;
@@ -233,16 +266,58 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
     0 4px 20px rgba(0, 0, 0, 0.5),
     0 0 0 1px rgba(255, 255, 255, 0.1),
     0 0 24px rgba(61, 189, 167, 0.15);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
 }
+
+/* Variant backgrounds (when no cover art is rendered) */
+.fab[data-variant="transparent"] .fab__btn {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.fab[data-variant="solid"] .fab__btn { background: var(--pulse-bg, #14141a); }
+.fab[data-variant="dark"]  .fab__btn { background: #0a0a0f; }
+.fab[data-variant="light"] .fab__btn {
+  background: #f4f4f7;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.fab[data-variant="sunset"] .fab__btn {
+  background: linear-gradient(135deg, #1A1410 0%, #2D241C 50%, #4A3527 100%);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(245, 158, 11, 0.25),
+    0 0 28px rgba(245, 158, 11, 0.20);
+}
+.fab[data-variant="midnight"] .fab__btn {
+  background: linear-gradient(135deg, #0a0a18 0%, #14142a 50%, #1a1a3a 100%);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(139, 92, 246, 0.22),
+    0 0 28px rgba(139, 92, 246, 0.18);
+}
+.fab[data-variant="aurora"] .fab__btn {
+  background: linear-gradient(135deg, #061a1a 0%, #0a2e2e 40%, #103040 100%);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(6, 182, 212, 0.22),
+    0 0 28px rgba(6, 182, 212, 0.18);
+}
+.fab[data-variant="custom"] .fab__btn { background: var(--pulse-custom-bg, transparent); }
+
 .fab__btn:hover {
   transform: scale(1.08);
   box-shadow:
     0 6px 28px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.15),
-    0 0 32px rgba(61, 189, 167, 0.25);
+    0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 0 32px rgba(61, 189, 167, 0.28);
 }
 .fab__btn:active { transform: scale(0.95); }
+.fab__btn:focus-visible {
+  outline: 2px solid var(--pulse-accent, #3DBDA7);
+  outline-offset: 4px;
+}
 
 .fab__cover { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; }
 .fab__cover-img {
@@ -267,10 +342,11 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 .fab__icon {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.92);
   z-index: 2;
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
 }
+.fab[data-variant="light"] .fab__icon { color: #14141a; filter: none; }
 
 .fab__eq {
   position: absolute;
@@ -295,6 +371,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
   transform: rotate(-90deg);
 }
 .fab__ring-track { stroke: rgba(255, 255, 255, 0.08); }
+.fab[data-variant="light"] .fab__ring-track { stroke: rgba(0, 0, 0, 0.10); }
 .fab__ring-progress {
   stroke: var(--pulse-accent, #3DBDA7);
   stroke-linecap: round;
@@ -309,15 +386,15 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
   cursor: pointer;
   pointer-events: auto;
   display: flex; align-items: center; justify-content: center;
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   transition: all 0.15s ease;
 }
-.fab__menu-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.12); transform: scale(1.1); }
+.fab__menu-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.14); transform: scale(1.1); }
 .fab__menu-btn--next { top: -10px; left: -40px; }
 .fab__menu-btn--close { top: -10px; right: -40px; }
 .fab__menu-btn--close:hover { color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
@@ -336,12 +413,13 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 
 @media (max-width: 767px) {
   .fab {
-    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-    right: 12px;
+    bottom: calc(var(--fab-bottom, 88px) + env(safe-area-inset-bottom, 0px));
+    right: calc(var(--fab-right, 12px));
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .fab__eq i { transition: none; }
+  .fab__btn, .fab__ring-progress { transition: none; }
   .fab-pop-enter-active, .fab-pop-leave-active { transition: opacity 0.1s; }
 }
 </style>

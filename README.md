@@ -1,60 +1,74 @@
+<div align="center">
+
 # pulse-player
 
-> Reusable Vue 3 music player components: a floating draggable FAB plus a
-> full-size inline card, both backed by a single persistent global audio
-> store. FFT equalizer, circular progress ring, long-press radial menu,
-> drag-to-dismiss.
+**A drop-in Vue 3 music player — floating FAB + inline card, one persistent global store.**
 
-## What it is
+[![Vue 3](https://img.shields.io/badge/Vue-3.4+-42b883?logo=vue.js&logoColor=white)](https://vuejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Pinia](https://img.shields.io/badge/Pinia-2.1+-f7d336?logo=pinia&logoColor=black)](https://pinia.vuejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-3DBDA7.svg)](./LICENSE)
 
-`pulse-player` is two small Vue 3 single-file components and one Pinia store:
+<img src="./docs/screenshots/hero.png" alt="pulse-player default inline player with cover art background" width="900" />
 
-| Piece | Type | Role |
-|---|---|---|
-| `useAudioStore` | Pinia store | Singleton `<audio>` element + Web Audio API analyser (FFT). Owns all playback state. Lives outside the component tree so playback survives navigation. |
-| `MiniPlayer.vue` | Vue 3 SFC | Floating 56 px circular FAB in the corner. Draggable, swipe-to-dismiss, long-press radial menu (next / close), circular progress ring. Teleports to `<body>`. |
-| `MusicPlayer.vue` | Vue 3 SFC | Full-size inline card with artwork, animated background, NOW PLAYING label, FFT equalizer bars, track title, prev/next, hover-to-scrub progress bar. |
+</div>
 
-Both components delegate **all** audio state to `useAudioStore`. Mount or
-unmount them freely — playback is never stopped by the UI lifecycle.
+---
 
-## What it can do
+`pulse-player` is two Vue 3 components and one Pinia store. Mount the inline
+**`MusicPlayer`** card anywhere in a page, drop the floating **`MiniPlayer`**
+FAB at the root of your app, and the same global audio session powers both —
+playback survives navigation, the FAB persists across routes, and the
+component sizes itself to its container with no layout breaks from a 320 px
+sidebar to a 720 px hero.
 
-- Play / pause / next / previous, with persistent state across page navigation
-- Click-to-seek progress bar (hover reveals a draggable thumb)
-- FFT-driven equalizer bars (4 bands, smoothed)
-- Multiple track playlist with circular cover crossfade and `coverPos` / `coverScale` framing
-- Auto-advance on track end
-- Floating FAB: draggable, swipe down/right to dismiss, long-press for radial menu
-- Circular progress ring around the FAB
-- Cover-art background of the inline player with blur + procedural noise SVG filter
-- Responsive (mobile breakpoints) and `prefers-reduced-motion` aware
-- Theme accent color via a single CSS variable (`--pulse-accent`)
+- Container-query responsive typography (mobile-first, scales clean to desktop)
+- 8 curated background presets + a custom-CSS escape hatch
+- FFT equalizer bars (4 bands, smoothed via Web Audio API)
+- Circular progress ring on the FAB, hover-to-scrub progress bar inline
+- Draggable FAB, swipe to dismiss, long-press radial menu
+- Themable accent color via a single CSS variable
+- Zero business / domain code — pure UI library, MIT licensed
 
-## Demo (run locally)
+## Background variants
+
+<img src="./docs/screenshots/variants.png" alt="The 8 background variants: auto, sunset, midnight, aurora, dark, light, transparent, custom" width="900" />
+
+| Variant | Use case |
+|---|---|
+| `auto` *(default)* | Live cover art, heavily blurred + noise overlay. The signature look. |
+| `sunset` | Warm sepia / brown gradient — pairs naturally with amber accent. |
+| `midnight` | Deep navy → violet — pairs with `#8B5CF6` accent. |
+| `aurora` | Teal night gradient — pairs with `#06B6D4` accent. |
+| `dark` | Pure neutral `#0a0a0f` — best when your app already has a strong palette. |
+| `light` | Inverted text + soft surface for light-mode apps. |
+| `transparent` | No background, no border tint — sits over whatever you give it. |
+| `custom` | Pass any CSS `background` value via `customBackground`. |
+
+## Responsive
+
+<img src="./docs/screenshots/responsive.png" alt="The same MusicPlayer component at 320 px, 480 px and 720 px container widths — typography scales without layout breaks" width="900" />
+
+Typography is sized with **container queries**, not viewport media queries.
+The component reads its own width and scales the title, artwork and chrome
+accordingly. Drop it in a 320 px sidebar or a 720 px hero — it stays clean
+without you tuning a thing.
+
+## Install
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/YamadaBlog/pulse-player.git
 cd pulse-player
 npm install
-npm run dev
+npm run dev      # demo on http://localhost:5174
 ```
 
-Open <http://localhost:5174/>. You should see the inline player, a
-controls row, and the floating FAB once you press Play.
-
-> Audio playback requires a user gesture per browser autoplay policies — the
-> first click on Play (or the artwork) bootstraps the `AudioContext`.
-
-## Install in your own Vue 3 app
+To consume in your own Vue 3 app, copy [`src/lib/`](./src/lib) into your
+project — it has no other source dependency. Then:
 
 ```bash
 npm install vue pinia lucide-vue-next
 ```
-
-Then copy `src/lib/` into your project (`useAudioStore.ts`,
-`MiniPlayer.vue`, `MusicPlayer.vue`, `index.ts`) — it has no other
-runtime dependency. Make sure your app provides a Pinia instance:
 
 ```ts
 // main.ts
@@ -65,42 +79,44 @@ import App from './App.vue'
 createApp(App).use(createPinia()).mount('#app')
 ```
 
-### Use the components
+## Usage
 
 ```vue
 <script setup lang="ts">
 import { MusicPlayer, MiniPlayer, useAudioStore } from './lib'
+
 const store = useAudioStore()
 </script>
 
 <template>
-  <MusicPlayer />                       <!-- inline card, anywhere in a page -->
-  <button @click="store.toggle">Play</button>
+  <!-- Inline card — embed anywhere. -->
+  <MusicPlayer variant="sunset" accent-color="#F59E0B" />
 
-  <!-- Mount ONCE near the app root so the FAB persists across routes -->
-  <MiniPlayer />
+  <!-- Your own controls, if you don't want the built-in ones. -->
+  <button @click="store.toggle">
+    {{ store.isPlaying ? 'Pause' : 'Play' }}
+  </button>
+
+  <!-- Mount ONCE near the app root — survives every navigation. -->
+  <MiniPlayer variant="midnight" />
 </template>
 ```
 
+That's it. No provider, no context, no plugin registration — Pinia is the
+only thing that needs to be installed once.
+
 ## Change the music
 
-Two equally valid options.
+### Replace the demo files (simplest)
 
-### Option 1 — Replace the demo files (simplest)
-
-Drop your own audio + covers into `public/audio/` keeping the same filenames
+Drop your own audio + covers into `public/audio/` and keep the demo filenames
 (`track1.webm`, `track2.webm`, `cover.webp`, `cover2.webp`). No code change.
 
-### Option 2 — Provide your own track list
-
-Call `setAudioTracks()` **before** the store is consumed:
+### Provide your own playlist
 
 ```ts
 // main.ts
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
 import { setAudioTracks } from './lib'
-import App from './App.vue'
 
 setAudioTracks([
   { title: 'YOUR TRACK',    src: '/music/01.mp3', cover: '/img/01.jpg', coverPos: '50% 40%' },
@@ -110,81 +126,124 @@ setAudioTracks([
 createApp(App).use(createPinia()).mount('#app')
 ```
 
-### Track shape
-
 ```ts
 interface Track {
-  title: string        // displayed in the inline player
-  src: string          // URL passed to <audio>; any browser-supported codec
-  cover: string        // URL of the cover image
-  coverPos: string     // CSS object-position (e.g. '50% 50%', '20% center')
-  coverScale?: number  // optional CSS scale applied to the cover (1.25 = +25 %)
+  title: string        // shown in the inline player
+  src: string          // any browser-supported codec
+  cover: string        // cover image URL
+  coverPos: string     // CSS object-position
+  coverScale?: number  // optional CSS scale (1.25 = +25 % zoom)
 }
 ```
 
-## API
+## Customization
 
-Everything exported from `./lib`:
+### Props — `<MusicPlayer />`
 
-| Export | Kind | Purpose |
-|---|---|---|
-| `MiniPlayer` | Vue component | Floating FAB. Renders only when `store.isVisible === true`. |
-| `MusicPlayer` | Vue component | Inline card. Props: `githubUrl?: string`, `showSpotifyIcon?: boolean`. |
-| `useAudioStore()` | Pinia store factory | Reactive state + actions (see below). |
-| `setAudioTracks(tracks)` | Function | Replace the global playlist. Call before first consumption. |
-| `Track` | TypeScript type | Shape of a single track. |
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `variant` | `'auto' \| 'transparent' \| 'solid' \| 'dark' \| 'light' \| 'sunset' \| 'midnight' \| 'aurora' \| 'custom'` | `'auto'` | Visual background preset. |
+| `customBackground` | `string` | — | Any CSS `background` value. Used when `variant="custom"`. |
+| `accentColor` | `string` | — | Overrides `--pulse-accent` locally (EQ bars, scrub progress). |
+| `githubUrl` | `string` | — | If set, shows an inline GitHub icon linking to the URL. |
+| `showSpotifyIcon` | `boolean` | `false` | Decorative Spotify glyph (no link). |
 
-### Store state (reactive)
+### Props — `<MiniPlayer />`
 
-| Property | Type | Notes |
-|---|---|---|
-| `currentTrack` | `number` | Index in the playlist. |
-| `isPlaying` | `boolean` | `true` while audio is playing. |
-| `currentTime` | `number` | Seconds. |
-| `duration` | `number` | Seconds. |
-| `progress` | `number` (computed) | `0–100`. |
-| `eqBars` | `number[]` | 4-band FFT energies `0–1`. |
-| `track` | `Track` (computed) | The currently selected track object. |
-| `tracks` | `Track[]` (computed) | The full playlist (same array passed to `setAudioTracks`). |
-| `isVisible` | `boolean` | Whether the floating `MiniPlayer` should render. |
-| `hasBeenOpened` | `boolean` | `true` after the user starts playback at least once. |
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `variant` | same set as MusicPlayer | `'auto'` | `'auto'` shows the cover art inside the circle; other presets use a solid/gradient fill. |
+| `customBackground` | `string` | — | CSS background used when `variant="custom"`. |
+| `accentColor` | `string` | — | Overrides the ring + EQ accent locally. |
+| `size` | `number` | `56` | Diameter in pixels. Min recommended 40. |
+| `offset` | `{ bottom?: number; right?: number }` | `{ bottom: 32, right: 16 }` | Position offset from the bottom-right corner. |
 
-### Store actions
-
-| Action | Effect |
-|---|---|
-| `toggle()` | Initialize audio on first call, then play ↔ pause. Also flips `isVisible` on first play. |
-| `next()` | Skip to the next track (wraps to start). |
-| `prev()` | Restart current track if `currentTime > 3s`, otherwise previous. |
-| `seek(fraction)` | `fraction ∈ [0, 1]`. |
-| `loadTrack(i)` | Switch to track at index `i`. Continues playing if currently playing. |
-| `open()` | Show the floating FAB (`isVisible = true`). |
-| `close()` | Pause + hide the FAB. |
-| `fmt(seconds)` | Format helper returning `m:ss`. |
-
-## Theming
-
-Override the accent (used by the EQ bars, progress, FAB ring) via a CSS variable:
+### CSS variables (global theming)
 
 ```css
 :root {
-  --pulse-accent: #ff3da8; /* hot pink */
-  --pulse-bg: #0e0e14;     /* inline-player background */
+  --pulse-accent: #ff3da8;   /* EQ bars, progress ring, scrub hover, focus ring */
+  --pulse-bg:     #0e0e14;   /* `solid` variant background */
 }
 ```
 
-Both components fall back to a teal default (`#3DBDA7`) when the variable is
-absent, so they work even without theming.
+Both components fall back to a teal default (`#3DBDA7`) when the variables
+are absent, so they work out of the box without any theming work.
 
-## Integrate into another app — checklist
+### Examples
 
-1. Install runtime deps: `vue@^3.4`, `pinia@^2.1`, `lucide-vue-next`.
-2. Copy `src/lib/` into your project (or publish it as your own package).
-3. Ensure `createPinia()` is used in your `main.ts`.
-4. (Optional) call `setAudioTracks(...)` before mount.
-5. (Optional) override `--pulse-accent` / `--pulse-bg` in a global stylesheet.
-6. Mount `<MiniPlayer />` **once** near the app root so it persists across routes.
-7. Embed `<MusicPlayer />` anywhere you want an inline player.
+```vue
+<!-- Sunset (warm sepia gradient) with amber accent -->
+<MusicPlayer variant="sunset" accent-color="#F59E0B" />
+
+<!-- Midnight (deep navy / violet) with violet accent -->
+<MusicPlayer variant="midnight" accent-color="#8B5CF6" />
+
+<!-- Light theme -->
+<MusicPlayer variant="light" accent-color="#6750A4" />
+
+<!-- Fully custom — pass any CSS background -->
+<MusicPlayer
+  variant="custom"
+  :custom-background="'linear-gradient(135deg, #2c1610 0%, #4a2c1f 45%, #6b4226 100%)'"
+  accent-color="#E8A87C"
+/>
+
+<!-- Bigger FAB, pinned higher, brand-accent ring -->
+<MiniPlayer variant="aurora" :size="72" :offset="{ bottom: 56, right: 24 }" />
+```
+
+## Store API — `useAudioStore`
+
+### State (all reactive)
+
+| | Type | |
+|---|---|---|
+| `currentTrack` | `number` | Index in the playlist. |
+| `isPlaying` | `boolean` | Live playback flag. |
+| `currentTime` / `duration` | `number` | Seconds. |
+| `progress` | `number` (computed) | `0–100`. |
+| `eqBars` | `number[]` | 4-band FFT energies, `0–1`. |
+| `track` / `tracks` | computed | Current `Track` / full playlist. |
+| `isVisible` | `boolean` | Whether the floating FAB should render. |
+| `hasBeenOpened` | `boolean` | `true` after the user starts playback at least once. |
+
+### Actions
+
+| | |
+|---|---|
+| `toggle()` | Initialize audio on first call, then play ↔ pause. Flips `isVisible` on first play. |
+| `next()` / `prev()` | Wraps to start/end. `prev` restarts the current track if `currentTime > 3s`. |
+| `loadTrack(i)` | Jump to track `i`. Keeps playing if already playing. |
+| `seek(fraction)` | `fraction ∈ [0, 1]`. |
+| `open()` / `close()` | Show / hide the floating FAB (`close` also pauses). |
+| `fmt(seconds)` | Format helper returning `m:ss`. |
+
+## How it works
+
+```
+                ┌────────────────────────────────┐
+                │       useAudioStore (Pinia)    │
+                │  - audio: HTMLAudioElement     │
+                │  - AnalyserNode (FFT, 4 bars)  │
+                │  - tracks[], currentTrack,     │
+                │    isPlaying, progress, ...    │
+                └──────────┬─────────────────────┘
+                           │ reactive refs
+            ┌──────────────┴──────────────┐
+            │                             │
+   ┌────────▼────────┐         ┌──────────▼──────────┐
+   │ MusicPlayer.vue │         │   MiniPlayer.vue    │
+   │  (inline card)  │         │ (floating FAB body) │
+   └─────────────────┘         └─────────────────────┘
+```
+
+A single `<audio>` element + Web Audio API analyser live in the Pinia store —
+outside the Vue component tree. Mount / unmount either UI component freely:
+nothing ever stops playback.
+
+For a deeper integration guide, embedding patterns and FAQ, see
+[`docs/USAGE.md`](./docs/USAGE.md).
 
 ## Dependencies
 
@@ -193,49 +252,45 @@ Runtime:
 - `pinia` ^2.1 — state management
 - `lucide-vue-next` ^0.300 — icons (`Play`, `Pause`, `SkipBack`, `SkipForward`, `X`)
 
-Build / dev only:
-- `vite` ^5 — bundler / dev server
-- `@vitejs/plugin-vue` ^5
-- `typescript` ^5.4
-- `vue-tsc` ^2 (note: `vue-tsc@1.x` is incompatible with `typescript@5.3+` and crashes with a `supportedTSExtensions` error — use `^2`)
-
-Browser APIs used (no polyfill ships):
+Browser APIs:
 - `HTMLAudioElement` (universal)
-- Web Audio API: `AudioContext`, `AnalyserNode`, `MediaElementAudioSourceNode` (used only for the FFT equalizer — wrapped in a try/catch; bars stay flat if unavailable)
+- Web Audio API: `AudioContext` + `AnalyserNode` + `MediaElementAudioSourceNode` — used only for the FFT bars, wrapped in try/catch (bars stay flat if unavailable)
 - `ResizeObserver` (Safari 13.1+, all evergreen browsers)
-- `<Teleport>` (Vue 3 built-in)
+- CSS container queries (Chrome 105+, Safari 16+, Firefox 110+)
+- Vue 3 `<Teleport>` (built-in)
+
+Build / dev only: `vite ^5`, `@vitejs/plugin-vue ^5`, `typescript ^5.4`, `vue-tsc ^2`.
+> ⚠ `vue-tsc 1.x` is incompatible with TypeScript 5.3+ (`supportedTSExtensions` crash). Use `^2`.
 
 ## Limits
 
-- Single-instance store: one `<audio>` element shared globally. If you need
-  several independent players on the same page, you'd need to clone the store
-  with a different id.
-- The FFT analyser requires the browser to allow `MediaElementAudioSourceNode`
-  on the source. Cross-origin tracks must serve `Access-Control-Allow-Origin`
-  (CORS) or the analyser will silently fail and the EQ bars stay flat
-  (playback still works).
-- Autoplay: first play must follow a user gesture (standard browser policy).
-- No volume slider or shuffle in the current UI — actions are exposed in the
-  store, you can build your own controls on top.
-- No keyboard shortcuts wired by default.
+- One global `<audio>` element. For two independent players on the same page,
+  clone the store with a different `defineStore` id.
+- The FFT analyser requires CORS-enabled responses when the source is
+  cross-origin (`MediaElementAudioSourceNode` quirk). Playback still works;
+  only the EQ bars stay flat.
+- First play must follow a user gesture (standard autoplay policy).
+- No volume slider, shuffle or repeat in the default UI — actions live in
+  the store, you can wire your own controls on top.
 
-## Next possible improvements
+## Roadmap
 
-- Volume slider + mute on the inline player
-- Shuffle / repeat modes
-- Persisting `currentTrack` + `currentTime` to `localStorage`
-- Keyboard shortcuts (`Space`, `←`, `→`)
-- Media Session API (`navigator.mediaSession.metadata` + hardware media keys)
-- Lyrics or waveform display
-- Optional second store id for multi-instance use
-- Package the lib as a standalone npm module (currently distributed by copying `src/lib/`)
-
-## Acknowledgements
-
-Visual design inspired by the "MyPlaying / NowPlaying" Spotify-style players.
+- [ ] Volume slider + mute (inline)
+- [ ] Shuffle / repeat modes
+- [ ] Persist `currentTrack` + `currentTime` to `localStorage`
+- [ ] Keyboard shortcuts (`Space`, `←`, `→`)
+- [ ] Media Session API (hardware media keys + lock-screen art)
+- [ ] Waveform variant (canvas-rendered alternative to the EQ bars)
+- [ ] Published as a standalone npm package
 
 ## License
 
 [MIT](./LICENSE). The two demo tracks under `public/audio/` are shipped for
-local testing only and are **not** part of the MIT-licensed source — swap them
-for content you own before redistributing.
+local testing only and are **not** part of the MIT-licensed source — replace
+them with content you own before redistributing.
+
+<div align="center">
+
+<sub>Built with Vue 3, Pinia and a small amount of obsessive responsive tuning.</sub>
+
+</div>
