@@ -61,7 +61,7 @@ const props = withDefaults(defineProps<{
   hideIcons: false,
   noise: true,
   resizable: false,
-  minWidth: 180,
+  minWidth: 100,
 })
 
 const store = useAudioStore()
@@ -79,14 +79,25 @@ const containerWidth = ref(360)
 const isCompact = computed(() => containerWidth.value < COMPACT_THRESHOLD)
 let resizeObs: ResizeObserver | null = null
 
-/** Below this container width the layout collapses to compact mode. */
-const COMPACT_THRESHOLD = 240
+/** Below this container width the layout collapses to compact mode.
+ *  Kept low (170 px) so we shrink everything progressively first and
+ *  only flip to compact once the body genuinely cannot hold the title. */
+const COMPACT_THRESHOLD = 170
 
 function computeScale(width: number): number {
-  // Smooth piecewise-linear ramp tuned so the artwork sits at ~33 % of
-  // the container at every breakpoint (matches the original dashboard).
-  const s = 0.75 + ((width - 280) / 600) * 1.05
-  return Math.max(0.6, Math.min(1.8, Number(s.toFixed(3))))
+  // Two-zone ramp:
+  // - Above 280 px: gentle linear growth toward the 1.8 cap.
+  // - Below 280 px: steeper shrink down to a 0.45 floor so the same
+  //   layout (artwork + NOW PLAYING + title + icons + controls) keeps
+  //   fitting much further down. Elements scale down rather than
+  //   disappearing.
+  let s: number
+  if (width >= 280) {
+    s = 0.85 + ((width - 280) / 600) * 0.95
+  } else {
+    s = 0.45 + ((width - 170) / 110) * 0.40
+  }
+  return Math.max(0.45, Math.min(1.8, Number(s.toFixed(3))))
 }
 
 const scale = computed(() =>
@@ -314,22 +325,25 @@ onUnmounted(() => {
   /* All dimensions derived from --pulse-scale.
      Base values tuned so that at scale 1.0 (≈ 360 px container) the
      artwork lands at ~40 % of the container width — same proportions as
-     the original dashboard component. */
+     the original dashboard component.
+     Text-bearing dimensions use `max(floor, calc(base * scale))` so
+     elements stay readable as the player shrinks (they keep their
+     baseline size instead of going invisible). */
   --pulse-pad:        calc(14px  * var(--pulse-scale));
   --pulse-radius:     calc(18px  * var(--pulse-scale));
   --pulse-art:        calc(136px * var(--pulse-scale));
   --pulse-art-radius: calc(10px  * var(--pulse-scale));
-  --pulse-title:      calc(26px  * var(--pulse-scale));
-  --pulse-meta:       calc(10px  * var(--pulse-scale));
-  --pulse-icon:       calc(17px  * var(--pulse-scale));
-  --pulse-btn:        calc(34px  * var(--pulse-scale));
-  --pulse-btn-icon:   calc(18px  * var(--pulse-scale));
+  --pulse-title:      max(13px, calc(26px  * var(--pulse-scale)));
+  --pulse-meta:       max(8px,  calc(10px  * var(--pulse-scale)));
+  --pulse-icon:       max(11px, calc(17px  * var(--pulse-scale)));
+  --pulse-btn:        max(22px, calc(34px  * var(--pulse-scale)));
+  --pulse-btn-icon:   max(13px, calc(18px  * var(--pulse-scale)));
   --pulse-bar-h:      calc(3px   * var(--pulse-scale));
   --pulse-bar-h-hov:  calc(5px   * var(--pulse-scale));
-  --pulse-eq-h:       calc(13px  * var(--pulse-scale));
-  --pulse-eq-w:       calc(3px   * var(--pulse-scale));
+  --pulse-eq-h:       max(8px,  calc(13px  * var(--pulse-scale)));
+  --pulse-eq-w:       max(2px,  calc(3px   * var(--pulse-scale)));
   --pulse-eq-gap:     calc(2px   * var(--pulse-scale));
-  --pulse-icon-gap:   calc(9px   * var(--pulse-scale));
+  --pulse-icon-gap:   max(5px,  calc(9px   * var(--pulse-scale)));
   --pulse-row-gap:    calc(7px   * var(--pulse-scale));
   --pulse-spacer:     calc(10px  * var(--pulse-scale));
   --pulse-shadow:     calc(6px   * var(--pulse-scale)) calc(24px * var(--pulse-scale)) rgba(0, 0, 0, 0.5);

@@ -111,32 +111,27 @@ function onPointerMove(e: PointerEvent) {
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null }
     menuOpen.value = false
   }
-  position.value = clampToViewport({ x: dragStartPos.x + dx, y: dragStartPos.y + dy })
+  // Free drag — no clamp. The user can pull the FAB anywhere, even off
+  // the viewport. On release we check if it landed somewhere usable
+  // (see onPointerUp).
+  position.value = { x: dragStartPos.x + dx, y: dragStartPos.y + dy }
 }
 
-// Clamp a translate offset so the FAB stays fully on-screen with a safe
-// margin. position is a translate(x, y) relative to the FAB's anchor
-// (bottom-right of the viewport via fixed positioning).
-function clampToViewport(p: { x: number; y: number }): { x: number; y: number } {
-  if (typeof window === 'undefined') return p
-  const fab = document.querySelector('.fab') as HTMLElement | null
-  const r = fab?.getBoundingClientRect()
-  const size = r?.width || props.size
-  const margin = 8
+/** Returns true when the FAB at translate offset `p` is fully visible
+ *  inside the viewport. */
+function isFullyVisible(p: { x: number; y: number }): boolean {
+  if (typeof window === 'undefined') return true
+  const size = props.size
   const anchorRight = props.offset?.right ?? 16
   const anchorBottom = props.offset?.bottom ?? 32
-  // The translate offset that puts the FAB's left edge at x=margin is
-  // -(window.innerWidth - anchorRight - size - margin).
-  const minX = -(window.innerWidth - anchorRight - size - margin)
-  const maxX = anchorRight - margin
-  // The translate offset that puts the FAB's top edge at y=margin is
-  // -(window.innerHeight - anchorBottom - size - margin).
-  const minY = -(window.innerHeight - anchorBottom - size - margin)
-  const maxY = anchorBottom - margin
-  return {
-    x: Math.max(minX, Math.min(maxX, p.x)),
-    y: Math.max(minY, Math.min(maxY, p.y)),
-  }
+  const left = window.innerWidth - anchorRight - size + p.x
+  const top = window.innerHeight - anchorBottom - size + p.y
+  return (
+    left >= 0 &&
+    top >= 0 &&
+    left + size <= window.innerWidth &&
+    top + size <= window.innerHeight
+  )
 }
 
 function onPointerUp() {
@@ -146,18 +141,17 @@ function onPointerUp() {
 
   if (!hasMoved.value) return
 
-  // Optional dismiss on a clear downward swipe (≥ 120 px so it can't fire
-  // accidentally during a normal reposition).
-  const dy = position.value.y - dragStartPos.y
-  if (dy > 120) {
-    store.close()
+  // If the FAB was released somewhere where the user can't see / reach it,
+  // snap it back to the original bottom-right anchor. This way the user
+  // can drag freely (even outside the window) but never loses the FAB.
+  if (!isFullyVisible(position.value)) {
     position.value = { x: 0, y: 0 }
     persistPosition()
     return
   }
 
-  // Otherwise: KEEP the dragged position. No snap-back. Persist it so the
-  // FAB stays put even after a page reload.
+  // Otherwise: KEEP the dragged position. Persist it so the FAB stays
+  // put even after a page reload.
   persistPosition()
 }
 
@@ -174,21 +168,19 @@ function restorePosition() {
     const raw = localStorage.getItem(props.persistKey)
     if (!raw) return
     const parsed = JSON.parse(raw) as { x: number; y: number }
-    if (typeof parsed.x === 'number' && typeof parsed.y === 'number') {
-      // Validate + clamp against the current viewport before applying — a
-      // saved position from a wider window could be off-screen now.
-      position.value = clampToViewport(parsed)
-    }
+    if (typeof parsed.x !== 'number' || typeof parsed.y !== 'number') return
+    // A saved position from a previously wider window could be off-screen
+    // now. Snap back to bottom-right if so.
+    position.value = isFullyVisible(parsed) ? parsed : { x: 0, y: 0 }
   } catch { /* corrupt entry — ignore */ }
 }
 
-// Re-clamp the FAB whenever the window is resized so it never gets stuck
-// off-screen after a layout change.
+// If the window resizes such that the FAB ends up off-screen, snap it
+// back to the original bottom-right anchor.
 function onWindowResize() {
   if (position.value.x === 0 && position.value.y === 0) return
-  const clamped = clampToViewport(position.value)
-  if (clamped.x !== position.value.x || clamped.y !== position.value.y) {
-    position.value = clamped
+  if (!isFullyVisible(position.value)) {
+    position.value = { x: 0, y: 0 }
     persistPosition()
   }
 }
@@ -331,51 +323,67 @@ onUnmounted(() => {
 .fab--dragging { cursor: grabbing; }
 
 /* ─── Pulso effect ───────────────────────────────────────────
-   Two soft rings expand outward from the FAB like audio waves.
-   Subtle, premium, non-aggressive. Use prefers-reduced-motion
-   to opt out — accessibility-friendly. */
-.fab--pulso::before,
-.fab--pulso::after {
+   The FAB really BREATHES: it grows and shrinks on a 2.2 s beat
+   while three soft accent rings expand outward like sound waves,
+   staggered so there is always at least one ring visible.
+   Premium, visible, never aggressive. */
+
+/* Container does the breathing — wraps button + rings together. */
+.fab--pulso { animation: pulso-breathe 2.2s ease-in-out infinite; }
+@keyframes pulso-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.08); }
+}
+/* When the user is dragging or interacting, pause the breathe so the
+   inline transform set by the drag JS is not fought over. */
+.fab--dragging.fab--pulso { animation: none; }
+
+/* Three rings, staggered ⅓ of the cycle apart, so a wave is always in
+   flight. They're rendered on the .fab__btn (positioned ::before /
+   ::after + a synthetic dedicated div). */
+.fab--pulso .fab__btn::before,
+.fab--pulso .fab__btn::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -3px;
   border-radius: 50%;
-  border: 1.5px solid var(--pulse-accent, #3DBDA7);
+  border: 2px solid var(--pulse-accent, #3DBDA7);
   pointer-events: none;
   opacity: 0;
-  z-index: -1;
-  animation: pulso-wave 2.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+  animation: pulso-wave 2.2s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
 }
-.fab--pulso::after {
-  animation-delay: 1.4s;
-}
+.fab--pulso .fab__btn::after { animation-delay: 1.1s; }
+
 @keyframes pulso-wave {
-  0%   { transform: scale(1);   opacity: 0.40; }
-  70%  { opacity: 0; }
-  100% { transform: scale(2.1); opacity: 0; }
+  0%   { transform: scale(1);   opacity: 0.75; border-width: 2px; }
+  80%  { opacity: 0; border-width: 0.5px; }
+  100% { transform: scale(2.4); opacity: 0; border-width: 0.5px; }
 }
-/* A whisper of glow on the button itself so the FAB looks alive. */
+
+/* Halo glow synced with the breathe — gives the FAB a "live mic" feel. */
 .fab--pulso .fab__btn {
-  animation: pulso-glow 2.8s ease-in-out infinite;
+  animation: pulso-glow 2.2s ease-in-out infinite;
 }
 @keyframes pulso-glow {
   0%, 100% {
     box-shadow:
       0 4px 20px rgba(0, 0, 0, 0.5),
-      0 0 0 1px rgba(255, 255, 255, 0.1),
-      0 0 18px rgba(61, 189, 167, 0.18);
+      0 0 0 1px rgba(255, 255, 255, 0.10),
+      0 0 16px rgba(61, 189, 167, 0.25);
   }
   50% {
     box-shadow:
-      0 4px 20px rgba(0, 0, 0, 0.5),
-      0 0 0 1px rgba(255, 255, 255, 0.15),
-      0 0 32px rgba(61, 189, 167, 0.42);
+      0 6px 28px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(255, 255, 255, 0.18),
+      0 0 40px rgba(61, 189, 167, 0.55);
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .fab--pulso::before,
-  .fab--pulso::after,
-  .fab--pulso .fab__btn { animation: none; }
+  .fab--pulso,
+  .fab--pulso .fab__btn,
+  .fab--pulso .fab__btn::before,
+  .fab--pulso .fab__btn::after { animation: none; }
 }
 .fab__svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
