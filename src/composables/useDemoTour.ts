@@ -94,13 +94,21 @@ export function useDemoTour() {
   const message: Ref<string> = ref('')
   const progress: Ref<number> = ref(0)
 
-  let controller: AbortController | null = null
+  // Two-tier abort scheme:
+  //  - `tourController` is the master abort. When it fires, the whole
+  //    tour exits and the onStop cleanup runs.
+  //  - `stepController` aborts JUST the current step, used by next() /
+  //    prev() / goToStep(). The loop catches the AbortError and jumps
+  //    to `pendingJump` instead of unwinding.
+  let tourController: AbortController | null = null
+  let stepController: AbortController | null = null
+  let pendingJump: number | null = null
   let pendingCleanup: (() => void) | null = null
 
   async function start(steps: DemoStep[], opts: DemoStartOptions = {}) {
     if (isRunning.value) return
-    controller = new AbortController()
-    const signal = controller.signal
+    tourController = new AbortController()
+    const tourSignal = tourController.signal
 
     pendingCleanup = opts.onStop ?? null
     isRunning.value = true
@@ -110,35 +118,56 @@ export function useDemoTour() {
     title.value = ''
     message.value = ''
 
-    const ctx: DemoStepContext = {
-      signal,
-      delay: (ms) => abortableDelay(ms, signal),
-      tween: (setter, from, to, ms, easing = 'outQuart') =>
-        abortableTween(setter, from, to, ms, EASINGS[easing], signal),
-      scrollTo: (target, opts) => abortableScrollTo(target, signal, opts),
-      setMessage: (m) => { message.value = m },
-    }
-
     try {
-      for (let i = 0; i < steps.length; i++) {
-        if (signal.aborted) return
+      let i = 0
+      while (i < steps.length) {
+        if (tourSignal.aborted) break
+        stepController = new AbortController()
+        const stepSignal = combinedAbort(tourSignal, stepController.signal)
+
         currentStep.value = i
         title.value = steps[i].title
         progress.value = i / steps.length
-        await steps[i].run(ctx)
+
+        const ctx: DemoStepContext = {
+          signal: stepSignal,
+          delay: (ms) => abortableDelay(ms, stepSignal),
+          tween: (setter, from, to, ms, easing = 'outQuart') =>
+            abortableTween(setter, from, to, ms, EASINGS[easing], stepSignal),
+          scrollTo: (target, opts) => abortableScrollTo(target, stepSignal, opts),
+          setMessage: (m) => { message.value = m },
+        }
+
+        try {
+          await steps[i].run(ctx)
+          i++
+        } catch (err: unknown) {
+          const e = err as { name?: string }
+          if (e?.name !== 'AbortError') throw err
+          // Decide what the abort meant: tour-wide stop, or step-level jump.
+          if (tourSignal.aborted) break
+          if (pendingJump !== null) {
+            i = pendingJump
+            pendingJump = null
+            continue
+          }
+          // Step aborted without a jump request — treat as stop.
+          break
+        }
       }
       progress.value = 1
     } catch (err: unknown) {
-      // Swallow abort errors (user clicked Stop). Anything else is logged.
       const e = err as { name?: string }
-      if (e?.name !== 'AbortError' && !signal.aborted) {
+      if (e?.name !== 'AbortError' && !tourSignal.aborted) {
         // eslint-disable-next-line no-console
         console.error('[useDemoTour] step failed:', err)
       }
     } finally {
       const cleanup = pendingCleanup
       pendingCleanup = null
-      controller = null
+      tourController = null
+      stepController = null
+      pendingJump = null
       isRunning.value = false
       currentStep.value = 0
       title.value = ''
@@ -149,12 +178,42 @@ export function useDemoTour() {
   }
 
   function stop() {
-    if (controller) controller.abort()
+    if (tourController) tourController.abort()
+  }
+
+  /** Jump to a specific step index (0-based). Aborts the current step's
+   *  in-flight animations cleanly and runs the new step from the top. */
+  function goToStep(index: number) {
+    if (!isRunning.value) return
+    if (index < 0 || index >= totalSteps.value) return
+    if (index === currentStep.value) return
+    pendingJump = index
+    stepController?.abort()
+  }
+
+  /** Skip to the next step. At the last step this ends the tour. */
+  function next() {
+    if (!isRunning.value) return
+    const target = currentStep.value + 1
+    if (target >= totalSteps.value) {
+      tourController?.abort()
+    } else {
+      goToStep(target)
+    }
+  }
+
+  /** Go back one step. No-op at the first step. */
+  function prev() {
+    if (!isRunning.value) return
+    goToStep(Math.max(0, currentStep.value - 1))
   }
 
   return {
     start,
     stop,
+    goToStep,
+    next,
+    prev,
     isRunning: computed(() => isRunning.value),
     currentStep: computed(() => currentStep.value),
     totalSteps: computed(() => totalSteps.value),
@@ -162,6 +221,23 @@ export function useDemoTour() {
     message: computed(() => message.value),
     progress: computed(() => progress.value),
   }
+}
+
+/** Returns a signal that aborts when *any* of the inputs aborts.
+ *  Prefers the native `AbortSignal.any` when available. */
+function combinedAbort(...signals: AbortSignal[]): AbortSignal {
+  const SAny = (AbortSignal as unknown as {
+    any?: (s: AbortSignal[]) => AbortSignal
+  }).any
+  if (typeof SAny === 'function') return SAny(signals)
+  const c = new AbortController()
+  if (signals.some(s => s.aborted)) {
+    c.abort()
+  } else {
+    const onAbort = () => c.abort()
+    signals.forEach(s => s.addEventListener('abort', onAbort, { once: true }))
+  }
+  return c.signal
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────

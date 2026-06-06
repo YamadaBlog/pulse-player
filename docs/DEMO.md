@@ -2,16 +2,31 @@
 
 [← back to README](../README.md)
 
-Pulse ships with a **Watch demo** button on the landing page. It plays a ~50-second scripted tour that walks visitors through the whole component — audio, responsive scaling, the nine themes, the global ambient EQ, the floating FAB and the pulso effect — without them needing to know what to click.
+Pulse ships with a **Watch demo** button on the landing page. Click it and the page enters fullscreen (when the browser allows it), the music starts, the page guides itself through every feature, and a discreet floating control pill at the bottom lets the viewer scrub between steps or stop at any time.
+
+## What it looks like
+
+When the tour is running you get two on-screen elements only:
+
+1. A **Netflix-style subtitle** anchored ~36 px above the bottom of the viewport. No background, just clean white type with a soft shadow. Each step's message fades in / out as it changes.
+2. A small **glass control pill** below it, holding:
+   - **← Prev** arrow
+   - **• • • ● • • • •** dot progress (the current step stretches into an accent-coloured bar)
+   - **→ Next** arrow
+   - **`5 / 10`** step counter
+   - **■ Stop** button
+
+The whole overlay is on `pointer-events: none` so the page stays clickable through it — only the pill's controls intercept clicks.
 
 ## Anatomy
 
 | Piece | Where |
 |---|---|
-| Composable | [`src/composables/useDemoTour.ts`](../src/composables/useDemoTour.ts) — async/await timeline controller with an `AbortController`, `tween`, `scrollTo`, `delay` and `setMessage` helpers. Zero dependencies. |
-| Scenario | [`src/App.vue`](../src/App.vue) → `demoSteps` — seven declarative steps, each an async function receiving the helpers. |
-| Banner | `<Transition name="demo-banner">` in `src/App.vue` — sticky top, blurred backdrop, caption, step counter, progress bar, **Stop** button. |
-| Hero CTA | `cta--primary` "Watch demo" button in the hero section. Disabled while the tour runs. |
+| Composable | [`src/composables/useDemoTour.ts`](../src/composables/useDemoTour.ts) — async/await timeline controller with a two-tier `AbortController` (tour-wide + per-step), `tween`, `scrollTo`, `delay`, `setMessage` helpers, plus `goToStep` / `next` / `prev` jump primitives. Zero dependencies. |
+| Scenario | [`src/App.vue`](../src/App.vue) → `demoSteps` — ten declarative steps. |
+| Overlay | `.demo-overlay` block in `src/App.vue` — subtitle caption + glass control pill. |
+| Hero CTA | `cta--primary` "Watch demo" button in the hero. Disabled while the tour runs. |
+| Fullscreen | `requestFullscreen()` is called on the document element when the tour starts and `exitFullscreen()` runs from the `onStop` cleanup. Both are best-effort: if the browser refuses (mobile Safari, embedded frames, some kiosks), the tour still runs without it. |
 
 ## Run it
 
@@ -21,32 +36,56 @@ Local dev:
 npm run dev      # → http://localhost:5174
 ```
 
-Open the page. Click **Watch demo** in the hero. The banner slides down, the page scrolls itself, the player resizes, themes cycle, the ambient EQ lights up and the FAB demonstrates pulso. Click **Stop** at any point.
+Open the page. Click **Watch demo** in the hero. The browser asks (or silently grants) fullscreen, the page scrolls itself, themes cycle, the ambient EQ lights up across every player, the drag-stage player resizes itself, the FAB slides to the centre of the viewport, vinyl and aurora variants are demoed, and pulso plays out. Click **Stop**, click a dot to jump steps, or use the arrows to step manually — all of it cleans up the same way.
 
-## Scenario (7 steps, ~50 s)
+## Scenario (10 steps, ~75 s)
 
 | # | Title | What it shows |
 |---|---|---|
-| 1 | Welcome | Hero focus + intro caption |
-| 2 | Press play | Starts audio so the FFT bars come alive |
-| 3 | Responsive scaling | Tweens the `--pulse-scale` slider 1.0 → 0.75 → 1.7 → 1.0 |
-| 4 | Themes | Cycles `auto → midnight → sunset → aurora → vinyl → auto` on the hero player |
-| 5 | Ambient EQ | Flips `store.ambientEq = true` — 64 spectrum-coloured bars on every player |
-| 6 | Floating FAB | Scrolls to the FAB section and flips `pulso` on/off |
-| 7 | You're in | Returns to the hero and invites the user to explore |
+| 1 | Welcome | Slow scroll-in on the hero, intro caption. |
+| 2 | Press play | Starts audio so the FFT bars come alive. |
+| 3 | Container-aware | **Short.** One tap on the `S` size preset on "Resize it. Everything follows.", then back to `M`. ~5 s. |
+| 4 | Drag-to-resize | **The real resize show.** Scrolls slow to "Grab the corner. Resize it yourself.", flips ambient EQ on, then tweens the drag-stage player width 90 → 700 → 320 px with `outQuart` / `inOutQuart`. ~15 s. |
+| 5 | Pick a mood | Slow scroll to the variants grid, two captions, ~7 s. |
+| 6 | Floating FAB | A **boost** scroll (`speed: 'fast'`) down to the FAB section. |
+| 7 | Drag anywhere | Tweens the FAB position from its corner to the centre of the viewport. |
+| 8 | Vinyl & Aurora | Cycles `activeFabVariant` through `vinyl` → `aurora` (3.2 s each). |
+| 9 | Pulso | Turns the heartbeat ripple on for ~5 s. |
+| 10 | You're in | Glides the FAB back to its corner, slow scroll back to the hero, exits fullscreen. |
 
-## Why a custom controller (and not driver.js / Shepherd.js / Intro.js)
+## Controls — `useDemoTour` API
 
-Those libraries are excellent product-tour tooltips for SaaS onboarding. They expect a list of DOM selectors and attach numbered tooltips with Next/Back buttons. This demo is a different shape — it's a **scripted timeline** that coordinates Vue refs, audio state, smooth scroll, and number tweens. A plain `async/await` loop is the right primitive:
+```ts
+const tour = useDemoTour()
+tour.start(steps, { onStop: cleanupFn })   // run the timeline
+tour.stop()                                 // abort cleanly, fire cleanup
+tour.next()                                 // jump forward 1 step
+tour.prev()                                 // jump back 1 step
+tour.goToStep(4)                            // jump to step index 4
+```
 
-- Zero dependencies → ~+1 kB gzip overhead instead of 10–25 kB.
-- Direct Vue reactivity — no need to bridge a third-party controller back into refs.
-- Clean abort via `AbortController` — every helper (`delay`, `tween`, `scrollTo`) respects the signal and rejects immediately on `Stop`.
-- Steps are declarative, easy to read and easy to reorder.
+Reactive state: `isRunning`, `currentStep`, `totalSteps`, `title`, `message`, `progress`.
+
+## Stop & Jump semantics
+
+The controller maintains two `AbortController`s:
+
+- **Tour-level** — aborted by `stop()`. The for-loop exits, `onStop` cleanup runs, the overlay disappears.
+- **Step-level** — aborted by `goToStep` / `next` / `prev`. The current step's in-flight `delay` / `tween` / `scrollTo` reject with `AbortError`, the loop catches it, reads the pending jump index, and continues from there. The tour stays running.
+
+If `next()` is called on the last step it ends the tour (same as Stop). All the helpers use `AbortSignal.any([tourSignal, stepSignal])` (with a polyfill fallback for browsers that don't ship it).
+
+On stop, `onStop` restores the snapshot taken at the start of the tour — `userScale`, `heroVariant`, `heroAccent`, `activeFabVariant`, `fabPulso`, FAB visibility, and the new programmatic levers `tourDragWidth` and `tourFabPos`. Ambient EQ is kept on after a successful tour (it's the highlight) and restored to its pre-tour value if the user stopped early (`progress < 0.85`).
+
+## Fullscreen handling
+
+- `enterFullscreen()` calls `document.documentElement.requestFullscreen()` inside a try/catch. Any failure is silent — the demo carries on without it.
+- The `restoreFromDemo` cleanup calls `exitFullscreen()` whether the tour ended naturally or was aborted, so you never get stuck in fullscreen.
+- A `fullscreenchange` listener on `document` keeps `isFullscreen` accurate, in case the user hits `Esc` to leave fullscreen manually. The demo keeps running in that case — leaving fullscreen is treated as a user preference, not a stop signal.
 
 ## Adding a step
 
-Open `src/App.vue`, find `demoSteps`, and append a new entry. A step is `{ title, run }` where `run(ctx)` is an async function.
+Open `src/App.vue`, find `demoSteps`, and insert a new entry anywhere in the array. A step is `{ title, run(ctx) }` where `run` is async.
 
 ```ts
 const demoSteps: DemoStep[] = [
@@ -55,8 +94,8 @@ const demoSteps: DemoStep[] = [
     title: 'My new step',
     run: async (ctx) => {
       ctx.setMessage('What this step shows.')
-      await ctx.scrollTo('.my-section')
-      await ctx.tween((v) => { mySliderRef.value = v }, 0, 100, 1200)
+      await ctx.scrollTo('.my-section', { speed: 'slow' })
+      await ctx.tween((v) => { mySliderRef.value = v }, 0, 100, 1200, 'outQuart')
       await ctx.delay(800)
     },
   },
@@ -65,32 +104,23 @@ const demoSteps: DemoStep[] = [
 
 `ctx` exposes:
 
-- `signal` — the `AbortSignal`; every helper already respects it. If your step does its own async work, check `signal.aborted` before mutating refs.
+- `signal` — the abort signal (combined tour + step). Every helper already respects it.
 - `delay(ms)` — abortable `setTimeout`.
-- `tween(setter, from, to, duration, easing?)` — abortable rAF-driven number tween. Default easing is `cubic-in-out`.
-- `scrollTo(selector | Element)` — abortable smooth scroll.
-- `setMessage(string)` — caption shown in the banner.
+- `tween(setter, from, to, ms, easing?)` — abortable rAF tween. Default easing is `'outQuart'`.
+- `scrollTo(selector | Element, { speed, easing, offset }?)` — abortable smooth scroll. `speed` is `'gentle' | 'fast' | 'slow'` (default `gentle`).
+- `setMessage(string)` — updates the subtitle.
 
-## Stop behaviour
+## Why a custom controller (and not driver.js / Shepherd.js / Intro.js)
 
-`Stop` calls `controller.abort()`. The current step's awaited helper rejects with `AbortError`, the for-loop exits, and the `finally` block fires the `onStop` cleanup registered when the tour started.
+Those libraries are excellent product-tour tooltips for SaaS onboarding — a list of DOM selectors with numbered tooltips and Next/Back buttons. This is a different shape: a **scripted timeline** coordinating Vue refs, audio state, smooth scroll, number tweens and a fullscreen request. A plain `async/await` loop is the right primitive:
 
-In this demo, cleanup restores:
-
-- `userScale` → pre-demo value
-- `heroVariant` + `heroAccent` → pre-demo
-- `store.ambientEq` → off (unless the user was already past the ambient step — heuristic on `progress`)
-- `fabPulso` → off
-- `store.close()` → only if FAB wasn't visible before the tour
-
-Audio is left in whatever state the user reached — pausing it on stop felt punitive.
-
-## Disabling the demo
-
-If you fork pulse-player into a project where you don't want the guided tour, just delete the `cta--primary` button and the `<Transition name="demo-banner">…</Transition>` block from `src/App.vue`. The `useDemoTour` composable can stay or be removed — it has no side effects on import.
+- Zero deps. ~+2 kB gzip overhead instead of 10–25 kB.
+- Direct Vue reactivity. No bridge between a third-party controller and refs.
+- Clean abort via `AbortController`. Every helper rejects immediately on stop or jump.
+- Steps are declarative — easy to read, easy to reorder, easy to add to.
 
 ## Known limits
 
-- The tour assumes the page is mounted at scroll position 0 when it starts. If the user scrolled deep before clicking **Watch demo**, the first scroll-to is a long way up — still smooth, just a little longer.
-- Mobile viewports under ~480 px get a more compact banner (caption wraps, step counter is hidden). The tour still runs.
-- `prefers-reduced-motion` is **not yet wired** — the tweens currently ignore it. Easy follow-up: detect it in `useDemoTour` and snap setters to the final value instead of running the rAF loop.
+- `prefers-reduced-motion` is **not yet wired** — the tweens currently ignore it. Easy follow-up: detect it in `useDemoTour` and snap setters to the final value instead of rAF-tweening.
+- Fullscreen requests from a non-user-gesture context (e.g. programmatic re-trigger after Stop) will be refused by the browser — that's a Fullscreen API rule, not a bug.
+- On very small viewports (under ~360 px), the pill collapses its label / counter / divider via the `@media (max-width: 640px)` rule. The dots stay tappable.

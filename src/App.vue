@@ -266,7 +266,25 @@ let preDemoState: {
   fabVisible: boolean
 } | null = null
 
-function startDemo() {
+// Fullscreen handling — best-effort. If the browser refuses (mobile
+// Safari, embedded frames, etc.) the demo still runs without it.
+const isFullscreen = ref(false)
+function onFullscreenChange() {
+  isFullscreen.value = !!document.fullscreenElement
+}
+async function enterFullscreen() {
+  if (typeof document === 'undefined') return
+  if (document.fullscreenElement) return
+  const el = document.documentElement
+  try { await el.requestFullscreen?.() } catch { /* refused — continue */ }
+}
+async function exitFullscreen() {
+  if (typeof document === 'undefined') return
+  if (!document.fullscreenElement) return
+  try { await document.exitFullscreen?.() } catch { /* ignore */ }
+}
+
+async function startDemo() {
   if (tour.isRunning.value) return
   preDemoState = {
     heroVariant: heroVariant.value,
@@ -277,6 +295,7 @@ function startDemo() {
     fabVariant: activeFabVariant.value,
     fabVisible: store.isVisible,
   }
+  await enterFullscreen()
   tour.start(demoSteps, { onStop: restoreFromDemo })
 }
 
@@ -285,6 +304,9 @@ function stopDemo() {
 }
 
 function restoreFromDemo() {
+  // Always leave fullscreen — both on Stop and on natural end.
+  void exitFullscreen()
+
   if (!preDemoState) return
   const earlyStop = tour.progress.value < 0.85
   // Hero
@@ -310,7 +332,11 @@ function restoreFromDemo() {
   preDemoState = null
 }
 
+onMounted(() => {
+  document.addEventListener('fullscreenchange', onFullscreenChange)
+})
 onUnmounted(() => {
+  document.removeEventListener('fullscreenchange', onFullscreenChange)
   if (tour.isRunning.value) tour.stop()
 })
 
@@ -341,31 +367,70 @@ const hero = computed(() => ({
 
     <template v-if="!showcase">
     <!-- ═══════════════════════════════════════════════════════════════
-         DEMO BANNER — sticky at the top of the viewport while the
-         guided tour runs. Caption + progress bar + Stop button.
+         DEMO OVERLAY — Netflix-style subtitle + Apple-style floating
+         control pill. Discreet, premium, dismissible. Lives ONLY while
+         the guided tour runs.
          ═══════════════════════════════════════════════════════════════ -->
-    <Transition name="demo-banner">
-      <div v-if="tour.isRunning.value" class="demo-banner" role="status" aria-live="polite">
-        <div class="demo-banner__inner">
-          <div class="demo-banner__pulse" aria-hidden="true"></div>
-          <div class="demo-banner__meta">
-            <div class="demo-banner__chip">
-              PULSE DEMO · <strong>{{ tour.title.value }}</strong>
-              <span class="demo-banner__step">
-                · Step {{ tour.currentStep.value + 1 }} / {{ tour.totalSteps.value }}
-              </span>
-            </div>
-            <div class="demo-banner__caption">{{ tour.message.value }}</div>
-          </div>
-          <button class="demo-banner__stop" @click="stopDemo" aria-label="Stop demo">
-            <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true">
-              <rect x="2" y="2" width="8" height="8" rx="1" fill="currentColor"/>
+    <Transition name="demo-overlay">
+      <div v-if="tour.isRunning.value" class="demo-overlay" role="region" aria-label="Pulse demo controls">
+        <!-- Transient caption (changes per step). No background — like
+             a subtitle. Re-keyed so each new message fades in/out. -->
+        <Transition name="demo-caption" mode="out-in">
+          <p
+            v-if="tour.message.value"
+            :key="tour.message.value"
+            class="demo-overlay__caption"
+            aria-live="polite"
+          >{{ tour.message.value }}</p>
+        </Transition>
+
+        <!-- Control pill. Dot progress + counter + prev / next / stop. -->
+        <div class="demo-pill" role="toolbar" aria-label="Demo controls">
+          <button
+            class="demo-pill__nav"
+            @click="tour.prev"
+            :disabled="tour.currentStep.value === 0"
+            aria-label="Previous step"
+          >
+            <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">
+              <path d="M9 2 L4 7 L9 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
             </svg>
-            Stop
           </button>
-        </div>
-        <div class="demo-banner__progress">
-          <div class="demo-banner__progress-bar" :style="{ width: tour.progress.value * 100 + '%' }"></div>
+
+          <div class="demo-pill__dots">
+            <button
+              v-for="n in tour.totalSteps.value"
+              :key="n"
+              class="demo-pill__dot"
+              :class="{ 'demo-pill__dot--active': (n - 1) === tour.currentStep.value }"
+              @click="tour.goToStep(n - 1)"
+              :aria-label="`Go to step ${n}`"
+              :aria-current="(n - 1) === tour.currentStep.value ? 'step' : undefined"
+            ></button>
+          </div>
+
+          <button
+            class="demo-pill__nav"
+            @click="tour.next"
+            aria-label="Next step"
+          >
+            <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">
+              <path d="M5 2 L10 7 L5 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+          </button>
+
+          <div class="demo-pill__divider" aria-hidden="true"></div>
+
+          <span class="demo-pill__count" aria-live="polite">
+            {{ tour.currentStep.value + 1 }} / {{ tour.totalSteps.value }}
+          </span>
+
+          <button class="demo-pill__stop" @click="stopDemo" aria-label="Stop demo">
+            <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+              <rect x="2.5" y="2.5" width="7" height="7" rx="1" fill="currentColor"/>
+            </svg>
+            <span class="demo-pill__stop-label">Stop</span>
+          </button>
         </div>
       </div>
     </Transition>
@@ -836,110 +901,169 @@ code {
 .cta__arrow { transition: transform 0.15s ease; }
 .cta:hover .cta__arrow { transform: translateX(3px); }
 
-/* ─── DEMO BANNER ─────────────────────────────────────────── */
-.demo-banner {
+/* ─── DEMO OVERLAY (subtitle + floating pill) ────────────── */
+.demo-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  inset: 0;
   z-index: 1000;
-  background: rgba(8, 10, 14, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
-}
-.demo-banner__inner {
+  pointer-events: none;        /* page stays clickable; only pill is hit */
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 14px 22px;
+  justify-content: flex-end;
+  padding: 0 24px 36px;
+  gap: 22px;
 }
-.demo-banner__pulse {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: #1DB954;
-  box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.6);
-  animation: demo-banner-pulse 1.8s ease-out infinite;
-  flex-shrink: 0;
+
+/* Subtitle — no background, just typography. Reads like Netflix
+   captions: centred, bold, legible over any cover. */
+.demo-overlay__caption {
+  margin: 0;
+  max-width: 720px;
+  text-align: center;
+  font-size: clamp(15px, 1.6vw, 19px);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+  color: rgba(255, 255, 255, 0.96);
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.7),
+    0 4px 18px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
 }
-@keyframes demo-banner-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.45); }
-  70%  { box-shadow: 0 0 0 10px rgba(29, 185, 84, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0); }
+.demo-caption-enter-active,
+.demo-caption-leave-active {
+  transition: opacity 0.32s ease, transform 0.32s ease;
 }
-.demo-banner__meta { flex: 1; min-width: 0; line-height: 1.3; }
-.demo-banner__chip {
+.demo-caption-enter-from { opacity: 0; transform: translateY(4px); }
+.demo-caption-leave-to   { opacity: 0; transform: translateY(-4px); }
+
+/* Control pill — small, tightly packed, glass background, premium feel. */
+.demo-pill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  padding: 5px 6px 5px 5px;
+  background: rgba(10, 12, 18, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  pointer-events: auto;
+  font-family: inherit;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Nav arrows — circular ghost buttons. */
+.demo-pill__nav {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.62);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.demo-pill__nav:hover { background: rgba(255, 255, 255, 0.10); color: #fff; }
+.demo-pill__nav:active { transform: scale(0.92); }
+.demo-pill__nav:disabled { opacity: 0.30; cursor: not-allowed; }
+.demo-pill__nav:disabled:hover { background: transparent; color: rgba(255, 255, 255, 0.62); }
+
+/* Dot progress — current dot stretches into an accent pill. */
+.demo-pill__dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+}
+.demo-pill__dot {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.22);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: width 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
+              background 0.20s ease,
+              transform 0.15s ease;
+}
+.demo-pill__dot:hover { background: rgba(255, 255, 255, 0.45); transform: scale(1.15); }
+.demo-pill__dot--active {
+  width: 22px;
+  background: #1DB954;
+  box-shadow: 0 0 12px rgba(29, 185, 84, 0.5);
+}
+.demo-pill__dot--active:hover { background: #1DB954; transform: none; }
+
+.demo-pill__divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.10);
+  margin: 0 4px;
+}
+
+.demo-pill__count {
   font-size: 11.5px;
   font-weight: 600;
-  letter-spacing: 0.10em;
-  color: var(--pg-text-mid);
-  text-transform: uppercase;
-}
-.demo-banner__chip strong {
-  color: var(--pg-text);
-  letter-spacing: 0.02em;
-  text-transform: none;
-  font-weight: 700;
-  margin-left: 2px;
-}
-.demo-banner__step { color: var(--pg-text-low); font-weight: 500; }
-.demo-banner__caption {
-  margin-top: 3px;
-  color: var(--pg-text);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.55);
+  padding: 0 6px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
 }
-.demo-banner__stop {
+
+.demo-pill__stop {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 9px 16px;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  color: #ffffff;
-  background: rgba(255, 90, 90, 0.18);
-  border: 1px solid rgba(255, 90, 90, 0.35);
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 78, 78, 0.18);
+  border: 1px solid rgba(255, 78, 78, 0.30);
   border-radius: 999px;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
-  flex-shrink: 0;
 }
-.demo-banner__stop:hover { background: rgba(255, 90, 90, 0.28); border-color: rgba(255, 90, 90, 0.50); transform: translateY(-1px); }
-.demo-banner__progress {
-  position: relative;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.05);
+.demo-pill__stop:hover {
+  background: rgba(255, 78, 78, 0.28);
+  border-color: rgba(255, 78, 78, 0.50);
+  transform: translateY(-1px);
 }
-.demo-banner__progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #1DB954, #4ECDC4);
-  box-shadow: 0 0 12px rgba(29, 185, 84, 0.45);
-  transition: width 0.30s ease;
+
+/* Overlay enter / leave. */
+.demo-overlay-enter-active,
+.demo-overlay-leave-active {
+  transition: opacity 0.30s ease;
 }
-/* Slide-in / slide-out */
-.demo-banner-enter-active,
-.demo-banner-leave-active {
+.demo-overlay-enter-from,
+.demo-overlay-leave-to { opacity: 0; }
+.demo-overlay-enter-active .demo-pill,
+.demo-overlay-leave-active .demo-pill {
   transition: transform 0.40s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.30s ease;
 }
-.demo-banner-enter-from,
-.demo-banner-leave-to {
-  transform: translateY(-100%);
+.demo-overlay-enter-from .demo-pill,
+.demo-overlay-leave-to   .demo-pill {
+  transform: translateY(24px);
   opacity: 0;
 }
+
 @media (max-width: 640px) {
-  .demo-banner__caption { white-space: normal; }
-  .demo-banner__step { display: none; }
-  .demo-banner__inner { padding: 12px 16px; gap: 10px; }
+  .demo-overlay { padding-bottom: 22px; gap: 14px; }
+  .demo-overlay__caption { font-size: 14px; max-width: 90vw; }
+  .demo-pill__divider { display: none; }
+  .demo-pill__count { display: none; }
+  .demo-pill__stop-label { display: none; }
+  .demo-pill__stop { padding: 6px 10px; }
 }
 
 /* ─── SECTIONS ─────────────────────────────────────────────── */
