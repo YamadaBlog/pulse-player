@@ -40,9 +40,13 @@ const props = withDefaults(defineProps<{
   accentColor?: string
   size?: number
   offset?: { bottom?: number; right?: number }
+  /** Persist the dragged position to localStorage under this key. Set to
+   *  an empty string to disable persistence. */
+  persistKey?: string
 }>(), {
   variant: 'auto',
   size: 56,
+  persistKey: 'pulse-player-fab-pos',
 })
 
 const store = useAudioStore()
@@ -112,15 +116,40 @@ function onPointerUp() {
   if (!isDragging.value) return
   isDragging.value = false
 
-  const dx = position.value.x - dragStartPos.x
+  if (!hasMoved.value) return
+
+  // Optional dismiss on a clear downward swipe (≥ 120 px so it can't fire
+  // accidentally during a normal reposition).
   const dy = position.value.y - dragStartPos.y
-  if ((dy > 80 || dx > 80) && hasMoved.value) {
+  if (dy > 120) {
     store.close()
     position.value = { x: 0, y: 0 }
+    persistPosition()
     return
   }
-  if (!hasMoved.value) return
-  position.value = { x: 0, y: 0 }
+
+  // Otherwise: KEEP the dragged position. No snap-back. Persist it so the
+  // FAB stays put even after a page reload.
+  persistPosition()
+}
+
+function persistPosition() {
+  if (!props.persistKey || typeof localStorage === 'undefined') return
+  try {
+    localStorage.setItem(props.persistKey, JSON.stringify(position.value))
+  } catch { /* private mode / quota — ignore */ }
+}
+
+function restorePosition() {
+  if (!props.persistKey || typeof localStorage === 'undefined') return
+  try {
+    const raw = localStorage.getItem(props.persistKey)
+    if (!raw) return
+    const parsed = JSON.parse(raw) as { x: number; y: number }
+    if (typeof parsed.x === 'number' && typeof parsed.y === 'number') {
+      position.value = parsed
+    }
+  } catch { /* corrupt entry — ignore */ }
 }
 
 function onContextMenu(e: Event) {
@@ -151,7 +180,10 @@ const fabStyle = computed(() => {
   return base
 })
 
-onMounted(() => document.addEventListener('click', onDocClick))
+onMounted(() => {
+  restorePosition()
+  document.addEventListener('click', onDocClick)
+})
 onUnmounted(() => document.removeEventListener('click', onDocClick))
 </script>
 

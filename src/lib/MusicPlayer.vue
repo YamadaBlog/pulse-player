@@ -49,9 +49,19 @@ const props = withDefaults(defineProps<{
   hideIcons?: boolean
   /** Override the auto-responsive scale. 0.6 = compact, 1.0 = base, 1.8 = large. */
   size?: number
+  /** Apply the subtle grain / noise texture overlay. On by default. */
+  noise?: boolean
+  /** Enable the drag-to-resize handle in the bottom-right corner. */
+  resizable?: boolean
+  /** Min / max width when resizable. Defaults: 180 / Infinity (no cap). */
+  minWidth?: number
+  maxWidth?: number
 }>(), {
   variant: 'auto',
   hideIcons: false,
+  noise: true,
+  resizable: false,
+  minWidth: 180,
 })
 
 const store = useAudioStore()
@@ -86,10 +96,16 @@ const scale = computed(() =>
 const rootStyle = computed(() => {
   const s: Record<string, string> = {
     '--pulse-scale': String(scale.value),
+    // Always feed the current cover into the bg layer — the cover-blur is
+    // the signature texture that gives EVERY variant its gradient.
+    '--pulse-cover': `url(${store.track.cover})`,
   }
   if (props.accentColor) s['--pulse-accent'] = props.accentColor
   if (props.variant === 'custom' && props.customBackground) {
     s['--pulse-custom-bg'] = props.customBackground
+  }
+  if (userWidth.value !== null) {
+    s.width = userWidth.value + 'px'
   }
   return s
 })
@@ -97,6 +113,36 @@ const rootStyle = computed(() => {
 function seek(e: MouseEvent) {
   const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
   store.seek((e.clientX - r.left) / r.width)
+}
+
+// ─── Manual resize via the bottom-right handle ───────────────────────
+const userWidth = ref<number | null>(null)
+const isResizing = ref(false)
+let resizeStart = { x: 0, w: 0 }
+
+function onResizePointerDown(e: PointerEvent) {
+  if (!props.resizable || !containerRef.value) return
+  e.preventDefault()
+  e.stopPropagation()
+  isResizing.value = true
+  resizeStart = { x: e.clientX, w: containerRef.value.getBoundingClientRect().width }
+  ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+}
+
+function onResizePointerMove(e: PointerEvent) {
+  if (!isResizing.value) return
+  const next = resizeStart.w + (e.clientX - resizeStart.x)
+  const clamped = Math.max(
+    props.minWidth,
+    props.maxWidth ? Math.min(props.maxWidth, next) : next,
+  )
+  userWidth.value = clamped
+}
+
+function onResizePointerUp(e: PointerEvent) {
+  if (!isResizing.value) return
+  isResizing.value = false
+  try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId) } catch {}
 }
 
 onMounted(() => {
@@ -140,15 +186,19 @@ onUnmounted(() => {
       </defs>
     </svg>
 
-    <!-- Cover-art blurred background + noise texture overlay.
-         Rendered for `auto` (blurs over the dark fill) and `transparent`
-         (gives the frameless player its premium gradient + noise identity,
-         matching the original dashboard look). -->
+    <!-- Cover-art blurred backdrop — rendered ONLY on the `auto` variant.
+         `transparent` stays purely transparent (no image, no overlay).
+         Tinted variants stay opaque. -->
     <div
-      v-if="variant === 'auto' || variant === 'transparent'"
+      v-if="variant === 'auto'"
       class="mp__bg"
       :class="{ 'mp__bg--active': store.isPlaying }"
     ></div>
+
+    <!-- Subtle grain overlay — rendered on EVERY variant so the noise
+         texture is part of the component's identity (matches the original
+         dashboard). Disable with `:noise="false"`. -->
+    <div v-if="noise" class="mp__noise" aria-hidden="true"></div>
 
     <div class="mp__art" @click="store.toggle">
       <img
@@ -226,6 +276,25 @@ onUnmounted(() => {
         <div class="mp__dot"></div>
       </div>
     </div>
+
+    <!-- Drag-to-resize handle (bottom-right corner). Pointer events =
+         single code path for mouse, touch and pen. -->
+    <div
+      v-if="resizable"
+      class="mp__resize"
+      :class="{ 'mp__resize--active': isResizing }"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize player"
+      @pointerdown="onResizePointerDown"
+      @pointermove="onResizePointerMove"
+      @pointerup="onResizePointerUp"
+      @pointercancel="onResizePointerUp"
+    >
+      <svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true">
+        <path d="M1 13 L13 1 M5 13 L13 5 M9 13 L13 9" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" />
+      </svg>
+    </div>
   </div>
 </template>
 
@@ -281,21 +350,20 @@ onUnmounted(() => {
   line-height: 1.1;
 }
 
-/* ─── Variants ──────────────────────────────────────────────── */
+/* ─── Variants ──────────────────────────────────────────────
+   Same opaque palette as v0.6.0 — restoring the original look.
+   The only thing every variant gets ON TOP is the `.mp__noise`
+   overlay so the grain texture matches the original dashboard. */
+
+/* Auto = cover-blur visible AS the background. No opaque fill on top. */
+.mp[data-variant="auto"] {
+  background: transparent;
+}
+
+/* Transparent = pure transparent. No image, no overlay, just the frame. */
 .mp[data-variant="transparent"] {
-  /* Frameless — relies on the cover-blur + noise (.mp__bg) for identity.
-     Matches the original dashboard rendering exactly: subtle border, no fill,
-     the textured backdrop carries the visual weight. */
   background: transparent;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10);
-}
-/* Make the noise/gradient a touch stronger on transparent so the player
-   keeps a clear identity even when the host background is bright. */
-.mp[data-variant="transparent"] .mp__bg {
-  opacity: 0.32;
-}
-.mp[data-variant="transparent"] .mp__bg--active {
-  opacity: 0.28;
 }
 .mp[data-variant="solid"] { background: var(--pulse-bg, #14141a); }
 .mp[data-variant="dark"]  { background: #0a0a0f; }
@@ -353,18 +421,45 @@ onUnmounted(() => {
 
 .mp__filters { position: absolute; width: 0; height: 0; overflow: hidden; }
 
+/* The cover-blur backdrop — rendered only on the `auto` variant.
+   Shows the song's cover art blurred as the player background.
+   No opaque overlay sits on top — the cover IS the background. */
 .mp__bg {
   position: absolute;
-  inset: -20%;
-  width: 140%;
-  height: 140%;
-  filter: url(#pulseMpBlur) url(#pulseMpNoise);
-  opacity: 0.22;
+  inset: -10%;
+  width: 120%;
+  height: 120%;
+  background-image: var(--pulse-cover);
+  background-size: cover;
+  background-position: center;
+  filter: blur(40px) saturate(1.2);
+  opacity: 1;
   pointer-events: none;
   z-index: 0;
-  transition: opacity 0.8s ease;
+  transition: background-image 0.6s ease;
 }
-.mp__bg--active { opacity: 0.18; }
+
+/* ─── Always-on noise overlay ───────────────────────────────
+   A fixed SVG fractal-noise pattern, encoded as a data URI so it
+   renders identically on every variant (including dark, light, vinyl,
+   sunset, etc). Mix-blend-mode 'overlay' keeps it subtle on darks AND
+   visible on lights. Toggle via the `noise` prop. */
+.mp__noise {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 240px 240px;
+}
+/* Light variant — noise needs a different blend mode + opacity to stay
+   visible without darkening the surface too much. */
+.mp[data-variant="light"] .mp__noise {
+  opacity: 0.18;
+  mix-blend-mode: multiply;
+}
 
 /* ─── Artwork ───────────────────────────────────────────────── */
 .mp__art {
@@ -480,7 +575,7 @@ onUnmounted(() => {
 .mp[data-variant="light"] .mp__icon-link:hover { color: #14141a; }
 .mp[data-variant="vinyl"] .mp__icon-link { color: rgba(245, 240, 232, 0.4); }
 .mp[data-variant="vinyl"] .mp__icon-link:hover { color: #F5F0E8; }
-.mp__icon-link--spotify { color: #1DB954; opacity: 0.85; }
+.mp__icon-link--spotify { color: #1DB954; opacity: 0.92; }
 .mp__icon-link--spotify:hover { color: #1DB954; opacity: 1; }
 
 .mp__spacer { flex: 1; min-height: var(--pulse-spacer); }
@@ -562,6 +657,33 @@ onUnmounted(() => {
   transition: transform 0.12s;
 }
 .mp__bar:hover .mp__dot { transform: translateY(-50%) scale(1); }
+
+/* ─── Resize handle ─────────────────────────────────────────── */
+.mp__resize {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 22px;
+  height: 22px;
+  z-index: 4;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 3px;
+  cursor: nwse-resize;
+  color: rgba(255, 255, 255, 0.35);
+  touch-action: none; /* pointer events take over — no scroll/zoom interference */
+  user-select: none;
+  -webkit-user-select: none;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+.mp__resize:hover { color: rgba(255, 255, 255, 0.92); transform: scale(1.15); }
+.mp__resize--active { color: var(--pulse-accent, #3DBDA7); }
+.mp[data-variant="light"] .mp__resize { color: rgba(20, 20, 26, 0.4); }
+.mp[data-variant="light"] .mp__resize:hover { color: rgba(20, 20, 26, 0.92); }
+@media (prefers-reduced-motion: reduce) {
+  .mp__resize { transition: color 0.1s ease; }
+}
 
 
 @media (prefers-reduced-motion: reduce) {
