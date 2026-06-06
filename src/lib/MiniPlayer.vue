@@ -43,10 +43,13 @@ const props = withDefaults(defineProps<{
   /** Persist the dragged position to localStorage under this key. Set to
    *  an empty string to disable persistence. */
   persistKey?: string
+  /** Add a subtle pulse + audio-wave ripple around the FAB. Off by default. */
+  pulso?: boolean
 }>(), {
   variant: 'auto',
   size: 56,
   persistKey: 'pulse-player-fab-pos',
+  pulso: false,
 })
 
 const store = useAudioStore()
@@ -108,7 +111,32 @@ function onPointerMove(e: PointerEvent) {
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null }
     menuOpen.value = false
   }
-  position.value = { x: dragStartPos.x + dx, y: dragStartPos.y + dy }
+  position.value = clampToViewport({ x: dragStartPos.x + dx, y: dragStartPos.y + dy })
+}
+
+// Clamp a translate offset so the FAB stays fully on-screen with a safe
+// margin. position is a translate(x, y) relative to the FAB's anchor
+// (bottom-right of the viewport via fixed positioning).
+function clampToViewport(p: { x: number; y: number }): { x: number; y: number } {
+  if (typeof window === 'undefined') return p
+  const fab = document.querySelector('.fab') as HTMLElement | null
+  const r = fab?.getBoundingClientRect()
+  const size = r?.width || props.size
+  const margin = 8
+  const anchorRight = props.offset?.right ?? 16
+  const anchorBottom = props.offset?.bottom ?? 32
+  // The translate offset that puts the FAB's left edge at x=margin is
+  // -(window.innerWidth - anchorRight - size - margin).
+  const minX = -(window.innerWidth - anchorRight - size - margin)
+  const maxX = anchorRight - margin
+  // The translate offset that puts the FAB's top edge at y=margin is
+  // -(window.innerHeight - anchorBottom - size - margin).
+  const minY = -(window.innerHeight - anchorBottom - size - margin)
+  const maxY = anchorBottom - margin
+  return {
+    x: Math.max(minX, Math.min(maxX, p.x)),
+    y: Math.max(minY, Math.min(maxY, p.y)),
+  }
 }
 
 function onPointerUp() {
@@ -147,9 +175,22 @@ function restorePosition() {
     if (!raw) return
     const parsed = JSON.parse(raw) as { x: number; y: number }
     if (typeof parsed.x === 'number' && typeof parsed.y === 'number') {
-      position.value = parsed
+      // Validate + clamp against the current viewport before applying — a
+      // saved position from a wider window could be off-screen now.
+      position.value = clampToViewport(parsed)
     }
   } catch { /* corrupt entry — ignore */ }
+}
+
+// Re-clamp the FAB whenever the window is resized so it never gets stuck
+// off-screen after a layout change.
+function onWindowResize() {
+  if (position.value.x === 0 && position.value.y === 0) return
+  const clamped = clampToViewport(position.value)
+  if (clamped.x !== position.value.x || clamped.y !== position.value.y) {
+    position.value = clamped
+    persistPosition()
+  }
 }
 
 function onContextMenu(e: Event) {
@@ -183,8 +224,12 @@ const fabStyle = computed(() => {
 onMounted(() => {
   restorePosition()
   document.addEventListener('click', onDocClick)
+  window.addEventListener('resize', onWindowResize)
 })
-onUnmounted(() => document.removeEventListener('click', onDocClick))
+onUnmounted(() => {
+  document.removeEventListener('click', onDocClick)
+  window.removeEventListener('resize', onWindowResize)
+})
 </script>
 
 <template>
@@ -193,7 +238,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
       <div
         v-if="store.isVisible"
         class="fab"
-        :class="{ 'fab--dragging': isDragging, 'fab--menu-open': menuOpen }"
+        :class="{ 'fab--dragging': isDragging, 'fab--menu-open': menuOpen, 'fab--pulso': pulso }"
         :data-variant="variant"
         :style="fabStyle"
         @pointerdown="onPointerDown"
@@ -284,6 +329,54 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
   user-select: none;
 }
 .fab--dragging { cursor: grabbing; }
+
+/* ─── Pulso effect ───────────────────────────────────────────
+   Two soft rings expand outward from the FAB like audio waves.
+   Subtle, premium, non-aggressive. Use prefers-reduced-motion
+   to opt out — accessibility-friendly. */
+.fab--pulso::before,
+.fab--pulso::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--pulse-accent, #3DBDA7);
+  pointer-events: none;
+  opacity: 0;
+  z-index: -1;
+  animation: pulso-wave 2.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+}
+.fab--pulso::after {
+  animation-delay: 1.4s;
+}
+@keyframes pulso-wave {
+  0%   { transform: scale(1);   opacity: 0.40; }
+  70%  { opacity: 0; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+/* A whisper of glow on the button itself so the FAB looks alive. */
+.fab--pulso .fab__btn {
+  animation: pulso-glow 2.8s ease-in-out infinite;
+}
+@keyframes pulso-glow {
+  0%, 100% {
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 0 18px rgba(61, 189, 167, 0.18);
+  }
+  50% {
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.15),
+      0 0 32px rgba(61, 189, 167, 0.42);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fab--pulso::before,
+  .fab--pulso::after,
+  .fab--pulso .fab__btn { animation: none; }
+}
 .fab__svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 .fab__btn {

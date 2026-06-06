@@ -77,6 +77,7 @@ const responsiveWidths = [320, 480, 720] as const
 
 // ─── FAB switcher ─────────────────────────────────────────────
 const activeFabVariant = ref<MusicPlayerVariant>('auto')
+const fabPulso = ref(false)
 const fabPalette: { id: MusicPlayerVariant; label: string; accent?: string }[] = [
   { id: 'auto',     label: 'Auto' },
   { id: 'vinyl',    label: 'Vinyl',    accent: '#C8A97E' },
@@ -197,6 +198,40 @@ const hero = computed(() => ({
     </section>
 
     <!-- ═══════════════════════════════════════════════════════════════
+         DRAG TO RESIZE — manual pointer-driven resize
+         ═══════════════════════════════════════════════════════════════ -->
+    <section class="section section--narrow">
+      <p class="section__eyebrow">Drag · Pointer events</p>
+      <h2 class="section__h">Grab the corner. Resize it yourself.</h2>
+      <p class="section__sub">
+        Pass <code>resizable</code> to the inline player and a diagonal handle
+        appears in the bottom-right corner. Mouse, finger or stylus — same
+        code path (pointer events + <code>setPointerCapture</code>). Pull it
+        small enough and it collapses to compact mode automatically.
+      </p>
+
+      <div class="drag-stage">
+        <div class="drag-stage__hint">
+          <span class="drag-stage__dot"></span>
+          Grab the
+          <span class="drag-stage__icon" aria-hidden="true">
+            <svg viewBox="0 0 14 14" width="14" height="14"><path d="M1 13 L13 1 M5 13 L13 5 M9 13 L13 9" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+          </span>
+          handle in the bottom-right corner
+        </div>
+        <MusicPlayer
+          variant="midnight"
+          accent-color="#8B5CF6"
+          resizable
+          :min-width="200"
+          :max-width="900"
+          github-url="https://github.com/YamadaBlog/pulse-player"
+          spotify-url="https://open.spotify.com/"
+        />
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════
          FEATURES — Three-up
          ═══════════════════════════════════════════════════════════════ -->
     <section class="section">
@@ -304,7 +339,16 @@ const hero = computed(() => ({
       <div class="palette__hint">
         <button class="cta cta--ghost cta--sm" @click="store.open" :disabled="store.isVisible">Show FAB</button>
         <button class="cta cta--ghost cta--sm" @click="store.close">Hide FAB</button>
+        <label class="pulso-toggle" :class="{ 'pulso-toggle--on': fabPulso }">
+          <input type="checkbox" v-model="fabPulso" />
+          <span class="pulso-toggle__dot"></span>
+          <span class="pulso-toggle__label">Pulso</span>
+        </label>
       </div>
+      <p class="palette__note">
+        <code>pulso</code> &nbsp;adds a subtle audio-wave ripple around the FAB.
+        Try it once the FAB is visible.
+      </p>
     </section>
 
     <!-- ═══════════════════════════════════════════════════════════════
@@ -325,6 +369,7 @@ const hero = computed(() => ({
       v-if="!showcase"
       :variant="activeFabVariant"
       :accent-color="fabPalette.find(p => p.id === activeFabVariant)?.accent"
+      :pulso="fabPulso"
     />
   </div>
 </template>
@@ -634,6 +679,49 @@ code {
 }
 
 /* ─── FEATURES ─────────────────────────────────────────────── */
+/* ─── DRAG STAGE ──────────────────────────────────────────── */
+.drag-stage {
+  position: relative;
+  padding: 28px;
+  background: var(--pg-surface);
+  border: 1px solid var(--pg-border);
+  border-radius: 24px;
+}
+.drag-stage > .mp {
+  margin: 0 auto;
+}
+.drag-stage__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--pg-text-mid);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  margin-bottom: 22px;
+}
+.drag-stage__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pg-accent);
+  box-shadow: 0 0 0 4px rgba(61, 189, 167, 0.18);
+  animation: hint-pulse 2.2s ease-in-out infinite;
+}
+@keyframes hint-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(61, 189, 167, 0.18); }
+  50% { box-shadow: 0 0 0 8px rgba(61, 189, 167, 0.06); }
+}
+.drag-stage__icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--pg-accent);
+}
+
 .features {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -727,7 +815,59 @@ code {
   background: rgba(61, 189, 167, 0.12);
   border-color: rgba(61, 189, 167, 0.40);
 }
-.palette__hint { display: flex; gap: 10px; flex-wrap: wrap; }
+.palette__hint { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.palette__note {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--pg-text-low);
+}
+.palette__note code {
+  background: rgba(61, 189, 167, 0.12);
+  color: var(--pg-accent);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ─── Pulso toggle ──────────────────────────────────────────── */
+.pulso-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--pg-text-mid);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.pulso-toggle:hover { color: var(--pg-text); background: rgba(255, 255, 255, 0.08); }
+.pulso-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.pulso-toggle__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.pulso-toggle--on {
+  color: var(--pg-accent);
+  background: rgba(61, 189, 167, 0.12);
+  border-color: rgba(61, 189, 167, 0.40);
+}
+.pulso-toggle--on .pulso-toggle__dot {
+  background: var(--pg-accent);
+  box-shadow: 0 0 0 3px rgba(61, 189, 167, 0.25);
+  animation: pulso-toggle-pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulso-toggle-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(61, 189, 167, 0.25); }
+  50% { box-shadow: 0 0 0 6px rgba(61, 189, 167, 0.10); }
+}
 
 /* ─── FOOTER ───────────────────────────────────────────────── */
 .footer {
