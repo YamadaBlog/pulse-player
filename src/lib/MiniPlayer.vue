@@ -342,7 +342,7 @@ onUnmounted(() => {
 
 /* Button heartbeat — subtle scale, two quick beats, then rest. */
 .fab--pulso .fab__btn {
-  animation: pulso-heartbeat 1.4s ease-out infinite;
+  animation: pulso-heartbeat 3s ease-out infinite;
 }
 .fab--pulso .fab__btn:hover { animation: none; transform: scale(1.06); }
 .fab--pulso.fab--dragging .fab__btn { animation: none; }
@@ -371,7 +371,7 @@ onUnmounted(() => {
   pointer-events: none;
   opacity: 0;
   z-index: 1;
-  animation: pulso-wave-lub 1.4s ease-out infinite;
+  animation: pulso-wave-lub 3s ease-out infinite;
 }
 /* Second ring fires on the "dub" beat instead. */
 .fab--pulso::after { animation-name: pulso-wave-dub; }
