@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { MusicPlayer, MiniPlayer, useAudioStore, type MusicPlayerVariant } from './lib'
+import { useDemoTour, type DemoStep } from './composables/useDemoTour'
 
 const store = useAudioStore()
 
@@ -75,6 +76,10 @@ const variants: VariantSpec[] = [
 
 const responsiveWidths = [320, 480, 720] as const
 
+// ─── Hero variant — reactive so the demo tour can cycle it ─────
+const heroVariant = ref<MusicPlayerVariant>('auto')
+const heroAccent = ref<string | undefined>(undefined)
+
 // ─── FAB switcher ─────────────────────────────────────────────
 const activeFabVariant = ref<MusicPlayerVariant>('auto')
 const fabPulso = ref(false)
@@ -87,6 +92,154 @@ const fabPalette: { id: MusicPlayerVariant; label: string; accent?: string }[] =
   { id: 'dark',     label: 'Dark' },
   { id: 'light',    label: 'Light' },
 ]
+
+// ═══════════════════════════════════════════════════════════════
+// GUIDED DEMO TOUR — scripted ~50 s walk-through
+// Click "Watch demo" to launch. The banner up top stays in front
+// of the user with a Stop button at all times.
+// ═══════════════════════════════════════════════════════════════
+const tour = useDemoTour()
+
+const THEME_SHOWCASE: { variant: MusicPlayerVariant; accent?: string; label: string }[] = [
+  { variant: 'auto',     label: 'Auto' },
+  { variant: 'midnight', label: 'Midnight', accent: '#8B5CF6' },
+  { variant: 'sunset',   label: 'Sunset',   accent: '#F59E0B' },
+  { variant: 'aurora',   label: 'Aurora',   accent: '#06B6D4' },
+  { variant: 'vinyl',    label: 'Vinyl',    accent: '#C8A97E' },
+]
+
+const demoSteps: DemoStep[] = [
+  {
+    title: 'Welcome',
+    run: async (ctx) => {
+      ctx.setMessage('A drop-in music player for Vue 3 — let me show you around.')
+      await ctx.scrollTo('.hero')
+      await ctx.delay(2200)
+    },
+  },
+  {
+    title: 'Press play',
+    run: async (ctx) => {
+      ctx.setMessage('Real audio. Real FFT. The bars react to the track.')
+      if (!store.isPlaying) store.toggle()
+      await ctx.delay(3200)
+    },
+  },
+  {
+    title: 'Responsive scaling',
+    run: async (ctx) => {
+      ctx.setMessage('One CSS variable scales every dimension — try the slider yourself after.')
+      await ctx.scrollTo('.resize-stage')
+      await ctx.delay(400)
+      await ctx.tween((v) => { userScale.value = v }, userScale.value, 0.75, 900)
+      await ctx.delay(600)
+      await ctx.tween((v) => { userScale.value = v }, 0.75, 1.7, 1100)
+      await ctx.delay(600)
+      await ctx.tween((v) => { userScale.value = v }, 1.7, 1.0, 900)
+      await ctx.delay(500)
+    },
+  },
+  {
+    title: 'Themes',
+    run: async (ctx) => {
+      ctx.setMessage('Nine themes, one component. Same player, every mood.')
+      await ctx.scrollTo('.hero__player')
+      for (const t of THEME_SHOWCASE) {
+        if (ctx.signal.aborted) return
+        heroVariant.value = t.variant
+        heroAccent.value = t.accent
+        ctx.setMessage(`Theme · ${t.label}`)
+        await ctx.delay(1300)
+      }
+      heroVariant.value = 'auto'
+      heroAccent.value = undefined
+      await ctx.delay(300)
+    },
+  },
+  {
+    title: 'Ambient EQ',
+    run: async (ctx) => {
+      ctx.setMessage('Ambient EQ — 64 spectrum-coloured bars across every player.')
+      store.ambientEq = true
+      await ctx.delay(3000)
+    },
+  },
+  {
+    title: 'Floating FAB',
+    run: async (ctx) => {
+      ctx.setMessage('A persistent floating FAB — draggable, dismissible, always in sync.')
+      await ctx.scrollTo('.palette')
+      if (!store.isVisible) store.open()
+      await ctx.delay(900)
+      fabPulso.value = true
+      ctx.setMessage('Pulso — a heartbeat ripple that only animates while the music plays.')
+      await ctx.delay(3000)
+      fabPulso.value = false
+      await ctx.delay(300)
+    },
+  },
+  {
+    title: 'You’re in',
+    run: async (ctx) => {
+      ctx.setMessage('That’s pulse-player. Drop it in. Ship it. Have fun exploring.')
+      await ctx.scrollTo('.hero')
+      await ctx.delay(2400)
+    },
+  },
+]
+
+// Snapshot whatever state existed before the tour started so we can
+// restore it cleanly on Stop / Done.
+let preDemoState: {
+  heroVariant: MusicPlayerVariant
+  heroAccent: string | undefined
+  ambientEq: boolean
+  userScale: number
+  fabPulso: boolean
+  wasPlaying: boolean
+  fabVisible: boolean
+} | null = null
+
+function startDemo() {
+  if (tour.isRunning.value) return
+  preDemoState = {
+    heroVariant: heroVariant.value,
+    heroAccent: heroAccent.value,
+    ambientEq: store.ambientEq,
+    userScale: userScale.value,
+    fabPulso: fabPulso.value,
+    wasPlaying: store.isPlaying,
+    fabVisible: store.isVisible,
+  }
+  tour.start(demoSteps, { onStop: restoreFromDemo })
+}
+
+function stopDemo() {
+  tour.stop()
+}
+
+function restoreFromDemo() {
+  if (!preDemoState) return
+  // Keep audio playing if the user started it — most pleasant outcome.
+  if (preDemoState.heroVariant !== heroVariant.value) heroVariant.value = preDemoState.heroVariant
+  heroAccent.value = preDemoState.heroAccent
+  // Keep ambient EQ ON after a successful tour (it was the highlight) —
+  // but if user hit Stop early, restore. Heuristic: progress < 0.9 = stop.
+  if (tour.progress.value < 0.85 && !preDemoState.ambientEq) {
+    store.ambientEq = false
+  }
+  userScale.value = preDemoState.userScale
+  fabPulso.value = preDemoState.fabPulso
+  // FAB visibility: keep the demo's outcome (visible) unless it was hidden
+  if (!preDemoState.fabVisible && tour.progress.value < 0.85) {
+    store.close()
+  }
+  preDemoState = null
+}
+
+onUnmounted(() => {
+  if (tour.isRunning.value) tour.stop()
+})
 
 // ─── Hero blurred backdrop driven by current cover ────────────
 const hero = computed(() => ({
@@ -115,6 +268,36 @@ const hero = computed(() => ({
 
     <template v-if="!showcase">
     <!-- ═══════════════════════════════════════════════════════════════
+         DEMO BANNER — sticky at the top of the viewport while the
+         guided tour runs. Caption + progress bar + Stop button.
+         ═══════════════════════════════════════════════════════════════ -->
+    <Transition name="demo-banner">
+      <div v-if="tour.isRunning.value" class="demo-banner" role="status" aria-live="polite">
+        <div class="demo-banner__inner">
+          <div class="demo-banner__pulse" aria-hidden="true"></div>
+          <div class="demo-banner__meta">
+            <div class="demo-banner__chip">
+              PULSE DEMO · <strong>{{ tour.title.value }}</strong>
+              <span class="demo-banner__step">
+                · Step {{ tour.currentStep.value + 1 }} / {{ tour.totalSteps.value }}
+              </span>
+            </div>
+            <div class="demo-banner__caption">{{ tour.message.value }}</div>
+          </div>
+          <button class="demo-banner__stop" @click="stopDemo" aria-label="Stop demo">
+            <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true">
+              <rect x="2" y="2" width="8" height="8" rx="1" fill="currentColor"/>
+            </svg>
+            Stop
+          </button>
+        </div>
+        <div class="demo-banner__progress">
+          <div class="demo-banner__progress-bar" :style="{ width: tour.progress.value * 100 + '%' }"></div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- ═══════════════════════════════════════════════════════════════
          HERO — Apple-grade showcase with blurred cover backdrop
          ═══════════════════════════════════════════════════════════════ -->
     <section class="hero" :style="hero">
@@ -122,29 +305,36 @@ const hero = computed(() => ({
       <div class="hero__glow" aria-hidden="true"></div>
 
       <div class="hero__inner">
-        <div class="hero__badge">v0.2 · Vue 3 · MIT · ~41 kB gzip</div>
-        <h1 class="hero__title">A music player that grows with the page.</h1>
+        <div class="hero__badge">v0.11 · Vue 3 · MIT · ~47 kB gzip</div>
+        <h1 class="hero__title">Premium drop-in music for Vue 3.</h1>
         <p class="hero__lede">
-          A drop-in Vue 3 component pair: a full-size inline card and a floating
-          draggable FAB, sharing one global audio session. Everything you see
-          scales from a single CSS variable — drop it in a 280 px sidebar or a
-          720 px hero, it looks intentional either way.
+          An inline card and a floating FAB. One global audio session. FFT
+          visualiser, nine themes, container-aware sizing — and a guided
+          demo that walks you through the whole thing. Drop in. Ship.
         </p>
 
         <div class="hero__player">
           <MusicPlayer
+            :variant="heroVariant"
+            :accent-color="heroAccent"
             github-url="https://github.com/YamadaBlog/pulse-player"
             spotify-url="https://open.spotify.com/"
           />
         </div>
 
         <div class="hero__cta">
-          <a class="cta cta--primary" href="https://github.com/YamadaBlog/pulse-player" target="_blank" rel="noopener">
+          <button class="cta cta--primary" @click="startDemo" :disabled="tour.isRunning.value">
+            <span class="cta__icon" aria-hidden="true">
+              <svg viewBox="0 0 14 14" width="13" height="13"><path d="M3 2 L11 7 L3 12 Z" fill="currentColor"/></svg>
+            </span>
+            Watch demo
+          </button>
+          <a class="cta cta--ghost" href="https://github.com/YamadaBlog/pulse-player" target="_blank" rel="noopener">
             View on GitHub
             <span class="cta__arrow">→</span>
           </a>
-          <button class="cta cta--ghost" @click="store.toggle">
-            {{ store.isPlaying ? 'Pause demo' : 'Play demo' }}
+          <button class="cta cta--text" @click="store.toggle">
+            {{ store.isPlaying ? 'Pause music' : 'Play music' }}
           </button>
         </div>
       </div>
@@ -545,10 +735,13 @@ code {
   font-family: inherit;
 }
 .cta--primary {
-  background: #ffffff;
-  color: #0a0a0f;
+  background: linear-gradient(135deg, #1DB954 0%, #15a047 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(29, 185, 84, 0.30), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
-.cta--primary:hover { transform: translateY(-1px); }
+.cta--primary:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(29, 185, 84, 0.40), inset 0 0 0 1px rgba(255, 255, 255, 0.20); }
+.cta--primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.cta--primary .cta__icon { display: inline-flex; align-items: center; justify-content: center; }
 .cta--ghost {
   background: rgba(255, 255, 255, 0.06);
   color: var(--pg-text);
@@ -557,9 +750,122 @@ code {
 }
 .cta--ghost:hover { background: rgba(255, 255, 255, 0.12); }
 .cta--ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+.cta--text {
+  background: transparent;
+  color: var(--pg-text-mid);
+  border-color: transparent;
+  padding: 12px 14px;
+}
+.cta--text:hover { color: var(--pg-text); }
 .cta--sm { padding: 9px 16px; font-size: 13px; }
 .cta__arrow { transition: transform 0.15s ease; }
 .cta:hover .cta__arrow { transform: translateX(3px); }
+
+/* ─── DEMO BANNER ─────────────────────────────────────────── */
+.demo-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: rgba(8, 10, 14, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+.demo-banner__inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 14px 22px;
+}
+.demo-banner__pulse {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #1DB954;
+  box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.6);
+  animation: demo-banner-pulse 1.8s ease-out infinite;
+  flex-shrink: 0;
+}
+@keyframes demo-banner-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.45); }
+  70%  { box-shadow: 0 0 0 10px rgba(29, 185, 84, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0); }
+}
+.demo-banner__meta { flex: 1; min-width: 0; line-height: 1.3; }
+.demo-banner__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  color: var(--pg-text-mid);
+  text-transform: uppercase;
+}
+.demo-banner__chip strong {
+  color: var(--pg-text);
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-weight: 700;
+  margin-left: 2px;
+}
+.demo-banner__step { color: var(--pg-text-low); font-weight: 500; }
+.demo-banner__caption {
+  margin-top: 3px;
+  color: var(--pg-text);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.demo-banner__stop {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  background: rgba(255, 90, 90, 0.18);
+  border: 1px solid rgba(255, 90, 90, 0.35);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
+}
+.demo-banner__stop:hover { background: rgba(255, 90, 90, 0.28); border-color: rgba(255, 90, 90, 0.50); transform: translateY(-1px); }
+.demo-banner__progress {
+  position: relative;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.demo-banner__progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #1DB954, #4ECDC4);
+  box-shadow: 0 0 12px rgba(29, 185, 84, 0.45);
+  transition: width 0.30s ease;
+}
+/* Slide-in / slide-out */
+.demo-banner-enter-active,
+.demo-banner-leave-active {
+  transition: transform 0.40s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.30s ease;
+}
+.demo-banner-enter-from,
+.demo-banner-leave-to {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+@media (max-width: 640px) {
+  .demo-banner__caption { white-space: normal; }
+  .demo-banner__step { display: none; }
+  .demo-banner__inner { padding: 12px 16px; gap: 10px; }
+}
 
 /* ─── SECTIONS ─────────────────────────────────────────────── */
 .section {
