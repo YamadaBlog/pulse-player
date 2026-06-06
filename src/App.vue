@@ -15,6 +15,7 @@ interface VariantSpec {
 
 const variants: VariantSpec[] = [
   { id: 'auto',        variant: 'auto',        label: 'Auto (cover art)',  caption: 'Blurred artwork background — signature look.' },
+  { id: 'vinyl',       variant: 'vinyl',       label: 'Vinyl Dark',        caption: 'Warm analog — vinyl + leather. Gold-cream text.', accentColor: '#C8A97E' },
   { id: 'sunset',      variant: 'sunset',      label: 'Sunset',            caption: 'Warm sepia / brown gradient.', accentColor: '#F59E0B' },
   { id: 'midnight',    variant: 'midnight',    label: 'Midnight',          caption: 'Deep navy / violet gradient.', accentColor: '#8B5CF6' },
   { id: 'aurora',      variant: 'aurora',      label: 'Aurora',            caption: 'Teal / cyan night gradient.', accentColor: '#06B6D4' },
@@ -30,6 +31,7 @@ const responsiveWidths = [320, 480, 720] as const
 const activeFabVariant = ref<MusicPlayerVariant>('auto')
 const fabPalette: { id: MusicPlayerVariant; label: string; accent?: string }[] = [
   { id: 'auto', label: 'Auto' },
+  { id: 'vinyl', label: 'Vinyl', accent: '#C8A97E' },
   { id: 'sunset', label: 'Sunset', accent: '#F59E0B' },
   { id: 'midnight', label: 'Midnight', accent: '#8B5CF6' },
   { id: 'aurora', label: 'Aurora', accent: '#06B6D4' },
@@ -55,7 +57,10 @@ const fabPalette: { id: MusicPlayerVariant; label: string; accent?: string }[] =
       <h2 class="section__title">Default</h2>
       <p class="section__sub">Variant <code>auto</code> — uses the live cover art as a blurred background.</p>
       <div class="player-stage">
-        <MusicPlayer />
+        <MusicPlayer
+          github-url="https://github.com/YamadaBlog/pulse-player"
+          spotify-url="https://open.spotify.com/"
+        />
       </div>
     </section>
 

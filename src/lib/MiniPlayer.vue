@@ -31,6 +31,7 @@ export type MiniPlayerVariant =
   | 'sunset'
   | 'midnight'
   | 'aurora'
+  | 'vinyl'
   | 'custom'
 
 const props = withDefaults(defineProps<{
@@ -303,6 +304,15 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
     0 4px 20px rgba(0, 0, 0, 0.5),
     0 0 0 1px rgba(6, 182, 212, 0.22),
     0 0 28px rgba(6, 182, 212, 0.18);
+}
+.fab[data-variant="vinyl"] .fab__btn {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(200, 169, 126, 0.10) 0%, transparent 60%),
+    linear-gradient(135deg, #030302 0%, #0A0907 50%, #1A1712 100%);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(200, 169, 126, 0.28),
+    0 0 28px rgba(200, 169, 126, 0.18);
 }
 .fab[data-variant="custom"] .fab__btn { background: var(--pulse-custom-bg, transparent); }
 

@@ -29,17 +29,22 @@ export type MusicPlayerVariant =
   | 'sunset'
   | 'midnight'
   | 'aurora'
+  | 'vinyl'
   | 'custom'
 
 const props = withDefaults(defineProps<{
   variant?: MusicPlayerVariant
   customBackground?: string
   accentColor?: string
+  /** If set, the GitHub icon becomes a link to this URL. */
   githubUrl?: string
-  showSpotifyIcon?: boolean
+  /** If set, the Spotify icon becomes a link to this URL. */
+  spotifyUrl?: string
+  /** Hide BOTH icons entirely (overrides defaults). */
+  hideIcons?: boolean
 }>(), {
   variant: 'auto',
-  showSpotifyIcon: false,
+  hideIcons: false,
 })
 
 const store = useAudioStore()
@@ -152,13 +157,33 @@ onUnmounted(() => {
           </span>
           <span class="mp__now-label">NOW PLAYING</span>
         </div>
-        <div class="mp__icons" v-if="githubUrl || showSpotifyIcon">
-          <a v-if="githubUrl" :href="githubUrl" target="_blank" rel="noopener" class="mp__icon-link" aria-label="GitHub">
+        <div class="mp__icons" v-if="!hideIcons">
+          <!-- GitHub: link if URL given, decorative span otherwise -->
+          <component
+            :is="githubUrl ? 'a' : 'span'"
+            :href="githubUrl"
+            :target="githubUrl ? '_blank' : undefined"
+            :rel="githubUrl ? 'noopener noreferrer' : undefined"
+            class="mp__icon-link"
+            :class="{ 'mp__icon-link--decorative': !githubUrl }"
+            :aria-label="githubUrl ? 'GitHub' : undefined"
+            :aria-hidden="githubUrl ? undefined : 'true'"
+          >
             <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-          </a>
-          <span v-if="showSpotifyIcon" class="mp__icon-link mp__icon-link--spotify" aria-hidden="true">
+          </component>
+          <!-- Spotify: link if URL given, decorative span otherwise -->
+          <component
+            :is="spotifyUrl ? 'a' : 'span'"
+            :href="spotifyUrl"
+            :target="spotifyUrl ? '_blank' : undefined"
+            :rel="spotifyUrl ? 'noopener noreferrer' : undefined"
+            class="mp__icon-link mp__icon-link--spotify"
+            :class="{ 'mp__icon-link--decorative': !spotifyUrl }"
+            :aria-label="spotifyUrl ? 'Open on Spotify' : undefined"
+            :aria-hidden="spotifyUrl ? undefined : 'true'"
+          >
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-          </span>
+          </component>
         </div>
       </div>
 
@@ -232,6 +257,21 @@ onUnmounted(() => {
   background: linear-gradient(135deg, #061a1a 0%, #0a2e2e 40%, #103040 100%);
   box-shadow: inset 0 0 0 1px rgba(6, 182, 212, 0.18);
 }
+.mp[data-variant="vinyl"] {
+  /* Warm analog — inspired by vinyl + leather, almost-black with sepia warmth */
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(200, 169, 126, 0.06) 0%, transparent 60%),
+    linear-gradient(135deg, #030302 0%, #0A0907 50%, #1A1712 100%);
+  box-shadow: inset 0 0 0 1px rgba(200, 169, 126, 0.20);
+  color: #F5F0E8;
+}
+.mp[data-variant="vinyl"] .mp__title { color: #F5F0E8; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5); }
+.mp[data-variant="vinyl"] .mp__now-label { color: rgba(245, 240, 232, 0.45); }
+.mp[data-variant="vinyl"] .mp__btn { color: rgba(245, 240, 232, 0.55); }
+.mp[data-variant="vinyl"] .mp__btn:hover { color: #F5F0E8; }
+.mp[data-variant="vinyl"] .mp__icon-link { color: rgba(245, 240, 232, 0.35); }
+.mp[data-variant="vinyl"] .mp__icon-link:hover { color: #F5F0E8; }
+
 .mp[data-variant="custom"] {
   background: var(--pulse-custom-bg, transparent);
 }
@@ -343,6 +383,8 @@ onUnmounted(() => {
   transition: color 0.15s;
   text-decoration: none;
 }
+.mp__icon-link:not(.mp__icon-link--decorative) { cursor: pointer; }
+.mp__icon-link--decorative { cursor: default; pointer-events: none; }
 .mp__icon-link:hover { color: var(--pulse-text, rgba(255, 255, 255, 0.85)); }
 .mp[data-variant="light"] .mp__icon-link { color: rgba(20, 20, 26, 0.5); }
 .mp[data-variant="light"] .mp__icon-link:hover { color: #14141a; }
@@ -438,11 +480,11 @@ onUnmounted(() => {
    ═══════════════════════════════════════════════════════════════ */
 
 /* Very narrow containers (e.g. portrait phone, sidebar) */
-@container (max-width: 320px) {
+@container (max-width: 280px) {
   .mp { border-radius: 12px; }
   .mp__title { letter-spacing: 0; }
   .mp__btn { width: 28px; height: 28px; }
-  .mp__icons { display: none; } /* hide on very small to avoid clipping NOW PLAYING */
+  .mp__icons { display: none; } /* only hide on truly narrow widths to avoid clipping NOW PLAYING */
 }
 
 /* Wide desktop containers — relax spacing a touch */
