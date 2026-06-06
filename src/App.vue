@@ -730,9 +730,9 @@ const hero = computed(() => ({
     </section>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         VARIANTS — gallery
+         VARIANTS — gallery (Library · 9 presets / Pick a mood)
          ═══════════════════════════════════════════════════════════════ -->
-    <section class="section">
+    <section class="section variants" id="variants">
       <p class="section__eyebrow">Library · 9 presets</p>
       <h2 class="section__h">Pick a mood.</h2>
       <p class="section__sub">
