@@ -24,7 +24,7 @@ This is the fastest path and lets us patch + publish a coordinated disclosure to
 
 ### Fallback: email
 
-Send the report to **`security+pulse-player@yamadablog.example`** (replace with the maintainer's actual security inbox before publishing).
+Send the report to **`yamadaablog@gmail.com`** with subject prefix `[pulse-player security]`. The maintainer's email is already public in the commit history; using it directly avoids a placeholder forward.
 
 Include:
 

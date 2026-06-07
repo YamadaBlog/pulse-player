@@ -10,7 +10,7 @@ This Code applies to all project spaces — the GitHub repository (issues, pull 
 
 ## Reporting
 
-Report unacceptable behaviour by email to **`security+conduct@yamadablog.example`** (replace with the maintainer's actual inbox before any contributor-facing announcement). Reports are read by the project maintainer only and stay confidential.
+Report unacceptable behaviour by email to **`yamadaablog@gmail.com`** with subject prefix `[pulse-player conduct]`. Reports are read by the project maintainer only and stay confidential.
 
 The maintainer commits to:
 
