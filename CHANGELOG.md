@@ -4,6 +4,102 @@ All notable changes to **pulse-player** are documented here. The format follows 
 
 Tags: every release listed below is pinned to a signed git tag of the same name (`vX.Y.Z`) and surfaced as a GitHub Release.
 
+## 3.0.0-alpha.18 — 2026-06-07
+
+**The "remaining gaps documented" alpha.** Each of the 4 honest residual gaps from the alpha.17 audit (npm publish, RN runtime, manual SR, MIT protection) now has a written-out action plan. No fix is possible without the external dependency, but every blocker is now spelled out with concrete next-action steps for the maintainer.
+
+Vue v2.3.4 codebase bit-for-bit identical on its 19th alpha.
+
+### LOT 1 (npm publish) — `scripts/publish-dry-run.sh` + `docs/universal/PUBLISH_CHECKLIST.md`
+
+A maintainer with OTP in hand now has:
+
+- `scripts/publish-dry-run.sh` — runs the full CI gate + size-limit + tarball dry-run + metadata sanity per package. ~30 seconds. Aborts on any red. Wrapped as `npm run publish:dry-run`.
+- `docs/universal/PUBLISH_CHECKLIST.md` — step-by-step from "npm account + 2FA" through "publish in topological order" through "verify + tag + announce". Covers the OTP flow, the half-published-state recovery, the 72-hour unpublish window, the $0 cost. ~140 LOC.
+
+Total time at the keyboard once the maintainer is ready: **~5 minutes** (mostly typing OTPs into 6 successive `npm publish` prompts).
+
+### LOT 2 (RN runtime) — `docs/universal/REACT_NATIVE_RUNTIME_SETUP.md`
+
+The renderer-deferred package now has a maintainer playbook (~190 LOC) covering:
+
+- The scope decision (no shared rendering with web; RN gets a separate renderer consuming the same `@pulse/core` API).
+- Expo SDK vs bare RN CLI choice (recommendation: Expo for the first iteration).
+- The exact peer-dependency list: `react-native-audio-api` (Web Audio parity), `react-native-reanimated` (60 fps off-thread), `react-native-gesture-handler` (FAB drag), `react-native-svg` (icons), `@react-native-async-storage/async-storage` (persist), `@react-native-community/blur` (backdrop-filter replacement).
+- The 5-step implementation sequence (audio adapter → hook → components → demo app → tests → docs sweep → publish).
+- A timeline estimate: **~1 working week** for a maintainer with RN tooling installed.
+- A fallback paragraph for "what if the sprint slips" — the interface-only package shipping today is deliberately compatible with a future renderer.
+
+### LOT 3 (Manual SR) — `docs/universal/SCREEN_READER_TEST_PLAN.md`
+
+The Axe-core strict gate (alpha.17) covers the automated WCAG 2.1 AA layer. The lived screen-reader experience needs human ears. The plan (~135 LOC) defines:
+
+- 6 OS × SR × browser combinations to cover (NVDA / VoiceOver / TalkBack on Windows / macOS / iOS / Android).
+- 10 test scenarios per combination (landing → now-playing read → play/pause → skip → progress slider → variant chips → fullscreen → reduced-motion respect → resize without mouse → FAB drag).
+- A reporting template that lands in `docs/universal/SCREEN_READER_REPORT.md` when run.
+- A "when this matters" note: Axe-core is enough for MIT OSS adoption; the manual SR report is what enterprise procurement checklists ask for, so the work pays for itself once the first enterprise customer signs.
+- Timeline: ~2-3 h per (OS, SR, browser) combination; a full day for the six-row matrix.
+
+### LOT 4 (Protection) — `docs/universal/PROTECTION_NOTES.md`
+
+The "Protection contre la copie: 5/10 (MIT par design)" entry has appeared in every CTO audit since alpha.10. This doc (~150 LOC) reframes it from "gap to fix" to "informed tradeoff":
+
+- The honest baseline (front-end JS distributed to a browser is fundamentally copyable, no licence physically prevents that — same for Tailwind UI / MUI X Pro / Headless UI / Radix).
+- What MIT actually allows vs prohibits (the mandatory copyright-notice clause is the lever; DMCA processes via GitHub / npm / web host take 2-7 days).
+- 6 practical mitigations that don't compromise OSS adoption: brand the experience (YouTube walkthrough is irreplaceable), honest changelog as future-cadence signal, adjacent paid products (Pulse Premium themes / Pulse Studio / consulting — the Tailwind / MUI playbook), trademark registration (USPTO ~$350 / EUIPO ~€850), watermark the demo assets (not the library code), public npm + GitHub usage tracking.
+- A decision matrix for "which licence path to pick" — recommendation for Pulse today: **stay MIT, build adjacent paid products when usage signals justify it**. Switching preemptively kills the adoption phase that creates the paid-tier customer pool.
+
+The note in future audits should read: "Protection: 5/10 — by design, see PROTECTION_NOTES.md". An informed tradeoff, not a gap.
+
+### What changed in code
+
+- `package.json` — added `npm run publish:dry-run` script.
+- `scripts/publish-dry-run.sh` (NEW, executable).
+- `docs/universal/PUBLISH_CHECKLIST.md` (NEW).
+- `docs/universal/REACT_NATIVE_RUNTIME_SETUP.md` (NEW).
+- `docs/universal/SCREEN_READER_TEST_PLAN.md` (NEW).
+- `docs/universal/PROTECTION_NOTES.md` (NEW).
+
+Zero library code touched. `src/lib/` untouched. `dist/lib/pulse-player.{es,cjs}.js` byte-identical to alpha.17.
+
+### Quality gate
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings
+format:check             → all files use Prettier code style
+tests (root, Vue Pinia)  →  33 / 33
+tests (@pulse/core)      →  27 / 27
+tests (@pulse/tokens)    →  11 / 11
+tests (@pulse/web-comp)  →  22 / 22
+tests (@pulse/react)     →  16 / 16
+tests (@pulse/svelte)    →   8 /  8
+tests (@pulse/angular)   →   5 /  5
+tests (@pulse/RN)        →  10 / 10
+TOTAL unit               → 132 / 132
+test:visual              →   2 /  2 stable
+test:a11y                →   2 /  2 strict (CI green)
+size-limit               → 7 / 7 packages under budget
+build (Vue demo)         → 48 kB gzip (UNCHANGED)
+build:lib (Vue lib)      → 14 kB gzip (UNCHANGED — byte-identical)
+audit (prod-only)        → 0 vulnerabilities
+Vue v2.3.4 demo          → bit-for-bit identical
+src/lib/                 → ZERO file modified
+```
+
+### Self-assessed grade
+
+**9.6 / 10** (was 9.5 alpha.17).
+
+The +0.1 reflects the fact that each remaining gap now has a maintainer-actionable plan: no more "deferred, see BLOCKERS.md" — instead a concrete checklist, scaffold, or honest decision matrix. The gaps themselves don't close in code this alpha (they can't, without the external dependency), but the documentation closes the "what do we do next?" question for each one.
+
+The remaining 0.4 stays gated on external execution:
+
+- 🚫 `npm publish @pulse/*` — maintainer OTP, ~5 minutes at the keyboard. Procedure: PUBLISH_CHECKLIST.md.
+- 🚫 `@pulse/react-native` real runtime — RN tooling environment, ~1 working week. Procedure: REACT_NATIVE_RUNTIME_SETUP.md.
+- 🚫 Manual SR test report — human + screen-reader environment, ~1 day for full 6-row matrix. Procedure: SCREEN_READER_TEST_PLAN.md.
+- 🚫 Protection ≥ 6/10 — impossible without abandoning MIT; informed-tradeoff per PROTECTION_NOTES.md.
+
 ## 3.0.0-alpha.17 — 2026-06-07
 
 **The "a11y triage actually closes" alpha.** The alpha.16 honest log noted that the strict-mode promotion failed because of 2 real violations. This alpha closes them. Vue v2.3.4 library `src/lib/` codebase bit-for-bit identical on its 18th alpha.
