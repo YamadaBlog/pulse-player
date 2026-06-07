@@ -1,3 +1,23 @@
+<script lang="ts">
+// Module-level constants — shared across every MusicPlayer instance,
+// computed once when the module loads. Keep this block tiny.
+
+// HSL sweep used by every ambient EQ. Pure data, no reactivity, no
+// per-instance recomputation. 64 entries.
+const AMBIENT_BAR_STYLES: { color: string }[] = (() => {
+  const N = 64
+  const out: { color: string }[] = new Array(N)
+  for (let i = 0; i < N; i++) {
+    const r = i / (N - 1)
+    const h = Math.round(141 + r * 34)
+    const s = Math.round(73 - r * 5)
+    const l = Math.round(42 + r * 8)
+    out[i] = { color: `hsl(${h}, ${s}%, ${l}%)` }
+  }
+  return out
+})()
+</script>
+
 <script setup lang="ts">
 /**
  * MusicPlayer — Full-size inline player.
@@ -92,18 +112,9 @@ const effectiveAmbientEq = computed(() =>
 // toward a cooler mint-cyan (HSL 175, 68 %, 50 %). The shift is
 // subtle by design — it gives the wave a sense of "frequency spectrum"
 // without breaking brand identity.
-const ambientBarStyles = computed(() => {
-  const N = 64
-  const out: { color: string }[] = new Array(N)
-  for (let i = 0; i < N; i++) {
-    const r = i / (N - 1)
-    const h = Math.round(141 + r * 34)
-    const s = Math.round(73 - r * 5)
-    const l = Math.round(42 + r * 8)
-    out[i] = { color: `hsl(${h}, ${s}%, ${l}%)` }
-  }
-  return out
-})
+// Reference the module-level constant defined in the non-setup script
+// at the top of this file.
+const ambientBarStyles = AMBIENT_BAR_STYLES
 
 // ─── Auto-scale via ResizeObserver
 // Map container width to a unitless scale:
@@ -242,6 +253,11 @@ onMounted(() => {
     if (!containerRef.value) return
     autoScale.value = computeScale(containerRef.value.clientWidth)
     containerWidth.value = containerRef.value.clientWidth
+    // Feature-test before instantiating. On the rare browser without RO
+    // (e.g. Safari < 13.1) we keep the initial measurement and skip
+    // live container queries — the component still renders, it just
+    // won't auto-scale when the parent grows.
+    if (typeof ResizeObserver === 'undefined') return
     resizeObs = new ResizeObserver(entries => {
       for (const entry of entries) {
         containerWidth.value = entry.contentRect.width
@@ -1127,13 +1143,33 @@ onUnmounted(() => {
 .mp__resize--active { color: var(--pulse-accent, #3DBDA7); }
 .mp[data-variant="light"] .mp__resize { color: rgba(20, 20, 26, 0.4); }
 .mp[data-variant="light"] .mp__resize:hover { color: rgba(20, 20, 26, 0.92); }
+/* ─── prefers-reduced-motion ────────────────────────────────
+   Honour the OS-level "reduce motion" preference. Every animated
+   surface either drops its transition entirely or collapses to
+   the minimum legibility threshold (0.1s color tween).
+   Covers: morph between classic / compact / FAB, all overlays
+   that fade in (FAB chrome, cover-blur, noise, ambient EQ,
+   art-hover scrim), the progress ring, and every EQ visualiser. */
 @media (prefers-reduced-motion: reduce) {
+  .mp,
+  .mp__btn,
+  .mp__bg,
+  .mp__noise,
+  .mp__fill,
+  .mp__bar,
+  .mp__dot,
+  .mp__icon-link,
+  .mp__body,
+  .mp__art,
+  .mp__art-img,
+  .mp__art-hover,
+  .mp__fab-chrome,
+  .mp__fab-bg,
+  .mp__fab-ring-progress,
+  .mp__ambient,
+  .mp__ambient i,
+  .mp__eq i,
+  .mp__fab-eq i { transition: none !important; }
   .mp__resize { transition: color 0.1s ease; }
-}
-
-
-@media (prefers-reduced-motion: reduce) {
-  .mp, .mp__btn, .mp__bg, .mp__fill, .mp__bar, .mp__dot, .mp__icon-link { transition: none; }
-  .mp__eq i { transition: none; }
 }
 </style>

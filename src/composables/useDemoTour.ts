@@ -279,6 +279,16 @@ function abortError(): Error {
   return e
 }
 
+/** Detect the OS-level reduced-motion preference. The entire demo
+ *  collapses to instant state changes when this is true — no smooth
+ *  scrolls, no tweens, no slow caption fades. We still walk through
+ *  every step but each one snaps into its final state. */
+function prefersReducedMotion(): boolean {
+  return typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
 function abortableDelay(
   ms: number,
   signal: AbortSignal,
@@ -322,6 +332,12 @@ function abortableTween(
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal.aborted) { reject(abortError()); return }
+    // Reduced motion → snap straight to the end value, skip the rAF loop.
+    if (prefersReducedMotion()) {
+      setter(to)
+      resolve()
+      return
+    }
     let elapsed = 0
     let lastNow = performance.now()
     let raf = 0
@@ -364,6 +380,12 @@ function abortableScrollTo(
     const startY = window.scrollY
     const distance = targetY - startY
     if (Math.abs(distance) < 4) { resolve(); return }
+    // Reduced motion → jump directly to the target Y, no smooth scroll.
+    if (prefersReducedMotion()) {
+      window.scrollTo(0, targetY)
+      resolve()
+      return
+    }
     const speed = opts.speed ?? 'gentle'
     const speedProfile = SCROLL_SPEED[speed]
     const duration = Math.max(

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, shallowRef, triggerRef, computed } from 'vue'
 
 export interface Track {
   /** Display title. */
@@ -44,14 +44,21 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
   const isPlaying = ref(false)
   const currentTime = ref(0)
   const duration = ref(0)
-  const eqBars = ref<number[]>([0, 0, 0, 0])
+  /**
+   * EQ refs use `shallowRef` because the rAF tick mutates the underlying
+   * array IN PLACE and then calls `triggerRef()` once per frame. That
+   * skips deep reactivity tracking + array-proxy overhead, and avoids
+   * allocating fresh arrays 30–60 times a second — both of which add up
+   * fast on the landing page (15+ subscribers, 30 fps × 64 bars).
+   */
+  const eqBars = shallowRef<number[]>([0, 0, 0, 0])
   /** Pre-mapped 64-value array for the ambient EQ visualiser.
    *  Each value drives one bar directly. The mapping in startEqLoop()
    *  spreads the FFT bins LOGARITHMICALLY (pitch is perceived
    *  logarithmically, and most musical energy sits in the low bins)
    *  and applies a frequency-dependent gain so the high-frequency
    *  bars don't go quiet just because high-end bins have less energy. */
-  const eqAmbientBars = ref<number[]>(new Array(64).fill(0))
+  const eqAmbientBars = shallowRef<number[]>(new Array(64).fill(0))
   const isVisible = ref(false)       // mini-player visible
   const hasBeenOpened = ref(false)    // user started playback at least once
   /** Global ambient-EQ toggle. When true, every <MusicPlayer /> in the
@@ -86,19 +93,24 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     audio = a
 
     try {
-      audioCtx = new AudioContext()
+      // Safari < 14.1 still needs the webkit prefix.
+      const AudioCtor: typeof AudioContext =
+        (window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext })
+          .AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext!
+      audioCtx = new AudioCtor()
       analyser = audioCtx.createAnalyser()
       analyser.fftSize = 256                 // 128 bins — enough headroom for log mapping
       analyser.smoothingTimeConstant = 0.5   // snappier so adjacent bars stop syncing
       sourceNode = audioCtx.createMediaElementSource(a)
       sourceNode.connect(analyser)
       analyser.connect(audioCtx.destination)
-      startEqLoop()
-    } catch { /* fallback: bars stay at 0 */ }
+    } catch { /* fallback: bars stay at 0 — AudioContext unavailable */ }
   }
 
   function startEqLoop() {
-    if (!analyser) return
+    if (!analyser || eqRaf !== null) return    // already running
     const data = new Uint8Array(analyser.frequencyBinCount)
     const N = 64
     // Log-frequency map of bar index → FFT bin. minBin = 2 skips the
@@ -112,32 +124,41 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
       const r = i / (N - 1)
       binMap[i] = Math.round(minBin * Math.pow(maxBin / minBin, r))
     }
+    // Mutate the EQ ref buffers IN PLACE every tick + call triggerRef.
+    // shallowRef skips deep proxy work, triggerRef notifies all consumers
+    // with a single update. No per-frame allocations: ~0 GC pressure.
+    const focal = eqBars.value
+    const ambient = eqAmbientBars.value
     let frame = 0
     function tick() {
-      if (!analyser) return
+      if (!analyser) { eqRaf = null; return }
       analyser.getByteFrequencyData(data)
-      // 4-bar condensed visualiser (NOW PLAYING / FAB chrome) — kept
-      // at the full 60 fps so the focal bars feel responsive.
-      eqBars.value = [data[3] / 255, data[8] / 255, data[18] / 255, data[36] / 255]
-      // 64-bar ambient EQ — throttled to ~30 fps. The Vue reactive
-      // update on a 64-element array fans out to every <MusicPlayer />
-      // showing the ambient (15+ instances on the landing page). Halving
-      // the cadence cuts the per-frame render budget in half without any
-      // visible loss in smoothness — the eye still reads 30 fps as
-      // continuous on this kind of spectrum visualiser.
+      // 4-bar condensed visualiser (NOW PLAYING / FAB chrome) — full 60 fps.
+      focal[0] = data[3] / 255
+      focal[1] = data[8] / 255
+      focal[2] = data[18] / 255
+      focal[3] = data[36] / 255
+      triggerRef(eqBars)
+      // 64-bar ambient — half rate, still visually continuous.
       if ((frame++ & 1) === 0) {
-        const ambient = new Array(N)
         for (let i = 0; i < N; i++) {
           const r = i / (N - 1)
           const raw = data[binMap[i]] / 255
           const gain = 0.65 + r * 0.50
           ambient[i] = Math.min(1, Math.pow(raw, 0.55) * gain)
         }
-        eqAmbientBars.value = ambient
+        triggerRef(eqAmbientBars)
       }
       eqRaf = requestAnimationFrame(tick)
     }
-    tick()
+    eqRaf = requestAnimationFrame(tick)
+  }
+
+  function stopEqLoop() {
+    if (eqRaf !== null) {
+      cancelAnimationFrame(eqRaf)
+      eqRaf = null
+    }
   }
 
   function toggle() {
@@ -146,11 +167,13 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     if (isPlaying.value) {
       audio.pause()
       isPlaying.value = false
+      stopEqLoop()                 // stop the rAF — the spectrum is flat anyway
     } else {
       audio.play()
       isPlaying.value = true
       hasBeenOpened.value = true
       isVisible.value = true
+      startEqLoop()                // start (or resume) the rAF
     }
   }
 
@@ -186,6 +209,7 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     if (audio) { audio.pause() }
     isPlaying.value = false
     isVisible.value = false
+    stopEqLoop()
   }
 
   function fmt(s: number): string {

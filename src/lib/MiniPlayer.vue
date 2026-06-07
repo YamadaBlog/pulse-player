@@ -235,6 +235,10 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('click', onDocClick)
   window.removeEventListener('resize', onWindowResize)
+  // Cancel any pending long-press that might still fire after the
+  // component is gone. Without this the timer would call `openMenu()`
+  // on an unmounted instance — silent, but a leak.
+  if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null }
 })
 </script>
 
@@ -587,8 +591,15 @@ onUnmounted(() => {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .fab__eq i { transition: none; }
-  .fab__btn, .fab__ring-progress { transition: none; }
-  .fab-pop-enter-active, .fab-pop-leave-active { transition: opacity 0.1s; }
+  .fab,
+  .fab__btn,
+  .fab__cover,
+  .fab__cover-img,
+  .fab__overlay,
+  .fab__ring-progress,
+  .fab__menu-btn,
+  .fab__eq i { transition: none !important; }
+  .fab-pop-enter-active, .fab-pop-leave-active,
+  .menu-pop-enter-active, .menu-pop-leave-active { transition: opacity 0.1s !important; }
 }
 </style>
