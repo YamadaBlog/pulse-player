@@ -42,11 +42,16 @@ $ gh api -X POST repos/YamadaBlog/pulse-player/pages -f build_type=workflow
 - **README badge row:** new "Live demo" badge added alongside the YouTube one — visitors get both the recorded walkthrough and the interactive demo on the same line.
 - **`docs/universal/BLOCKERS.md` #0:** marked RESOLVED with the API response captured.
 
-### LOT 4 (P2) — Axe-core a11y workflow promoted to strict gate
+### LOT 4 (P2) — Axe-core strict-gate ATTEMPTED, then reverted (honest log)
 
-The workflow has been green on every push since alpha.12 (`continue-on-error: true` was a baseline-triage hedge). Promoted to a hard gate in alpha.16 — any new WCAG 2.1 AA violation now fails the build. The `continue-on-error` flag is removed; the workflow comment is updated to reflect the strict-mode promotion.
+Removed `continue-on-error: true` from `a11y.yml`. The next push immediately surfaced **two real failures the flag had been hiding since alpha.12**:
 
-Visual regression workflow stays `continue-on-error` because the committed baselines were captured on Windows and the Linux CI runner produces sub-pixel diffs. Resolving that needs platform-matched baselines, which is a separate dedicated task.
+1. `tests/visual/a11y.spec.ts:38` — selector `section.variants, .variants` doesn't match the v2.3.4 demo's actual markup. The test was always failing on the `scrollIntoViewIfNeeded()` step.
+2. `tests/visual/a11y.spec.ts:23` — the home-page scan surfaced WCAG 2.1 AA violations that need a triage pass before they can be classified as fix-needed vs known-allowed.
+
+Reverted to informational mode in this same alpha — the gate still runs (output captured for inspection) without blocking unrelated merges. The strict-mode promotion needs a dedicated a11y sprint (fix the selector + triage the home-page violations + decide on baseline allowances), not a one-flag flip. Workflow comment in `a11y.yml` updated to log the honest state for future maintainers.
+
+Visual regression workflow stays `continue-on-error` for the same kind of reason: committed baselines were captured on Windows and Linux CI runners produce sub-pixel diffs.
 
 ### Quality gate
 
