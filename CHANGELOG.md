@@ -8,6 +8,27 @@ Tags: every release listed below is pinned to a signed git tag of the same name 
 
 Tracked separately in [the v2.0.0 audit branch](https://github.com/YamadaBlog/pulse-player/issues?q=is%3Aissue+label%3Av2.0.0).
 
+## 3.0.0-alpha.1.1 — 2026-06-07
+
+Tests for `@pulse/core`. 27 unit tests ported from the validated v2.3.4 `tests/useAudioStore.test.ts` (22) + 5 new tests for the PulseEngine-specific surface (`onStateChange`, `setAmbientEq`, idempotent `dispose`).
+
+- `packages/core/vitest.config.ts` — jsdom env + `root` pinned to `packages/core/` so the include glob doesn't leak into the root Pinia tests.
+- `packages/core/tests/setup.ts` — port of the v2.3.4 setup (StubAudioContext, StubAnalyserNode, rAF polyfill, HTMLMediaElement.play stub).
+- `packages/core/tests/PulseEngine.test.ts` — covers initial state, `toggle()` counters + emit, `loadTrack` / `next` / `prev` + the 3-second prev boundary, `subscribe` lifecycle + crash isolation + double-unsubscribe noop, `open` / `close` / `fmt` / `progress` / `ambientEq` / `registerAmbientView`, `onStateChange`, `dispose` idempotence.
+- Root `npm run test:core` script runs the package suite. `npm run ci` now gates on `test:packages` too.
+
+Quality gate:
+
+```
+type-check       → clean
+lint             → 0 errors, 0 warnings
+tests (root)     → 33 / 33    (Vue Pinia store + useDemoTour)
+tests (core)     → 27 / 27    (PulseEngine, NEW)
+build (demo)    → 48 kB gzip
+audit            → 0 vulnerabilities
+v2.3.4 demo      → bit-for-bit identical
+```
+
 ## 3.0.0-alpha.1 — 2026-06-07
 
 `@pulse/core` and `@pulse/tokens` land with real code. **Vue v2.3.4 codebase at `src/lib/` is still untouched** — the audio engine is now reimplemented as a plain TypeScript class in parallel, and the validated Vue Pinia store keeps running the demo.
