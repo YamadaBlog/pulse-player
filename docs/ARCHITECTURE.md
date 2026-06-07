@@ -37,13 +37,15 @@ flowchart LR
 
 ## What lives where
 
-| Layer                    | Owns                                                                                                                                                             | Type                         |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| `useAudioStore`          | the `<audio>` element, the `AudioContext` + `AnalyserNode`, reactive state, the `ambientEq` global flag, all actions, the opt-in event bus, per-session counters | Pinia store (singleton)      |
-| `MusicPlayer.vue`        | the inline card layout, the four responsive states (narrow/compact/FAB), the drag-resize handle, all CSS variables tied to `--pulse-scale`                       | Vue 3 SFC                    |
-| `MiniPlayer.vue`         | the floating FAB, drag/swipe gestures, radial menu, progress ring, optional pulso heartbeat                                                                      | Vue 3 SFC (Teleport to body) |
-| `useDemoTour`            | the guided product tour — scripted timeline, two-tier abort, pause/resume, step jump, scroll/tween helpers, `prefers-reduced-motion` gate                        | Composable                   |
-| `setAudioTracks(tracks)` | replace the playlist before mount                                                                                                                                | function                     |
+| Layer                    | Owns                                                                                                                                                                                                                             | Type                         |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `useAudioStore`          | the `<audio>` element, the `AudioContext` + `AnalyserNode`, reactive state, the `ambientEq` global flag, all actions, the typed event bus (`play`, `pause`, `trackchange`, `error`), per-session counters, `dispose()` tear-down | Pinia store (singleton)      |
+| `MusicPlayer.vue`        | the inline card layout, the four responsive states (narrow/compact/FAB), the drag-resize handle, all CSS variables tied to `--pulse-scale`                                                                                       | Vue 3 SFC                    |
+| `MiniPlayer.vue`         | the floating FAB, drag/swipe gestures, radial menu, progress ring, optional pulso heartbeat                                                                                                                                      | Vue 3 SFC (Teleport to body) |
+| `shared/useProgressRing` | the SVG circular-progress geometry (`radius`, `circumference`, `offset`) used by both the inline FAB chrome and the floating FAB                                                                                                 | composable                   |
+| `shared/types`           | the canonical `PulseVariant` union (single source of truth for the 10 themes) + `ALL_VARIANTS` readonly array                                                                                                                    | module                       |
+| `useDemoTour`            | the guided product tour — scripted timeline, two-tier abort, pause/resume, step jump, scroll/tween helpers, `prefers-reduced-motion` gate. **Demo-only — not exported from `src/lib/index.ts`**                                  | composable                   |
+| `setAudioTracks(tracks)` | replace the playlist before mount                                                                                                                                                                                                | function                     |
 
 ## Why one store
 

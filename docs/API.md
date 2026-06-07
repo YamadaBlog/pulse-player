@@ -62,37 +62,65 @@
 
 ### Actions
 
-| Action                  | Notes                                                                                                                                                                                                                           |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `toggle()`              | Play or pause. First call initialises the Web Audio graph (browser autoplay rules apply). Emits `'play'` or `'pause'`.                                                                                                          |
-| `next()`                | Advance one track. Emits `'trackchange'`.                                                                                                                                                                                       |
-| `prev()`                | Restart the current track if past 3 s, else step back one. May emit `'trackchange'`.                                                                                                                                            |
-| `loadTrack(i)`          | Jump to track index. No-op if same. Emits `'trackchange'` when index changes.                                                                                                                                                   |
-| `seek(fraction)`        | Seek by ratio 0–1.                                                                                                                                                                                                              |
-| `open()`                | Show the FAB.                                                                                                                                                                                                                   |
-| `close()`               | Pause + hide the FAB.                                                                                                                                                                                                           |
-| `fmt(seconds)`          | Formats seconds as `m:ss`.                                                                                                                                                                                                      |
-| `subscribe(event, cb)`  | See **Events** below. Returns an unsubscribe function.                                                                                                                                                                          |
-| `registerAmbientView()` | Kept as a stable no-op since v1.0.2. The ambient EQ is now a pure-CSS animation with no per-frame JavaScript cost, so there's no visibility gating left to do. Returns a no-op unsubscribe; safe to call from old integrations. |
+| Action                  | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `toggle()`              | Play or pause. First call initialises the Web Audio graph (browser autoplay rules apply). Emits `'play'` or `'pause'`.                                                                                                                                                                                                                                                                                                                    |
+| `next()`                | Advance one track. Emits `'trackchange'`.                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `prev()`                | Restart the current track if past 3 s, else step back one. May emit `'trackchange'`.                                                                                                                                                                                                                                                                                                                                                      |
+| `loadTrack(i)`          | Jump to track index. No-op if same. Emits `'trackchange'` when index changes.                                                                                                                                                                                                                                                                                                                                                             |
+| `seek(fraction)`        | Seek by ratio 0–1.                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `open()`                | Show the FAB.                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `close()`               | Pause + hide the FAB.                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `fmt(seconds)`          | Formats seconds as `m:ss`.                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `subscribe(event, cb)`  | Opt-in, typed event bus. See **Events** below. Returns an unsubscribe function.                                                                                                                                                                                                                                                                                                                                                           |
+| `dispose()`             | Tear down the audio graph: pauses + drops the `<audio>` element, disconnects the source + analyser nodes, closes the `AudioContext`, clears the event-bus listener map, resets `isPlaying`, `isVisible`, `currentTime`, `duration`. Call from `onBeforeUnmount` in long-lived shells (browser extensions, hot-reloaded SPAs). The next `toggle()` re-initialises everything from scratch. Idempotent and safe to call without prior init. |
+| `registerAmbientView()` | Kept as a stable no-op since v1.0.2. The ambient EQ is now a pure-CSS animation with no per-frame JavaScript cost, so there's no visibility gating left to do. Returns a no-op unsubscribe; safe to call from old integrations.                                                                                                                                                                                                           |
 
 ### Events
 
-Opt-in event bus, zero overhead when nothing subscribes. See [`EVENTS.md`](./EVENTS.md) for full coverage.
+Opt-in event bus, zero overhead when nothing subscribes. See [`EVENTS.md`](./EVENTS.md) for full coverage of patterns, integration recipes, and privacy posture.
 
 ```ts
 const store = useAudioStore()
+// `cb`'s payload is narrowed to the matching shape at the callsite —
+// no `as` casts needed.
 const unsubscribe = store.subscribe('play', ({ track, time }) => {
-  // your analytics, telemetry, side effects, …
+  // track: Track, time: number
 })
 // later
 unsubscribe()
 ```
 
-| Event           | Payload                                      |
-| --------------- | -------------------------------------------- |
-| `'play'`        | `{ track: Track, time: number }`             |
-| `'pause'`       | `{ track: Track, time: number }`             |
-| `'trackchange'` | `{ from: number, to: number, track: Track }` |
+| Event           | Payload                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------- |
+| `'play'`        | `{ track: Track, time: number }`                                                            |
+| `'pause'`       | `{ track: Track, time: number }`                                                            |
+| `'trackchange'` | `{ from: number, to: number, track: Track }`                                                |
+| `'error'`       | `{ track: Track, reason: 'play-rejected' \| 'media-error' \| 'stalled', detail?: unknown }` |
+
+The `'error'` event covers three real-world failure modes:
+
+- **`'play-rejected'`** — the browser refused `audio.play()` (autoplay
+  policy, gesture consumed, …). `isPlaying` is rolled back automatically.
+- **`'media-error'`** — the `<audio>` element reported `error`
+  (404, codec, decoding). `detail` is the `MediaError` object.
+- **`'stalled'`** — the network buffer fell behind. Often transient;
+  no UI state is changed automatically.
+
+## Accessibility — keyboard surface
+
+| Element                            | Role        | Keyboard                                                                                      |
+| ---------------------------------- | ----------- | --------------------------------------------------------------------------------------------- |
+| `MusicPlayer` artwork (`.mp__art`) | `button`    | `Enter` / `Space` toggle play / pause                                                         |
+| `MusicPlayer` progress bar         | `slider`    | `←` / `→` ± 5 %, `Shift+←/→` ± 1 %, `PageUp` / `PageDown` ± 10 %, `Home` / `End` 0 % / 100 %  |
+| `MusicPlayer` skip buttons         | `button`    | `Enter` / `Space`                                                                             |
+| `MusicPlayer` resize handle        | `separator` | (mouse / pointer only — keyboard resize not yet wired)                                        |
+| `MusicPlayer` icon links           | `link`      | `Enter`                                                                                       |
+| `MiniPlayer` FAB                   | `button`    | `Enter` / `Space` toggle, plus `aria-haspopup` / `aria-expanded` when the radial menu is open |
+| `MiniPlayer` radial menu container | `menu`      | `Escape` closes, restores focus to FAB                                                        |
+| `MiniPlayer` menu items            | `menuitem`  | `↑` / `↓` / `←` / `→` cycle, `Home` / `End` jump to first / last                              |
+
+All animated surfaces (ambient EQ, pulso ripples, FAB pop transition, demo-tour tweens) are short-circuited when `(prefers-reduced-motion: reduce)` matches. The ambient EQ is hidden entirely; the pulso heartbeat freezes at scale 1; the demo tour snaps tweens to their end value.
 
 ## Types
 
@@ -105,7 +133,7 @@ export interface Track {
   coverScale?: number
 }
 
-export type MusicPlayerVariant =
+export type PulseVariant =
   | 'auto'
   | 'transparent'
   | 'solid'
@@ -117,20 +145,29 @@ export type MusicPlayerVariant =
   | 'vinyl'
   | 'custom'
 
-export type MiniPlayerVariant =
-  | 'auto'
-  | 'transparent'
-  | 'solid'
-  | 'dark'
-  | 'light'
-  | 'sunset'
-  | 'midnight'
-  | 'aurora'
-  | 'vinyl'
-  | 'custom'
+// Component-specific aliases kept for backward compatibility.
+export type MusicPlayerVariant = PulseVariant
+export type MiniPlayerVariant = PulseVariant
+
+export const ALL_VARIANTS: readonly PulseVariant[]
 ```
 
-The two unions are intentionally identical — declared in each component for module-level type narrowing without a circular dependency.
+### Event types
+
+The event bus is typed via a discriminated union so `subscribe<E>(event, cb)` narrows `cb`'s payload at the callsite.
+
+```ts
+type EventMap = {
+  play: { track: Track; time: number }
+  pause: { track: Track; time: number }
+  trackchange: { from: number; to: number; track: Track }
+  error: {
+    track: Track
+    reason: 'play-rejected' | 'media-error' | 'stalled'
+    detail?: unknown
+  }
+}
+```
 
 ## Public exports
 
@@ -141,9 +178,11 @@ import {
   useAudioStore,
   setAudioTracks,
   type Track,
+  type PulseVariant,
+  ALL_VARIANTS,
   type MusicPlayerVariant,
   type MiniPlayerVariant,
 } from 'pulse-player' // when published as a package
 ```
 
-`setAudioTracks(list)` replaces the global track list and **must** be called before the store is first consumed (i.e. before `<MiniPlayer />` or `<MusicPlayer />` mount).
+`setAudioTracks(list)` replaces the global track list and **must** be called before the store is first consumed (i.e. before `<MiniPlayer />` or `<MusicPlayer />` mount). If the list passed in is shorter than the current `currentTrack` index, the `track` computed clamps to the new range (no template crash); call `loadTrack(0)` after `setAudioTracks` if you want a clean reset.

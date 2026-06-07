@@ -137,15 +137,20 @@ That's it. Pinia is the only setup step. → [Detailed install + usage](./docs/A
 
 ## 📚 &nbsp;Documentation
 
-|                                                          |                                                                            |
-| -------------------------------------------------------- | -------------------------------------------------------------------------- |
-| 📖 &nbsp; [**API reference**](./docs/API.md)             | Props for `MusicPlayer`, `MiniPlayer`, the `useAudioStore` state + actions |
-| 🏗️ &nbsp; [**Architecture**](./docs/ARCHITECTURE.md)     | How the store, audio element and FFT analyser fit together (with diagram)  |
-| 🎨 &nbsp; [**Customization**](./docs/CUSTOMIZATION.md)   | Variants, accent colors, CSS variables, custom backgrounds                 |
-| 📐 &nbsp; [**Responsive**](./docs/RESPONSIVE.md)         | The auto-scale curve, the four responsive states, drag-to-resize           |
-| 🛠️ &nbsp; [**Advanced usage**](./docs/ADVANCED_USAGE.md) | Replace playlist, custom controls, multiple players, hide on routes        |
-| ▶️ &nbsp; [**Guided demo tour**](./docs/DEMO.md)         | The "Watch demo" feature — scenario, controls, fullscreen, custom steps    |
-| 🔔 &nbsp; [**Events & telemetry**](./docs/EVENTS.md)     | Opt-in `subscribe()` API + per-session counters (no third-party tracking)  |
+|                                                            |                                                                                               |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 📖 &nbsp; [**API reference**](./docs/API.md)               | Props for `MusicPlayer`, `MiniPlayer`, the `useAudioStore` state + actions + keyboard surface |
+| 🏗️ &nbsp; [**Architecture**](./docs/ARCHITECTURE.md)       | How the store, audio element and FFT analyser fit together (with diagram)                     |
+| 🎨 &nbsp; [**Customization**](./docs/CUSTOMIZATION.md)     | Variants, accent colors, CSS variables, custom backgrounds                                    |
+| 📐 &nbsp; [**Responsive**](./docs/RESPONSIVE.md)           | The auto-scale curve, the four responsive states, drag-to-resize                              |
+| 🛠️ &nbsp; [**Advanced usage**](./docs/ADVANCED_USAGE.md)   | Replace playlist, custom controls, multiple players, hide on routes                           |
+| ▶️ &nbsp; [**Guided demo tour**](./docs/DEMO.md)           | The "Watch demo" feature — scenario, controls, fullscreen, custom steps                       |
+| 🔔 &nbsp; [**Events & telemetry**](./docs/EVENTS.md)       | Opt-in typed `subscribe()` API + per-session counters (no third-party tracking)               |
+| ⚡ &nbsp; [**Performance**](./docs/PERFORMANCE.md)         | Bundle map, runtime cost per hot path, integration guidelines, `prefers-reduced-motion` story |
+| 🆘 &nbsp; [**Troubleshooting**](./docs/TROUBLESHOOTING.md) | Autoplay rejection, 404s, EQ silent, FAB persistence, hydration mismatch                      |
+| 🧪 &nbsp; [**Examples**](./examples)                       | 3 ready-to-fork integrations: minimum SPA, custom playlist, event subscriptions               |
+| 🚀 &nbsp; [**Release procedure**](./RELEASING.md)          | Tag → GitHub Release → npm publish flow with release-notes templates                          |
+| 📝 &nbsp; [**Changelog**](./CHANGELOG.md)                  | Every version from 0.1.0 to today, with rationale                                             |
 
 <br>
 

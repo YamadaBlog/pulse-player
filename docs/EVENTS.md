@@ -13,11 +13,37 @@
 
 ## The events
 
-| Event           | When it fires                                                                                                       | Payload                                      |
-| --------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `'play'`        | After `audio.play()` is called (so just after the user gesture or after `toggle()` resumes from pause).             | `{ track: Track, time: number }`             |
-| `'pause'`       | After `audio.pause()` is called.                                                                                    | `{ track: Track, time: number }`             |
-| `'trackchange'` | After `loadTrack(i)` changes the index (or `next()` / `prev()` lands on a different track). No-op moves don't fire. | `{ from: number, to: number, track: Track }` |
+| Event           | When it fires                                                                                                                                                                  | Payload                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `'play'`        | After `audio.play()` is called (so just after the user gesture or after `toggle()` resumes from pause).                                                                        | `{ track: Track, time: number }`                                                            |
+| `'pause'`       | After `audio.pause()` is called.                                                                                                                                               | `{ track: Track, time: number }`                                                            |
+| `'trackchange'` | After `loadTrack(i)` changes the index (or `next()` / `prev()` lands on a different track). No-op moves don't fire.                                                            | `{ from: number, to: number, track: Track }`                                                |
+| `'error'`       | When playback fails — autoplay rejection, media decode error, or the network buffer stalls. `isPlaying` is rolled back automatically on `'play-rejected'` and `'media-error'`. | `{ track: Track, reason: 'play-rejected' \| 'media-error' \| 'stalled', detail?: unknown }` |
+
+### Typed payloads — discriminated union
+
+`store.subscribe<E>(event, cb)` narrows the callback's payload at the
+callsite, so you never have to cast it. The full type map:
+
+```ts
+type EventMap = {
+  play: { track: Track; time: number }
+  pause: { track: Track; time: number }
+  trackchange: { from: number; to: number; track: Track }
+  error: {
+    track: Track
+    reason: 'play-rejected' | 'media-error' | 'stalled'
+    detail?: unknown
+  }
+}
+
+store.subscribe('play', ({ track, time }) => {
+  // track: Track, time: number   ← inferred, no `as` needed
+})
+store.subscribe('error', ({ reason, detail }) => {
+  // reason: 'play-rejected' | 'media-error' | 'stalled'
+})
+```
 
 ## Subscribing
 
@@ -104,6 +130,34 @@ watch(
     localStorage.setItem(KEY, String(n))
   },
 )
+```
+
+### Show a toast on playback failure
+
+```ts
+store.subscribe('error', ({ reason, detail }) => {
+  if (reason === 'play-rejected') {
+    toast.warn('Tap to start playback — your browser needs a user gesture.')
+  } else if (reason === 'media-error') {
+    toast.error('This track failed to load.', { detail })
+  }
+  // 'stalled' is usually transient; skip it unless you want a verbose UI.
+})
+```
+
+### Tear down before app destruction
+
+```ts
+import { onBeforeUnmount } from 'vue'
+
+const store = useAudioStore()
+// …
+onBeforeUnmount(() => {
+  // Disconnect the audio graph, close the AudioContext, clear every
+  // listener registered via subscribe(). The next toggle() will rebuild
+  // everything from scratch.
+  store.dispose()
+})
 ```
 
 ## What's NOT shipped
