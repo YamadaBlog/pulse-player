@@ -44,11 +44,20 @@ jobs:
       - name: Format check
         run: npm run format:check
 
-      - name: Unit tests
+      - name: Unit tests (Vue v2.3.4 reference)
         run: npm test
 
-      - name: Build
+      - name: Unit tests (multi-framework packages)
+        run: npm run test:packages
+
+      - name: Build Vue demo
         run: npm run build
+
+      - name: Build Vue library
+        run: npm run build:lib
+
+      - name: Build multi-framework packages
+        run: npm run build:packages
 
       - name: Audit production dependencies
         run: npm run audit

@@ -25,6 +25,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@pulse/types': fileURLToPath(new URL('../types/src/index.ts', import.meta.url)),
+      '@pulse/test-utils': fileURLToPath(new URL('../test-utils/src/index.ts', import.meta.url)),
     },
   },
 })

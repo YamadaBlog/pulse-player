@@ -1,5 +1,5 @@
 import { css, unsafeCSS } from 'lit'
-import { variantsCss } from '@pulse/tokens'
+import { baseCss, variantsCss } from '@pulse/tokens'
 
 /**
  * Shared CSS for the Web Component layer.
@@ -7,32 +7,20 @@ import { variantsCss } from '@pulse/tokens'
  * Mirrors the validated v2.3.4 base chrome (mp/mp__art/mp__title/
  * mp__progress).
  *
- * Variant tokens come from `@pulse/tokens` (single source of truth).
+ * BOTH the `--pulse-scale` system tokens (base.ts) AND the variant
+ * gradient / accent RGB triplets (variants.ts) now come from
+ * `@pulse/tokens` (single source of truth). The previous version
+ * inlined the base tokens in a local TOKENS string — that worked but
+ * meant adding a new token required edits in two places. Closes
+ * audit item P2 from v3.0.0-alpha.5.
+ *
  * The inner `<div class="mp" data-variant=${variant}>` rendered by
  * each Custom Element triggers the `[data-variant='X']` selectors
- * declared in the tokens string, so the SAME gradients and accent
- * RGB triplets land in both the document (Vue v2.3.4 chrome) and the
- * Shadow DOM — no duplication, no drift.
+ * declared in the tokens, so the SAME gradients land in both the
+ * document (Vue v2.3.4 chrome) and the Shadow DOM — no duplication,
+ * no drift.
  */
-const TOKENS = unsafeCSS(`
-  :host {
-    /* ─── Geometry (the --pulse-scale system) ─────────────── */
-    --pulse-scale: 1;
-    --pulse-art: calc(140px * var(--pulse-scale));
-    --pulse-title: calc(16px * var(--pulse-scale));
-    --pulse-subtitle: calc(11px * var(--pulse-scale));
-    --pulse-icon: calc(20px * var(--pulse-scale));
-    --pulse-btn: calc(36px * var(--pulse-scale));
-    --pulse-pad: calc(14px * var(--pulse-scale));
-    --pulse-gap: calc(12px * var(--pulse-scale));
-    --pulse-radius: calc(16px * var(--pulse-scale));
-    --pulse-progress-h: calc(3px * var(--pulse-scale));
-
-    /* ─── Default accent (overridable via accent-color attribute) ── */
-    --pulse-accent: #3dbda7;
-    --pulse-accent-rgb: 61, 189, 167;
-  }
-`)
+const BASE_TOKENS = unsafeCSS(baseCss)
 
 // Variant gradients + accent RGB triplets, imported from @pulse/tokens.
 // Selectors are `[data-variant='X']` (no host prefix); they match the
@@ -41,7 +29,7 @@ const TOKENS = unsafeCSS(`
 const VARIANT_TOKENS = unsafeCSS(variantsCss)
 
 export const baseStyles = css`
-  ${TOKENS}
+  ${BASE_TOKENS}
   ${VARIANT_TOKENS}
 
   :host {
@@ -149,6 +137,97 @@ export const playerStyles = css`
     font-size: var(--pulse-subtitle);
     opacity: 0.7;
     font-variant-numeric: tabular-nums;
+  }
+
+  /* ─── Eyebrow / NOW PLAYING ──────────────────────────────── */
+  .mp__eyebrow {
+    font-size: var(--pulse-eyebrow, 9px);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    opacity: 0.55;
+    margin: 0 0 calc(var(--pulse-gap) * 0.25) 0;
+  }
+
+  /* ─── Ghost (prev / next) buttons ─────────────────────────── */
+  .mp__btn--ghost {
+    background: transparent;
+    width: calc(var(--pulse-btn) * 0.75);
+    height: calc(var(--pulse-btn) * 0.75);
+    opacity: 0.7;
+  }
+  .mp__btn--ghost:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  /* ─── Social icons (GitHub / Spotify) ─────────────────────── */
+  .mp__icons {
+    display: inline-flex;
+    gap: calc(var(--pulse-gap) * 0.4);
+    margin-left: auto;
+    align-items: center;
+  }
+  .mp__icon {
+    font-size: var(--pulse-icon-sm, 16px);
+    opacity: 0.55;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  .mp__icon:hover {
+    opacity: 1;
+  }
+
+  /* ─── Three responsive states ──────────────────────────────
+     Driven by [data-size] attribute set in render() from the
+     ResizeObserver tick. Mirrors the v2.3.4 thresholds:
+       narrow   < 220 px : eyebrow + social icons hide
+       compact  < 130 px : prev/next + time hide
+       fab      < 110 px : only art + play button remain. */
+  .mp[data-size='narrow'] .mp__eyebrow,
+  .mp[data-size='narrow'] .mp__icons,
+  .mp[data-size='compact'] .mp__eyebrow,
+  .mp[data-size='compact'] .mp__icons,
+  .mp[data-size='fab'] .mp__eyebrow,
+  .mp[data-size='fab'] .mp__icons {
+    display: none;
+  }
+  .mp[data-size='compact'] .mp__btn--ghost,
+  .mp[data-size='compact'] .mp__time,
+  .mp[data-size='fab'] .mp__btn--ghost,
+  .mp[data-size='fab'] .mp__time {
+    display: none;
+  }
+  .mp[data-size='fab'] .mp__title,
+  .mp[data-size='fab'] .mp__progress {
+    display: none;
+  }
+  .mp[data-size='fab'] {
+    grid-template-columns: 1fr;
+    padding: 0;
+    border-radius: 50%;
+    aspect-ratio: 1 / 1;
+  }
+  .mp[data-size='fab'] .mp__art {
+    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+  }
+  .mp[data-size='fab'] .mp__body {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .mp[data-size='fab']:hover .mp__body {
+    opacity: 1;
+  }
+  .mp[data-size='fab'] .mp__controls {
+    display: flex;
+    justify-content: center;
   }
 
   /* ─── Ambient EQ — pure CSS, 0 JS / frame ───────────────────

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { EventMap, PulseVariant, Track } from '@pulse/types'
+import { useDomEvent } from './useDomEvent'
 
 /**
  * `<PulsePlayer />` — React wrapper around `<pulse-player>`.
@@ -71,41 +72,13 @@ export function PulsePlayer({
   const ref = useRef<HTMLElement>(null)
 
   // Bridge React event-prop callbacks → DOM CustomEvent listeners.
-  // Each useEffect re-attaches its listener when the handler changes,
-  // so closure capture of the latest prop value Just Works without
-  // dependency-array gymnastics.
-  useEffect(() => {
-    const el = ref.current
-    if (!el || !onPlay) return
-    const handler = (e: Event) => onPlay((e as CustomEvent<EventMap['play']>).detail)
-    el.addEventListener('pulse-play', handler)
-    return () => el.removeEventListener('pulse-play', handler)
-  }, [onPlay])
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || !onPause) return
-    const handler = (e: Event) => onPause((e as CustomEvent<EventMap['pause']>).detail)
-    el.addEventListener('pulse-pause', handler)
-    return () => el.removeEventListener('pulse-pause', handler)
-  }, [onPause])
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || !onTrackChange) return
-    const handler = (e: Event) =>
-      onTrackChange((e as CustomEvent<EventMap['trackchange']>).detail)
-    el.addEventListener('pulse-trackchange', handler)
-    return () => el.removeEventListener('pulse-trackchange', handler)
-  }, [onTrackChange])
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || !onError) return
-    const handler = (e: Event) => onError((e as CustomEvent<EventMap['error']>).detail)
-    el.addEventListener('pulse-error', handler)
-    return () => el.removeEventListener('pulse-error', handler)
-  }, [onError])
+  // The previous version copy-pasted the same useEffect block four
+  // times; `useDomEvent` collapses each one to a single line and
+  // keeps the typed `detail` payload intact.
+  useDomEvent<EventMap['play']>(ref, 'pulse-play', onPlay)
+  useDomEvent<EventMap['pause']>(ref, 'pulse-pause', onPause)
+  useDomEvent<EventMap['trackchange']>(ref, 'pulse-trackchange', onTrackChange)
+  useDomEvent<EventMap['error']>(ref, 'pulse-error', onError)
 
   // Push the `tracks` prop into the element's property channel.
   // `tracks` is an array, which can't be expressed as a HTML

@@ -126,10 +126,28 @@ export class PulsePlayerElement extends LitElement {
         const ratio = Math.max(0, Math.min(1, (w - 110) / (680 - 110)))
         const scale = min + (max - min) * ratio
         this.style.setProperty('--pulse-scale', String(scale))
+
+        // Three responsive states — same thresholds as the v2.3.4
+        // Vue MusicPlayer. Sets `data-size` on the host so the
+        // stylesheet can collapse / expand chrome elements without
+        // touching JS render. Closes audit P1 (chrome Phase 2 step 1).
+        //   narrow  < 220 px  → eyebrow + social icons hide
+        //   compact < 130 px  → controls collapse, time read-out hides
+        //   fab     < 110 px  → morph into disc shape, only art + play
+        let size: 'classic' | 'narrow' | 'compact' | 'fab' = 'classic'
+        if (w < 110) size = 'fab'
+        else if (w < 130) size = 'compact'
+        else if (w < 220) size = 'narrow'
+        this.responsiveSize = size
       })
       this.resizeObserver.observe(this)
     }
   }
+
+  /** Current responsive state, derived from host width. Drives the
+   * `data-size` attribute on the inner `.mp` div via render(). */
+  @state()
+  private responsiveSize: 'classic' | 'narrow' | 'compact' | 'fab' = 'classic'
 
   override disconnectedCallback(): void {
     super.disconnectedCallback()
@@ -176,7 +194,7 @@ export class PulsePlayerElement extends LitElement {
     const playLabel = this.state.isPlaying ? 'Pause' : 'Play'
 
     return html`
-      <div class="mp" data-variant=${this.variant}>
+      <div class="mp" data-variant=${this.variant} data-size=${this.responsiveSize}>
         <!-- Ambient EQ — 12 bars. Visible only when the ambient-eq attribute is on the host. Pure CSS, zero JS per frame. -->
         <div class="mp__ambient" aria-hidden="true">
           ${Array.from({ length: 12 }).map(() => html`<span class="mp__ambient-bar"></span>`)}
@@ -194,9 +212,19 @@ export class PulsePlayerElement extends LitElement {
         ></div>
 
         <div class="mp__body">
+          <p class="mp__eyebrow">NOW PLAYING</p>
           <h3 class="mp__title">${track.title}</h3>
 
           <div class="mp__controls">
+            <button
+              class="mp__btn mp__btn--ghost"
+              type="button"
+              aria-label="Previous track"
+              @click=${() => this.engine.prev()}
+              title="Prev"
+            >
+              ⏮
+            </button>
             <button
               class="mp__btn"
               type="button"
@@ -206,8 +234,22 @@ export class PulsePlayerElement extends LitElement {
             >
               ${this.state.isPlaying ? '⏸' : '▶'}
             </button>
+            <button
+              class="mp__btn mp__btn--ghost"
+              type="button"
+              aria-label="Next track"
+              @click=${() => this.engine.next()}
+              title="Next"
+            >
+              ⏭
+            </button>
             <span class="mp__time">
               ${this.engine.fmt(this.state.currentTime)} / ${this.engine.fmt(this.state.duration)}
+            </span>
+            <span class="mp__icons" aria-hidden="true">
+              <!-- Social icons. Hidden on narrow / compact / fab via CSS -->
+              <span class="mp__icon" title="GitHub">⌘</span>
+              <span class="mp__icon" title="Spotify">♪</span>
             </span>
           </div>
 

@@ -29,6 +29,7 @@ import '@pulse/web-component'
 export { PulsePlayer, type PulsePlayerProps } from './PulsePlayer'
 export { PulseFab, type PulseFabProps } from './PulseFab'
 export { usePulseAudio, type UsePulseAudioReturn } from './usePulseAudio'
+export { useDomEvent } from './useDomEvent'
 
 // Re-export engine + types so consumers can pull everything from one import.
 export {

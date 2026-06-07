@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { EventMap, PulseVariant } from '@pulse/types'
+import { useDomEvent } from './useDomEvent'
 
 /**
  * `<PulseFab />` — React wrapper around `<pulse-fab>`.
@@ -39,38 +40,10 @@ export function PulseFab({
 }: PulseFabProps) {
   const ref = useRef<HTMLElement>(null)
 
-  useEffect(() => {
-    const el = ref.current
-    if (!el || !onPlay) return
-    const handler = (e: Event) => onPlay((e as CustomEvent<EventMap['play']>).detail)
-    el.addEventListener('pulse-play', handler)
-    return () => el.removeEventListener('pulse-play', handler)
-  }, [onPlay])
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || !onPause) return
-    const handler = (e: Event) => onPause((e as CustomEvent<EventMap['pause']>).detail)
-    el.addEventListener('pulse-pause', handler)
-    return () => el.removeEventListener('pulse-pause', handler)
-  }, [onPause])
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || !onTrackChange) return
-    const handler = (e: Event) =>
-      onTrackChange((e as CustomEvent<EventMap['trackchange']>).detail)
-    el.addEventListener('pulse-trackchange', handler)
-    return () => el.removeEventListener('pulse-trackchange', handler)
-  }, [onTrackChange])
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || !onError) return
-    const handler = (e: Event) => onError((e as CustomEvent<EventMap['error']>).detail)
-    el.addEventListener('pulse-error', handler)
-    return () => el.removeEventListener('pulse-error', handler)
-  }, [onError])
+  useDomEvent<EventMap['play']>(ref, 'pulse-play', onPlay)
+  useDomEvent<EventMap['pause']>(ref, 'pulse-pause', onPause)
+  useDomEvent<EventMap['trackchange']>(ref, 'pulse-trackchange', onTrackChange)
+  useDomEvent<EventMap['error']>(ref, 'pulse-error', onError)
 
   // `pulso` is a boolean presence attribute. React 18 doesn't reliably
   // serialise a `false` boolean to "remove the attribute" — we

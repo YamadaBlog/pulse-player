@@ -18,6 +18,8 @@ export default defineConfig({
       '@pulse/web-component': fileURLToPath(
         new URL('../web-component/src/index.ts', import.meta.url),
       ),
+      '@pulse/tokens': fileURLToPath(new URL('../tokens/src/index.ts', import.meta.url)),
+      '@pulse/test-utils': fileURLToPath(new URL('../test-utils/src/index.ts', import.meta.url)),
     },
   },
 })

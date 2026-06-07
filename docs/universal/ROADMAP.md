@@ -2,6 +2,12 @@
 
 How we go from the validated Vue v2.3.4 monolith to a true multi-framework library, without breaking anything along the way.
 
+## Current state — v3.0.0-alpha.5 (shipped)
+
+Six packages with real code: `@pulse/types`, `@pulse/core` (27 / 27 tests), `@pulse/tokens` (single source variants), `@pulse/web-component` (9 / 9 tests, chrome ~45 % vs Vue v2.3.4), `@pulse/react` (8 / 8 RTL tests), `@pulse/svelte` (8 / 8 classic-store tests). Monorepo total **85 / 85 tests passing**. Two runnable demos: `apps/demo-vanilla/` and `apps/demo-react/`. **Vue v2.3.4 at `src/lib/` is bit-for-bit identical** — `src/lib/` has zero files modified since alpha.0.
+
+The phases below are kept as a historical record. Phase 5+ continue from here.
+
 ## Phase 0 — Scaffold (v3.0.0-alpha.0) ✅
 
 Lays the monorepo foundation. **No code moved.** The v2.3.4 Vue codebase at `src/lib/` continues to work bit-for-bit identical.

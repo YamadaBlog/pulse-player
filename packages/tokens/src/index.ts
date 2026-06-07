@@ -10,3 +10,4 @@
  * `[data-variant]` attribute level so they cascade naturally.
  */
 export { variantsCss } from './variants'
+export { baseCss } from './base'

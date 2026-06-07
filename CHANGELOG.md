@@ -8,6 +8,114 @@ Tags: every release listed below is pinned to a signed git tag of the same name 
 
 Tracked separately in [the v2.0.0 audit branch](https://github.com/YamadaBlog/pulse-player/issues?q=is%3Aissue+label%3Av2.0.0).
 
+## 3.0.0-alpha.6 — 2026-06-07
+
+Closes 6 of the v3.0.0-alpha.5 audit items: **docs honesty refresh**, **`@pulse/tokens/base.css` actually consumed** (closes P2 dead code), **three responsive states + prev/next + social icons in `<pulse-player>`** (chrome parity Phase 2), **`@pulse/test-utils` extracted** (kills 4× setup.ts duplication), **`useDomEvent` hook in `@pulse/react`** (kills 8× `useEffect` duplication), and **GitHub Actions CI gates `test:packages` + `build:packages`**.
+
+Chrome parity vs Vue v2.3.4 moves from ~45 % to ~**60 %**. Vue v2.3.4 codebase bit-for-bit identical.
+
+### P3 #1 — Docs honesty refresh
+
+`docs/frameworks/web-component.md` banner updated from "~15-30 % skeleton" to **"~45 % parity, with ambient EQ + pulso + `--pulse-scale` ResizeObserver landed"** (and the bullet list of what's still missing).
+
+`docs/frameworks/react.md` banner updated to note "tests landed (8 / 8 RTL)" + the `apps/demo-react/` runnable example.
+
+`docs/universal/ROADMAP.md` gains a "Current state" preamble that summarises the alpha.5 deliverables instead of treating Phase 0 as the latest news.
+
+### P2 #1 — `@pulse/tokens/base.css` actually consumed
+
+The `--pulse-scale` system was declared in **two places**: once in `packages/tokens/src/base.css` (scoped to `[data-pulse-root]`, which nothing on the page ever was) and once inlined as a `TOKENS` string in `packages/web-component/src/styles.ts`. The CSS file was dead.
+
+`packages/tokens/src/base.ts` (NEW) — same tokens, `:host` selector, exported as a TypeScript string. `packages/web-component/src/styles.ts` now imports `baseCss` from `@pulse/tokens` and folds it via `unsafeCSS(baseCss)`. The inlined `TOKENS` string is gone.
+
+Both files (`base.css` and `base.ts`) stay manually in sync — the file is ~30 lines, and the dual-export pattern matches what variants did in alpha.5. Touch both when adding a new token.
+
+### P1 #1 — Chrome parity Phase 2
+
+`<pulse-player>` ships three new chrome elements + the morph state system that v2.3.4 has:
+
+- **`NOW PLAYING` eyebrow** (the all-caps subtitle above the title).
+- **Prev / Next ghost buttons** flanking the play button. Wired to `engine.prev()` and `engine.next()`.
+- **Social icons row** (GitHub + Spotify placeholders) right of the time read-out.
+- **Three responsive states** driven by a `data-size` attribute set in render() from the ResizeObserver tick. Same thresholds as v2.3.4:
+  - `narrow` < 220 px → eyebrow + social icons hide
+  - `compact` < 130 px → prev/next + time hide
+  - `fab` < 110 px → morph into disc shape, only art + play remain on hover
+
+CSS is shipped alongside in `packages/web-component/src/styles.ts` — additive rules, no behaviour change for the existing 9 / 9 web-component tests (they still pass).
+
+### P3 #2 — `@pulse/test-utils` (kills 4× setup.ts duplication)
+
+Four packages had nearly-identical `tests/setup.ts` files (80 lines each, ~95 % the same content). `packages/test-utils/` (NEW, `private: true`) exposes:
+
+- `installAudioStubs()` — `AudioContext`, `AnalyserNode`, `MediaElementSourceNode` stubs
+- `installRafStubs()` — `requestAnimationFrame` / `cancelAnimationFrame` setTimeout-backed polyfill
+- `installMediaStubs()` — `HTMLMediaElement.play` / `pause` / `load` stubs
+- `installAllStubs()` — one-call helper for the common case
+
+Each of the 4 setup files now collapses to:
+
+```ts
+import { beforeEach, vi } from 'vitest'
+import { installAllStubs } from '@pulse/test-utils'
+installAllStubs()
+beforeEach(() => vi.clearAllMocks())
+```
+
+320 LOC removed across the 4 setup files; replaced by 1 file with 130 LOC + 4 × 8 LOC consumer files. Net win + drift impossible.
+
+### P3 #3 — `useDomEvent` hook (kills 8× `useEffect` duplication)
+
+`<PulsePlayer />` and `<PulseFab />` each carried **4** copies of the same `useEffect` block (one per `onPlay` / `onPause` / `onTrackChange` / `onError`). Same pattern every time — attach listener, return unsubscribe, re-run on handler change.
+
+`packages/react/src/useDomEvent.ts` (NEW) — single typed hook:
+
+```ts
+useDomEvent<EventMap['play']>(ref, 'pulse-play', onPlay)
+```
+
+`<PulsePlayer />` and `<PulseFab />` now each have 4 one-liners instead of 4 useEffect blocks. The hook is also exported from `@pulse/react` for advanced consumers needing to bridge non-pulse Custom Events.
+
+8 / 8 React RTL tests still pass — no behaviour change.
+
+### P1 #2 — GitHub Actions CI gates `test:packages` + `build:packages`
+
+`.github/workflows/ci.yml` now runs **after** the Vue tests pass:
+
+```yaml
+- npm run test:packages    # 52 tests across @pulse/{core,web-component,react,svelte}
+- npm run build:lib        # Vue library
+- npm run build:packages   # 6 @pulse/* packages via tsup
+```
+
+The matrix (Node 18 / 20 / 22) gates on the full monorepo, not just the Vue v2.3.4 reference. Regression on any `@pulse/*` package blocks the PR.
+
+### Quality gate
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings (--max-warnings=0)
+tests (root, Vue Pinia)  → 33 / 33
+tests (@pulse/core)      → 27 / 27
+tests (@pulse/web-comp)  →  9 /  9
+tests (@pulse/react)     →  8 /  8
+tests (@pulse/svelte)    →  8 /  8
+TOTAL                    → 85 / 85
+build (Vue demo)         → 48 kB gzip (UNCHANGED)
+build:lib (Vue lib)      → 14 kB gzip (UNCHANGED)
+build:packages           → 6 packages — ESM + CJS + .d.ts
+audit (prod-only)        → 0 vulnerabilities
+Vue v2.3.4 demo          → bit-for-bit identical
+src/lib/                 → ZERO file modified
+```
+
+### What's still ahead
+
+- v3.0.0-alpha.7 → Playwright visual regression vs the v2.3.4 demo (gates the Vue migration).
+- v3.0.0-alpha.8 → Chrome Phase 3 (`data-fab` morph state on `<pulse-fab>`, drag-to-resize handle, FAB drag-to-reposition, FAB radial menu, `mp__bg` cover blur, `mp__noise` SVG filter).
+- v3.0.0-alpha.9 → Vue migration `src/lib/` → `packages/vue/`.
+- v3.0.0 → stable, `npm publish @pulse/*`.
+
 ## 3.0.0-alpha.5 — 2026-06-07
 
 Closes 4 of the v3.0.0-alpha.4 audit follow-ups: **`@pulse/react` RTL tests**, **`@pulse/svelte` tests**, **Constructable StyleSheet refactor** (single source of truth for variants), and **`apps/demo-react/`** (runnable React example).

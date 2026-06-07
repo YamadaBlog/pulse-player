@@ -2,7 +2,7 @@
 
 React 18 / 19 wrapper. Hooks + JSX components built on top of `@pulse/web-component`.
 
-> ⚠️ **Honest status (v3.0.0-alpha.3):** the React wrapper code is shipped (`<PulsePlayer />`, `<PulseFab />`, `usePulseAudio()`). **But the underlying `<pulse-player>` Custom Element is a SKELETON** — about 15 % of the Vue v2.3.4 reference's chrome. What works through this wrapper: play / pause, title, cover art, progress, time, 8 mood variants, event handlers (`onPlay`, `onPause`, `onTrackChange`, `onError`), ambient EQ + pulso heartbeat (alpha.4). **Not yet:** drag-to-resize, three responsive states, social icons, prev / next, FAB drag, FAB radial menu. The wrapper itself is also **not yet tested** (RTL setup lands in alpha.5). If you need the full premium chrome today, use the Vue version. If you need React with the current minimum chrome, install `@pulse/react` and read this page.
+> ⚠️ **Honest status (v3.0.0-alpha.5):** the React wrapper code is shipped (`<PulsePlayer />`, `<PulseFab />`, `usePulseAudio()`) and **tested** via Vitest + React Testing Library (8 / 8). **The underlying `<pulse-player>` Custom Element is at ~45 % chrome parity** vs Vue v2.3.4. Working through this wrapper: play / pause, title, cover, progress, time, 8 mood variants, event handlers (`onPlay`, `onPause`, `onTrackChange`, `onError`), ambient EQ, pulso heartbeat, `--pulse-scale` ResizeObserver. **Not yet:** drag-to-resize, three responsive states, social icons, prev / next on inline, FAB drag, FAB radial menu. A real Vite + React demo runs at `apps/demo-react/` — `npm run dev --workspace=@pulse/demo-react` → http://localhost:5181. If you need the full premium chrome today, use the Vue version.
 
 ## Status
 
