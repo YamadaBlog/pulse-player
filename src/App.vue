@@ -277,21 +277,40 @@ const demoSteps: DemoStep[] = [
     },
   },
 
-  // ─── 5. "Pick a mood." — slow scroll into the theme grid, long
-  //        holds so the user can clearly see and understand the range.
+  // ─── 5. "Pick a mood." — land at the top of the theme grid, then
+  //        keep scrolling DOWN through the section at a slow, steady
+  //        pace so the user actually walks past every card instead of
+  //        sitting on the first row. ~6 s of continuous descent, then
+  //        the next step does the fast jump to the FAB section.
   {
     title: 'Pick a mood',
     run: async (ctx) => {
-      // Slow scroll explicitly — the user asked for a real "product
-      // presentation" pace here, not a transit.
+      // First land the section's top at the natural offset.
       await ctx.scrollTo('.variants', { speed: 'slow' })
-      await ctx.delay(2400)
+      await ctx.delay(800)
       ctx.setMessage('Nine carefully tuned themes ship in — not just colour swatches.')
-      await ctx.delay(4400)
+
+      // Then keep going DOWN through the cards at a steady reading
+      // pace. We tween the page's scroll Y from here to (here +
+      // section height) over 6 s with a linear easing — that's the
+      // "continuous slow descent" the product tour wants, not a
+      // discrete hop between two stops.
+      const variantsEl = document.querySelector('.variants') as HTMLElement | null
+      if (variantsEl) {
+        const startY = window.scrollY
+        const sectionBottom =
+          variantsEl.getBoundingClientRect().bottom + window.scrollY - window.innerHeight * 0.35
+        const pageBottom = document.documentElement.scrollHeight - window.innerHeight
+        const endY = Math.max(startY, Math.min(sectionBottom, pageBottom))
+        await ctx.tween((y) => window.scrollTo(0, y), startY, endY, 6000, 'linear')
+      } else {
+        await ctx.delay(6000)
+      }
+
       ctx.setMessage('Auto, Midnight, Sunset, Aurora, Vinyl, Dark, Light, Transparent, Custom.')
-      await ctx.delay(4200)
+      await ctx.delay(2400)
       ctx.setMessage('Pair any of them with your own accent colour. Brand fit, every time.')
-      await ctx.delay(3800)
+      await ctx.delay(2200)
     },
   },
 

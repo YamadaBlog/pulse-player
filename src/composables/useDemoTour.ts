@@ -43,7 +43,13 @@
  */
 import { ref, computed, type Ref } from 'vue'
 
-export type EasingName = 'inOutCubic' | 'outQuart' | 'outQuint' | 'inOutQuart' | 'outExpo'
+export type EasingName =
+  | 'linear'
+  | 'inOutCubic'
+  | 'outQuart'
+  | 'outQuint'
+  | 'inOutQuart'
+  | 'outExpo'
 
 export interface ScrollToOptions {
   /** How urgently to move. Most steps should stay on `gentle`.
@@ -436,6 +442,7 @@ function abortableScrollTo(
 
 // ─── Easings ────────────────────────────────────────────────────
 const EASINGS: Record<EasingName, (t: number) => number> = {
+  linear: (t) => t,
   inOutCubic: (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
   outQuart: (t) => 1 - Math.pow(1 - t, 4),
   outQuint: (t) => 1 - Math.pow(1 - t, 5),

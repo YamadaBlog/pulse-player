@@ -390,6 +390,18 @@ onUnmounted(() => {
   z-index: 900;
   touch-action: none;
   user-select: none;
+  /* Pin the wrapper to EXACTLY the visible button's dimensions.
+     Otherwise `.fab`'s width shrinks to its inline-flow content,
+     which includes the inline-level `.fab__svg-defs` filter holder
+     (a 0×0 absolutely-positioned SVG that is still an inline-level
+     box for size accounting). The pulso pseudo-elements anchor on
+     `.fab` via `inset: 0` — if `.fab` is wider than the button, the
+     ring's geometric centre lands to the LEFT of the button's centre
+     and `transform: scale()` grows the ring shifted to the right.
+     Pinning `.fab` to the button size guarantees the rings stay
+     concentric with the disc. */
+  width: var(--fab-size, 56px);
+  height: var(--fab-size, 56px);
 }
 .fab--dragging {
   cursor: grabbing;
