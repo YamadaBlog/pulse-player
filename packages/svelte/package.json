@@ -1,6 +1,6 @@
 {
   "name": "@pulse/svelte",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Svelte 5 wrapper for pulse-player. Plain TypeScript hook + Svelte classic-store contract over @pulse/web-component.",
   "license": "MIT",
   "type": "module",
@@ -28,9 +28,9 @@
     "svelte": "^5.56.3"
   },
   "dependencies": {
-    "@pulse/core": "*",
-    "@pulse/types": "*",
-    "@pulse/web-component": "*"
+    "@pulse/core": "1.0.0",
+    "@pulse/types": "1.0.0",
+    "@pulse/web-component": "1.0.0"
   },
   "publishConfig": {
     "access": "public"

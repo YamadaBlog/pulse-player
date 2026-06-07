@@ -1,9 +1,9 @@
 {
-  ".": "2.3.4",
-  "packages/types": "0.0.0",
-  "packages/core": "0.0.0",
-  "packages/tokens": "0.0.0",
-  "packages/web-component": "0.0.0",
-  "packages/react": "0.0.0",
-  "packages/svelte": "0.0.0"
+  ".": "2.4.0",
+  "packages/types": "1.0.0",
+  "packages/core": "1.0.0",
+  "packages/tokens": "1.0.0",
+  "packages/web-component": "1.0.0",
+  "packages/react": "1.0.0",
+  "packages/svelte": "1.0.0"
 }
