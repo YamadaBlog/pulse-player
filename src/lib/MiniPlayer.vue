@@ -455,15 +455,46 @@ onUnmounted(() => {
 }
 
 /* Two waves — one per heartbeat thump. They live on the PARENT so
-   the button's overflow: hidden never clips them. Light, transparent,
-   they only flash for ~250 ms each time the FAB grows. */
+   the button's `overflow: hidden` never clips them. Light, transparent,
+   they only flash for ~250 ms each time the FAB grows.
+
+   The centring is deliberately bullet-proof here because the previous
+   approach (`inset: 0` + explicit width/height) had two latent
+   defects that compounded:
+
+   1. `box-sizing: content-box` (the default for pseudo-elements):
+      `width: 56px` + `border: 1.5px solid` made the *rendered* box
+      59×59, not 56×56. The geometric centre then sat at (29.5, 29.5)
+      instead of (28, 28), drifting 1.5 px to the right + 1.5 px down
+      relative to the button's centre. `transform: scale()` then
+      amplified the offset as the ring grew, so the rings visibly
+      ripple to the lower-right of the disc.
+
+   2. `inset: 0` + explicit width is over-constrained — the spec says
+      `right` (and `bottom`) get dropped, anchoring the box at the
+      top-left edge of `.fab` rather than its centre. If `.fab` ever
+      grows past `--fab-size` for any reason (variant chrome, layout
+      pressure, scrollbar shift), the rings drift again.
+
+   The fix below is independent of `.fab`'s actual width:
+   - `box-sizing: border-box` → the 56×56 declaration is the FINAL
+     rendered size, border included.
+   - `top: 50% / left: 50%` + `margin: calc(-size/2)` → places the
+     pseudo's geometric centre on `.fab`'s geometric centre regardless
+     of `.fab`'s outer size.
+   - Animation continues to drive `transform: scale()` with the
+     default `transform-origin: center` so growth stays concentric. */
 .fab--pulso::before,
 .fab--pulso::after {
   content: '';
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
   width: var(--fab-size, 56px);
   height: var(--fab-size, 56px);
+  margin-top: calc(var(--fab-size, 56px) / -2);
+  margin-left: calc(var(--fab-size, 56px) / -2);
+  box-sizing: border-box;
   border-radius: 50%;
   border: 1.5px solid rgba(255, 255, 255, 0.85);
   pointer-events: none;

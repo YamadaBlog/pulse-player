@@ -141,6 +141,10 @@ const heroAccent = ref<string | undefined>(undefined)
 // ─── FAB switcher ─────────────────────────────────────────────
 const activeFabVariant = ref<MusicPlayerVariant>('auto')
 const fabPulso = ref(false)
+// During step 9 of the demo we highlight the Pulso toggle and fire a
+// one-shot green wave ripple around it so the user understands *where*
+// the heartbeat effect comes from. Demo-only state.
+const tourPulsoHighlight = ref(false)
 const fabPalette: { id: MusicPlayerVariant; label: string; accent?: string }[] = [
   { id: 'auto', label: 'Auto' },
   { id: 'vinyl', label: 'Vinyl', accent: '#C8A97E' },
@@ -277,24 +281,25 @@ const demoSteps: DemoStep[] = [
     },
   },
 
-  // ─── 5. "Pick a mood." — land at the top of the theme grid, then
-  //        keep scrolling DOWN through the section at a slow, steady
-  //        pace so the user actually walks past every card instead of
-  //        sitting on the first row. ~6 s of continuous descent, then
-  //        the next step does the fast jump to the FAB section.
+  // ─── 5. "Pick a mood." — land HIGH (only the first row of cards
+  //        visible at the top), then descend through the gallery at a
+  //        very slow reading pace over ~12 s, then hand off to the
+  //        next step which boost-scrolls to the FAB section.
   {
     title: 'Pick a mood',
     run: async (ctx) => {
-      // First land the section's top at the natural offset.
-      await ctx.scrollTo('.variants', { speed: 'slow' })
+      // Land the section header right at the top of the viewport.
+      // `offset: 8` (≈ 8 px from top) leaves the heading visible with
+      // just the first row of three cards directly underneath — every
+      // subsequent row is below the fold, ready to be revealed by the
+      // slow scroll below.
+      await ctx.scrollTo('.variants', { speed: 'slow', offset: 8 })
       await ctx.delay(800)
       ctx.setMessage('Nine carefully tuned themes ship in — not just colour swatches.')
 
-      // Then keep going DOWN through the cards at a steady reading
-      // pace. We tween the page's scroll Y from here to (here +
-      // section height) over 6 s with a linear easing — that's the
-      // "continuous slow descent" the product tour wants, not a
-      // discrete hop between two stops.
+      // Then descend through the rest of the gallery at a deliberately
+      // slow reading pace. 12 s of linear scroll = the user has time
+      // to actually look at every card, not just whoosh past them.
       const variantsEl = document.querySelector('.variants') as HTMLElement | null
       if (variantsEl) {
         const startY = window.scrollY
@@ -302,9 +307,9 @@ const demoSteps: DemoStep[] = [
           variantsEl.getBoundingClientRect().bottom + window.scrollY - window.innerHeight * 0.35
         const pageBottom = document.documentElement.scrollHeight - window.innerHeight
         const endY = Math.max(startY, Math.min(sectionBottom, pageBottom))
-        await ctx.tween((y) => window.scrollTo(0, y), startY, endY, 6000, 'linear')
+        await ctx.tween((y) => window.scrollTo(0, y), startY, endY, 12000, 'linear')
       } else {
-        await ctx.delay(6000)
+        await ctx.delay(12000)
       }
 
       ctx.setMessage('Auto, Midnight, Sunset, Aurora, Vinyl, Dark, Light, Transparent, Custom.')
@@ -409,27 +414,57 @@ const demoSteps: DemoStep[] = [
   },
 
   // ─── 9. Pulso — heartbeat ripple
+  //        The point of this step is the cause / effect link: the user
+  //        flips the Pulso toggle in the palette, and the FAB starts
+  //        beating. Previous version only animated the FAB, so the
+  //        viewer never saw the source. Here we drop the spotlight,
+  //        bring the toggle into view, highlight it, fire a one-shot
+  //        green wave indicator on it, THEN flip the prop — so the
+  //        user actually understands what's happening.
   {
     title: 'Pulso',
     run: async (ctx) => {
-      // Preconditions: FAB visible, centered, spotlight on.
       if (!store.isVisible) store.open()
-      fabFocused.value = true
+      // Make sure the FAB is still parked in the centre area if the
+      // user jumped straight to this step.
       if (tourFabPos.value === null) {
-        await ctx.scrollTo('.palette', { speed: 'gentle' })
-        await ctx.delay(500)
         const fabSize = 56
         const targetX = -(window.innerWidth / 2 - 16 - fabSize / 2)
         const targetY = -(window.innerHeight / 2 - 32 - fabSize / 2)
         tourFabPos.value = { x: targetX, y: targetY }
-        await ctx.delay(400)
+        await ctx.delay(300)
       }
 
-      ctx.setMessage('Pulso — a heartbeat ripple that only animates while the music plays.')
-      fabPulso.value = true
-      await ctx.delay(5200)
-      fabPulso.value = false
+      // Drop the spotlight so the page (and the Pulso toggle in the
+      // palette) is visible again. The FAB stays where it is — it's
+      // `position: fixed`, so it doesn't move with the scroll.
+      fabFocused.value = false
+      await ctx.delay(300)
+
+      // Bring the Pulso toggle into the lower half of the viewport.
+      // The FAB stays anchored in the upper half (fixed positioning),
+      // so the user can see both at once.
+      await ctx.scrollTo('.pulso-toggle', { speed: 'gentle', offset: window.innerHeight * 0.45 })
       await ctx.delay(400)
+
+      ctx.setMessage('Pulso — toggle this on to add a heartbeat ripple around the FAB.')
+      await ctx.delay(1200)
+
+      // Highlight the toggle BEFORE flipping it so the viewer's eye
+      // catches the source of the change.
+      tourPulsoHighlight.value = true
+      await ctx.delay(700)
+
+      // Flip the prop — the FAB starts beating, and the green wave
+      // pulse on the toggle visualises the activation.
+      fabPulso.value = true
+      ctx.setMessage('Activated — watch the heartbeat ripple around the FAB.')
+      await ctx.delay(4500)
+
+      // Clean up so the next step / jump-back leaves no visual debt.
+      fabPulso.value = false
+      tourPulsoHighlight.value = false
+      await ctx.delay(300)
     },
   },
 
@@ -529,10 +564,11 @@ function restoreFromDemo() {
   // Drag-stage MusicPlayer — release programmatic width so user can drag.
   tourDragWidth.value = null
   // FAB — release programmatic position, drop spotlight, snap pulso,
-  // restore variant.
+  // restore variant, clear the demo-only Pulso highlight.
   tourFabPos.value = null
   fabFocused.value = false
   fabPulso.value = preDemoState.fabPulso
+  tourPulsoHighlight.value = false
   activeFabVariant.value = preDemoState.fabVariant
   // Ambient EQ — keep it ON if the demo finished (it's the highlight),
   // restore the pre-demo value on early stop.
@@ -963,7 +999,13 @@ const hero = computed(() => ({
             Show FAB
           </button>
           <button class="cta cta--ghost cta--sm" @click="store.close">Hide FAB</button>
-          <label class="pulso-toggle" :class="{ 'pulso-toggle--on': fabPulso }">
+          <label
+            class="pulso-toggle"
+            :class="{
+              'pulso-toggle--on': fabPulso,
+              'pulso-toggle--highlight': tourPulsoHighlight,
+            }"
+          >
             <input type="checkbox" v-model="fabPulso" />
             <span class="pulso-toggle__dot"></span>
             <span class="pulso-toggle__label">Pulso</span>
@@ -1914,6 +1956,7 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
 
 /* ─── Pulso toggle ──────────────────────────────────────────── */
 .pulso-toggle {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1964,6 +2007,45 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   }
   50% {
     box-shadow: 0 0 0 6px rgba(61, 189, 167, 0.1);
+  }
+}
+
+/* Demo-only highlight: bright green frame + one-shot wave ripple
+   around the toggle. Fires once when the demo flips it on, so the
+   viewer sees exactly which control caused the FAB to start
+   beating. The ::after pseudo-element carries the wave. */
+.pulso-toggle--highlight {
+  border-color: rgba(61, 189, 167, 0.7);
+  background: rgba(61, 189, 167, 0.16);
+  color: var(--pg-accent);
+}
+.pulso-toggle--highlight::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 2px solid var(--pg-accent);
+  pointer-events: none;
+  transform-origin: center;
+  animation: pulso-toggle-wave 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes pulso-toggle-wave {
+  0% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulso-toggle--highlight::after {
+    animation: none;
+    opacity: 0;
+  }
+  .pulso-toggle--on .pulso-toggle__dot {
+    animation: none;
   }
 }
 
