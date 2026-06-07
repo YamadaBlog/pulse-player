@@ -306,37 +306,45 @@ const demoSteps: DemoStep[] = [
       const firstCell = document.querySelector('.variants .grid__cell') as HTMLElement | null
 
       if (variantsEl && firstCell) {
-        // START — land so the SECTION HEADER ("LIBRARY · 9 PRESETS /
-        // Pick a mood.") sits at roughly 55 % down the viewport, with
-        // only the very top of the first row peeking in at the bottom.
-        // The previous version anchored on `firstCell.top`, which put
-        // the cards immediately at the top of the viewport and left
-        // the heading offscreen — making the "progressive reveal"
-        // promise visually false (rows 2 and 3 weren't visible, but
-        // the framing didn't communicate the intent of the step).
-        //
-        // Now: anchor on the SECTION TOP. The section starts at
-        // `LIBRARY · 9 PRESETS`; placing that at ~55 % of viewport
-        // height matches the reference layout — heading + description
-        // visible, first row peeking, every other row below the fold.
         const variantsRect = variantsEl.getBoundingClientRect()
-        const variantsAbsoluteTop = variantsRect.top + window.scrollY
-        const sectionTopOffset = window.innerHeight * 0.55
-        const startY = Math.max(0, variantsAbsoluteTop - sectionTopOffset)
+        const firstCellRect = firstCell.getBoundingClientRect()
+        const sectionAbsoluteTop = variantsRect.top + window.scrollY
+        const sectionAbsoluteBottom = variantsRect.bottom + window.scrollY
+        const firstCellAbsoluteBottom = firstCellRect.bottom + window.scrollY
 
-        // END — bottom of the section just clears the viewport bottom,
-        // so the last row has been fully on screen by the time the
-        // tween settles.
-        const sectionBottomAbsolute = variantsRect.bottom + window.scrollY
+        // START — frame so the FULL first row of three cards sits
+        // cleanly in the lower half of the viewport: cell bottom at
+        // ~85 % down the viewport, so the title + description fit
+        // comfortably above and only the very top of row 2 peeks in
+        // at the very bottom. v1.0.8 left the row peeking only and
+        // sat too high on the section; this anchor puts the row
+        // exactly where the reference asked — fully readable, with
+        // the heading still visible above for context.
+        const startY = Math.max(0, firstCellAbsoluteBottom - window.innerHeight * 0.85)
+
+        // END — pick the more conservative of two limits:
+        //
+        // (a) The "title still visible" limit: stop where the H2
+        //     "Pick a mood." remains fully readable at the top of
+        //     the viewport (≈ 40 px scroll past section top, so the
+        //     subtitle scrolls off but the heading and start of the
+        //     description stay in frame). Losing the title means
+        //     losing the section's context — never acceptable.
+        //
+        // (b) The "all content shown" limit: stop where the bottom
+        //     of the section just clears the viewport bottom. For
+        //     tall sections this is past (a); for short sections
+        //     (where the entire grid fits in one viewport) this is
+        //     above (a). Take whichever lands sooner.
+        const titleStillVisibleEndY = sectionAbsoluteTop + 40
+        const showAllContentEndY = sectionAbsoluteBottom - window.innerHeight + 32
         const pageBottom = document.documentElement.scrollHeight - window.innerHeight
-        const endY = Math.min(
-          pageBottom,
-          Math.max(startY, sectionBottomAbsolute - window.innerHeight + 32),
+        const endY = Math.max(
+          startY,
+          Math.min(pageBottom, titleStillVisibleEndY, showAllContentEndY),
         )
 
-        // 1) Cinematic landing on the section header. `inOutCubic`
-        //    ramps velocity smoothly down to 0 at the end, ready to
-        //    chain into the next tween with no handoff jolt.
+        // 1) Cinematic landing on the start framing.
         await ctx.tween(
           (y) => window.scrollTo(0, y),
           window.scrollY,
@@ -345,17 +353,22 @@ const demoSteps: DemoStep[] = [
           'inOutCubic',
         )
 
-        // Read the heading + description while only the first row is
-        // peeking in at the bottom.
         ctx.setMessage('Nine carefully tuned themes ship in — not just colour swatches.')
         await ctx.delay(2100)
 
-        // 2) Single continuous descent through every row. Slightly
-        //    longer than the previous 12 s because the distance is
-        //    now larger (we start with the header in frame, so the
-        //    descent crosses 3 full rows instead of 2). `inOutCubic`
-        //    starts at v=0 and ends at v=0 — no perceptible jolt.
-        await ctx.tween((y) => window.scrollTo(0, y), startY, endY, 14000, 'inOutCubic')
+        // 2) Single continuous descent. Duration scales with distance
+        //    so a short reveal doesn't crawl and a long reveal doesn't
+        //    feel rushed. `inOutCubic` keeps v=0 at both ends — no
+        //    perceptible jolt at the start or end of the descent.
+        const descentDistance = Math.abs(endY - startY)
+        const descentDuration = Math.max(7000, Math.min(13000, 5500 + descentDistance * 18))
+        await ctx.tween(
+          (y) => window.scrollTo(0, y),
+          startY,
+          endY,
+          descentDuration,
+          'inOutCubic',
+        )
 
         ctx.setMessage('Auto, Midnight, Sunset, Aurora, Vinyl, Dark, Light, Transparent, Custom.')
         await ctx.delay(2300)
