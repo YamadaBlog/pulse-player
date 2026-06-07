@@ -21,7 +21,7 @@
     "vue": "^3.4.0"
   },
   "dependencies": {
-    "@pulse/types": "workspace:*"
+    "@pulse/types": "*"
   },
   "publishConfig": {
     "access": "public"

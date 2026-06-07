@@ -6,10 +6,23 @@
 
 ### A premium drop-in music player, going universal.
 
-> **v3 is in alpha.** The Vue 3 reference (current `v2.3.4`, tagged on `main`) keeps shipping bit-for-bit identical while the multi-framework architecture (`@pulse/core`, `@pulse/web-component`, `@pulse/react`, `@pulse/react-native`, `@pulse/angular`, `@pulse/svelte`) lands in `packages/` over the coming alphas.
+> **v3 is in alpha.** The Vue 3 reference (current `v2.3.4`, tagged on `main`) keeps shipping bit-for-bit identical while the multi-framework architecture lands in `packages/` over the coming alphas. The framework wrappers below (React, Svelte, Web Components) all ship real code today.
 > See [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md) and [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md) for the plan.
 
 ### Originally a Vue 3 music player that grows with the page.
+
+### Now an audio component you can drop into any framework.
+
+| Framework | Package | Status | Quick example |
+| --- | --- | --- | --- |
+| **Vue 3** | `pulse-player` (today) / `@pulse/vue` (v3.0.0) | ✅ Reference implementation (v2.3.4 validated) | `<MusicPlayer variant="midnight" />` |
+| **React 18 / 19** | `@pulse/react` | ✅ alpha.3 — hooks + JSX components | `<PulsePlayer variant="midnight" onPlay={…} />` |
+| **Svelte 5** | `@pulse/svelte` | ✅ alpha.3 — runes-based store + native CE usage | `<pulse-player variant="midnight"></pulse-player>` |
+| **Web Components** | `@pulse/web-component` | ✅ alpha.2 — `<pulse-player>` + `<pulse-fab>` (Lit) | `<pulse-player variant="midnight"></pulse-player>` |
+| **Angular 17+** | `@pulse/angular` | ⏳ scaffold — v3.1.0 | `<pulse-player variant="midnight"></pulse-player>` |
+| **React Native** | `@pulse/react-native` | ⏳ scaffold — v3.0.0-alpha.5 (separate renderer) | `<PulsePlayer variant="midnight" />` (RN primitives) |
+| **Vanilla HTML** | `@pulse/web-component` | ✅ alpha.2 — works in any HTML page | `<pulse-player variant="midnight"></pulse-player>` |
+| **Solid / Astro / Qwik** | `@pulse/web-component` | ✅ alpha.2 — native Custom Element support | (same as vanilla) |
 
 <br>
 

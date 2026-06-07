@@ -8,6 +8,127 @@ Tags: every release listed below is pinned to a signed git tag of the same name 
 
 Tracked separately in [the v2.0.0 audit branch](https://github.com/YamadaBlog/pulse-player/issues?q=is%3Aissue+label%3Av2.0.0).
 
+## 3.0.0-alpha.3 — 2026-06-07
+
+`@pulse/react`, `@pulse/svelte`, and 9 new `@pulse/web-component` tests land with real code. **Pulse now ships for Vue 3 (today's v2.3.4 reference), React 18 / 19, Svelte 5 and every other framework that respects the DOM**, all sharing the same `@pulse/core` audio engine bit-for-bit. Vue v2.3.4 at `src/lib/` is untouched.
+
+### `@pulse/react` — React 18 / 19 wrapper
+
+`packages/react/` ships:
+
+- **`<PulsePlayer />`** (`PulsePlayer.tsx`, ~110 LOC) — thin adapter around `<pulse-player>`. Maps React conventions onto the Custom Element:
+  - camelCase props → kebab-case attributes (`accentColor` → `accent-color`)
+  - `on{Event}` props (`onPlay`, `onPause`, `onTrackChange`, `onError`) → DOM `CustomEvent` listeners via `useRef` + `useEffect`
+  - Listener cleanup on every prop change AND unmount — zero leak
+  - `tracks` prop (Track[]) pushed into the element's property channel
+- **`<PulseFab />`** (`PulseFab.tsx`, ~90 LOC) — same pattern for the floating button. `pulso` boolean is imperatively set/removed since React 18 doesn't reliably serialise `false` to "remove the attribute".
+- **`usePulseAudio()`** (`usePulseAudio.ts`, ~80 LOC) — React hook over the shared PulseEngine. Returns the state (re-rendering on every `onStateChange` fire) + stable action callbacks wrapped in `useCallback` + the typed `subscribe` + `fmt`. Equivalent to Vue's `useAudioStore` projected through React primitives.
+- **`jsx-elements.d.ts`** — global JSX augmentation so `<pulse-player>` and `<pulse-fab>` are typed in TSX without `// @ts-expect-error`. Works for React 18 (which doesn't ship Custom Element typings) and React 19 (which does, but doesn't know about our specific elements).
+
+Usage:
+
+```tsx
+import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse/react'
+
+export function App() {
+  const { isPlaying, track, progress, fmt, toggle } = usePulseAudio()
+
+  return (
+    <>
+      <PulsePlayer
+        variant="midnight"
+        accentColor="#8B5CF6"
+        onPlay={({ track, time }) => analytics.track('play', { id: track.title, time })}
+      />
+      <PulseFab pulso />
+      <p>{isPlaying ? `▶ ${track.title} — ${fmt(progress)}%` : 'Paused'}</p>
+    </>
+  )
+}
+```
+
+### `@pulse/svelte` — Svelte 5 wrapper
+
+`packages/svelte/` ships:
+
+- **`usePulseAudio()`** (`usePulseAudio.svelte.ts`, ~80 LOC) — Svelte 5 runes wrapper. The `$state`-backed reactive snapshot updates in place (preserving identity for `$derived` consumers), `$effect` bridges the engine's `onStateChange` subscription with automatic cleanup. The `.svelte.ts` suffix tells the Svelte compiler to allow runes outside `.svelte` files.
+- **Re-exports** — `PulseEngine`, `getSharedEngine`, `setSharedEngine`, every `@pulse/types` shape, `ALL_VARIANTS`. Consumers pull everything from one import.
+
+No `<PulsePlayer />` / `<PulseFab />` Svelte components — Svelte's DOM-first philosophy means `<pulse-player>` and `<pulse-fab>` work **directly** in any template without wrapping. Shipping a Svelte SFC would be a single-line wrapper without adding DX, and would force a Svelte build step that complicates the npm-workspaces tooling. If consumer feedback asks for them later we can revisit.
+
+Usage:
+
+```svelte
+<script lang="ts">
+  import { usePulseAudio } from '@pulse/svelte'
+  const audio = usePulseAudio()
+</script>
+
+<!-- Custom Elements work natively in Svelte 5 -->
+<pulse-player variant="midnight" onpulse-play={(e) => console.log(e.detail.track.title)}></pulse-player>
+<pulse-fab pulso></pulse-fab>
+
+<p>Tracks played this session: {audio.state.playCount}</p>
+```
+
+### `@pulse/web-component` — 9 tests landed
+
+`packages/web-component/tests/elements.test.ts` covers:
+
+- Both elements register globally with the `customElements` registry.
+- `connectedCallback` renders the Shadow DOM without throwing.
+- The `variant` attribute reflects back to the host element.
+- `disconnectedCallback` removes cleanly.
+- `pulse-play` fires on engine play with `{ track, time }` detail.
+- `pulse-pause` fires on the second toggle.
+- `pulse-trackchange` fires on `engine.next()` with `{ from, to, track }`.
+- `<pulse-fab>` shares the same engine + emits the same events.
+
+`beforeEach` resets the singleton via `setSharedEngine(new PulseEngine())` so state from one test (`isPlaying`, counters) doesn't leak into the next.
+
+### Universal README
+
+`README.md` now leads with a **framework picker table**: Vue 3, React 18 / 19, Svelte 5, Web Components, Angular 17+, React Native, Vanilla HTML, Solid / Astro / Qwik — each with its install path, status, and one-line usage example. Makes it obvious within 5 seconds which package a new visitor wants.
+
+### Tooling
+
+- `workspace:*` deps are not supported by npm-workspaces (they're a pnpm-only protocol). All `@pulse/*` cross-package deps now use `"*"` (any workspace version), which works in npm + pnpm + yarn.
+- Scaffold packages (`@pulse/angular`, `@pulse/react-native`) are marked `private: true` and their peerDependencies are dropped until they reach implementation-ready status — without this, `npm install` was pulling in vulnerable old Angular peer deps and inflating the audit count.
+- New scripts: `npm run test:web-component` runs the Lit element suite. `npm run test:packages` now gates on `test:core && test:web-component`.
+
+### Quality gate
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings (--max-warnings=0)
+tests (root)             → 33 / 33    (Vue Pinia store + useDemoTour)
+tests (@pulse/core)      → 27 / 27    (PulseEngine)
+tests (@pulse/web-comp)  →  9 /  9    (Lit elements + lifecycle + events)
+TOTAL                    → 69 / 69    across the monorepo
+build (demo)             → 129 kB JS + 42 kB CSS → 48 kB gzip
+build:lib                → ~14 kB gzip
+audit (prod-only)        → 0 vulnerabilities
+v2.3.4 demo              → bit-for-bit identical
+```
+
+### Packages with REAL code in v3.0.0-alpha.3
+
+| Package | LOC | Tests | Notes |
+| --- | --- | --- | --- |
+| `@pulse/types` | ~80 | (validated via consumer tests) | Shared TS shapes |
+| `@pulse/core` | ~340 | 27 / 27 | Audio engine + state machine |
+| `@pulse/tokens` | ~150 | (CSS — validated visually) | variants / base / animations |
+| `@pulse/web-component` | ~430 | 9 / 9 | `<pulse-player>` + `<pulse-fab>` (Lit) |
+| `@pulse/react` | ~280 | (pending — JSX rendering jsdom setup) | Hooks + JSX components |
+| `@pulse/svelte` | ~80 | (pending — Svelte runes test runner) | Runes store + re-exports |
+
+### What's still ahead
+
+- v3.0.0-alpha.4 → Visual regression (Playwright) gates the Vue refactor.
+- v3.0.0-alpha.5 → Vue migration (`src/lib/` → `packages/vue/` wrapping `<pulse-player>`).
+- v3.0.0-alpha.6 → `@pulse/react-native` separate renderer.
+- v3.0.0 → stable, npm publish.
+
 ## 3.0.0-alpha.2 — 2026-06-07
 
 `@pulse/web-component` ships its first real Custom Elements. `<pulse-player>` and `<pulse-fab>` register globally on import and work natively in React 19+, Vue 3, Angular 17+, Svelte 5, Solid, vanilla HTML, Astro and Qwik. **Vue v2.3.4 codebase at `src/lib/` is still untouched.**

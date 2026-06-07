@@ -20,8 +20,8 @@
     "svelte": "^5.0.0"
   },
   "dependencies": {
-    "@pulse/types": "workspace:*",
-    "@pulse/web-component": "workspace:*"
+    "@pulse/types": "*",
+    "@pulse/web-component": "*"
   },
   "publishConfig": {
     "access": "public"

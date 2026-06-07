@@ -1,7 +1,7 @@
 {
   "name": "@pulse/react-native",
   "version": "0.0.0",
-  "description": "React Native implementation of pulse-player. Separate renderer (no DOM, no CSS) sharing types + audio engine interface with the web packages.",
+  "description": "React Native implementation of pulse-player. Separate renderer (no DOM, no CSS) sharing types + audio engine interface with the web packages. SCAFFOLD only — implementation lands in v3.0.0-alpha.5.",
   "license": "MIT",
   "type": "module",
   "main": "./src/index.ts",
@@ -16,15 +16,11 @@
     "src",
     "README.md"
   ],
-  "peerDependencies": {
-    "react": "^18.0.0 || ^19.0.0",
-    "react-native": ">=0.74.0"
-  },
   "dependencies": {
-    "@pulse/types": "workspace:*"
+    "@pulse/types": "*"
   },
   "publishConfig": {
     "access": "public"
   },
-  "private": false
+  "private": true
 }

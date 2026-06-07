@@ -16,10 +16,14 @@
     "src",
     "README.md"
   ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "dependencies": {
-    "@pulse/core": "workspace:*",
-    "@pulse/tokens": "workspace:*",
-    "@pulse/types": "workspace:*",
+    "@pulse/core": "*",
+    "@pulse/tokens": "*",
+    "@pulse/types": "*",
     "lit": "^3.1.0"
   },
   "publishConfig": {
