@@ -306,26 +306,37 @@ const demoSteps: DemoStep[] = [
       const firstCell = document.querySelector('.variants .grid__cell') as HTMLElement | null
 
       if (variantsEl && firstCell) {
-        // Frame the first row of three cards at the top of the viewport,
-        // leaving a sliver of room above for the section heading. Every
-        // subsequent row is below the fold — exactly the brief.
-        const firstCellAbsoluteTop = firstCell.getBoundingClientRect().top + window.scrollY
-        const headerBreathing = 56
-        const startY = Math.max(0, firstCellAbsoluteTop - headerBreathing)
+        // START — land so the SECTION HEADER ("LIBRARY · 9 PRESETS /
+        // Pick a mood.") sits at roughly 55 % down the viewport, with
+        // only the very top of the first row peeking in at the bottom.
+        // The previous version anchored on `firstCell.top`, which put
+        // the cards immediately at the top of the viewport and left
+        // the heading offscreen — making the "progressive reveal"
+        // promise visually false (rows 2 and 3 weren't visible, but
+        // the framing didn't communicate the intent of the step).
+        //
+        // Now: anchor on the SECTION TOP. The section starts at
+        // `LIBRARY · 9 PRESETS`; placing that at ~55 % of viewport
+        // height matches the reference layout — heading + description
+        // visible, first row peeking, every other row below the fold.
+        const variantsRect = variantsEl.getBoundingClientRect()
+        const variantsAbsoluteTop = variantsRect.top + window.scrollY
+        const sectionTopOffset = window.innerHeight * 0.55
+        const startY = Math.max(0, variantsAbsoluteTop - sectionTopOffset)
 
-        // Land position for the descent: the bottom of the section just
-        // clears the viewport bottom, so the last row has been fully on
-        // screen by the time the tween settles.
-        const sectionBottomAbsolute = variantsEl.getBoundingClientRect().bottom + window.scrollY
+        // END — bottom of the section just clears the viewport bottom,
+        // so the last row has been fully on screen by the time the
+        // tween settles.
+        const sectionBottomAbsolute = variantsRect.bottom + window.scrollY
         const pageBottom = document.documentElement.scrollHeight - window.innerHeight
         const endY = Math.min(
           pageBottom,
           Math.max(startY, sectionBottomAbsolute - window.innerHeight + 32),
         )
 
-        // 1) Cinematic landing on the first row. `inOutCubic` ramps the
-        //    velocity smoothly down to 0 at the end, ready to chain into
-        //    the next tween without any handoff jolt.
+        // 1) Cinematic landing on the section header. `inOutCubic`
+        //    ramps velocity smoothly down to 0 at the end, ready to
+        //    chain into the next tween with no handoff jolt.
         await ctx.tween(
           (y) => window.scrollTo(0, y),
           window.scrollY,
@@ -334,17 +345,17 @@ const demoSteps: DemoStep[] = [
           'inOutCubic',
         )
 
-        // Read the first row.
+        // Read the heading + description while only the first row is
+        // peeking in at the bottom.
         ctx.setMessage('Nine carefully tuned themes ship in — not just colour swatches.')
-        await ctx.delay(1900)
+        await ctx.delay(2100)
 
-        // 2) Single continuous descent. `inOutCubic` starts at v=0
-        //    (matches the previous step's v=0) and ends at v=0 (gentle
-        //    settle on the last row). Mid-tween peak velocity is ~3×
-        //    the linear average, comfortably above the pixel-snap
-        //    threshold — so the rendered position changes every frame
-        //    and the motion reads as a single sweep, not a step train.
-        await ctx.tween((y) => window.scrollTo(0, y), startY, endY, 12000, 'inOutCubic')
+        // 2) Single continuous descent through every row. Slightly
+        //    longer than the previous 12 s because the distance is
+        //    now larger (we start with the header in frame, so the
+        //    descent crosses 3 full rows instead of 2). `inOutCubic`
+        //    starts at v=0 and ends at v=0 — no perceptible jolt.
+        await ctx.tween((y) => window.scrollTo(0, y), startY, endY, 14000, 'inOutCubic')
 
         ctx.setMessage('Auto, Midnight, Sunset, Aurora, Vinyl, Dark, Light, Transparent, Custom.')
         await ctx.delay(2300)

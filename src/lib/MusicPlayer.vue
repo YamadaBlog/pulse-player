@@ -704,11 +704,17 @@ onUnmounted(() => {
 
 /* Artwork morphs round ↔ square in lock-step with the shell. */
 .mp__art {
+  /* Artwork follows the resize a touch faster than the rest of the
+     player (300 ms vs 400 ms on .mp). The art is the largest visual
+     mass and the eye reads it first — letting it land slightly ahead
+     of the wrapper feels snappier without breaking the unified
+     `cubic-bezier(0.4, 0, 0.2, 1)` material curve, so the motion
+     stays premium and synchronous-looking, not jumpy. */
   transition:
-    width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .mp[data-fab='true'] .mp__art {
   width: 100%;
