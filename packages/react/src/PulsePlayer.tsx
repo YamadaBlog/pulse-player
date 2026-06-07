@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import type { EventMap, PulseVariant, Track } from '@pulse/types'
+import type { EventMap, PulseVariant, Track } from '@pulse-music/types'
 import { useDomEvent } from './useDomEvent'
 
 /**
@@ -13,13 +13,13 @@ import { useDomEvent } from './useDomEvent'
  *   - Lifecycle cleanup detaches every listener on unmount
  *
  * The underlying `<pulse-player>` registers itself globally as soon as
- * `@pulse/web-component` is imported. This module side-effect imports
+ * `@pulse-music/web-component` is imported. This module side-effect imports
  * the package so consumers don't need a second import.
  *
  * Example:
  *
  * ```tsx
- * import { PulsePlayer } from '@pulse/react'
+ * import { PulsePlayer } from '@pulse-music/react'
  *
  * function App() {
  *   return (
@@ -35,7 +35,7 @@ import { useDomEvent } from './useDomEvent'
  */
 
 // Side-effect: register <pulse-player> globally.
-import '@pulse/web-component'
+import '@pulse-music/web-component'
 
 export interface PulsePlayerProps {
   /** Mood variant. Default `'auto'`. */

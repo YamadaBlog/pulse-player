@@ -1,5 +1,5 @@
 /**
- * @pulse/react-native — React Native wrapper for pulse-player.
+ * @pulse-music/react-native — React Native wrapper for pulse-player.
  *
  * Status: interface-only (v3.0.0-alpha.8). The runtime renderer is
  * deferred to a v3.X.0 dedicated sprint because it requires the
@@ -14,7 +14,7 @@
  *     RN consumers prototyping against the planned API, and by the
  *     eventual renderer as a build-time contract.
  *
- *   - **Re-exports from `@pulse/types`** — every shared shape
+ *   - **Re-exports from `@pulse-music/types`** — every shared shape
  *     (`Track`, `PulseVariant`, `EventMap`, `PulseState`).
  *
  *   - **Sentinel runtime exports** (`PulsePlayerRN`, `PulseFabRN`,
@@ -41,11 +41,11 @@ export type {
   PulseVariant,
   Track,
   Unsubscribe,
-} from '@pulse/types'
+} from '@pulse-music/types'
 
-export { ALL_VARIANTS } from '@pulse/types'
+export { ALL_VARIANTS } from '@pulse-music/types'
 
-const NOT_IMPLEMENTED_MSG = `[@pulse/react-native] The runtime renderer is not implemented yet.
+const NOT_IMPLEMENTED_MSG = `[@pulse-music/react-native] The runtime renderer is not implemented yet.
 This package currently ships INTERFACE TYPES only (so RN consumers
 can write against the planned API today and the eventual renderer
 is type-driven from day one).
@@ -56,11 +56,11 @@ in the monorepo root for the deferral rationale and the path forward.
 
 For the WEB (any framework: React, Vue, Svelte, Angular, vanilla
 HTML), use one of:
-  - @pulse/react        — React 18 / 19
-  - @pulse/vue          — Vue 3 (currently pulse-player v2.3.4)
-  - @pulse/svelte       — Svelte 5
-  - @pulse/angular      — Angular 17+
-  - @pulse/web-component — Lit Custom Elements, works in any framework`
+  - @pulse-music/react        — React 18 / 19
+  - @pulse-music/vue          — Vue 3 (currently pulse-player v2.3.4)
+  - @pulse-music/svelte       — Svelte 5
+  - @pulse-music/angular      — Angular 17+
+  - @pulse-music/web-component — Lit Custom Elements, works in any framework`
 
 import type { PulsePlayerRNProps, PulseFabRNProps } from './types'
 

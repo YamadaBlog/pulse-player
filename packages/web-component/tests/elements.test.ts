@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import type { EventMap } from '@pulse/types'
+import type { EventMap } from '@pulse-music/types'
 
 /**
  * `<pulse-player>` + `<pulse-fab>` Custom Element tests.
@@ -13,7 +13,7 @@ import type { EventMap } from '@pulse/types'
  *   - Disconnecting the element detaches every listener (no leak).
  *
  * Behavioural correctness of the underlying audio engine is gated
- * by the 27 `@pulse/core` tests; this suite focuses on the
+ * by the 27 `@pulse-music/core` tests; this suite focuses on the
  * Custom Elements' lifecycle + event-bridging contract.
  */
 

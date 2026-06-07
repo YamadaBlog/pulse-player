@@ -6,7 +6,7 @@ import {
   type PulseState,
   type Track,
   type Unsubscribe,
-} from '@pulse/web-component'
+} from '@pulse-music/web-component'
 
 /**
  * `usePulseAudio()` — React hook over the shared `PulseEngine`.

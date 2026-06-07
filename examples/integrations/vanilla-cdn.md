@@ -11,7 +11,7 @@ The fastest possible Pulse integration — one HTML file, one `<script type="mod
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>My audio prototype</title>
-    <script type="module" src="https://unpkg.com/@pulse/web-component@latest"></script>
+    <script type="module" src="https://unpkg.com/@pulse-music/web-component@latest"></script>
   </head>
   <body>
     <h1>Listen to this</h1>
@@ -29,12 +29,12 @@ Open the file in any modern browser. Both Custom Elements register, the audio en
 
 - `<script type="module">` loads ES modules natively in every browser shipped after 2019.
 - unpkg.com mirrors every published npm package at `https://unpkg.com/<package>@<version>`. We use `@latest` for prototypes; for production, pin to a specific version so an upstream patch doesn't change your demo overnight.
-- `@pulse/web-component` is the package that ships the Custom Elements. Its only runtime dependency is Lit, which unpkg resolves transitively — you don't need to install Lit yourself.
+- `@pulse-music/web-component` is the package that ships the Custom Elements. Its only runtime dependency is Lit, which unpkg resolves transitively — you don't need to install Lit yourself.
 
 ## Pin the version (production-safe)
 
 ```html
-<script type="module" src="https://unpkg.com/@pulse/web-component@3.0.0-rc.0"></script>
+<script type="module" src="https://unpkg.com/@pulse-music/web-component@3.0.0-rc.0"></script>
 ```
 
 Pinning is the difference between "my prototype broke because they shipped a patch" and "my prototype works exactly as I left it 6 months ago".
@@ -47,7 +47,7 @@ The shipped demo playlist won't work in your prototype if you load Pulse from a 
 <pulse-player id="player" variant="midnight" ambient-eq></pulse-player>
 
 <script type="module">
-  import '@pulse/web-component'
+  import '@pulse-music/web-component'
 
   const player = document.querySelector('#player')
   player.tracks = [
@@ -82,7 +82,7 @@ Every Pulse CSS variable is documented in [`docs/CUSTOMIZATION.md`](../../docs/C
 
 Copy the single file above into a new pen. Pulse is live in your browser within ~2 seconds (unpkg cold-start latency + Lit cold-cache).
 
-For a saved StackBlitz workspace template, see [`docs/universal/SANDBOXES.md`](../../docs/universal/SANDBOXES.md) — those links will go live once `@pulse/*` is published to npm.
+For a saved StackBlitz workspace template, see [`docs/universal/SANDBOXES.md`](../../docs/universal/SANDBOXES.md) — those links will go live once `@pulse-music/*` is published to npm.
 
 ## Tested against
 
@@ -92,6 +92,6 @@ For a saved StackBlitz workspace template, see [`docs/universal/SANDBOXES.md`](.
 
 ## What this snippet doesn't cover
 
-- HMR or build-time tree-shaking — you ship the whole `@pulse/web-component` bundle (~50 kB gzip including Lit). Acceptable for a prototype; for production, use Vite / Astro / Next.
+- HMR or build-time tree-shaking — you ship the whole `@pulse-music/web-component` bundle (~50 kB gzip including Lit). Acceptable for a prototype; for production, use Vite / Astro / Next.
 
 For the canonical Web Component API see [`docs/frameworks/web-component.md`](../../docs/frameworks/web-component.md).

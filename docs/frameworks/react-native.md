@@ -1,4 +1,4 @@
-# Pulse for React Native (`@pulse/react-native`)
+# Pulse for React Native (`@pulse-music/react-native`)
 
 React Native implementation. **Separate renderer** — no DOM, no CSS, no Web Audio API.
 
@@ -8,7 +8,7 @@ React Native implementation. **Separate renderer** — no DOM, no CSS, no Web Au
 
 ## Feature parity
 
-React Native is the one consumer that DOESN'T share `@pulse/web-component`'s rendering — it has none of the browser primitives those Custom Elements depend on. The renderer is rebuilt from scratch using RN primitives.
+React Native is the one consumer that DOESN'T share `@pulse-music/web-component`'s rendering — it has none of the browser primitives those Custom Elements depend on. The renderer is rebuilt from scratch using RN primitives.
 
 | Feature                    | Status | Notes                                                          |
 | -------------------------- | ------ | -------------------------------------------------------------- |
@@ -27,7 +27,7 @@ React Native is the one consumer that DOESN'T share `@pulse/web-component`'s ren
 ## Planned API
 
 ```tsx
-import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse/react-native'
+import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse-music/react-native'
 
 export function App() {
   const { isPlaying, toggle } = usePulseAudio()
@@ -40,7 +40,7 @@ export function App() {
 }
 ```
 
-The data contract (props, events, payloads) is identical to the web wrappers because both share `@pulse/types`.
+The data contract (props, events, payloads) is identical to the web wrappers because both share `@pulse-music/types`.
 
 ## See also
 

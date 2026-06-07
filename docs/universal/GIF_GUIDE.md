@@ -77,7 +77,7 @@ ffmpeg -i recording.mov -ss 0 -t 6 \
 
 The current README already does this: a clickable YouTube thumbnail with the play-button overlay. That solves 95 % of the use cases (browsing the GitHub repo, sharing the link on social) without adding repo weight.
 
-The ONE case where a GIF actually wins is **npm package READMEs** — npmjs.com doesn't render YouTube embeds, only static images and GIFs. If you publish `@pulse/*` to npm, consider adding a 1-2 MB GIF to the `npm publish` tarball (but NOT to the git repo — list it in `.npmignore` if you keep it in `docs/screenshots/`).
+The ONE case where a GIF actually wins is **npm package READMEs** — npmjs.com doesn't render YouTube embeds, only static images and GIFs. If you publish `@pulse-music/*` to npm, consider adding a 1-2 MB GIF to the `npm publish` tarball (but NOT to the git repo — list it in `.npmignore` if you keep it in `docs/screenshots/`).
 
 ## Where the GIF goes in the README
 

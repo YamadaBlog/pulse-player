@@ -1,4 +1,4 @@
-# `@pulse/demo-vanilla` — Web Component demo (no framework)
+# `@pulse-music/demo-vanilla` — Web Component demo (no framework)
 
 A single `index.html` that uses `<pulse-player>` and `<pulse-fab>` directly. Zero framework, zero bundler.
 
@@ -27,4 +27,4 @@ After that, refreshing the page picks up any new build.
 
 ## Status
 
-Reflects the current `@pulse/web-component` skeleton — about 30 % of the Vue v2.3.4 chrome (play / pause, title, cover, progress, time, 8 variants, ambient EQ, pulso heartbeat). Drag-to-resize, three responsive states, social icons, prev / next, FAB drag etc. ship in later alphas. See [`docs/frameworks/web-component.md`](../../docs/frameworks/web-component.md) for the honest parity matrix.
+Reflects the current `@pulse-music/web-component` skeleton — about 30 % of the Vue v2.3.4 chrome (play / pause, title, cover, progress, time, 8 variants, ambient EQ, pulso heartbeat). Drag-to-resize, three responsive states, social icons, prev / next, FAB drag etc. ship in later alphas. See [`docs/frameworks/web-component.md`](../../docs/frameworks/web-component.md) for the honest parity matrix.

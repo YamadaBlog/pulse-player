@@ -1,5 +1,5 @@
 /**
- * @pulse/tokens — TypeScript exports for design tokens.
+ * @pulse-music/tokens — TypeScript exports for design tokens.
  *
  * For framework wrappers and Shadow DOM renderers that consume CSS
  * via JavaScript (Lit `unsafeCSS`, Constructable StyleSheets, etc.).

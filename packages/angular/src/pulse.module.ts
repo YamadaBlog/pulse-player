@@ -1,5 +1,5 @@
 /**
- * @pulse/angular — `PulseModule` for Angular 17+ consumers.
+ * @pulse-music/angular — `PulseModule` for Angular 17+ consumers.
  *
  * Importing this module side-effect-registers `<pulse-player>` and
  * `<pulse-fab>` Custom Elements with the browser's global registry,
@@ -11,7 +11,7 @@
  *
  * ```ts
  * import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core'
- * import { PulseModule } from '@pulse/angular'
+ * import { PulseModule } from '@pulse-music/angular'
  *
  * @NgModule({
  *   imports: [PulseModule],
@@ -33,14 +33,14 @@
  * native DOM event binding for the custom events.
  *
  * Status: v3.0.0-alpha.7 — first real implementation. The module
- * is intentionally minimal: it imports `@pulse/web-component` for
+ * is intentionally minimal: it imports `@pulse-music/web-component` for
  * the side-effect registration and re-exports the engine + types
  * so consumers can pull everything from one import.
  */
 import { NgModule } from '@angular/core'
 
 // Side-effect import registers <pulse-player> + <pulse-fab>.
-import '@pulse/web-component'
+import '@pulse-music/web-component'
 
 @NgModule({})
 export class PulseModule {}
@@ -49,7 +49,7 @@ export {
   PulseEngine,
   getSharedEngine,
   setSharedEngine,
-} from '@pulse/web-component'
+} from '@pulse-music/web-component'
 
 export type {
   AudioEvent,
@@ -60,6 +60,6 @@ export type {
   PulseVariant,
   Track,
   Unsubscribe,
-} from '@pulse/types'
+} from '@pulse-music/types'
 
-export { ALL_VARIANTS } from '@pulse/types'
+export { ALL_VARIANTS } from '@pulse-music/types'

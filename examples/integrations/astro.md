@@ -1,11 +1,11 @@
 # Pulse in Astro 4+
 
-Astro is content-first — pages are static HTML by default with islands of interactivity. Pulse's Web Component (`<pulse-player>` from `@pulse/web-component`) fits this model naturally: declare the tag in an Astro page and Astro ships the Pulse runtime only on routes that include it.
+Astro is content-first — pages are static HTML by default with islands of interactivity. Pulse's Web Component (`<pulse-player>` from `@pulse-music/web-component`) fits this model naturally: declare the tag in an Astro page and Astro ships the Pulse runtime only on routes that include it.
 
 ## Install
 
 ```bash
-npm install @pulse/web-component @pulse/core
+npm install @pulse-music/web-component @pulse-music/core
 ```
 
 You don't need a per-framework wrapper — Astro pages can render any Custom Element directly.
@@ -34,7 +34,7 @@ You don't need a per-framework wrapper — Astro pages can render any Custom Ele
   // and <pulse-fab> with the browser's Custom Elements registry.
   // Astro auto-bundles this into the client-side hydration script
   // and code-splits it per-page.
-  import '@pulse/web-component'
+  import '@pulse-music/web-component'
 </script>
 ```
 
@@ -60,11 +60,11 @@ That's it. No `client:load`, no `client:visible` directive needed — the `<scri
 
 ## When to add a client directive
 
-The Web Component itself doesn't need an Astro client directive — the `<script>` tag handles the runtime. But if you want to use a framework wrapper (e.g. `<PulsePlayer />` from `@pulse/react` inside an Astro `.astro` file), then:
+The Web Component itself doesn't need an Astro client directive — the `<script>` tag handles the runtime. But if you want to use a framework wrapper (e.g. `<PulsePlayer />` from `@pulse-music/react` inside an Astro `.astro` file), then:
 
 ```astro
 ---
-import { PulsePlayer } from '@pulse/react'
+import { PulsePlayer } from '@pulse-music/react'
 ---
 
 <PulsePlayer client:load variant="midnight" ambientEq />
@@ -94,7 +94,7 @@ const { title } = Astro.props
     <pulse-fab variant="vinyl" pulso draggable show-menu></pulse-fab>
 
     <script>
-      import '@pulse/web-component'
+      import '@pulse-music/web-component'
     </script>
   </body>
 </html>

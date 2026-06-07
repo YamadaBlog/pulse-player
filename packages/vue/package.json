@@ -1,5 +1,5 @@
 {
-  "name": "@pulse/vue",
+  "name": "@pulse-music/vue",
   "version": "3.0.0-rc.0",
   "description": "Vue 3 wrapper for pulse-player. Reference implementation — exposes Vue refs + components.",
   "license": "MIT",
@@ -21,7 +21,7 @@
     "vue": "^3.4.0"
   },
   "dependencies": {
-    "@pulse/types": "*"
+    "@pulse-music/types": "*"
   },
   "publishConfig": {
     "access": "public"

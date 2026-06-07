@@ -1,11 +1,11 @@
 # Pulse in SvelteKit 2+
 
-SvelteKit is Svelte under the hood with SSR by default. Pulse's `@pulse/svelte` package ships as a plain TypeScript hook + a side-effect import that registers the Web Components. The integration is one of the smallest in the family — Svelte's compiler handles Custom Element binding natively.
+SvelteKit is Svelte under the hood with SSR by default. Pulse's `@pulse-music/svelte` package ships as a plain TypeScript hook + a side-effect import that registers the Web Components. The integration is one of the smallest in the family — Svelte's compiler handles Custom Element binding natively.
 
 ## Install
 
 ```bash
-npm install @pulse/svelte @pulse/core
+npm install @pulse-music/svelte @pulse-music/core
 ```
 
 ## The component
@@ -14,9 +14,9 @@ npm install @pulse/svelte @pulse/core
 
 ```svelte
 <script lang="ts">
-  import { usePulseAudio } from '@pulse/svelte'
+  import { usePulseAudio } from '@pulse-music/svelte'
   import { onMount } from 'svelte'
-  import type { Track } from '@pulse/svelte'
+  import type { Track } from '@pulse-music/svelte'
 
   const audio = usePulseAudio()
 
@@ -73,7 +73,7 @@ npm install @pulse/svelte @pulse/core
 
 ## SSR / hydration safety
 
-Svelte's `customElements.define()` call happens at import time inside `@pulse/svelte`. On the SvelteKit server, `customElements` is undefined and the package skips registration — no crash, the server-rendered HTML is bare `<pulse-player>` tags. On the client, the registration fires, the Lit elements upgrade, and the chrome renders.
+Svelte's `customElements.define()` call happens at import time inside `@pulse-music/svelte`. On the SvelteKit server, `customElements` is undefined and the package skips registration — no crash, the server-rendered HTML is bare `<pulse-player>` tags. On the client, the registration fires, the Lit elements upgrade, and the chrome renders.
 
 If you see a Svelte hydration warning about the Custom Element, wrap it in `{#if browser}`:
 
@@ -98,7 +98,7 @@ Mount the FAB once at the root layout:
 ```svelte
 <script lang="ts">
   import { browser } from '$app/environment'
-  import '@pulse/svelte' // side-effect register the Custom Elements
+  import '@pulse-music/svelte' // side-effect register the Custom Elements
 </script>
 
 <slot />
@@ -112,13 +112,13 @@ The engine is a singleton — playback state survives navigations transparently.
 
 ## Configuration tweak
 
-If your SvelteKit project uses Vite's `optimizeDeps` and you see warnings about `@pulse/svelte` not being in the optimizer's pre-bundle list, add it explicitly to `vite.config.ts`:
+If your SvelteKit project uses Vite's `optimizeDeps` and you see warnings about `@pulse-music/svelte` not being in the optimizer's pre-bundle list, add it explicitly to `vite.config.ts`:
 
 ```ts
 export default defineConfig({
   plugins: [sveltekit()],
   optimizeDeps: {
-    include: ['@pulse/svelte', '@pulse/core', '@pulse/web-component'],
+    include: ['@pulse-music/svelte', '@pulse-music/core', '@pulse-music/web-component'],
   },
 })
 ```

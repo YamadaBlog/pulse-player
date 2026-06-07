@@ -1,5 +1,5 @@
 /**
- * `@pulse/tokens` contract tests.
+ * `@pulse-music/tokens` contract tests.
  *
  * Visual diff tests would need Playwright + a rendered page; for the
  * static token contract, we verify shape and content directly:
@@ -21,7 +21,7 @@ import { variantsCss, baseCss } from '../src/index'
 
 const FOUR_NAMED_VARIANTS = ['sunset', 'midnight', 'aurora', 'vinyl'] as const
 
-describe('@pulse/tokens — variantsCss', () => {
+describe('@pulse-music/tokens — variantsCss', () => {
   it('declares each of the 4 mood variants exactly once', () => {
     for (const v of FOUR_NAMED_VARIANTS) {
       const occurrences = variantsCss.match(new RegExp(`\\[data-variant='${v}'\\]`, 'g'))
@@ -57,7 +57,7 @@ describe('@pulse/tokens — variantsCss', () => {
   })
 })
 
-describe('@pulse/tokens — baseCss', () => {
+describe('@pulse-music/tokens — baseCss', () => {
   it('targets the `:host` selector for Shadow DOM consumers', () => {
     expect(baseCss).toContain(':host {')
   })
@@ -98,7 +98,7 @@ describe('@pulse/tokens — baseCss', () => {
   })
 })
 
-describe('@pulse/tokens — actual cascade in a real DOM', () => {
+describe('@pulse-music/tokens — actual cascade in a real DOM', () => {
   it('inheriting variant gradient from [data-variant] attribute works in jsdom', () => {
     // Smoke test that the cascade strategy works end-to-end: append
     // the tokens stylesheet to the document, set a data-variant

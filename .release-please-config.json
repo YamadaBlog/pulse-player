@@ -16,32 +16,32 @@
     },
     "packages/types": {
       "release-type": "node",
-      "package-name": "@pulse/types",
+      "package-name": "@pulse-music/types",
       "changelog-path": "CHANGELOG.md"
     },
     "packages/core": {
       "release-type": "node",
-      "package-name": "@pulse/core",
+      "package-name": "@pulse-music/core",
       "changelog-path": "CHANGELOG.md"
     },
     "packages/tokens": {
       "release-type": "node",
-      "package-name": "@pulse/tokens",
+      "package-name": "@pulse-music/tokens",
       "changelog-path": "CHANGELOG.md"
     },
     "packages/web-component": {
       "release-type": "node",
-      "package-name": "@pulse/web-component",
+      "package-name": "@pulse-music/web-component",
       "changelog-path": "CHANGELOG.md"
     },
     "packages/react": {
       "release-type": "node",
-      "package-name": "@pulse/react",
+      "package-name": "@pulse-music/react",
       "changelog-path": "CHANGELOG.md"
     },
     "packages/svelte": {
       "release-type": "node",
-      "package-name": "@pulse/svelte",
+      "package-name": "@pulse-music/svelte",
       "changelog-path": "CHANGELOG.md"
     }
   },

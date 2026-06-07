@@ -10,11 +10,11 @@
     "isolatedModules": true,
     "noEmit": true,
     "paths": {
-      "@pulse/types": ["../../packages/types/src/index.ts"],
-      "@pulse/core": ["../../packages/core/src/index.ts"],
-      "@pulse/tokens": ["../../packages/tokens/src/index.ts"],
-      "@pulse/web-component": ["../../packages/web-component/src/index.ts"],
-      "@pulse/svelte": ["../../packages/svelte/src/index.ts"]
+      "@pulse-music/types": ["../../packages/types/src/index.ts"],
+      "@pulse-music/core": ["../../packages/core/src/index.ts"],
+      "@pulse-music/tokens": ["../../packages/tokens/src/index.ts"],
+      "@pulse-music/web-component": ["../../packages/web-component/src/index.ts"],
+      "@pulse-music/svelte": ["../../packages/svelte/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.svelte"]

@@ -7,5 +7,5 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   treeshake: true,
-  external: ['@pulse/types', '@pulse/core', '@pulse/web-component'],
+  external: ['@pulse-music/types', '@pulse-music/core', '@pulse-music/web-component'],
 })

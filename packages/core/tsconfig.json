@@ -12,7 +12,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "paths": {
-      "@pulse/types": ["../types/src/index.ts"]
+      "@pulse-music/types": ["../types/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts"]

@@ -1,10 +1,10 @@
 /**
- * @pulse/react — React 18 / 19 wrapper for pulse-player.
+ * @pulse-music/react — React 18 / 19 wrapper for pulse-player.
  *
  * Exposes:
  *   - `<PulsePlayer />` — inline card (wraps `<pulse-player>` Custom Element)
  *   - `<PulseFab />`    — floating FAB (wraps `<pulse-fab>`)
- *   - `usePulseAudio()` — React hook over `@pulse/core` state (equivalent to Vue's `useAudioStore`)
+ *   - `usePulseAudio()` — React hook over `@pulse-music/core` state (equivalent to Vue's `useAudioStore`)
  *
  * The components are THIN adapters — Lit handles the rendering, this
  * package just maps React conventions (camelCase props, on-handler
@@ -13,12 +13,12 @@
  *
  * Status: v3.0.0-alpha.3 — first real release. Renders the minimum
  * inline-card / FAB chrome that the underlying Lit elements ship.
- * Full v2.3.4 visual parity grows additively as `@pulse/web-component`
+ * Full v2.3.4 visual parity grows additively as `@pulse-music/web-component`
  * closes the chrome gap (alpha.2.2).
  */
 
 // Side-effect import registers <pulse-player> + <pulse-fab>.
-import '@pulse/web-component'
+import '@pulse-music/web-component'
 
 // JSX type augmentation for `<pulse-player>` / `<pulse-fab>` is at
 // `./jsx-elements.d.ts`. As a `.d.ts` file it is loaded automatically
@@ -36,7 +36,7 @@ export {
   PulseEngine,
   getSharedEngine,
   setSharedEngine,
-} from '@pulse/web-component'
+} from '@pulse-music/web-component'
 
 export type {
   AudioEvent,
@@ -47,6 +47,6 @@ export type {
   PulseVariant,
   Track,
   Unsubscribe,
-} from '@pulse/types'
+} from '@pulse-music/types'
 
-export { ALL_VARIANTS } from '@pulse/types'
+export { ALL_VARIANTS } from '@pulse-music/types'

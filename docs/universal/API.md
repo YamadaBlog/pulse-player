@@ -1,6 +1,6 @@
 # Pulse Universal — API reference
 
-Canonical API surface shared across every framework wrapper. Every `@pulse/*` package exposes the same shapes — only the **idiomatic syntax** changes (Vue refs vs React hooks vs Svelte stores vs Angular services).
+Canonical API surface shared across every framework wrapper. Every `@pulse-music/*` package exposes the same shapes — only the **idiomatic syntax** changes (Vue refs vs React hooks vs Svelte stores vs Angular services).
 
 ## Components
 
@@ -27,7 +27,7 @@ Canonical API surface shared across every framework wrapper. Every `@pulse/*` pa
 | `draggable`                  | `boolean`      | `false`           | Pointer drag to reposition                    |
 | `persistKey` / `persist-key` | `string`       | `'pulse-fab-pos'` | `localStorage` key for the persisted position |
 
-### Events (typed `EventMap` from `@pulse/types`)
+### Events (typed `EventMap` from `@pulse-music/types`)
 
 | Event         | Payload                                                   | Fired by                                                                                                               |
 | ------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
@@ -54,7 +54,7 @@ Canonical API surface shared across every framework wrapper. Every `@pulse/*` pa
 
 Handler ignores keypresses when the target is an `<input>`, `<textarea>`, or `contenteditable` element. The host defaults to `tabIndex="0"`; set `tabindex="-1"` to skip in tab order.
 
-## Engine — `@pulse/core` `PulseEngine`
+## Engine — `@pulse-music/core` `PulseEngine`
 
 The framework-agnostic class every wrapper consumes via the shared singleton (`getSharedEngine()` / `setSharedEngine()`).
 
@@ -101,7 +101,7 @@ engine.fmt(seconds: number): string  // → '0:42'
 ### Event bus
 
 ```ts
-import type { EventMap } from '@pulse/types'
+import type { EventMap } from '@pulse-music/types'
 
 const off = engine.subscribe<'play'>('play', ({ track, time }) => {
   analytics.track('play', { id: track.title, time })
@@ -124,7 +124,7 @@ const off = engine.onStateChange((state: Readonly<PulseState>) => {
 
 Used by the framework wrappers internally; consumers usually use the framework-specific hook (`usePulseAudio()`).
 
-## Types — `@pulse/types`
+## Types — `@pulse-music/types`
 
 Re-exported by every wrapper:
 
@@ -138,26 +138,26 @@ import type {
   EventListener,
   ErrorReason, // 'play-rejected' | 'media-error' | 'stalled'
   Unsubscribe, // () => void
-} from '@pulse/<framework>'
+} from '@pulse-music/<framework>'
 
-import { ALL_VARIANTS } from '@pulse/<framework>'
+import { ALL_VARIANTS } from '@pulse-music/<framework>'
 ```
 
-## Theming — `@pulse/tokens`
+## Theming — `@pulse-music/tokens`
 
 CSS variables exposed at the `[data-variant='X']` attribute level. Both the Vue v2.3.4 chrome (uses the bare CSS file) and the Web Component Shadow DOM (consumes via Lit's `unsafeCSS(variantsCss)`) read the same source of truth.
 
 ```ts
-import { variantsCss, baseCss } from '@pulse/tokens'
+import { variantsCss, baseCss } from '@pulse-music/tokens'
 
 // String exports for Shadow DOM consumers (Lit, Stencil, …)
 ```
 
 ```css
 /* Document-level consumers */
-@import '@pulse/tokens/variants.css';
-@import '@pulse/tokens/base.css';
-@import '@pulse/tokens/animations.css';
+@import '@pulse-music/tokens/variants.css';
+@import '@pulse-music/tokens/base.css';
+@import '@pulse-music/tokens/animations.css';
 ```
 
 ## See also

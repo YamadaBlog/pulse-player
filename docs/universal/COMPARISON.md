@@ -92,13 +92,13 @@ Vidstack is what Pulse aspires to be after 4 years of adoption. In the meantime,
 
 **react-player** is the React-only Swiss army knife for media URLs (YouTube / Vimeo / SoundCloud / Twitch / DailyMotion / Wistia / file URL).
 
-| Dimension                | react-player                                          | Pulse                               |
-| ------------------------ | ----------------------------------------------------- | ----------------------------------- |
-| Frameworks               | React only                                            | Vue / React / Svelte / Angular / WC |
-| Media providers          | 10+ via embeds                                        | Audio file URL only                 |
-| Bundle                   | ~6 kB + provider iframes                              | 14 kB Vue lib / 1 kB @pulse/react   |
-| **Pick react-player if** | React-only project + you want YouTube embed           |                                     |
-| **Pick Pulse if**        | Multi-framework future + you control the audio source |                                     |
+| Dimension                | react-player                                          | Pulse                                   |
+| ------------------------ | ----------------------------------------------------- | --------------------------------------- |
+| Frameworks               | React only                                            | Vue / React / Svelte / Angular / WC     |
+| Media providers          | 10+ via embeds                                        | Audio file URL only                     |
+| Bundle                   | ~6 kB + provider iframes                              | 14 kB Vue lib / 1 kB @pulse-music/react |
+| **Pick react-player if** | React-only project + you want YouTube embed           |                                         |
+| **Pick Pulse if**        | Multi-framework future + you control the audio source |                                         |
 
 ## Feature matrix (Pulse-specific value)
 
@@ -128,21 +128,21 @@ Features Pulse **doesn't** ship that competitors do:
 
 ## Bundle size comparison (gzip, listed where available)
 
-| Library                   | Gzip size  | Note                                |
-| ------------------------- | ---------- | ----------------------------------- |
-| @pulse/svelte             | **0.4 kB** | Plain TS hook                       |
-| @pulse/react              | **1 kB**   | Wrapper + useDomEvent               |
-| @pulse/tokens             | **0.6 kB** | Variant gradients                   |
-| @pulse/core               | **2 kB**   | Audio engine class                  |
-| @pulse/web-component      | **8.5 kB** | Lit chrome                          |
-| pulse-player (Vue lib)    | **7.9 kB** | Reference                           |
-| react-player              | ~6 kB      | + provider iframes loaded on demand |
-| howler.js                 | ~10 kB     | Audio engine only                   |
-| wavesurfer.js             | ~28 kB     | Waveform render                     |
-| plyr                      | ~21 kB     | Full media player                   |
-| vidstack (default layout) | (bigger)   | Rich layout                         |
+| Library                    | Gzip size  | Note                                |
+| -------------------------- | ---------- | ----------------------------------- |
+| @pulse-music/svelte        | **0.4 kB** | Plain TS hook                       |
+| @pulse-music/react         | **1 kB**   | Wrapper + useDomEvent               |
+| @pulse-music/tokens        | **0.6 kB** | Variant gradients                   |
+| @pulse-music/core          | **2 kB**   | Audio engine class                  |
+| @pulse-music/web-component | **8.5 kB** | Lit chrome                          |
+| pulse-player (Vue lib)     | **7.9 kB** | Reference                           |
+| react-player               | ~6 kB      | + provider iframes loaded on demand |
+| howler.js                  | ~10 kB     | Audio engine only                   |
+| wavesurfer.js              | ~28 kB     | Waveform render                     |
+| plyr                       | ~21 kB     | Full media player                   |
+| vidstack (default layout)  | (bigger)   | Rich layout                         |
 
-Pulse's `@pulse/react` wrapper at **1 kB** is the smallest premium-chrome React audio component in this list, by a wide margin. The cost moves to `@pulse/web-component` (8.5 kB) — which is the chrome runtime shared across every framework.
+Pulse's `@pulse-music/react` wrapper at **1 kB** is the smallest premium-chrome React audio component in this list, by a wide margin. The cost moves to `@pulse-music/web-component` (8.5 kB) — which is the chrome runtime shared across every framework.
 
 ## Pricing comparison
 

@@ -1,8 +1,8 @@
 {
-  "name": "@pulse/demo-vanilla",
+  "name": "@pulse-music/demo-vanilla",
   "version": "0.0.0",
   "private": true,
-  "description": "Standalone HTML demo of @pulse/web-component — no framework, no bundler. Serve with any static server.",
+  "description": "Standalone HTML demo of @pulse-music/web-component — no framework, no bundler. Serve with any static server.",
   "scripts": {
     "dev": "npx http-server -p 5180 -c-1 .",
     "build": "echo 'No build step — vanilla HTML.'"

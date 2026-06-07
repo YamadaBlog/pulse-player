@@ -1,6 +1,6 @@
-# @pulse/angular
+# @pulse-music/angular
 
-Angular 17+ wrapper for pulse-player. Thin `PulseModule` + Custom Elements registration on top of `@pulse/web-component`.
+Angular 17+ wrapper for pulse-player. Thin `PulseModule` + Custom Elements registration on top of `@pulse-music/web-component`.
 
 ## Status
 
@@ -13,7 +13,7 @@ The package is currently marked `private: true` because the floor peer dependenc
 ```ts
 // app.module.ts
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core'
-import { PulseModule } from '@pulse/angular'
+import { PulseModule } from '@pulse-music/angular'
 
 @NgModule({
   imports: [PulseModule],

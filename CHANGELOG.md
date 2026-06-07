@@ -16,7 +16,7 @@ npm ERR! code ENEEDAUTH
 npm ERR! need auth This command requires you to be logged in.
 
 $ cd packages/types && npm publish --dry-run --access=public
-+ @pulse/types@3.0.0-rc.0  ← tarball builds correctly
++ @pulse-music/types@3.0.0-rc.0  ← tarball builds correctly
 npm WARN This command requires you to be logged in (dry-run)
 ```
 
@@ -40,7 +40,7 @@ Running the env audit on this Windows machine surfaced a **partial RN dev enviro
 - Xcode ❌ (Windows host — iOS dev impossible from this machine)
 - CocoaPods ❌ (macOS-only)
 
-The env supports an **Android-only** RN sprint. But the actual renderer (audio adapter via `react-native-audio-api` + Reanimated ambient EQ + RN gesture-handler FAB + RN-svg icons) is the ~1-week sprint scoped in [`REACT_NATIVE_RUNTIME_SETUP.md`](./docs/universal/REACT_NATIVE_RUNTIME_SETUP.md), not a 30-minute task. Starting it without finishing it would produce a half-scaffolded `apps/demo-react-native/` that contradicts the current honest "interface types + sentinels" status of `@pulse/react-native`.
+The env supports an **Android-only** RN sprint. But the actual renderer (audio adapter via `react-native-audio-api` + Reanimated ambient EQ + RN gesture-handler FAB + RN-svg icons) is the ~1-week sprint scoped in [`REACT_NATIVE_RUNTIME_SETUP.md`](./docs/universal/REACT_NATIVE_RUNTIME_SETUP.md), not a 30-minute task. Starting it without finishing it would produce a half-scaffolded `apps/demo-react-native/` that contradicts the current honest "interface types + sentinels" status of `@pulse-music/react-native`.
 
 **Decision in autonomy:** do not start the half-scaffold. The maintainer can run the 1-week sprint directly on this machine when ready (Android-only acceptable as a first iteration; iOS comes later).
 
@@ -54,7 +54,7 @@ I cannot post to the maintainer's social accounts. But I can write the posts so 
 
 [`docs/universal/LAUNCH_THREADS.md`](./docs/universal/LAUNCH_THREADS.md) (NEW, ~280 LOC) ships verbatim text for:
 
-1. Reddit r/vuejs — focused on the dual-track v2.3.4 / @pulse/vue narrative, asks for feedback on naming + theme palette + perf.
+1. Reddit r/vuejs — focused on the dual-track v2.3.4 / @pulse-music/vue narrative, asks for feedback on naming + theme palette + perf.
 2. Reddit r/reactjs — bundle math first (1 kB wrapper / 8 kB chrome), code sample second.
 3. Reddit r/sveltejs — leads with the "no .svelte component, plain TS hook" design choice.
 4. Hacker News Show HN — explicit honest differentiators + losses vs Plyr / Howler / Vidstack.
@@ -78,13 +78,13 @@ src/lib/                 → ZERO file modified (22nd consecutive alpha)
 
 ### Status summary of the 5 alpha.20 blockers
 
-| Blocker                    | Status after alpha.21                          | Action to unblock                            |
-| -------------------------- | ---------------------------------------------- | -------------------------------------------- |
-| `npm publish @pulse/*`     | ❌ ENEEDAUTH confirmed                         | Maintainer `npm login` on this machine + OTP |
-| Security email placeholder | ✅ RESOLVED — real email shipped               | —                                            |
-| RN runtime                 | ⏸ Env exists (Android), 1-week sprint deferred | Maintainer runs the playbook                 |
-| Manual SR test             | ❌ Fundamental human / audio blocker           | Maintainer + screen-reader environment       |
-| 0 stars / adoption         | ⏸ Posts drafted in LAUNCH_THREADS.md           | Maintainer posts after `npm publish`         |
+| Blocker                      | Status after alpha.21                          | Action to unblock                            |
+| ---------------------------- | ---------------------------------------------- | -------------------------------------------- |
+| `npm publish @pulse-music/*` | ❌ ENEEDAUTH confirmed                         | Maintainer `npm login` on this machine + OTP |
+| Security email placeholder   | ✅ RESOLVED — real email shipped               | —                                            |
+| RN runtime                   | ⏸ Env exists (Android), 1-week sprint deferred | Maintainer runs the playbook                 |
+| Manual SR test               | ❌ Fundamental human / audio blocker           | Maintainer + screen-reader environment       |
+| 0 stars / adoption           | ⏸ Posts drafted in LAUNCH_THREADS.md           | Maintainer posts after `npm publish`         |
 
 The honest delta vs alpha.20: 2 blockers ship code, 3 are confirmed external. No false progress claimed.
 
@@ -102,26 +102,26 @@ The ceiling stays ~6.6 until adoption signals move the "0 stars / 0 downloads" r
 
 **Autonomy alpha — the "I made the decisions" pass.** GO-mode handed me the open product-strategy decisions that previous alphas had documented but deferred to the maintainer. This alpha closes them all.
 
-### LOT A — Decided: keep `@pulse/*` scope (Option A from `RENAMING_DECISION.md`)
+### LOT A — Decided: keep `@pulse-music/*` scope (Option A from `RENAMING_DECISION.md`)
 
-Verified via `npm view @pulse/{types,core,tokens,web-component,react,svelte,angular,react-native}` — every package returns **HTTP 404** (free). The `@pulse` scope is available. **Option A locked in.** No rename, no migration cost. The maintainer can claim `@pulse` on the first `npm publish --access=public` (npm auto-creates the org on first scoped public publish).
+Verified via `npm view @pulse-music/{types,core,tokens,web-component,react,svelte,angular,react-native}` — every package returns **HTTP 404** (free). The `@pulse` scope is available. **Option A locked in.** No rename, no migration cost. The maintainer can claim `@pulse` on the first `npm publish --access=public` (npm auto-creates the org on first scoped public publish).
 
-### LOT B — Decided: every `@pulse/*` package version bumped 0.0.0 → 3.0.0-rc.0
+### LOT B — Decided: every `@pulse-music/*` package version bumped 0.0.0 → 3.0.0-rc.0
 
 ```
-@pulse/types         0.0.0 → 3.0.0-rc.0
-@pulse/core          0.0.0 → 3.0.0-rc.0
-@pulse/tokens        0.0.0 → 3.0.0-rc.0
-@pulse/web-component 0.0.0 → 3.0.0-rc.0
-@pulse/react         0.0.0 → 3.0.0-rc.0
-@pulse/svelte        0.0.0 → 3.0.0-rc.0
-@pulse/angular       0.0.0 → 3.0.0-rc.0
-@pulse/react-native  0.0.0 → 3.0.0-rc.0
-@pulse/vue           0.0.0 → 3.0.0-rc.0
-@pulse/test-utils    0.0.0 → 3.0.0-rc.0
+@pulse-music/types         0.0.0 → 3.0.0-rc.0
+@pulse-music/core          0.0.0 → 3.0.0-rc.0
+@pulse-music/tokens        0.0.0 → 3.0.0-rc.0
+@pulse-music/web-component 0.0.0 → 3.0.0-rc.0
+@pulse-music/react         0.0.0 → 3.0.0-rc.0
+@pulse-music/svelte        0.0.0 → 3.0.0-rc.0
+@pulse-music/angular       0.0.0 → 3.0.0-rc.0
+@pulse-music/react-native  0.0.0 → 3.0.0-rc.0
+@pulse-music/vue           0.0.0 → 3.0.0-rc.0
+@pulse-music/test-utils    0.0.0 → 3.0.0-rc.0
 ```
 
-Root `pulse-player` stays at **2.3.4** — the Vue v2.3.4 reference build keeps shipping at its own version while the multi-framework refactor launches as `3.0.0-rc.0` under the `@pulse/*` scope. Dual-track narrative was established in alpha.0 + reinforced in alpha.9's soft re-export.
+Root `pulse-player` stays at **2.3.4** — the Vue v2.3.4 reference build keeps shipping at its own version while the multi-framework refactor launches as `3.0.0-rc.0` under the `@pulse-music/*` scope. Dual-track narrative was established in alpha.0 + reinforced in alpha.9's soft re-export.
 
 All 132 / 132 tests pass after the bump (verified `npm test && npm run test:packages`). No regressions.
 
@@ -148,7 +148,7 @@ Discussions become the canonical place for "should rc.0 do X?" / "I integrated t
 
 1. **No rename** — Option A from `RENAMING_DECISION.md`. `@pulse` is free on npm, so the rename cost outweighs the SEO upside. The "pulse" name collision in npm search is real but mitigated by the unique scope.
 2. **Bump every package to 3.0.0-rc.0** — pre-applies Step 2 of `PUBLISH_CHECKLIST.md`. The maintainer's keyboard time for `npm publish` drops from ~5 minutes to ~3 minutes.
-3. **Root stays at 2.3.4** — preserves the dual-track narrative. `pulse-player` v2.3.4 is the Vue lib that continues shipping; `@pulse/*` v3.0.0-rc.0 is the multi-framework refactor. Consumers can pick either.
+3. **Root stays at 2.3.4** — preserves the dual-track narrative. `pulse-player` v2.3.4 is the Vue lib that continues shipping; `@pulse-music/*` v3.0.0-rc.0 is the multi-framework refactor. Consumers can pick either.
 4. **Keep the 41 alpha tags** — Option ALPHA from `VERSION_STRATEGY.md`. Transparency > cosmetic clean.
 5. **Short CoC via link rather than inlined Covenant** — drift-safe, equally GitHub-detected.
 
@@ -166,13 +166,13 @@ type-check               → clean
 lint                     → 0 errors, 0 warnings
 format:check             → all files use Prettier code style
 tests (root, Vue Pinia)  →  33 / 33
-tests (@pulse/core)      →  27 / 27
-tests (@pulse/tokens)    →  11 / 11
-tests (@pulse/web-comp)  →  22 / 22
-tests (@pulse/react)     →  16 / 16
-tests (@pulse/svelte)    →   8 /  8
-tests (@pulse/angular)   →   5 /  5
-tests (@pulse/RN)        →  10 / 10
+tests (@pulse-music/core)      →  27 / 27
+tests (@pulse-music/tokens)    →  11 / 11
+tests (@pulse-music/web-comp)  →  22 / 22
+tests (@pulse-music/react)     →  16 / 16
+tests (@pulse-music/svelte)    →   8 /  8
+tests (@pulse-music/angular)   →   5 /  5
+tests (@pulse-music/RN)        →  10 / 10
 TOTAL unit               → 132 / 132 (after 0.0.0 → 3.0.0-rc.0 bump)
 audit (prod-only)        → 0 vulnerabilities
 Vue v2.3.4 demo          → bit-for-bit identical
@@ -211,13 +211,13 @@ Copy-paste-ready integration patterns, ~30-50 LOC each, with the one SSR / hydra
 - [`astro.md`](../examples/integrations/astro.md) — Custom Element + `client:load` directive + Layout-level persistent FAB.
 - [`vanilla-cdn.md`](../examples/integrations/vanilla-cdn.md) — one `<script type="module">` line, no build, no `npm install`. unpkg-served, pinned-version variant included.
 
-Each file documents what it covers + what it doesn't. The `examples/integrations/README.md` index sets the philosophy (smallest possible integration, no extra abstractions) and notes that every snippet becomes copy-paste-runnable in a fresh project after `npm publish @pulse/*` lands.
+Each file documents what it covers + what it doesn't. The `examples/integrations/README.md` index sets the philosophy (smallest possible integration, no extra abstractions) and notes that every snippet becomes copy-paste-runnable in a fresh project after `npm publish @pulse-music/*` lands.
 
 ### LOT 3 — `docs/universal/RENAMING_DECISION.md`
 
 The brutal audit flagged that `pulse-player` is generic and shares the namespace with 50+ npm packages. This doc presents 3 options before the first npm publish (because renaming after publish is much more expensive):
 
-- **Option A** — keep `pulse-player` + `@pulse/*` scope (only valid if `@pulse` is available on npm).
+- **Option A** — keep `pulse-player` + `@pulse-music/*` scope (only valid if `@pulse` is available on npm).
 - **Option B** — keep `pulse-player` but use `@yamadablog/*` scope (forced fallback if `@pulse` is taken).
 - **Option C** — full rename to a unique product name (e.g. moodplay / soniccard / pulsewave / audiobloom).
 
@@ -297,7 +297,7 @@ Total time at the keyboard once the maintainer is ready: **~5 minutes** (mostly 
 
 The renderer-deferred package now has a maintainer playbook (~190 LOC) covering:
 
-- The scope decision (no shared rendering with web; RN gets a separate renderer consuming the same `@pulse/core` API).
+- The scope decision (no shared rendering with web; RN gets a separate renderer consuming the same `@pulse-music/core` API).
 - Expo SDK vs bare RN CLI choice (recommendation: Expo for the first iteration).
 - The exact peer-dependency list: `react-native-audio-api` (Web Audio parity), `react-native-reanimated` (60 fps off-thread), `react-native-gesture-handler` (FAB drag), `react-native-svg` (icons), `@react-native-async-storage/async-storage` (persist), `@react-native-community/blur` (backdrop-filter replacement).
 - The 5-step implementation sequence (audio adapter → hook → components → demo app → tests → docs sweep → publish).
@@ -343,13 +343,13 @@ type-check               → clean
 lint                     → 0 errors, 0 warnings
 format:check             → all files use Prettier code style
 tests (root, Vue Pinia)  →  33 / 33
-tests (@pulse/core)      →  27 / 27
-tests (@pulse/tokens)    →  11 / 11
-tests (@pulse/web-comp)  →  22 / 22
-tests (@pulse/react)     →  16 / 16
-tests (@pulse/svelte)    →   8 /  8
-tests (@pulse/angular)   →   5 /  5
-tests (@pulse/RN)        →  10 / 10
+tests (@pulse-music/core)      →  27 / 27
+tests (@pulse-music/tokens)    →  11 / 11
+tests (@pulse-music/web-comp)  →  22 / 22
+tests (@pulse-music/react)     →  16 / 16
+tests (@pulse-music/svelte)    →   8 /  8
+tests (@pulse-music/angular)   →   5 /  5
+tests (@pulse-music/RN)        →  10 / 10
 TOTAL unit               → 132 / 132
 test:visual              →   2 /  2 stable
 test:a11y                →   2 /  2 strict (CI green)
@@ -369,8 +369,8 @@ The +0.1 reflects the fact that each remaining gap now has a maintainer-actionab
 
 The remaining 0.4 stays gated on external execution:
 
-- 🚫 `npm publish @pulse/*` — maintainer OTP, ~5 minutes at the keyboard. Procedure: PUBLISH_CHECKLIST.md.
-- 🚫 `@pulse/react-native` real runtime — RN tooling environment, ~1 working week. Procedure: REACT_NATIVE_RUNTIME_SETUP.md.
+- 🚫 `npm publish @pulse-music/*` — maintainer OTP, ~5 minutes at the keyboard. Procedure: PUBLISH_CHECKLIST.md.
+- 🚫 `@pulse-music/react-native` real runtime — RN tooling environment, ~1 working week. Procedure: REACT_NATIVE_RUNTIME_SETUP.md.
 - 🚫 Manual SR test report — human + screen-reader environment, ~1 day for full 6-row matrix. Procedure: SCREEN_READER_TEST_PLAN.md.
 - 🚫 Protection ≥ 6/10 — impossible without abandoning MIT; informed-tradeoff per PROTECTION_NOTES.md.
 
@@ -429,13 +429,13 @@ type-check               → clean
 lint                     → 0 errors, 0 warnings
 format:check             → all files use Prettier code style
 tests (root, Vue Pinia)  →  33 / 33
-tests (@pulse/core)      →  27 / 27
-tests (@pulse/tokens)    →  11 / 11
-tests (@pulse/web-comp)  →  22 / 22
-tests (@pulse/react)     →  16 / 16
-tests (@pulse/svelte)    →   8 /  8
-tests (@pulse/angular)   →   5 /  5
-tests (@pulse/RN)        →  10 / 10
+tests (@pulse-music/core)      →  27 / 27
+tests (@pulse-music/tokens)    →  11 / 11
+tests (@pulse-music/web-comp)  →  22 / 22
+tests (@pulse-music/react)     →  16 / 16
+tests (@pulse-music/svelte)    →   8 /  8
+tests (@pulse-music/angular)   →   5 /  5
+tests (@pulse-music/RN)        →  10 / 10
 TOTAL unit               → 132 / 132
 test:visual              →   2 /  2 stable (+ 4 opt-in)
 test:a11y (local)        →   2 /  2 ✅ NEW
@@ -459,8 +459,8 @@ What this alpha closes:
 
 The remaining 0.5 gap stays external:
 
-- 🚫 `npm publish @pulse/*` — maintainer OTP (BLOCKERS.md #2)
-- 🚫 `@pulse/react-native` real runtime — RN tooling environment (BLOCKERS.md #1)
+- 🚫 `npm publish @pulse-music/*` — maintainer OTP (BLOCKERS.md #2)
+- 🚫 `@pulse-music/react-native` real runtime — RN tooling environment (BLOCKERS.md #1)
 - 🚫 Manual screen-reader test (NVDA + VoiceOver) + Lighthouse contrast audit — Axe-core now covers the automated WCAG 2.1 AA layer strictly; human SR + Lighthouse remain a future polish pass.
 
 ## 3.0.0-alpha.16 — 2026-06-07
@@ -485,7 +485,7 @@ The maintainer's email (`yamadaablog@gmail.com`) is in commits — that's normal
 
 ### LOT 2 (P0) — Closed release-please PR #13 + workflow → manual
 
-The auto-generated release PR proposed bumping every `@pulse/*` package from `0.0.0` to `1.0.0`, which collides with the `v3.0.0-alpha.N` cadence we use for the multi-framework refactor. Closed with explicit reasoning. The `.github/workflows/release-please.yml` push trigger was switched to `workflow_dispatch` — the workflow stays ready, but won't keep proposing the same wrong bump on every push. Re-enable when v3.0.0-rc.0 is cut and the manifest is updated to reflect the alpha → rc → stable lineage.
+The auto-generated release PR proposed bumping every `@pulse-music/*` package from `0.0.0` to `1.0.0`, which collides with the `v3.0.0-alpha.N` cadence we use for the multi-framework refactor. Closed with explicit reasoning. The `.github/workflows/release-please.yml` push trigger was switched to `workflow_dispatch` — the workflow stays ready, but won't keep proposing the same wrong bump on every push. Re-enable when v3.0.0-rc.0 is cut and the manifest is updated to reflect the alpha → rc → stable lineage.
 
 ### LOT 3 (P0) — Repo switched to PUBLIC + GitHub Pages activated
 
@@ -519,13 +519,13 @@ type-check               → clean
 lint                     → 0 errors, 0 warnings
 format:check             → all files use Prettier code style
 tests (root, Vue Pinia)  →  33 / 33
-tests (@pulse/core)      →  27 / 27
-tests (@pulse/tokens)    →  11 / 11
-tests (@pulse/web-comp)  →  22 / 22
-tests (@pulse/react)     →  16 / 16
-tests (@pulse/svelte)    →   8 /  8
-tests (@pulse/angular)   →   5 /  5
-tests (@pulse/RN)        →  10 / 10
+tests (@pulse-music/core)      →  27 / 27
+tests (@pulse-music/tokens)    →  11 / 11
+tests (@pulse-music/web-comp)  →  22 / 22
+tests (@pulse-music/react)     →  16 / 16
+tests (@pulse-music/svelte)    →   8 /  8
+tests (@pulse-music/angular)   →   5 /  5
+tests (@pulse-music/RN)        →  10 / 10
 TOTAL unit               → 132 / 132
 size-limit               → 7 / 7 packages under budget
 build (Vue demo)         → 48 kB gzip (UNCHANGED)
@@ -559,8 +559,8 @@ src/lib/                 → ZERO file modified
 
 The remaining 0.5 gap is now small and bounded:
 
-- 🚫 `npm publish @pulse/*` — maintainer OTP (BLOCKERS.md #2)
-- 🚫 `@pulse/react-native` real runtime — RN tooling environment (BLOCKERS.md #1)
+- 🚫 `npm publish @pulse-music/*` — maintainer OTP (BLOCKERS.md #2)
+- 🚫 `@pulse-music/react-native` real runtime — RN tooling environment (BLOCKERS.md #1)
 - 🚫 Manual SR testing (NVDA + VoiceOver) + Lighthouse contrast audit — needs human + screen-reader environment (Axe-core covers the automated layer)
 
 There's no longer any "in-session sprintable" work that respects the validated Vue v2.3.4 reference. The repo is genuinely sellable / presentable from this commit forward.
@@ -588,15 +588,15 @@ The single biggest first-impression gap (no video / GIF for 9 alphas) is closed:
 
 Current measurements (all under budget):
 
-| Package                | Limit | Actual      |
-| ---------------------- | ----- | ----------- |
-| `@pulse/types`         | 1 kB  | **89 B**    |
-| `@pulse/core`          | 5 kB  | **1.93 kB** |
-| `@pulse/tokens`        | 2 kB  | **582 B**   |
-| `@pulse/web-component` | 20 kB | **8.54 kB** |
-| `@pulse/react`         | 3 kB  | **1 kB**    |
-| `@pulse/svelte`        | 1 kB  | **369 B**   |
-| Vue v2.3.4 lib         | 11 kB | **7.9 kB**  |
+| Package                      | Limit | Actual      |
+| ---------------------------- | ----- | ----------- |
+| `@pulse-music/types`         | 1 kB  | **89 B**    |
+| `@pulse-music/core`          | 5 kB  | **1.93 kB** |
+| `@pulse-music/tokens`        | 2 kB  | **582 B**   |
+| `@pulse-music/web-component` | 20 kB | **8.54 kB** |
+| `@pulse-music/react`         | 3 kB  | **1 kB**    |
+| `@pulse-music/svelte`        | 1 kB  | **369 B**   |
+| Vue v2.3.4 lib               | 11 kB | **7.9 kB**  |
 
 Any bundle regression now fails CI.
 
@@ -627,13 +627,13 @@ type-check               → clean
 lint                     → 0 errors, 0 warnings
 format:check             → all files use Prettier code style
 tests (root, Vue Pinia)  →  33 / 33
-tests (@pulse/core)      →  27 / 27
-tests (@pulse/tokens)    →  11 / 11
-tests (@pulse/web-comp)  →  22 / 22
-tests (@pulse/react)     →  16 / 16
-tests (@pulse/svelte)    →   8 /  8
-tests (@pulse/angular)   →   5 /  5
-tests (@pulse/RN)        →  10 / 10
+tests (@pulse-music/core)      →  27 / 27
+tests (@pulse-music/tokens)    →  11 / 11
+tests (@pulse-music/web-comp)  →  22 / 22
+tests (@pulse-music/react)     →  16 / 16
+tests (@pulse-music/svelte)    →   8 /  8
+tests (@pulse-music/angular)   →   5 /  5
+tests (@pulse-music/RN)        →  10 / 10
 TOTAL unit               → 132 / 132
 size-limit               → 7 / 7 packages under budget
 build (Vue demo)         → 48 kB gzip (UNCHANGED)
@@ -650,8 +650,8 @@ src/lib/                 → ZERO file modified
 
 The remaining 0.5 gap stays external:
 
-- 🚫 `npm publish @pulse/*` — maintainer OTP (BLOCKERS.md #2)
-- 🚫 `@pulse/react-native` real runtime — RN tooling environment (BLOCKERS.md #1)
+- 🚫 `npm publish @pulse-music/*` — maintainer OTP (BLOCKERS.md #2)
+- 🚫 `@pulse-music/react-native` real runtime — RN tooling environment (BLOCKERS.md #1)
 - 🚫 Live demo URL — GitHub Pages Pro plan OR external host (BLOCKERS.md #0)
 - 🚫 Repo public vs private decision — visibility unblocks the Pages free tier
 
@@ -683,7 +683,7 @@ After the format fix landed on main and PRs were rebased:
   - #7 — typescript 5 → 6 + vite 5 → 8 in one PR (two majors together)
   - #6 — vitest 1 → 4 + jsdom 24 → 29 (two majors together)
   - #3 — pinia 2 → 3 + @vitejs/plugin-vue 5 → 6 + vue-tsc 2 → 3 (three majors together)
-  - #2 — react group 4 majors (breaks @pulse/react peer range guarantees)
+  - #2 — react group 4 majors (breaks @pulse-music/react peer range guarantees)
 - **2 PRs MERGED** after rebase + green CI: #12 (actions group: bump checkout/setup-node/upload-artifact/upload-pages-artifact/deploy-pages) + #4 (svelte 5.56.2 → 5.56.3 patch).
 - **Open PR backlog: 0.**
 
@@ -694,13 +694,13 @@ type-check               → clean
 lint                     → 0 errors, 0 warnings
 format:check             → all files use Prettier code style
 tests (root, Vue Pinia)  →  33 / 33
-tests (@pulse/core)      →  27 / 27
-tests (@pulse/tokens)    →  11 / 11
-tests (@pulse/web-comp)  →  22 / 22
-tests (@pulse/react)     →  16 / 16
-tests (@pulse/svelte)    →   8 /  8
-tests (@pulse/angular)   →   5 /  5
-tests (@pulse/RN)        →  10 / 10
+tests (@pulse-music/core)      →  27 / 27
+tests (@pulse-music/tokens)    →  11 / 11
+tests (@pulse-music/web-comp)  →  22 / 22
+tests (@pulse-music/react)     →  16 / 16
+tests (@pulse-music/svelte)    →   8 /  8
+tests (@pulse-music/angular)   →   5 /  5
+tests (@pulse-music/RN)        →  10 / 10
 TOTAL unit               → 132 / 132
 test:visual              →   2 /  2 stable
 build (Vue demo)         → 48 kB gzip (UNCHANGED)
@@ -745,8 +745,8 @@ The grade is grounded in a real CI status this time:
 
 The 0.7 gap stays external:
 
-- 🚫 `npm publish @pulse/*` — maintainer OTP (BLOCKERS.md #2)
-- 🚫 `@pulse/react-native` real runtime — RN tooling environment (BLOCKERS.md #1)
+- 🚫 `npm publish @pulse-music/*` — maintainer OTP (BLOCKERS.md #2)
+- 🚫 `@pulse-music/react-native` real runtime — RN tooling environment (BLOCKERS.md #1)
 - 🚫 GitHub Pages — Pro plan OR public repo OR external host (BLOCKERS.md #0)
 - 🚫 GIF/screencast hero — maintainer recording
 
@@ -804,7 +804,7 @@ Maintainer's stance: "this repo's `public/audio/` placeholders are documented as
 
 - `.github/workflows/release-please.yml` (NEW) — runs on every push to main, collects Conventional Commits into a draft release PR with CHANGELOG + version bumps + GitHub Release draft. `npm publish` stays manual (maintainer OTP required).
 - `.release-please-config.json` (NEW) — node release-type, manifest-driven, `node-workspace` plugin so the 6 publishable packages get coordinated version bumps.
-- `.release-please-manifest.json` (NEW) — seeds the current versions: root `2.3.4`, every `@pulse/*` package at `0.0.0` (will jump to `3.0.0-rc.0` on the first manifest-driven release after the maintainer reviews).
+- `.release-please-manifest.json` (NEW) — seeds the current versions: root `2.3.4`, every `@pulse-music/*` package at `0.0.0` (will jump to `3.0.0-rc.0` on the first manifest-driven release after the maintainer reviews).
 
 **Coverage workflow**:
 
@@ -812,7 +812,7 @@ Maintainer's stance: "this repo's `public/audio/` placeholders are documented as
 
 The repo now has **5 GitHub Actions workflows** (ci, visual, a11y, coverage, release-please) covering type-check + lint + test + build + audit + visual diff + axe-core a11y + coverage + automated releases.
 
-### LOT 5 (P2) — `@pulse/web-component` file split
+### LOT 5 (P2) — `@pulse-music/web-component` file split
 
 `packages/web-component/src/PulsePlayer.ts` was 480 LOC. The two big SVG icon constants (GitHub Octocat + generic streaming) shipped inside it for historical reasons but had nothing to do with element lifecycle / rendering — they're pure geometry + provenance comments.
 
@@ -826,13 +826,13 @@ The repo now has **5 GitHub Actions workflows** (ci, visual, a11y, coverage, rel
 type-check               → clean
 lint                     → 0 errors, 0 warnings (--max-warnings=0)
 tests (root, Vue Pinia)  →  33 / 33
-tests (@pulse/core)      →  27 / 27
-tests (@pulse/tokens)    →  11 / 11
-tests (@pulse/web-comp)  →  22 / 22
-tests (@pulse/react)     →  16 / 16
-tests (@pulse/svelte)    →   8 /  8
-tests (@pulse/angular)   →   5 /  5
-tests (@pulse/RN)        →  10 / 10
+tests (@pulse-music/core)      →  27 / 27
+tests (@pulse-music/tokens)    →  11 / 11
+tests (@pulse-music/web-comp)  →  22 / 22
+tests (@pulse-music/react)     →  16 / 16
+tests (@pulse-music/svelte)    →   8 /  8
+tests (@pulse-music/angular)   →   5 /  5
+tests (@pulse-music/RN)        →  10 / 10
 TOTAL unit               → 132 / 132
 test:visual              →   2 /  2 stable
 build (Vue demo)         → 48 kB gzip (UNCHANGED)
@@ -856,12 +856,12 @@ This alpha closes every CTO audit gap that's doable in-session:
 - ❌ `examples/` Vue-only → ✅ multi-framework snippet library + clear examples/apps philosophy
 - ❌ Release automation absente → ✅ `release-please` configured
 - ❌ Coverage workflow absent → ✅ `.github/workflows/coverage.yml`
-- ❌ `@pulse/web-component` file pas split → ✅ icons.ts extracted
+- ❌ `@pulse-music/web-component` file pas split → ✅ icons.ts extracted
 
 The remaining 0.3 gap is **entirely external**:
 
-- 🚫 `npm publish @pulse/*` — maintainer OTP
-- 🚫 `@pulse/react-native` real runtime — needs RN tooling environment
+- 🚫 `npm publish @pulse-music/*` — maintainer OTP
+- 🚫 `@pulse-music/react-native` real runtime — needs RN tooling environment
 - 🚫 GitHub Pages — needs Pro plan OR public repo OR external host (Cloudflare / Netlify / Vercel)
 - 🚫 GIF/screencast hero — maintainer recording
 
@@ -890,7 +890,7 @@ Aligned with [Spotify's developer brand guidelines](https://developer.spotify.co
 
 ### LOT 4 (P2) — Online sandboxes
 
-- **`docs/universal/SANDBOXES.md`** (NEW, ~125 LOC) — StackBlitz / CodeSandbox link templates for every framework wrapper (Vanilla, React, Vue, Svelte, Angular), with "Open in StackBlitz" / "Edit on CodeSandbox" badges. Documented activation flow: sandboxes go live once `npm publish @pulse/*` ships (one-time, requires OTP). For now the URLs resolve to placeholder slugs; once published, the maintainer replaces them with real share links and the badges land in the README.
+- **`docs/universal/SANDBOXES.md`** (NEW, ~125 LOC) — StackBlitz / CodeSandbox link templates for every framework wrapper (Vanilla, React, Vue, Svelte, Angular), with "Open in StackBlitz" / "Edit on CodeSandbox" badges. Documented activation flow: sandboxes go live once `npm publish @pulse-music/*` ships (one-time, requires OTP). For now the URLs resolve to placeholder slugs; once published, the maintainer replaces them with real share links and the badges land in the README.
 - **`README.md`** updated — "Try it in 30 seconds" row with the three live-readiness badges (Vanilla / React / Svelte) directly under the framework picker table. Pointer to `SANDBOXES.md` for status.
 
 ### LOT 5 (P2) — Axe-core accessibility scan + size-limit budget
@@ -921,13 +921,13 @@ Closes the alpha.11 audit's "Arrow keys nav `.fab__menu`" gap.
 type-check               → clean
 lint                     → 0 errors, 0 warnings (--max-warnings=0)
 tests (root, Vue Pinia)  →  33 / 33
-tests (@pulse/core)      →  27 / 27
-tests (@pulse/tokens)    →  11 / 11
-tests (@pulse/web-comp)  →  22 / 22
-tests (@pulse/react)     →  16 / 16
-tests (@pulse/svelte)    →   8 /  8
-tests (@pulse/angular)   →   5 /  5
-tests (@pulse/RN)        →  10 / 10
+tests (@pulse-music/core)      →  27 / 27
+tests (@pulse-music/tokens)    →  11 / 11
+tests (@pulse-music/web-comp)  →  22 / 22
+tests (@pulse-music/react)     →  16 / 16
+tests (@pulse-music/svelte)    →   8 /  8
+tests (@pulse-music/angular)   →   5 /  5
+tests (@pulse-music/RN)        →  10 / 10
 TOTAL unit               → 132 / 132
 test:visual              →   2 /  2 stable (+ 2 vanilla + 2 a11y opt-in)
 build (Vue demo)         → 48 kB gzip (UNCHANGED)
@@ -958,8 +958,8 @@ What this alpha closes from the CTO audit's gap list:
 
 What remains stays external:
 
-- 🚫 `@pulse/react-native` real runtime (BLOCKERS.md #1) — needs CocoaPods/Gradle/Expo
-- 🚫 `npm publish @pulse/*` (BLOCKERS.md #2) — needs maintainer OTP
+- 🚫 `@pulse-music/react-native` real runtime (BLOCKERS.md #1) — needs CocoaPods/Gradle/Expo
+- 🚫 `npm publish @pulse-music/*` (BLOCKERS.md #2) — needs maintainer OTP
 - 🚫 GIF/screencast hero in README — needs the maintainer to record + commit a media file
 
 The 0.5-point gap is now **entirely external dependencies and creative assets**. Everything that can be done from a keyboard inside a session, without touching the validated Vue v2.3.4 reference, is closed.
@@ -968,7 +968,7 @@ The 0.5-point gap is now **entirely external dependencies and creative assets**.
 
 5 lots executed in sequence. Tests **+10 unit + 2 opt-in visual** (122 → **132 unit**, 124 → **134 total**). Three new universal docs land. Vue v2.3.4 codebase at `src/lib/` remains bit-for-bit identical.
 
-### LOT 1 — `@pulse/react-native` contract tests (10 / 10)
+### LOT 1 — `@pulse-music/react-native` contract tests (10 / 10)
 
 `packages/react-native/tests/contract.test.ts` (NEW) verifies the package's actual surface — the interface types + sentinel runtime that shipped in alpha.8:
 
@@ -980,9 +980,9 @@ The 0.5-point gap is now **entirely external dependencies and creative assets**.
 
 Brings every framework wrapper into the runtime-tested camp. **6 / 6 framework packages now have tests** (was 5).
 
-### LOT 2 — `@pulse/vue` re-export skipped (transitively covered)
+### LOT 2 — `@pulse-music/vue` re-export skipped (transitively covered)
 
-The soft re-export `packages/vue/src/index.ts` → `../../../src/lib/index` is pure passthrough. The 33 root tests already exercise every Vue export (MusicPlayer, MiniPlayer, useAudioStore, setAudioTracks, Track, PulseVariant, ALL_VARIANTS, etc.) at their canonical location. Adding `@pulse/vue` tests would duplicate the root coverage without adding signal. Documented decision; no test file added.
+The soft re-export `packages/vue/src/index.ts` → `../../../src/lib/index` is pure passthrough. The 33 root tests already exercise every Vue export (MusicPlayer, MiniPlayer, useAudioStore, setAudioTracks, Track, PulseVariant, ALL_VARIANTS, etc.) at their canonical location. Adding `@pulse-music/vue` tests would duplicate the root coverage without adding signal. Documented decision; no test file added.
 
 ### LOT 3 — `docs/universal/API.md` — canonical API reference
 
@@ -994,7 +994,7 @@ The first **unified API reference** for the multi-framework wrappers. ~180 LOC c
 - Keyboard shortcuts table
 - `PulseEngine` class API: state shape, computed (`track`, `progress`), actions (`toggle`, `next`, `prev`, `seek`, `setAudioTracks`, `setAmbientEq`, `open`, `close`, `dispose`, `fmt`), typed event bus, `onStateChange` for adapter authors
 - Types re-exported by every wrapper
-- Theming via `@pulse/tokens`
+- Theming via `@pulse-music/tokens`
 
 A consumer can now learn the entire Pulse API from one page, then pick the framework-specific page for syntax.
 
@@ -1024,7 +1024,7 @@ Marked `test.skip(!process.env.PULSE_VISUAL_FULL, …)` because the vanilla demo
 
 ```bash
 # Terminal 1
-npm run dev --workspace=@pulse/demo-vanilla
+npm run dev --workspace=@pulse-music/demo-vanilla
 
 # Terminal 2
 PULSE_VISUAL_FULL=1 npm run test:visual:update
@@ -1038,13 +1038,13 @@ Documented + ready; adding the second `webServer` entry to the Playwright config
 type-check               → clean
 lint                     → 0 errors, 0 warnings (--max-warnings=0)
 tests (root, Vue Pinia)  →  33 / 33
-tests (@pulse/core)      →  27 / 27
-tests (@pulse/tokens)    →  11 / 11
-tests (@pulse/web-comp)  →  22 / 22
-tests (@pulse/react)     →  16 / 16
-tests (@pulse/svelte)    →   8 /  8
-tests (@pulse/angular)   →   5 /  5
-tests (@pulse/RN)        →  10 / 10   NEW
+tests (@pulse-music/core)      →  27 / 27
+tests (@pulse-music/tokens)    →  11 / 11
+tests (@pulse-music/web-comp)  →  22 / 22
+tests (@pulse-music/react)     →  16 / 16
+tests (@pulse-music/svelte)    →   8 /  8
+tests (@pulse-music/angular)   →   5 /  5
+tests (@pulse-music/RN)        →  10 / 10   NEW
 TOTAL unit               → 132 / 132
 test:visual              →   2 /  2 stable (+ 2 skipped opt-in vanilla)
 build (Vue demo)         → 48 kB gzip (UNCHANGED)
@@ -1061,8 +1061,8 @@ src/lib/                 → ZERO file modified
 
 The remaining 0.7 gap stays external:
 
-- `@pulse/react-native` real runtime (BLOCKERS.md #1) — needs CocoaPods / Gradle / Expo
-- `npm publish @pulse/*` (BLOCKERS.md #2) — needs maintainer OTP
+- `@pulse-music/react-native` real runtime (BLOCKERS.md #1) — needs CocoaPods / Gradle / Expo
+- `npm publish @pulse-music/*` (BLOCKERS.md #2) — needs maintainer OTP
 
 In-session work that respects the Vue v2.3.4 reference is now exhausted.
 
@@ -1097,19 +1097,19 @@ The host gets `tabIndex="0"` by default (consumers can override with `tabindex="
 
 Banner updated from "Chrome parity ~45 %" to "**Chrome parity ~95 %**" with the full list of shipped features (ambient EQ, pulso, --pulse-scale ResizeObserver, 3 responsive states, prev/next ghost buttons, real GitHub + Spotify SVG icons, data-fab morph, mp**bg + mp**noise, drag-to-resize handle, FAB drag-to-reposition + localStorage, FAB radial menu, fullscreen API, keyboard shortcuts, prefers-reduced-motion). The "Not implemented" list shrinks to just the guided demo tour (deliberately out of scope — `App.vue` consumer concern, not library).
 
-### LOT 4 — `@pulse/angular` smoke tests (5 / 5)
+### LOT 4 — `@pulse-music/angular` smoke tests (5 / 5)
 
 `packages/angular/tests/module.test.ts` (NEW) verifies the package's actual contract:
 
-- Importing `@pulse/angular` side-effect-registers `<pulse-player>` with the global Custom Elements registry
+- Importing `@pulse-music/angular` side-effect-registers `<pulse-player>` with the global Custom Elements registry
 - Same for `<pulse-fab>`
-- Re-exported `PulseEngine`, `getSharedEngine`, `setSharedEngine` resolve to the same symbols `@pulse/web-component` exports
+- Re-exported `PulseEngine`, `getSharedEngine`, `setSharedEngine` resolve to the same symbols `@pulse-music/web-component` exports
 - `ALL_VARIANTS` has the canonical 10 entries (8 named + `auto` + `custom`)
 - `PulseModule` exists and can be instantiated without crashing
 
 Stub `tests/angular-core-stub.ts` provides a no-op `NgModule` decorator to avoid bootstrapping the full Angular runtime in a Vitest unit test. Real component integration tests would need `@angular/platform-browser-dynamic` + Karma / Jest, which is a separate pipeline.
 
-### LOT 5 — `@pulse/tokens` contract tests (11 / 11)
+### LOT 5 — `@pulse-music/tokens` contract tests (11 / 11)
 
 `packages/tokens/tests/contract.test.ts` (NEW) catches token drift at the unit-test level (faster than visual diff):
 
@@ -1144,12 +1144,12 @@ A developer landing on any of these pages now has everything they need for a fir
 type-check               → clean
 lint                     → 0 errors, 0 warnings (--max-warnings=0)
 tests (root, Vue Pinia)  →  33 / 33
-tests (@pulse/core)      →  27 / 27
-tests (@pulse/tokens)    →  11 / 11   NEW
-tests (@pulse/web-comp)  →  22 / 22
-tests (@pulse/react)     →  16 / 16
-tests (@pulse/svelte)    →   8 /  8
-tests (@pulse/angular)   →   5 /  5   NEW
+tests (@pulse-music/core)      →  27 / 27
+tests (@pulse-music/tokens)    →  11 / 11   NEW
+tests (@pulse-music/web-comp)  →  22 / 22
+tests (@pulse-music/react)     →  16 / 16
+tests (@pulse-music/svelte)    →   8 /  8
+tests (@pulse-music/angular)   →   5 /  5   NEW
 TOTAL unit               → 122 / 122  (was 106)
 test:visual              →   2 /  2 stable
 build (Vue demo)         → 48 kB gzip (UNCHANGED)
@@ -1162,37 +1162,37 @@ src/lib/                 → ZERO file modified
 
 ### Self-assessed grade
 
-**9.1 / 10** (was 8.9 alpha.9). Real social SVG icons + keyboard shortcuts close two of the 3 chrome gaps the alpha.9 audit flagged. Tests +16. Two new packages tested runtime (`@pulse/tokens`, `@pulse/angular`). Per-framework docs at production-grade depth. Turbo cruft removed.
+**9.1 / 10** (was 8.9 alpha.9). Real social SVG icons + keyboard shortcuts close two of the 3 chrome gaps the alpha.9 audit flagged. Tests +16. Two new packages tested runtime (`@pulse-music/tokens`, `@pulse-music/angular`). Per-framework docs at production-grade depth. Turbo cruft removed.
 
 The remaining 0.9-point gap is **purely external**:
 
-- `@pulse/react-native` real runtime (BLOCKED — needs CocoaPods/Gradle/Expo, see BLOCKERS.md #1)
-- `npm publish @pulse/*` (BLOCKED — needs maintainer OTP, see BLOCKERS.md #2)
+- `@pulse-music/react-native` real runtime (BLOCKED — needs CocoaPods/Gradle/Expo, see BLOCKERS.md #1)
+- `npm publish @pulse-music/*` (BLOCKED — needs maintainer OTP, see BLOCKERS.md #2)
 
 Everything in-session and Vue-respecting is now closed.
 
 ## 3.0.0-alpha.9 — 2026-06-07
 
-Last push before the v3.0.0-beta line. Closes 5 more lots: **+21 new tests**, **soft Vue migration** (`@pulse/vue` re-exports from `src/lib/`), **Playwright CI workflow**, and **CONTRIBUTING.md monorepo update**. Tests count goes from **85 → 106 unit + 2 visual = 108 / 108 total**.
+Last push before the v3.0.0-beta line. Closes 5 more lots: **+21 new tests**, **soft Vue migration** (`@pulse-music/vue` re-exports from `src/lib/`), **Playwright CI workflow**, and **CONTRIBUTING.md monorepo update**. Tests count goes from **85 → 106 unit + 2 visual = 108 / 108 total**.
 
 Vue v2.3.4 codebase at `src/lib/` remains bit-for-bit identical.
 
-### LOT 1 — `@pulse/web-component` attribute tests (+13)
+### LOT 1 — `@pulse-music/web-component` attribute tests (+13)
 
 `packages/web-component/tests/attributes.test.ts` covers the chrome features added in alpha.4 through alpha.8:
 
 - `<pulse-player>`: `ambient-eq`, `data-fab`, `resizable` reflected attributes; 12 ambient bars rendered; prev / next ghost buttons present; mp**bg + mp**noise overlays present.
 - `<pulse-fab>`: `draggable`, `persist-key`, `show-menu` attributes; menu toggle opens popover; palette renders 9 chips (8 variants + auto, excludes `custom`).
 
-Total `@pulse/web-component` tests: **22 / 22** (was 9).
+Total `@pulse-music/web-component` tests: **22 / 22** (was 9).
 
-### LOT 2 — `@pulse/react` `<PulseFab />` tests (+8)
+### LOT 2 — `@pulse-music/react` `<PulseFab />` tests (+8)
 
 `packages/react/tests/PulseFab.test.tsx` mirrors the wrapper contract tests already in place for `<PulsePlayer />`: renders the Custom Element, maps every prop to the right attribute (boolean / string), forwards `onPlay`, detaches on unmount.
 
-Total `@pulse/react` tests: **16 / 16** (was 8).
+Total `@pulse-music/react` tests: **16 / 16** (was 8).
 
-### LOT 3 — Soft Vue migration (`@pulse/vue` re-exports)
+### LOT 3 — Soft Vue migration (`@pulse-music/vue` re-exports)
 
 `packages/vue/src/index.ts` (replaces the alpha.0 placeholder `export {}`) re-exports from `../../../src/lib/index.ts`:
 
@@ -1213,7 +1213,7 @@ export {
 This lets downstream consumers already write:
 
 ```ts
-import { MusicPlayer, MiniPlayer } from '@pulse/vue'
+import { MusicPlayer, MiniPlayer } from '@pulse-music/vue'
 ```
 
 Behaviour is **bit-for-bit identical** to `pulse-player@2.3.4` because the re-export targets exactly the same source. The physical move of `src/lib/` into `packages/vue/src/*.vue` is gated by the 2 missing Playwright captures (`BLOCKERS.md` #3-#4) and lands in v3.0.0-alpha.10+. Same byte-output, same gzip size, zero risk.
@@ -1236,9 +1236,9 @@ Marked `continue-on-error: true` for now because the committed baselines are `*-
 The previous CONTRIBUTING.md predated the monorepo. Updated with:
 
 - Full monorepo layout (`src/lib/` reference + `packages/` workspaces + `apps/` runnables + `tests/visual/`)
-- Workspace-aware demo commands (`npm run dev --workspace=@pulse/demo-X`)
+- Workspace-aware demo commands (`npm run dev --workspace=@pulse-music/demo-X`)
 - `npm run test:packages` + `npm run build:packages` in the quality gate
-- New section "Adding a new framework wrapper" — the canonical pattern (110 LOC + 16 tests + tsup), reference `@pulse/react`
+- New section "Adding a new framework wrapper" — the canonical pattern (110 LOC + 16 tests + tsup), reference `@pulse-music/react`
 
 ### Quality gate
 
@@ -1246,10 +1246,10 @@ The previous CONTRIBUTING.md predated the monorepo. Updated with:
 type-check               → clean
 lint                     → 0 errors, 0 warnings
 tests (root, Vue Pinia)  →  33 / 33
-tests (@pulse/core)      →  27 / 27
-tests (@pulse/web-comp)  →  22 / 22   (+13 attribute tests)
-tests (@pulse/react)     →  16 / 16   (+8 PulseFab tests)
-tests (@pulse/svelte)    →   8 /  8
+tests (@pulse-music/core)      →  27 / 27
+tests (@pulse-music/web-comp)  →  22 / 22   (+13 attribute tests)
+tests (@pulse-music/react)     →  16 / 16   (+8 PulseFab tests)
+tests (@pulse-music/svelte)    →   8 /  8
 TOTAL unit               → 106 / 106
 test:visual              →   2 /  2 stable baselines
 build (Vue demo)         → 48 kB gzip (UNCHANGED)
@@ -1262,11 +1262,11 @@ src/lib/                 → ZERO file modified
 
 ### Self-assessed grade
 
-**8.9 / 10** (was 8.7 alpha.8). Test count +25 % (85 → 106), `@pulse/vue` now a real package consumable today, CI gates visual regression, contributors have a clear monorepo runbook. The 1.1-point gap is the two external blockers (RN runtime, npm publish OTP).
+**8.9 / 10** (was 8.7 alpha.8). Test count +25 % (85 → 106), `@pulse-music/vue` now a real package consumable today, CI gates visual regression, contributors have a clear monorepo runbook. The 1.1-point gap is the two external blockers (RN runtime, npm publish OTP).
 
 ## 3.0.0-alpha.8 — 2026-06-07
 
-Final push toward v3.0.0 stable. Closes the FAB radial menu + fullscreen (Vue v2.3.4 signature feature), validates publishability of all 6 publishable packages via `npm pack --dry-run`, and promotes `@pulse/react-native` from empty scaffold to **interface-types + sentinel runtime** so RN consumers can write against the planned API today.
+Final push toward v3.0.0 stable. Closes the FAB radial menu + fullscreen (Vue v2.3.4 signature feature), validates publishability of all 6 publishable packages via `npm pack --dry-run`, and promotes `@pulse-music/react-native` from empty scaffold to **interface-types + sentinel runtime** so RN consumers can write against the planned API today.
 
 Chrome parity vs Vue v2.3.4: ~70 % → **~85 %**.
 
@@ -1305,20 +1305,20 @@ Attempted workarounds in this alpha:
 
 All 6 publishable packages produce valid tarballs:
 
-| Package                | Tarball | Files |
-| ---------------------- | ------- | ----- |
-| `@pulse/types`         | 3.2 kB  | 9     |
-| `@pulse/core`          | 11.8 kB | 10    |
-| `@pulse/tokens`        | 5.7 kB  | 15    |
-| `@pulse/web-component` | 59.1 kB | 13    |
-| `@pulse/react`         | 11.1 kB | 14    |
-| `@pulse/svelte`        | 4.1 kB  | 10    |
+| Package                      | Tarball | Files |
+| ---------------------------- | ------- | ----- |
+| `@pulse-music/types`         | 3.2 kB  | 9     |
+| `@pulse-music/core`          | 11.8 kB | 10    |
+| `@pulse-music/tokens`        | 5.7 kB  | 15    |
+| `@pulse-music/web-component` | 59.1 kB | 13    |
+| `@pulse-music/react`         | 11.1 kB | 14    |
+| `@pulse-music/svelte`        | 4.1 kB  | 10    |
 
-**Total monorepo public package size:** ~95 kB tarball (~30 kB gzip on the wire). `@pulse/angular` and `@pulse/react-native` stay `private: true`.
+**Total monorepo public package size:** ~95 kB tarball (~30 kB gzip on the wire). `@pulse-music/angular` and `@pulse-music/react-native` stay `private: true`.
 
-Validates that `exports`, `main`, `module`, `types`, `files`, and `publishConfig.access` are correctly set on every package. Running `npm publish --workspace=@pulse/<name>` from here would Just Work (modulo the maintainer's OTP — see BLOCKERS.md #2).
+Validates that `exports`, `main`, `module`, `types`, `files`, and `publishConfig.access` are correctly set on every package. Running `npm publish --workspace=@pulse-music/<name>` from here would Just Work (modulo the maintainer's OTP — see BLOCKERS.md #2).
 
-### LOT 5 — `@pulse/react-native` promoted to interface-types
+### LOT 5 — `@pulse-music/react-native` promoted to interface-types
 
 The previous version was a single `export {}` placeholder. The new version ships:
 
@@ -1334,10 +1334,10 @@ Still `private: true` until the real renderer lands.
 type-check               → clean
 lint                     → 0 errors, 0 warnings (--max-warnings=0)
 tests (root, Vue Pinia)  → 33 / 33
-tests (@pulse/core)      → 27 / 27
-tests (@pulse/web-comp)  →  9 /  9
-tests (@pulse/react)     →  8 /  8
-tests (@pulse/svelte)    →  8 /  8
+tests (@pulse-music/core)      → 27 / 27
+tests (@pulse-music/web-comp)  →  9 /  9
+tests (@pulse-music/react)     →  8 /  8
+tests (@pulse-music/svelte)    →  8 /  8
 TOTAL                    → 85 / 85
 test:visual              →  2 /  2 stable baselines
 build (Vue demo)         → 48 kB gzip (UNCHANGED)
@@ -1351,12 +1351,12 @@ src/lib/                 → ZERO file modified
 
 ### Self-assessed grade
 
-**8.7 / 10** (was 8.5 alpha.7). Architecture sound, 4 runtime-tested wrappers, 3 runnable demos, Playwright infra live, chrome parity 85 %, real Angular module, RN interface types, honest blockers. The 1.3-point gap is `@pulse/react-native` real runtime impl (BLOCKED — external tooling) + `npm publish` (BLOCKED — maintainer OTP) + the final ~15 % chrome (mostly the v2.3.4 demo-tour itself, which is NOT part of the library API).
+**8.7 / 10** (was 8.5 alpha.7). Architecture sound, 4 runtime-tested wrappers, 3 runnable demos, Playwright infra live, chrome parity 85 %, real Angular module, RN interface types, honest blockers. The 1.3-point gap is `@pulse-music/react-native` real runtime impl (BLOCKED — external tooling) + `npm publish` (BLOCKED — maintainer OTP) + the final ~15 % chrome (mostly the v2.3.4 demo-tour itself, which is NOT part of the library API).
 
 ### What's still ahead — and why these stay
 
-- **`@pulse/react-native` real runtime** — BLOCKED. Requires CocoaPods / Gradle / `react-native-audio-api` native modules. v3.X.0 dedicated sprint.
-- **`npm publish @pulse/*`** — BLOCKED. Requires maintainer OTP.
+- **`@pulse-music/react-native` real runtime** — BLOCKED. Requires CocoaPods / Gradle / `react-native-audio-api` native modules. v3.X.0 dedicated sprint.
+- **`npm publish @pulse-music/*`** — BLOCKED. Requires maintainer OTP.
 - **Vue migration `src/lib/` → `packages/vue/`** — deferred behind the 2 missing Playwright captures. Path is clear (`window.__pulseTestMode` hook would close them) but adding that hook to `App.vue` mutates the validated Vue demo, which we deliberately preserve.
 - **Guided demo tour port to `<pulse-player>`** — out of scope. The tour belongs to the `App.vue` consumer, not the library.
 
@@ -1364,7 +1364,7 @@ These items are documented in `docs/universal/BLOCKERS.md` with severity, proof 
 
 ## 3.0.0-alpha.7 — 2026-06-07
 
-Largest single-alpha increment so far. Closes **7 audit items** + ships **6 new chrome features** + lands the **first real `@pulse/angular` wrapper** + the **third runnable demo app** + the **Playwright visual regression infrastructure**. Chrome parity vs Vue v2.3.4 moves from ~60 % to **~70 %**.
+Largest single-alpha increment so far. Closes **7 audit items** + ships **6 new chrome features** + lands the **first real `@pulse-music/angular` wrapper** + the **third runnable demo app** + the **Playwright visual regression infrastructure**. Chrome parity vs Vue v2.3.4 moves from ~60 % to **~70 %**.
 
 Vue v2.3.4 codebase at `src/lib/` remains bit-for-bit identical — zero file modified since alpha.0.
 
@@ -1388,7 +1388,7 @@ Two more captures (`resize-stage` + `variants gallery`) attempted but the Vue de
 
 9 / 9 web-component tests still pass — additive only, no behaviour change to existing surface.
 
-### `@pulse/angular` — minimal real wrapper ✅
+### `@pulse-music/angular` — minimal real wrapper ✅
 
 Promoted from scaffold to real code:
 
@@ -1399,7 +1399,7 @@ Stays `private: true` for now: the `@angular/core` peer dep range needs a floor 
 
 ### `apps/demo-svelte/` — third runnable demo
 
-A Svelte 5 + Vite app that uses `@pulse/svelte`:
+A Svelte 5 + Vite app that uses `@pulse-music/svelte`:
 
 - `<pulse-player>` + `<pulse-fab>` Custom Elements directly in `.svelte` template (no component wrapper)
 - `usePulseAudio()` Svelte classic-store + `$store` autosubscribe (`$audio.isPlaying`)
@@ -1407,7 +1407,7 @@ A Svelte 5 + Vite app that uses `@pulse/svelte`:
 - Build: 87 kB JS → **28.88 kB gzip** (Svelte 5 is significantly lighter than React)
 
 ```bash
-npm run dev --workspace=@pulse/demo-svelte
+npm run dev --workspace=@pulse-music/demo-svelte
 # → http://localhost:5182
 ```
 
@@ -1415,13 +1415,13 @@ npm run dev --workspace=@pulse/demo-svelte
 
 `docs/universal/BLOCKERS.md` (NEW) — honest record of what's not done and why, for each remaining item:
 
-| Item                                 | Severity        | Real blocker?                                           | Path forward                         |
-| ------------------------------------ | --------------- | ------------------------------------------------------- | ------------------------------------ |
-| `@pulse/react-native` real impl      | High vs roadmap | Yes — needs RN tooling environment (CocoaPods / Gradle) | v3.X.0 sprint                        |
-| `npm publish @pulse/*`               | Critical        | Yes — needs maintainer OTP                              | Maintainer-only                      |
-| Vue migration src/lib → packages/vue | Medium          | No — deferred for safety                                | v3.0.0-alpha.9 (gated by Playwright) |
-| 2 Playwright captures                | Low             | No — animation tuning                                   | v3.0.0-alpha.8                       |
-| FAB radial menu + fullscreen         | Medium          | No — time-bounded                                       | v3.0.0-alpha.8                       |
+| Item                                  | Severity        | Real blocker?                                           | Path forward                         |
+| ------------------------------------- | --------------- | ------------------------------------------------------- | ------------------------------------ |
+| `@pulse-music/react-native` real impl | High vs roadmap | Yes — needs RN tooling environment (CocoaPods / Gradle) | v3.X.0 sprint                        |
+| `npm publish @pulse-music/*`          | Critical        | Yes — needs maintainer OTP                              | Maintainer-only                      |
+| Vue migration src/lib → packages/vue  | Medium          | No — deferred for safety                                | v3.0.0-alpha.9 (gated by Playwright) |
+| 2 Playwright captures                 | Low             | No — animation tuning                                   | v3.0.0-alpha.8                       |
+| FAB radial menu + fullscreen          | Medium          | No — time-bounded                                       | v3.0.0-alpha.8                       |
 
 ### Quality gate
 
@@ -1429,10 +1429,10 @@ npm run dev --workspace=@pulse/demo-svelte
 type-check               → clean
 lint                     → 0 errors, 0 warnings (--max-warnings=0)
 tests (root, Vue Pinia)  → 33 / 33
-tests (@pulse/core)      → 27 / 27
-tests (@pulse/web-comp)  →  9 /  9
-tests (@pulse/react)     →  8 /  8
-tests (@pulse/svelte)    →  8 /  8
+tests (@pulse-music/core)      → 27 / 27
+tests (@pulse-music/web-comp)  →  9 /  9
+tests (@pulse-music/react)     →  8 /  8
+tests (@pulse-music/svelte)    →  8 /  8
 TOTAL                    → 85 / 85
 test:visual              →  2 /  2 stable baselines (4 attempted)
 build (Vue demo)         → 48 kB gzip (UNCHANGED)
@@ -1447,18 +1447,18 @@ src/lib/                 → ZERO file modified
 
 ### Self-assessed grade
 
-**~8.5 / 10** (was 8.0 alpha.6). Architecture sound, 4 runtime-tested wrappers, 3 runnable demos, Playwright infra live, chrome parity 70 %, real Angular module shipped, honest blockers documented. The 1.5-point gap is the remaining `@pulse/react-native` real impl + `npm publish` (both external dependencies) + the final 30 % chrome parity.
+**~8.5 / 10** (was 8.0 alpha.6). Architecture sound, 4 runtime-tested wrappers, 3 runnable demos, Playwright infra live, chrome parity 70 %, real Angular module shipped, honest blockers documented. The 1.5-point gap is the remaining `@pulse-music/react-native` real impl + `npm publish` (both external dependencies) + the final 30 % chrome parity.
 
 ### What's still ahead
 
 - v3.0.0-alpha.8 → FAB radial menu + fullscreen + `window.__pulsePauseDemo` hook → 2 more Playwright captures → chrome parity ≥ 90 %
 - v3.0.0-alpha.9 → Vue migration `src/lib/` → `packages/vue/` (gated by Playwright)
-- v3.X.0 → `@pulse/react-native` real impl (dedicated sprint)
-- v3.0.0 → stable, `npm publish @pulse/*`
+- v3.X.0 → `@pulse-music/react-native` real impl (dedicated sprint)
+- v3.0.0 → stable, `npm publish @pulse-music/*`
 
 ## 3.0.0-alpha.6 — 2026-06-07
 
-Closes 6 of the v3.0.0-alpha.5 audit items: **docs honesty refresh**, **`@pulse/tokens/base.css` actually consumed** (closes P2 dead code), **three responsive states + prev/next + social icons in `<pulse-player>`** (chrome parity Phase 2), **`@pulse/test-utils` extracted** (kills 4× setup.ts duplication), **`useDomEvent` hook in `@pulse/react`** (kills 8× `useEffect` duplication), and **GitHub Actions CI gates `test:packages` + `build:packages`**.
+Closes 6 of the v3.0.0-alpha.5 audit items: **docs honesty refresh**, **`@pulse-music/tokens/base.css` actually consumed** (closes P2 dead code), **three responsive states + prev/next + social icons in `<pulse-player>`** (chrome parity Phase 2), **`@pulse-music/test-utils` extracted** (kills 4× setup.ts duplication), **`useDomEvent` hook in `@pulse-music/react`** (kills 8× `useEffect` duplication), and **GitHub Actions CI gates `test:packages` + `build:packages`**.
 
 Chrome parity vs Vue v2.3.4 moves from ~45 % to ~**60 %**. Vue v2.3.4 codebase bit-for-bit identical.
 
@@ -1470,11 +1470,11 @@ Chrome parity vs Vue v2.3.4 moves from ~45 % to ~**60 %**. Vue v2.3.4 codebase b
 
 `docs/universal/ROADMAP.md` gains a "Current state" preamble that summarises the alpha.5 deliverables instead of treating Phase 0 as the latest news.
 
-### P2 #1 — `@pulse/tokens/base.css` actually consumed
+### P2 #1 — `@pulse-music/tokens/base.css` actually consumed
 
 The `--pulse-scale` system was declared in **two places**: once in `packages/tokens/src/base.css` (scoped to `[data-pulse-root]`, which nothing on the page ever was) and once inlined as a `TOKENS` string in `packages/web-component/src/styles.ts`. The CSS file was dead.
 
-`packages/tokens/src/base.ts` (NEW) — same tokens, `:host` selector, exported as a TypeScript string. `packages/web-component/src/styles.ts` now imports `baseCss` from `@pulse/tokens` and folds it via `unsafeCSS(baseCss)`. The inlined `TOKENS` string is gone.
+`packages/tokens/src/base.ts` (NEW) — same tokens, `:host` selector, exported as a TypeScript string. `packages/web-component/src/styles.ts` now imports `baseCss` from `@pulse-music/tokens` and folds it via `unsafeCSS(baseCss)`. The inlined `TOKENS` string is gone.
 
 Both files (`base.css` and `base.ts`) stay manually in sync — the file is ~30 lines, and the dual-export pattern matches what variants did in alpha.5. Touch both when adding a new token.
 
@@ -1492,7 +1492,7 @@ Both files (`base.css` and `base.ts`) stay manually in sync — the file is ~30 
 
 CSS is shipped alongside in `packages/web-component/src/styles.ts` — additive rules, no behaviour change for the existing 9 / 9 web-component tests (they still pass).
 
-### P3 #2 — `@pulse/test-utils` (kills 4× setup.ts duplication)
+### P3 #2 — `@pulse-music/test-utils` (kills 4× setup.ts duplication)
 
 Four packages had nearly-identical `tests/setup.ts` files (80 lines each, ~95 % the same content). `packages/test-utils/` (NEW, `private: true`) exposes:
 
@@ -1505,7 +1505,7 @@ Each of the 4 setup files now collapses to:
 
 ```ts
 import { beforeEach, vi } from 'vitest'
-import { installAllStubs } from '@pulse/test-utils'
+import { installAllStubs } from '@pulse-music/test-utils'
 installAllStubs()
 beforeEach(() => vi.clearAllMocks())
 ```
@@ -1522,7 +1522,7 @@ beforeEach(() => vi.clearAllMocks())
 useDomEvent<EventMap['play']>(ref, 'pulse-play', onPlay)
 ```
 
-`<PulsePlayer />` and `<PulseFab />` now each have 4 one-liners instead of 4 useEffect blocks. The hook is also exported from `@pulse/react` for advanced consumers needing to bridge non-pulse Custom Events.
+`<PulsePlayer />` and `<PulseFab />` now each have 4 one-liners instead of 4 useEffect blocks. The hook is also exported from `@pulse-music/react` for advanced consumers needing to bridge non-pulse Custom Events.
 
 8 / 8 React RTL tests still pass — no behaviour change.
 
@@ -1531,12 +1531,12 @@ useDomEvent<EventMap['play']>(ref, 'pulse-play', onPlay)
 `.github/workflows/ci.yml` now runs **after** the Vue tests pass:
 
 ```yaml
-- npm run test:packages # 52 tests across @pulse/{core,web-component,react,svelte}
+- npm run test:packages # 52 tests across @pulse-music/{core,web-component,react,svelte}
 - npm run build:lib # Vue library
-- npm run build:packages # 6 @pulse/* packages via tsup
+- npm run build:packages # 6 @pulse-music/* packages via tsup
 ```
 
-The matrix (Node 18 / 20 / 22) gates on the full monorepo, not just the Vue v2.3.4 reference. Regression on any `@pulse/*` package blocks the PR.
+The matrix (Node 18 / 20 / 22) gates on the full monorepo, not just the Vue v2.3.4 reference. Regression on any `@pulse-music/*` package blocks the PR.
 
 ### Quality gate
 
@@ -1544,10 +1544,10 @@ The matrix (Node 18 / 20 / 22) gates on the full monorepo, not just the Vue v2.3
 type-check               → clean
 lint                     → 0 errors, 0 warnings (--max-warnings=0)
 tests (root, Vue Pinia)  → 33 / 33
-tests (@pulse/core)      → 27 / 27
-tests (@pulse/web-comp)  →  9 /  9
-tests (@pulse/react)     →  8 /  8
-tests (@pulse/svelte)    →  8 /  8
+tests (@pulse-music/core)      → 27 / 27
+tests (@pulse-music/web-comp)  →  9 /  9
+tests (@pulse-music/react)     →  8 /  8
+tests (@pulse-music/svelte)    →  8 /  8
 TOTAL                    → 85 / 85
 build (Vue demo)         → 48 kB gzip (UNCHANGED)
 build:lib (Vue lib)      → 14 kB gzip (UNCHANGED)
@@ -1562,15 +1562,15 @@ src/lib/                 → ZERO file modified
 - v3.0.0-alpha.7 → Playwright visual regression vs the v2.3.4 demo (gates the Vue migration).
 - v3.0.0-alpha.8 → Chrome Phase 3 (`data-fab` morph state on `<pulse-fab>`, drag-to-resize handle, FAB drag-to-reposition, FAB radial menu, `mp__bg` cover blur, `mp__noise` SVG filter).
 - v3.0.0-alpha.9 → Vue migration `src/lib/` → `packages/vue/`.
-- v3.0.0 → stable, `npm publish @pulse/*`.
+- v3.0.0 → stable, `npm publish @pulse-music/*`.
 
 ## 3.0.0-alpha.5 — 2026-06-07
 
-Closes 4 of the v3.0.0-alpha.4 audit follow-ups: **`@pulse/react` RTL tests**, **`@pulse/svelte` tests**, **Constructable StyleSheet refactor** (single source of truth for variants), and **`apps/demo-react/`** (runnable React example).
+Closes 4 of the v3.0.0-alpha.4 audit follow-ups: **`@pulse-music/react` RTL tests**, **`@pulse-music/svelte` tests**, **Constructable StyleSheet refactor** (single source of truth for variants), and **`apps/demo-react/`** (runnable React example).
 
 Monorepo test count goes from **69 / 69 to 85 / 85**. Vue v2.3.4 codebase at `src/lib/` is bit-for-bit identical.
 
-### `@pulse/react` — 8 RTL tests landed
+### `@pulse-music/react` — 8 RTL tests landed
 
 `packages/react/tests/PulsePlayer.test.tsx` covers the wrapper contract:
 
@@ -1583,11 +1583,11 @@ Monorepo test count goes from **69 / 69 to 85 / 85**. Vue v2.3.4 codebase at `sr
 - Handlers are detached on unmount (no leak).
 - `className` passes through.
 
-Stack: `vitest` + `@testing-library/react` + `jsdom`. Setup file ports the Web Audio / rAF stubs from `@pulse/core`.
+Stack: `vitest` + `@testing-library/react` + `jsdom`. Setup file ports the Web Audio / rAF stubs from `@pulse-music/core`.
 
 `beforeEach` resets the singleton via `setSharedEngine(new PulseEngine())` so state doesn't leak between tests — same pattern the web-component suite uses.
 
-### `@pulse/svelte` — 8 tests landed
+### `@pulse-music/svelte` — 8 tests landed
 
 `packages/svelte/tests/usePulseAudio.test.ts` covers the Svelte classic-store contract:
 
@@ -1616,13 +1616,13 @@ Drift inevitable. Closes audit item P2 from the v3.0.0-alpha.4 audit.
 
 Side effects:
 
-- `@pulse/tokens` gets its first `tsup` build (was CSS-only before). 5 → 6 packages building.
-- `package.json` `exports` adds `@pulse/tokens` (TS entry) alongside the existing `@pulse/tokens/variants.css` etc. file exports.
+- `@pulse-music/tokens` gets its first `tsup` build (was CSS-only before). 5 → 6 packages building.
+- `package.json` `exports` adds `@pulse-music/tokens` (TS entry) alongside the existing `@pulse-music/tokens/variants.css` etc. file exports.
 - 9 / 9 web-component tests still pass — no behaviour change.
 
 ### `apps/demo-react/` — runnable React app
 
-A real React + Vite app proving `@pulse/react` works outside vitest:
+A real React + Vite app proving `@pulse-music/react` works outside vitest:
 
 - `<PulsePlayer />` with a live variant picker
 - `<PulseFab pulso />` floating button
@@ -1630,10 +1630,10 @@ A real React + Vite app proving `@pulse/react` works outside vitest:
 - Live event log capturing every `onPlay`, `onPause`, `onTrackChange`, `onError`
 - TypeScript + JSX
 
-Vite config aliases every `@pulse/*` package to its workspace TS source so edits in `packages/*/src/` reflect immediately without rebuilding. Build size: 185 kB JS → **58 kB gzip** (includes React + react-dom + Pulse).
+Vite config aliases every `@pulse-music/*` package to its workspace TS source so edits in `packages/*/src/` reflect immediately without rebuilding. Build size: 185 kB JS → **58 kB gzip** (includes React + react-dom + Pulse).
 
 ```bash
-npm run dev --workspace=@pulse/demo-react
+npm run dev --workspace=@pulse-music/demo-react
 # → http://localhost:5181
 ```
 
@@ -1643,10 +1643,10 @@ npm run dev --workspace=@pulse/demo-react
 type-check               → clean
 lint                     → 0 errors, 0 warnings
 tests (root, Vue Pinia)  → 33 / 33
-tests (@pulse/core)      → 27 / 27
-tests (@pulse/web-comp)  →  9 /  9
-tests (@pulse/react)     →  8 /  8   NEW
-tests (@pulse/svelte)    →  8 /  8   NEW
+tests (@pulse-music/core)      → 27 / 27
+tests (@pulse-music/web-comp)  →  9 /  9
+tests (@pulse-music/react)     →  8 /  8   NEW
+tests (@pulse-music/svelte)    →  8 /  8   NEW
 TOTAL                    → 85 / 85 across the monorepo
 build (Vue demo)         → 129 kB JS + 42 kB CSS → 48 kB gzip
 build:lib (Vue lib)      → ~14 kB gzip
@@ -1662,7 +1662,7 @@ src/lib/                 → ZERO file modified
 - v3.0.0-alpha.6 → Playwright visual regression vs the v2.3.4 demo (gates the Vue migration).
 - v3.0.0-alpha.7 → Chrome parity Phase 2 (three responsive states, social icons, prev / next on inline, FAB drag, palette / menu, drag-to-resize) — closes the gap to ~95 %.
 - v3.0.0-alpha.8 → Vue migration `src/lib/` → `packages/vue/`.
-- v3.0.0 → stable, `npm publish @pulse/*`.
+- v3.0.0 → stable, `npm publish @pulse-music/*`.
 
 ## 3.0.0-alpha.4 — 2026-06-07
 
@@ -1683,19 +1683,19 @@ The universal `README.md` framework picker now shows **chrome parity % vs Vue v2
 
 Five packages now build to ESM + CJS + .d.ts via `tsup`:
 
-| Package                | ESM    | CJS    | Types  | External deps                                               |
-| ---------------------- | ------ | ------ | ------ | ----------------------------------------------------------- |
-| `@pulse/types`         | 0.5 KB | 0.7 KB | 2.5 KB | (none — pure types)                                         |
-| `@pulse/core`          | 5.4 KB | 5.8 KB | 3.4 KB | `@pulse/types`                                              |
-| `@pulse/web-component` | 10 KB  | 10 KB  | 4.5 KB | `@pulse/core`, `@pulse/tokens`, `@pulse/types`, `lit`       |
-| `@pulse/react`         | 4.7 KB | 5.1 KB | 4.6 KB | `@pulse/core`, `@pulse/web-component`, `react`, `react-dom` |
-| `@pulse/svelte`        | 1.3 KB | 1.4 KB | 2.6 KB | `@pulse/core`, `@pulse/web-component`                       |
+| Package                      | ESM    | CJS    | Types  | External deps                                                           |
+| ---------------------------- | ------ | ------ | ------ | ----------------------------------------------------------------------- |
+| `@pulse-music/types`         | 0.5 KB | 0.7 KB | 2.5 KB | (none — pure types)                                                     |
+| `@pulse-music/core`          | 5.4 KB | 5.8 KB | 3.4 KB | `@pulse-music/types`                                                    |
+| `@pulse-music/web-component` | 10 KB  | 10 KB  | 4.5 KB | `@pulse-music/core`, `@pulse-music/tokens`, `@pulse-music/types`, `lit` |
+| `@pulse-music/react`         | 4.7 KB | 5.1 KB | 4.6 KB | `@pulse-music/core`, `@pulse-music/web-component`, `react`, `react-dom` |
+| `@pulse-music/svelte`        | 1.3 KB | 1.4 KB | 2.6 KB | `@pulse-music/core`, `@pulse-music/web-component`                       |
 
 Root script: `npm run build:packages` builds all five sequentially. Cross-package deps are marked `external` in each `tsup.config.ts` so the consumer's bundler does the linking — no nested duplication.
 
 `package.json` `exports` field on every package now points at `./dist/{index.js,index.cjs,index.d.ts}` so consumers consuming the package via npm resolve the built artifacts, while the workspace setup keeps using the TS sources at `./src/*` for local dev (vitest, type-check).
 
-@pulse/angular and @pulse/react-native stay scaffold-only (`private: true`, no peer deps, no build) until they reach implementation-ready status.
+@pulse-music/angular and @pulse-music/react-native stay scaffold-only (`private: true`, no peer deps, no build) until they reach implementation-ready status.
 
 ### P0 #3 — Feature parity Phase 1 (ambient EQ + pulso + ResizeObserver)
 
@@ -1709,7 +1709,7 @@ Root script: `npm run build:packages` builds all five sequentially. Cross-packag
 
 - Full pulso heartbeat keyframes: `pulso-heartbeat` (lub at 6 %, dub at 20 %, rest 34 %→100 %), `pulso-wave-lub` and `pulso-wave-dub` rings fire AT the peak (not before), `prefers-reduced-motion` guard. Copied verbatim from the validated v2.3.4 `MiniPlayer.vue`.
 
-`@pulse/web-component` 9-test suite still passes 9/9.
+`@pulse-music/web-component` 9-test suite still passes 9/9.
 
 ### P1 #1 — Svelte runtime safety
 
@@ -1739,7 +1739,7 @@ Svelte 4 + Svelte 5 both honour the `$store` autosubscribe on any object exposin
 
 ### P1 #2 — `apps/demo-vanilla/` (runnable example, zero framework)
 
-`apps/demo-vanilla/index.html` is a single static HTML file that imports `@pulse/web-component`'s built bundle, mounts `<pulse-player ambient-eq>` and `<pulse-fab pulso>`, wires a variant picker, and logs every DOM `CustomEvent` into a live console panel. Serves on `http-server` — no bundler, no framework. Proves the package works as advertised in a vanilla page.
+`apps/demo-vanilla/index.html` is a single static HTML file that imports `@pulse-music/web-component`'s built bundle, mounts `<pulse-player ambient-eq>` and `<pulse-fab pulso>`, wires a variant picker, and logs every DOM `CustomEvent` into a live console panel. Serves on `http-server` — no bundler, no framework. Proves the package works as advertised in a vanilla page.
 
 ### Quality gate
 
@@ -1747,8 +1747,8 @@ Svelte 4 + Svelte 5 both honour the `$store` autosubscribe on any object exposin
 type-check               → clean
 lint                     → 0 errors, 0 warnings (--max-warnings=0)
 tests (root, Vue Pinia)  → 33 / 33
-tests (@pulse/core)      → 27 / 27
-tests (@pulse/web-comp)  →  9 /  9
+tests (@pulse-music/core)      → 27 / 27
+tests (@pulse-music/web-comp)  →  9 /  9
 TOTAL                    → 69 / 69 across the monorepo
 build (Vue demo)         → 129 kB JS + 42 kB CSS → 48 kB gzip
 build:lib (Vue lib)      → ~14 kB gzip
@@ -1769,7 +1769,7 @@ src/lib/                 → ZERO file modified
 
 ### What's still ahead
 
-- v3.0.0-alpha.5 → `@pulse/react` RTL tests + `@pulse/svelte` plain-TS tests; `apps/demo-react/`.
+- v3.0.0-alpha.5 → `@pulse-music/react` RTL tests + `@pulse-music/svelte` plain-TS tests; `apps/demo-react/`.
 - v3.0.0-alpha.6 → Playwright visual regression vs the v2.3.4 demo (gates the Vue migration).
 - v3.0.0-alpha.7 → Chrome parity Phase 2 (three responsive states, social icons, prev / next, FAB drag, palette / menu, drag-to-resize) — closes the gap to ~95 %.
 - v3.0.0-alpha.8 → Vue migration `src/lib/` → `packages/vue/`.
@@ -1777,9 +1777,9 @@ src/lib/                 → ZERO file modified
 
 ## 3.0.0-alpha.3 — 2026-06-07
 
-`@pulse/react`, `@pulse/svelte`, and 9 new `@pulse/web-component` tests land with real code. **Pulse now ships for Vue 3 (today's v2.3.4 reference), React 18 / 19, Svelte 5 and every other framework that respects the DOM**, all sharing the same `@pulse/core` audio engine bit-for-bit. Vue v2.3.4 at `src/lib/` is untouched.
+`@pulse-music/react`, `@pulse-music/svelte`, and 9 new `@pulse-music/web-component` tests land with real code. **Pulse now ships for Vue 3 (today's v2.3.4 reference), React 18 / 19, Svelte 5 and every other framework that respects the DOM**, all sharing the same `@pulse-music/core` audio engine bit-for-bit. Vue v2.3.4 at `src/lib/` is untouched.
 
-### `@pulse/react` — React 18 / 19 wrapper
+### `@pulse-music/react` — React 18 / 19 wrapper
 
 `packages/react/` ships:
 
@@ -1795,7 +1795,7 @@ src/lib/                 → ZERO file modified
 Usage:
 
 ```tsx
-import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse/react'
+import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse-music/react'
 
 export function App() {
   const { isPlaying, track, progress, fmt, toggle } = usePulseAudio()
@@ -1814,12 +1814,12 @@ export function App() {
 }
 ```
 
-### `@pulse/svelte` — Svelte 5 wrapper
+### `@pulse-music/svelte` — Svelte 5 wrapper
 
 `packages/svelte/` ships:
 
 - **`usePulseAudio()`** (`usePulseAudio.svelte.ts`, ~80 LOC) — Svelte 5 runes wrapper. The `$state`-backed reactive snapshot updates in place (preserving identity for `$derived` consumers), `$effect` bridges the engine's `onStateChange` subscription with automatic cleanup. The `.svelte.ts` suffix tells the Svelte compiler to allow runes outside `.svelte` files.
-- **Re-exports** — `PulseEngine`, `getSharedEngine`, `setSharedEngine`, every `@pulse/types` shape, `ALL_VARIANTS`. Consumers pull everything from one import.
+- **Re-exports** — `PulseEngine`, `getSharedEngine`, `setSharedEngine`, every `@pulse-music/types` shape, `ALL_VARIANTS`. Consumers pull everything from one import.
 
 No `<PulsePlayer />` / `<PulseFab />` Svelte components — Svelte's DOM-first philosophy means `<pulse-player>` and `<pulse-fab>` work **directly** in any template without wrapping. Shipping a Svelte SFC would be a single-line wrapper without adding DX, and would force a Svelte build step that complicates the npm-workspaces tooling. If consumer feedback asks for them later we can revisit.
 
@@ -1827,7 +1827,7 @@ Usage:
 
 ```svelte
 <script lang="ts">
-  import { usePulseAudio } from '@pulse/svelte'
+  import { usePulseAudio } from '@pulse-music/svelte'
   const audio = usePulseAudio()
 </script>
 
@@ -1838,7 +1838,7 @@ Usage:
 <p>Tracks played this session: {audio.state.playCount}</p>
 ```
 
-### `@pulse/web-component` — 9 tests landed
+### `@pulse-music/web-component` — 9 tests landed
 
 `packages/web-component/tests/elements.test.ts` covers:
 
@@ -1859,8 +1859,8 @@ Usage:
 
 ### Tooling
 
-- `workspace:*` deps are not supported by npm-workspaces (they're a pnpm-only protocol). All `@pulse/*` cross-package deps now use `"*"` (any workspace version), which works in npm + pnpm + yarn.
-- Scaffold packages (`@pulse/angular`, `@pulse/react-native`) are marked `private: true` and their peerDependencies are dropped until they reach implementation-ready status — without this, `npm install` was pulling in vulnerable old Angular peer deps and inflating the audit count.
+- `workspace:*` deps are not supported by npm-workspaces (they're a pnpm-only protocol). All `@pulse-music/*` cross-package deps now use `"*"` (any workspace version), which works in npm + pnpm + yarn.
+- Scaffold packages (`@pulse-music/angular`, `@pulse-music/react-native`) are marked `private: true` and their peerDependencies are dropped until they reach implementation-ready status — without this, `npm install` was pulling in vulnerable old Angular peer deps and inflating the audit count.
 - New scripts: `npm run test:web-component` runs the Lit element suite. `npm run test:packages` now gates on `test:core && test:web-component`.
 
 ### Quality gate
@@ -1869,8 +1869,8 @@ Usage:
 type-check               → clean
 lint                     → 0 errors, 0 warnings (--max-warnings=0)
 tests (root)             → 33 / 33    (Vue Pinia store + useDemoTour)
-tests (@pulse/core)      → 27 / 27    (PulseEngine)
-tests (@pulse/web-comp)  →  9 /  9    (Lit elements + lifecycle + events)
+tests (@pulse-music/core)      → 27 / 27    (PulseEngine)
+tests (@pulse-music/web-comp)  →  9 /  9    (Lit elements + lifecycle + events)
 TOTAL                    → 69 / 69    across the monorepo
 build (demo)             → 129 kB JS + 42 kB CSS → 48 kB gzip
 build:lib                → ~14 kB gzip
@@ -1880,25 +1880,25 @@ v2.3.4 demo              → bit-for-bit identical
 
 ### Packages with REAL code in v3.0.0-alpha.3
 
-| Package                | LOC  | Tests                                 | Notes                                  |
-| ---------------------- | ---- | ------------------------------------- | -------------------------------------- |
-| `@pulse/types`         | ~80  | (validated via consumer tests)        | Shared TS shapes                       |
-| `@pulse/core`          | ~340 | 27 / 27                               | Audio engine + state machine           |
-| `@pulse/tokens`        | ~150 | (CSS — validated visually)            | variants / base / animations           |
-| `@pulse/web-component` | ~430 | 9 / 9                                 | `<pulse-player>` + `<pulse-fab>` (Lit) |
-| `@pulse/react`         | ~280 | (pending — JSX rendering jsdom setup) | Hooks + JSX components                 |
-| `@pulse/svelte`        | ~80  | (pending — Svelte runes test runner)  | Runes store + re-exports               |
+| Package                      | LOC  | Tests                                 | Notes                                  |
+| ---------------------------- | ---- | ------------------------------------- | -------------------------------------- |
+| `@pulse-music/types`         | ~80  | (validated via consumer tests)        | Shared TS shapes                       |
+| `@pulse-music/core`          | ~340 | 27 / 27                               | Audio engine + state machine           |
+| `@pulse-music/tokens`        | ~150 | (CSS — validated visually)            | variants / base / animations           |
+| `@pulse-music/web-component` | ~430 | 9 / 9                                 | `<pulse-player>` + `<pulse-fab>` (Lit) |
+| `@pulse-music/react`         | ~280 | (pending — JSX rendering jsdom setup) | Hooks + JSX components                 |
+| `@pulse-music/svelte`        | ~80  | (pending — Svelte runes test runner)  | Runes store + re-exports               |
 
 ### What's still ahead
 
 - v3.0.0-alpha.4 → Visual regression (Playwright) gates the Vue refactor.
 - v3.0.0-alpha.5 → Vue migration (`src/lib/` → `packages/vue/` wrapping `<pulse-player>`).
-- v3.0.0-alpha.6 → `@pulse/react-native` separate renderer.
+- v3.0.0-alpha.6 → `@pulse-music/react-native` separate renderer.
 - v3.0.0 → stable, npm publish.
 
 ## 3.0.0-alpha.2 — 2026-06-07
 
-`@pulse/web-component` ships its first real Custom Elements. `<pulse-player>` and `<pulse-fab>` register globally on import and work natively in React 19+, Vue 3, Angular 17+, Svelte 5, Solid, vanilla HTML, Astro and Qwik. **Vue v2.3.4 codebase at `src/lib/` is still untouched.**
+`@pulse-music/web-component` ships its first real Custom Elements. `<pulse-player>` and `<pulse-fab>` register globally on import and work natively in React 19+, Vue 3, Angular 17+, Svelte 5, Solid, vanilla HTML, Astro and Qwik. **Vue v2.3.4 codebase at `src/lib/` is still untouched.**
 
 ### `<pulse-player>` — universal inline card
 
@@ -1930,7 +1930,7 @@ Accessibility wired up: cover art is `role="button"` with `aria-pressed`, the pl
 Advanced consumers can override at module-init time:
 
 ```ts
-import { setSharedEngine, PulseEngine } from '@pulse/web-component'
+import { setSharedEngine, PulseEngine } from '@pulse-music/web-component'
 setSharedEngine(new PulseEngine(myCustomPlaylist))
 ```
 
@@ -1941,15 +1941,15 @@ setSharedEngine(new PulseEngine(myCustomPlaylist))
 ```ts
 export { PulsePlayerElement, PulseFabElement } from './…'
 export { getSharedEngine, setSharedEngine } from './engine-singleton'
-export { PulseEngine } from '@pulse/core'
-export /* every @pulse/types export */ type {}
+export { PulseEngine } from '@pulse-music/core'
+export /* every @pulse-music/types export */ type {}
 ```
 
 Importing the package side-effect-registers both Custom Elements with the global registry. Consumers that need lazy registration import the individual classes and call `customElements.define()` themselves.
 
 ### Shadow DOM styling strategy
 
-`packages/web-component/src/styles.ts` declares the variant tokens at the `:host([variant='X'])` level instead of the document-level `[data-variant='X']` selectors from `@pulse/tokens`. Shadow DOM doesn't inherit document-level CSS variable cascades by default — the duplication is the cost of self-contained encapsulation. Both files stay in sync via the same RGB triplets / gradient stops, and the planned alpha.3 design-tokens-as-Constructable-StyleSheet refactor will let `@pulse/web-component` consume `@pulse/tokens` directly.
+`packages/web-component/src/styles.ts` declares the variant tokens at the `:host([variant='X'])` level instead of the document-level `[data-variant='X']` selectors from `@pulse-music/tokens`. Shadow DOM doesn't inherit document-level CSS variable cascades by default — the duplication is the cost of self-contained encapsulation. Both files stay in sync via the same RGB triplets / gradient stops, and the planned alpha.3 design-tokens-as-Constructable-StyleSheet refactor will let `@pulse-music/web-component` consume `@pulse-music/tokens` directly.
 
 ### Vue v2.3.4 — unchanged
 
@@ -1968,11 +1968,11 @@ v2.3.4 demo      → bit-for-bit identical
 
 - v3.0.0-alpha.2.1 → Playwright visual regression suite vs the v2.3.4 demo. Pixel-perfect parity required before alpha.3 can ship.
 - v3.0.0-alpha.2.2 → Full chrome parity: ambient EQ, pulso heartbeat keyframes, drag-to-resize, three responsive states, social icons, next/prev controls.
-- v3.0.0-alpha.3 → `@pulse/vue` migration (`src/lib/` → `packages/vue/`) refactored to wrap `<pulse-player>` / `<pulse-fab>`.
+- v3.0.0-alpha.3 → `@pulse-music/vue` migration (`src/lib/` → `packages/vue/`) refactored to wrap `<pulse-player>` / `<pulse-fab>`.
 
 ## 3.0.0-alpha.1.1 — 2026-06-07
 
-Tests for `@pulse/core`. 27 unit tests ported from the validated v2.3.4 `tests/useAudioStore.test.ts` (22) + 5 new tests for the PulseEngine-specific surface (`onStateChange`, `setAmbientEq`, idempotent `dispose`).
+Tests for `@pulse-music/core`. 27 unit tests ported from the validated v2.3.4 `tests/useAudioStore.test.ts` (22) + 5 new tests for the PulseEngine-specific surface (`onStateChange`, `setAmbientEq`, idempotent `dispose`).
 
 - `packages/core/vitest.config.ts` — jsdom env + `root` pinned to `packages/core/` so the include glob doesn't leak into the root Pinia tests.
 - `packages/core/tests/setup.ts` — port of the v2.3.4 setup (StubAudioContext, StubAnalyserNode, rAF polyfill, HTMLMediaElement.play stub).
@@ -1993,9 +1993,9 @@ v2.3.4 demo      → bit-for-bit identical
 
 ## 3.0.0-alpha.1 — 2026-06-07
 
-`@pulse/core` and `@pulse/tokens` land with real code. **Vue v2.3.4 codebase at `src/lib/` is still untouched** — the audio engine is now reimplemented as a plain TypeScript class in parallel, and the validated Vue Pinia store keeps running the demo.
+`@pulse-music/core` and `@pulse-music/tokens` land with real code. **Vue v2.3.4 codebase at `src/lib/` is still untouched** — the audio engine is now reimplemented as a plain TypeScript class in parallel, and the validated Vue Pinia store keeps running the demo.
 
-### `@pulse/core` — framework-agnostic audio engine
+### `@pulse-music/core` — framework-agnostic audio engine
 
 `packages/core/src/PulseEngine.ts` (~340 LOC) — the `useAudioStore.ts` audio engine, ported to a plain TypeScript class. No Vue refs, no Pinia, no framework imports. Same behaviour bit-for-bit:
 
@@ -2024,9 +2024,9 @@ offPlay()
 engine.dispose()
 ```
 
-Framework wrappers (`@pulse/vue` once migrated, `@pulse/react`, `@pulse/svelte`, `@pulse/angular`, `@pulse/react-native`) each consume the class and project the state into their framework's reactivity primitive via `onStateChange()`.
+Framework wrappers (`@pulse-music/vue` once migrated, `@pulse-music/react`, `@pulse-music/svelte`, `@pulse-music/angular`, `@pulse-music/react-native`) each consume the class and project the state into their framework's reactivity primitive via `onStateChange()`.
 
-### `@pulse/tokens` — CSS design tokens
+### `@pulse-music/tokens` — CSS design tokens
 
 Three real CSS files now ship in `packages/tokens/src/`:
 
@@ -2034,12 +2034,12 @@ Three real CSS files now ship in `packages/tokens/src/`:
 - **`base.css`** — the `--pulse-scale` system. One CSS variable propagating into 13 derived measurements (artwork, title, icons, padding, gaps, radii, shadows, EQ-bar geometry). Scoped to `[data-pulse-root]` so consumers explicitly opt in.
 - **`animations.css`** — every `@keyframes` (`mp-ambient-wave`, `pulso-heartbeat`, `pulso-wave-lub`, `pulso-wave-dub`) extracted from MusicPlayer.vue + MiniPlayer.vue, with the same timing notes carried over (pulso cycle map, "waves emit at peaks, not before" comment). Includes the `prefers-reduced-motion` guard.
 
-`@pulse/tokens` is imported as a side-effect from any web renderer.
+`@pulse-music/tokens` is imported as a side-effect from any web renderer.
 
 ### Tooling
 
 - `packages/` and `apps/` workspace folders are now excluded from the root ESLint + Prettier ignore list. Each package gets its own lint config when it reaches alpha-ready status; until then the root toolchain keeps gating the validated Vue v2.3.4 codebase under `src/` only.
-- `packages/core/tsconfig.json` + `packages/types/tsconfig.json` — minimal per-package configs that respect the workspace structure (`@pulse/types` path mapping).
+- `packages/core/tsconfig.json` + `packages/types/tsconfig.json` — minimal per-package configs that respect the workspace structure (`@pulse-music/types` path mapping).
 
 ### Vue v2.3.4 — unchanged
 
@@ -2058,10 +2058,10 @@ v2.3.4 demo   → bit-for-bit identical, no behaviour change
 
 ### What's still ahead
 
-- v3.0.0-alpha.2 → `@pulse/web-component` (Lit-based `<pulse-player>` + `<pulse-fab>`), Playwright visual regression vs the v2.3.4 demo.
-- v3.0.0-alpha.3 → `@pulse/vue` migration (`src/lib/` → `packages/vue/`), refactored to wrap `@pulse/web-component`.
-- v3.0.0-alpha.4 → `@pulse/react`.
-- v3.0.0-alpha.5 → `@pulse/react-native`.
+- v3.0.0-alpha.2 → `@pulse-music/web-component` (Lit-based `<pulse-player>` + `<pulse-fab>`), Playwright visual regression vs the v2.3.4 demo.
+- v3.0.0-alpha.3 → `@pulse-music/vue` migration (`src/lib/` → `packages/vue/`), refactored to wrap `@pulse-music/web-component`.
+- v3.0.0-alpha.4 → `@pulse-music/react`.
+- v3.0.0-alpha.5 → `@pulse-music/react-native`.
 - v3.0.0 → stable, npm publish.
 
 ## 3.0.0-alpha.0 — 2026-06-07
@@ -2072,15 +2072,15 @@ What lands:
 
 - **Monorepo enabled.** `pnpm-workspace.yaml`, `turbo.json`, and a `workspaces` field in the root `package.json`. Contributors can use pnpm, npm or yarn — the workspace layout is shared.
 - **9 package scaffolds** under `packages/`:
-  - `@pulse/types` — shared TypeScript types (real, ships now). `Track`, `PulseVariant`, `ALL_VARIANTS`, `EventMap`, `AudioEvent`, `EventListener<E>`, `Unsubscribe`, `PulseState`. Zero runtime, zero risk.
-  - `@pulse/core` — framework-agnostic audio engine. SCAFFOLD; implementation in alpha.1.
-  - `@pulse/tokens` — CSS variables, variant gradients, animation keyframes. SCAFFOLD; populated in alpha.1.
-  - `@pulse/web-component` — Lit-based universal `<pulse-player>` / `<pulse-fab>`. SCAFFOLD; implementation in alpha.2.
-  - `@pulse/vue` — Vue 3 wrapper. Pre-migration scaffold; the v2.3.4 code at `src/lib/` moves here in alpha.3 with a refactor to wrap the new web-component layer.
-  - `@pulse/react` — React 18 / 19 wrapper. SCAFFOLD; alpha.4.
-  - `@pulse/react-native` — RN implementation (separate renderer, no DOM). SCAFFOLD; alpha.5.
-  - `@pulse/angular` — Angular 17+ wrapper. SCAFFOLD; v3.1.0.
-  - `@pulse/svelte` — Svelte 5 wrapper. SCAFFOLD; v3.1.0.
+  - `@pulse-music/types` — shared TypeScript types (real, ships now). `Track`, `PulseVariant`, `ALL_VARIANTS`, `EventMap`, `AudioEvent`, `EventListener<E>`, `Unsubscribe`, `PulseState`. Zero runtime, zero risk.
+  - `@pulse-music/core` — framework-agnostic audio engine. SCAFFOLD; implementation in alpha.1.
+  - `@pulse-music/tokens` — CSS variables, variant gradients, animation keyframes. SCAFFOLD; populated in alpha.1.
+  - `@pulse-music/web-component` — Lit-based universal `<pulse-player>` / `<pulse-fab>`. SCAFFOLD; implementation in alpha.2.
+  - `@pulse-music/vue` — Vue 3 wrapper. Pre-migration scaffold; the v2.3.4 code at `src/lib/` moves here in alpha.3 with a refactor to wrap the new web-component layer.
+  - `@pulse-music/react` — React 18 / 19 wrapper. SCAFFOLD; alpha.4.
+  - `@pulse-music/react-native` — RN implementation (separate renderer, no DOM). SCAFFOLD; alpha.5.
+  - `@pulse-music/angular` — Angular 17+ wrapper. SCAFFOLD; v3.1.0.
+  - `@pulse-music/svelte` — Svelte 5 wrapper. SCAFFOLD; v3.1.0.
 - **Multi-framework documentation:**
   - `docs/universal/ARCHITECTURE.md` — dependency graph, package responsibilities, why the layered design.
   - `docs/universal/ROADMAP.md` — phase-by-phase migration plan (Phase 0 → Phase 7).
@@ -2088,10 +2088,10 @@ What lands:
 
 What's **explicitly not** in this alpha:
 
-- No code is moved out of `src/lib/`. The current Vue v2.3.4 implementation remains the validated reference and continues to be the package consumers install today (`pulse-player`, not `@pulse/*`).
-- No new framework wrapper is functional yet. Every `@pulse/*` package other than `@pulse/types` is a scaffold with READMEs and stub `src/index.ts` files.
-- No npm publishes yet. The `@pulse/*` namespace is reserved for v3.0.0 stable.
-- The visual regression tests against the v2.3.4 Vue demo (which will gate the alpha.3 Vue refactor) land in alpha.2 alongside `@pulse/web-component`.
+- No code is moved out of `src/lib/`. The current Vue v2.3.4 implementation remains the validated reference and continues to be the package consumers install today (`pulse-player`, not `@pulse-music/*`).
+- No new framework wrapper is functional yet. Every `@pulse-music/*` package other than `@pulse-music/types` is a scaffold with READMEs and stub `src/index.ts` files.
+- No npm publishes yet. The `@pulse-music/*` namespace is reserved for v3.0.0 stable.
+- The visual regression tests against the v2.3.4 Vue demo (which will gate the alpha.3 Vue refactor) land in alpha.2 alongside `@pulse-music/web-component`.
 
 Quality gate after alpha.0 scaffold:
 

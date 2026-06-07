@@ -1,5 +1,5 @@
 {
-  "name": "@pulse/tokens",
+  "name": "@pulse-music/tokens",
   "version": "3.0.0-rc.0",
   "description": "Design tokens for pulse-player — variant gradients, accent colours, animation keyframes, --pulse-scale system. Shared by every web renderer (CSS imports for plain DOM, TS exports for Shadow DOM).",
   "license": "MIT",

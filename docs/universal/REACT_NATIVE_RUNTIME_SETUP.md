@@ -1,10 +1,10 @@
-# `@pulse/react-native` — Setup procedure for the real renderer
+# `@pulse-music/react-native` — Setup procedure for the real renderer
 
-Today `@pulse/react-native` ships interface types + a sentinel runtime that throws an actionable error pointing at this doc and the web wrappers (see [BLOCKERS.md](./BLOCKERS.md) #1). This document is the maintainer's step-by-step plan to ship the **real** renderer in a v3.X.0 dedicated sprint.
+Today `@pulse-music/react-native` ships interface types + a sentinel runtime that throws an actionable error pointing at this doc and the web wrappers (see [BLOCKERS.md](./BLOCKERS.md) #1). This document is the maintainer's step-by-step plan to ship the **real** renderer in a v3.X.0 dedicated sprint.
 
 ## Scope decision (read first)
 
-React Native cannot share rendering code with the web wrappers — there's no DOM, no `<audio>`, no `backdrop-filter`, no CSS resize. The path is **a separate renderer** that consumes the same `@pulse/core` audio engine API plus RN-native primitives for chrome.
+React Native cannot share rendering code with the web wrappers — there's no DOM, no `<audio>`, no `backdrop-filter`, no CSS resize. The path is **a separate renderer** that consumes the same `@pulse-music/core` audio engine API plus RN-native primitives for chrome.
 
 The feature-parity matrix in [`docs/frameworks/react-native.md`](../frameworks/react-native.md) flags what's transferable and what isn't:
 
@@ -64,7 +64,7 @@ Add these to `packages/react-native/package.json`:
 
 Why each one:
 
-- `react-native-audio-api` — Web Audio API parity (gives you AudioContext + AnalyserNode for the FFT visualiser, same shapes as `@pulse/core` consumes today)
+- `react-native-audio-api` — Web Audio API parity (gives you AudioContext + AnalyserNode for the FFT visualiser, same shapes as `@pulse-music/core` consumes today)
 - `react-native-reanimated` — drives the ambient EQ + pulso heartbeat at 60 fps off the UI thread
 - `react-native-gesture-handler` — pan handler for FAB drag-to-reposition
 - `react-native-svg` — chrome SVG icons (GitHub Octocat, streaming icon)
@@ -81,7 +81,7 @@ mkdir -p packages/react-native/src/{components,hooks,utils}
 
 Files to create (in this order — each one depends on the previous):
 
-1. `src/utils/audioEngine.ts` — adapter that wraps `react-native-audio-api`'s `AudioContext` to look like the `@pulse/core` engine's shape. No new public API, just the bridge.
+1. `src/utils/audioEngine.ts` — adapter that wraps `react-native-audio-api`'s `AudioContext` to look like the `@pulse-music/core` engine's shape. No new public API, just the bridge.
 2. `src/hooks/usePulseAudio.ts` — replaces the sentinel currently at `packages/react-native/src/index.ts`. Returns the same shape as the web `usePulseAudio` hook (engine snapshot + actions + `subscribe`).
 3. `src/components/PulsePlayer.tsx` — RN renderer using `View` / `Animated.View` / `Text` / `Pressable` + the components from step 4-7.
 4. `src/components/AmbientEQ.tsx` — Reanimated `useDerivedValue` driving 12 bars.
@@ -93,7 +93,7 @@ Files to create (in this order — each one depends on the previous):
 
 ```bash
 cd apps/demo-react-native
-npm install @pulse/react-native @pulse/core @pulse/types
+npm install @pulse-music/react-native @pulse-music/core @pulse-music/types
 ```
 
 `apps/demo-react-native/App.tsx`:
@@ -101,7 +101,7 @@ npm install @pulse/react-native @pulse/core @pulse/types
 ```tsx
 import { useState } from 'react'
 import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native'
-import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse/react-native'
+import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse-music/react-native'
 
 export default function App() {
   const [variant, setVariant] = useState<'midnight' | 'sunset' | 'vinyl'>('midnight')
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
 
 ### Step 3 — Test environment
 
-Use the existing `@pulse/test-utils` for any shared mocks, then add RN-specific testing via `@testing-library/react-native`:
+Use the existing `@pulse-music/test-utils` for any shared mocks, then add RN-specific testing via `@testing-library/react-native`:
 
 ```bash
 cd packages/react-native
@@ -144,7 +144,7 @@ it('renders without crashing', () => {
 })
 ```
 
-Aim for ≥ 5 tests covering: render + variant prop + pulso + ambient EQ + state subscription. Match the parity of the web `@pulse/react` test count (16/16).
+Aim for ≥ 5 tests covering: render + variant prop + pulso + ambient EQ + state subscription. Match the parity of the web `@pulse-music/react` test count (16/16).
 
 ### Step 4 — Update parity matrix
 
@@ -157,7 +157,7 @@ Once the renderer lands:
 
 ### Step 5 — npm publish
 
-The `@pulse/react-native` package follows the same publish procedure as the web ones — see [PUBLISH_CHECKLIST.md](./PUBLISH_CHECKLIST.md). It joins the dependency chain at the same level as `@pulse/react` (both depend on `@pulse/core` + `@pulse/types`; neither depends on `@pulse/web-component`).
+The `@pulse-music/react-native` package follows the same publish procedure as the web ones — see [PUBLISH_CHECKLIST.md](./PUBLISH_CHECKLIST.md). It joins the dependency chain at the same level as `@pulse-music/react` (both depend on `@pulse-music/core` + `@pulse-music/types`; neither depends on `@pulse-music/web-component`).
 
 ## Timeline estimate
 

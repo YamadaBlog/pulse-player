@@ -1,5 +1,5 @@
 import { css, unsafeCSS } from 'lit'
-import { baseCss, variantsCss } from '@pulse/tokens'
+import { baseCss, variantsCss } from '@pulse-music/tokens'
 
 /**
  * Shared CSS for the Web Component layer.
@@ -9,7 +9,7 @@ import { baseCss, variantsCss } from '@pulse/tokens'
  *
  * BOTH the `--pulse-scale` system tokens (base.ts) AND the variant
  * gradient / accent RGB triplets (variants.ts) now come from
- * `@pulse/tokens` (single source of truth). The previous version
+ * `@pulse-music/tokens` (single source of truth). The previous version
  * inlined the base tokens in a local TOKENS string — that worked but
  * meant adding a new token required edits in two places. Closes
  * audit item P2 from v3.0.0-alpha.5.
@@ -22,7 +22,7 @@ import { baseCss, variantsCss } from '@pulse/tokens'
  */
 const BASE_TOKENS = unsafeCSS(baseCss)
 
-// Variant gradients + accent RGB triplets, imported from @pulse/tokens.
+// Variant gradients + accent RGB triplets, imported from @pulse-music/tokens.
 // Selectors are `[data-variant='X']` (no host prefix); they match the
 // inner <div class="mp" data-variant=${variant}> rendered by each
 // element, and CSS custom properties cascade down to the chrome.

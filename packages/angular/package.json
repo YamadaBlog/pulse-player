@@ -1,7 +1,7 @@
 {
-  "name": "@pulse/angular",
+  "name": "@pulse-music/angular",
   "version": "3.0.0-rc.0",
-  "description": "Angular 17+ wrapper for pulse-player. Thin module + Custom Elements registration on top of @pulse/web-component.",
+  "description": "Angular 17+ wrapper for pulse-player. Thin module + Custom Elements registration on top of @pulse-music/web-component.",
   "license": "MIT",
   "type": "module",
   "main": "./src/index.ts",
@@ -29,8 +29,8 @@
     }
   },
   "dependencies": {
-    "@pulse/types": "*",
-    "@pulse/web-component": "*"
+    "@pulse-music/types": "*",
+    "@pulse-music/web-component": "*"
   },
   "publishConfig": {
     "access": "public"

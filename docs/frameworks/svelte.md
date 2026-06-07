@@ -1,23 +1,23 @@
-# Pulse for Svelte (`@pulse/svelte`)
+# Pulse for Svelte (`@pulse-music/svelte`)
 
 Svelte 5 wrapper. Plain TypeScript hook + native `<pulse-player>` / `<pulse-fab>` usage.
 
-> ✅ **Honest status (v3.0.0-alpha.10):** `usePulseAudio()` is shipped as a plain TypeScript hook (no runes, no Svelte compiler dependency) and **tested via Vitest (8 / 8)**. The Custom Elements (`<pulse-player>`, `<pulse-fab>`) work directly in Svelte templates — no SFC wrapper needed. Chrome parity vs Vue v2.3.4 is **~95 %**. A real Vite + Svelte 5 demo runs at `apps/demo-svelte/` — `npm run dev --workspace=@pulse/demo-svelte` → http://localhost:5182.
+> ✅ **Honest status (v3.0.0-alpha.10):** `usePulseAudio()` is shipped as a plain TypeScript hook (no runes, no Svelte compiler dependency) and **tested via Vitest (8 / 8)**. The Custom Elements (`<pulse-player>`, `<pulse-fab>`) work directly in Svelte templates — no SFC wrapper needed. Chrome parity vs Vue v2.3.4 is **~95 %**. A real Vite + Svelte 5 demo runs at `apps/demo-svelte/` — `npm run dev --workspace=@pulse-music/demo-svelte` → http://localhost:5182.
 
 ## Install
 
 ```bash
-npm install @pulse/svelte
+npm install @pulse-music/svelte
 # Peer dep: svelte ^5
 ```
 
-`@pulse/svelte` side-effect-imports `@pulse/web-component`, which registers `<pulse-player>` and `<pulse-fab>` Custom Elements globally.
+`@pulse-music/svelte` side-effect-imports `@pulse-music/web-component`, which registers `<pulse-player>` and `<pulse-fab>` Custom Elements globally.
 
 ## Quick start
 
 ```svelte
 <script lang="ts">
-  import { usePulseAudio } from '@pulse/svelte'
+  import { usePulseAudio } from '@pulse-music/svelte'
 
   const audio = usePulseAudio()
 </script>
@@ -41,7 +41,7 @@ The `$audio` prefix is Svelte's classic-store autosubscribe — it works because
 
 ## Why no `<PulsePlayer />` Svelte component?
 
-Svelte's DOM-first philosophy means Custom Elements work **directly** in any template. A Svelte component wrapping `<pulse-player>` would be a one-line passthrough without DX gain, and would force a Svelte build step in the published `@pulse/svelte` tarball.
+Svelte's DOM-first philosophy means Custom Elements work **directly** in any template. A Svelte component wrapping `<pulse-player>` would be a one-line passthrough without DX gain, and would force a Svelte build step in the published `@pulse-music/svelte` tarball.
 
 The plain-TypeScript hook + `<pulse-player>` direct usage is the idiomatic Svelte pattern: write less Svelte-specific code, keep the engine reusable across frameworks.
 
@@ -87,10 +87,10 @@ Svelte 5 supports both the legacy `on:pulse-play` syntax and the new property-st
 <pulse-player on:pulse-play={(e) => …}></pulse-player>
 ```
 
-The `e.detail` payload mirrors the typed `EventMap` from `@pulse/types`:
+The `e.detail` payload mirrors the typed `EventMap` from `@pulse-music/types`:
 
 ```ts
-import type { EventMap } from '@pulse/svelte'
+import type { EventMap } from '@pulse-music/svelte'
 function handlePlay(e: CustomEvent<EventMap['play']>) {
   const { track, time } = e.detail
 }
@@ -111,7 +111,7 @@ import {
   type PulseVariant,
   type EventMap,
   type PulseState,
-} from '@pulse/svelte'
+} from '@pulse-music/svelte'
 ```
 
 ## Keyboard shortcuts

@@ -1,11 +1,11 @@
-# @pulse/react
+# @pulse-music/react
 
-React wrapper for pulse-player. Hooks + JSX components built on top of `@pulse/web-component`.
+React wrapper for pulse-player. Hooks + JSX components built on top of `@pulse-music/web-component`.
 
 ## Usage (once implemented)
 
 ```tsx
-import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse/react'
+import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse-music/react'
 
 export function App() {
   const { isPlaying, toggle } = usePulseAudio()
@@ -22,13 +22,13 @@ export function App() {
 
 ## Architecture
 
-This package is a **thin adapter**: rendering is handled by `<pulse-player>` (Lit Custom Element from `@pulse/web-component`), and `@pulse/react` just maps React conventions onto the underlying DOM events / attributes. Each component is ~30-60 lines.
+This package is a **thin adapter**: rendering is handled by `<pulse-player>` (Lit Custom Element from `@pulse-music/web-component`), and `@pulse-music/react` just maps React conventions onto the underlying DOM events / attributes. Each component is ~30-60 lines.
 
 React 19+ has native Custom Elements support (camelCase → kebab-case + event listeners just work). For React 18, the wrapper handles the attribute / event bridging.
 
 ## Status
 
-⏳ **Scaffold** — implementation lands in v3.0.0-alpha.3, after `@pulse/core` (alpha.1) and `@pulse/web-component` (alpha.2).
+⏳ **Scaffold** — implementation lands in v3.0.0-alpha.3, after `@pulse-music/core` (alpha.1) and `@pulse-music/web-component` (alpha.2).
 
 ## License
 

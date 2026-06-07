@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { usePulseAudio, ALL_VARIANTS, type PulseVariant } from '@pulse/svelte'
+  import { usePulseAudio, ALL_VARIANTS, type PulseVariant } from '@pulse-music/svelte'
 
   // Svelte 5 runes — the `usePulseAudio()` hook exposes a classic
   // store, so `$audio.isPlaying` auto-subscribes.

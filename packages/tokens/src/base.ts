@@ -1,6 +1,6 @@
 /**
  * Base tokens as a TypeScript string — for Shadow DOM consumers
- * (every `@pulse/web-component` Custom Element).
+ * (every `@pulse-music/web-component` Custom Element).
  *
  * The `[data-pulse-root]` selector used in `base.css` is the right
  * shape for document-level consumers (Vue v2.3.4 chrome) but doesn't

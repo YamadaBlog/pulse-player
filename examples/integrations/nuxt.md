@@ -1,11 +1,11 @@
 # Pulse in Nuxt 3+
 
-Nuxt 3 is Vue under the hood — Pulse's Vue reference (`pulse-player` v2.3.4 or `@pulse/vue` from v3.0.0-rc.0+) integrates with minimal ceremony. The one gotcha is Nuxt's SSR by default — Pulse's audio engine and Custom Elements need the browser, so the rendered chrome lives inside `<ClientOnly>` or in a `.client.vue` component.
+Nuxt 3 is Vue under the hood — Pulse's Vue reference (`pulse-player` v2.3.4 or `@pulse-music/vue` from v3.0.0-rc.0+) integrates with minimal ceremony. The one gotcha is Nuxt's SSR by default — Pulse's audio engine and Custom Elements need the browser, so the rendered chrome lives inside `<ClientOnly>` or in a `.client.vue` component.
 
 ## Install
 
 ```bash
-npm install @pulse/vue @pulse/core
+npm install @pulse-music/vue @pulse-music/core
 ```
 
 (Or `pulse-player` if you want the Vue v2.3.4 reference build during the alpha phase — it's the same code, see the alpha.15 CHANGELOG entry for the soft re-export status.)
@@ -16,7 +16,7 @@ npm install @pulse/vue @pulse/core
 
 ```vue
 <script setup lang="ts">
-import { MusicPlayer, MiniPlayer, useAudioStore, type Track } from '@pulse/vue'
+import { MusicPlayer, MiniPlayer, useAudioStore, type Track } from '@pulse-music/vue'
 
 const audio = useAudioStore()
 
@@ -68,7 +68,7 @@ Mount the FAB once at the root layout so playback survives navigation:
 
 ```vue
 <script setup lang="ts">
-import { MiniPlayer } from '@pulse/vue'
+import { MiniPlayer } from '@pulse-music/vue'
 </script>
 
 <template>
@@ -85,7 +85,7 @@ The `<ClientOnly>` wrapper is the explicit SSR-skip — equivalent to the `.clie
 
 ## CSS
 
-If you use the library bundle (`pulse-player` not `@pulse/vue`), import the stylesheet once at the app root:
+If you use the library bundle (`pulse-player` not `@pulse-music/vue`), import the stylesheet once at the app root:
 
 `app.vue`:
 
@@ -101,7 +101,7 @@ import 'pulse-player/style.css'
 </template>
 ```
 
-`@pulse/vue` (the v3.0.0+ scope) ships its CSS as a side-effect of importing the components — no separate `style.css` import needed.
+`@pulse-music/vue` (the v3.0.0+ scope) ships its CSS as a side-effect of importing the components — no separate `style.css` import needed.
 
 ## Tested against
 

@@ -41,14 +41,14 @@ npm install
 npm run dev          # http://localhost:5174  (Vue v2.3.4 demo)
 ```
 
-Node 18+ required. The workspaces field in `package.json` resolves every `@pulse/*` package via symlinks, so changes in `packages/*/src/` reflect immediately.
+Node 18+ required. The workspaces field in `package.json` resolves every `@pulse-music/*` package via symlinks, so changes in `packages/*/src/` reflect immediately.
 
 To run a per-framework demo:
 
 ```bash
-npm run dev --workspace=@pulse/demo-vanilla  # http://localhost:5180  (no framework)
-npm run dev --workspace=@pulse/demo-react    # http://localhost:5181
-npm run dev --workspace=@pulse/demo-svelte   # http://localhost:5182
+npm run dev --workspace=@pulse-music/demo-vanilla  # http://localhost:5180  (no framework)
+npm run dev --workspace=@pulse-music/demo-react    # http://localhost:5181
+npm run dev --workspace=@pulse-music/demo-svelte   # http://localhost:5182
 ```
 
 ## The quality gate
@@ -77,12 +77,12 @@ npm run test:visual:update   # regenerate baselines after intentional change
 
 ## Adding a new framework wrapper
 
-The pattern (mirrors `@pulse/react`, `@pulse/svelte`, `@pulse/angular`):
+The pattern (mirrors `@pulse-music/react`, `@pulse-music/svelte`, `@pulse-music/angular`):
 
 1. Create `packages/<framework>/` with `package.json`, `README.md`, `src/index.ts`, `tsup.config.ts`, `tsconfig.json`.
-2. Declare `peerDependencies` on the framework and `dependencies` on `@pulse/types` + `@pulse/web-component`.
-3. The wrapper imports `<pulse-player>` and `<pulse-fab>` Custom Elements (side-effect-registered by importing `@pulse/web-component`) and exposes a framework-native component plus an audio hook over the singleton `PulseEngine`.
-4. Add tests under `packages/<framework>/tests/` using `@pulse/test-utils` for the shared stubs.
+2. Declare `peerDependencies` on the framework and `dependencies` on `@pulse-music/types` + `@pulse-music/web-component`.
+3. The wrapper imports `<pulse-player>` and `<pulse-fab>` Custom Elements (side-effect-registered by importing `@pulse-music/web-component`) and exposes a framework-native component plus an audio hook over the singleton `PulseEngine`.
+4. Add tests under `packages/<framework>/tests/` using `@pulse-music/test-utils` for the shared stubs.
 5. Update the README framework picker table + add `docs/frameworks/<framework>.md`.
 
 Reference: `packages/react/` is ~110 LOC + 16 tests + tsup config — that's the canonical size of a new wrapper.

@@ -29,7 +29,7 @@ Everything that applies to every framework wrapper:
 - [`ROADMAP.md`](./universal/ROADMAP.md) — phase plan from v3.0.0-alpha.0 through stable
 - [`API.md`](./universal/API.md) — canonical multi-framework API reference (props, events, engine class, types, tokens)
 - [`FEATURE_MATRIX.md`](./universal/FEATURE_MATRIX.md) — what works in each framework, honest comparison
-- [`SANDBOXES.md`](./universal/SANDBOXES.md) — StackBlitz / CodeSandbox playgrounds (live once `@pulse/*` is on npm)
+- [`SANDBOXES.md`](./universal/SANDBOXES.md) — StackBlitz / CodeSandbox playgrounds (live once `@pulse-music/*` is on npm)
 - [`LICENSING.md`](./universal/LICENSING.md) — why MIT, monetisation patterns, trademark notes
 - [`BLOCKERS.md`](./universal/BLOCKERS.md) — what isn't done and why (honest deferral log)
 

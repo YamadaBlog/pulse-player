@@ -1,5 +1,5 @@
 /**
- * @pulse/vue — Vue 3 wrapper for pulse-player.
+ * @pulse-music/vue — Vue 3 wrapper for pulse-player.
  *
  * v3.0.0-alpha.9: **soft re-export package**. The validated Vue
  * v2.3.4 implementation still lives at the repo root under
@@ -8,7 +8,7 @@
  * this package re-exports everything from the canonical location, so
  * downstream consumers can already write:
  *
- *   import { MusicPlayer, MiniPlayer, useAudioStore } from '@pulse/vue'
+ *   import { MusicPlayer, MiniPlayer, useAudioStore } from '@pulse-music/vue'
  *
  * The relative path traverses the package boundary
  * (`../../../src/lib/`), which works in the monorepo development
@@ -39,4 +39,4 @@ export type {
   EventMap,
   PulseState,
   Unsubscribe,
-} from '@pulse/types'
+} from '@pulse-music/types'

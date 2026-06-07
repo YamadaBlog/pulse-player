@@ -1,17 +1,17 @@
 /**
- * @pulse/types — shared TypeScript types for every pulse-player
+ * @pulse-music/types — shared TypeScript types for every pulse-player
  * framework wrapper.
  *
- * Every other `@pulse/*` package depends on this one. The types are
+ * Every other `@pulse-music/*` package depends on this one. The types are
  * extracted from the validated Vue v2.3.4 implementation. They are
  * pure types — no runtime, no DOM, no framework imports — so they
  * can be consumed by:
  *
- *   - `@pulse/vue` (current reference implementation)
- *   - `@pulse/core` (framework-agnostic audio engine)
- *   - `@pulse/web-component` (Lit-based universal renderer)
- *   - `@pulse/react`, `@pulse/svelte`, `@pulse/angular` (wrappers)
- *   - `@pulse/react-native` (separate native implementation that
+ *   - `@pulse-music/vue` (current reference implementation)
+ *   - `@pulse-music/core` (framework-agnostic audio engine)
+ *   - `@pulse-music/web-component` (Lit-based universal renderer)
+ *   - `@pulse-music/react`, `@pulse-music/svelte`, `@pulse-music/angular` (wrappers)
+ *   - `@pulse-music/react-native` (separate native implementation that
  *     shares the data contract but rebuilds the renderer)
  */
 

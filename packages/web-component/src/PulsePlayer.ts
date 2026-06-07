@@ -1,7 +1,7 @@
 import { LitElement, html, type PropertyValues } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
-import type { PulseEngine } from '@pulse/core'
-import type { PulseState, PulseVariant, Track, Unsubscribe } from '@pulse/types'
+import type { PulseEngine } from '@pulse-music/core'
+import type { PulseState, PulseVariant, Track, Unsubscribe } from '@pulse-music/types'
 import { getSharedEngine } from './engine-singleton'
 import { baseStyles, playerStyles } from './styles'
 import { GITHUB_SVG, STREAM_SVG } from './icons'
@@ -9,7 +9,7 @@ import { GITHUB_SVG, STREAM_SVG } from './icons'
 /**
  * `<pulse-player>` — universal inline music player Custom Element.
  *
- * Wraps the singleton `@pulse/core` PulseEngine. Renders the inline
+ * Wraps the singleton `@pulse-music/core` PulseEngine. Renders the inline
  * card chrome (artwork + title + play / pause + progress) and emits
  * DOM `CustomEvent`s for every state change, matching the v2.3.4
  * Vue emit surface 1-to-1:
@@ -22,7 +22,7 @@ import { GITHUB_SVG, STREAM_SVG } from './icons'
  *
  * Works natively in React 19+, Vue 3, Angular 17+, Svelte 5, Solid,
  * Lit, Astro, Qwik, vanilla HTML. Framework wrappers
- * (`@pulse/react`, `@pulse/vue`, …) thin-adapt the custom events
+ * (`@pulse-music/react`, `@pulse-music/vue`, …) thin-adapt the custom events
  * onto the framework's convention (`onPulsePlay` in React,
  * `@pulsePlay` in Vue, etc.).
  *

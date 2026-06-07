@@ -1,8 +1,8 @@
 import { LitElement, html } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
-import type { PulseEngine } from '@pulse/core'
-import type { PulseState, PulseVariant, Unsubscribe } from '@pulse/types'
-import { ALL_VARIANTS } from '@pulse/types'
+import type { PulseEngine } from '@pulse-music/core'
+import type { PulseState, PulseVariant, Unsubscribe } from '@pulse-music/types'
+import { ALL_VARIANTS } from '@pulse-music/types'
 import { getSharedEngine } from './engine-singleton'
 import { baseStyles, fabStyles } from './styles'
 

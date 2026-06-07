@@ -3,8 +3,8 @@
  * The "container-aware" trick that powers pulse-player. ONE CSS
  * variable, `--pulse-scale`, propagates through every measurement on
  * the player — artwork, title, icons, padding, gaps, radii, shadows,
- * EQ-bar geometry. A ResizeObserver in the host (`@pulse/web-component`
- * or `@pulse/vue`) writes `--pulse-scale: <0.30..1.30>` inline on the
+ * EQ-bar geometry. A ResizeObserver in the host (`@pulse-music/web-component`
+ * or `@pulse-music/vue`) writes `--pulse-scale: <0.30..1.30>` inline on the
  * root element. Every derived token below reads from it.
  *
  * The values are the ones baked into the validated Vue v2.3.4 build —

@@ -1,14 +1,14 @@
 /**
- * @pulse/test-utils — internal shared test scaffolding.
+ * @pulse-music/test-utils — internal shared test scaffolding.
  *
- * Every `@pulse/*` package's vitest suite needs the same set of
+ * Every `@pulse-music/*` package's vitest suite needs the same set of
  * stubs (Web Audio, ResizeObserver, rAF, HTMLMediaElement.play) to
  * run under jsdom. Before this package existed, each suite copy-
  * pasted the same 80-line setup file — 4 copies, drift inevitable.
  *
  * Usage in a package's `tests/setup.ts`:
  *
- *   import { installAudioStubs, installRafStubs, installMediaStubs } from '@pulse/test-utils'
+ *   import { installAudioStubs, installRafStubs, installMediaStubs } from '@pulse-music/test-utils'
  *   import { beforeEach, vi } from 'vitest'
  *
  *   installAudioStubs()

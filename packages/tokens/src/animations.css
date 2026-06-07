@@ -2,8 +2,8 @@
  *
  * Every motion that defines the pulse-player look. Extracted
  * verbatim from the validated Vue v2.3.4 build (MusicPlayer.vue +
- * MiniPlayer.vue) so every web renderer (`@pulse/web-component`,
- * future `@pulse/vue` migration, React + others) shares the same
+ * MiniPlayer.vue) so every web renderer (`@pulse-music/web-component`,
+ * future `@pulse-music/vue` migration, React + others) shares the same
  * keyframe authority.
  *
  * Contents:

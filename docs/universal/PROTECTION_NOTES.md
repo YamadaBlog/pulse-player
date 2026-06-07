@@ -7,7 +7,7 @@ Every CTO audit on Pulse since alpha.10 has flagged "Protection contre la copie:
 A front-end component library distributed as JavaScript is **fundamentally copyable**. Once the bundle reaches a browser, every byte of the rendered chrome is visible in DevTools. Anyone can:
 
 1. Right-click → View Source on the live demo.
-2. `npm install` and read `node_modules/@pulse/*/dist/index.js`.
+2. `npm install` and read `node_modules/@pulse-music/*/dist/index.js`.
 3. Clone the public MIT-licensed GitHub repo.
 4. Copy any subset of the code into their own project and rename it.
 
@@ -17,7 +17,7 @@ None of these is preventable. The MIT licence ALLOWS most of them. Other permiss
 
 ## What MIT actually allows
 
-A consumer who installs `@pulse/react` MIT may:
+A consumer who installs `@pulse-music/react` MIT may:
 
 - Use it in a commercial product ✅
 - Modify the source freely ✅
@@ -38,7 +38,7 @@ Average DMCA process: 2-7 days, no lawyer needed for the first round.
 ## What MIT does NOT prevent
 
 - A competitor copies the chrome design, rewrites it from scratch under their own copyright. **Legal under any licence.** The only protection is trademark on the name "Pulse" (file via USPTO ~$350 or EUIPO ~€850 if commercial scale justifies it) plus the brand recognition of the original.
-- A SaaS embeds `@pulse/*` in their product and charges customers. **Allowed under MIT.** If you want to prevent this, switch to BSL (Business Source License) with a 4-year grant-of-rights horizon — but BSL also kills 90 % of contributor interest, so be sure the commercial revenue justifies the adoption hit.
+- A SaaS embeds `@pulse-music/*` in their product and charges customers. **Allowed under MIT.** If you want to prevent this, switch to BSL (Business Source License) with a 4-year grant-of-rights horizon — but BSL also kills 90 % of contributor interest, so be sure the commercial revenue justifies the adoption hit.
 - Someone bundles Pulse + their own branding into a paid Figma plugin or design-system kit. **Allowed.** Again, only trademark protects the name.
 
 ## Practical mitigations that don't compromise OSS adoption
@@ -69,7 +69,7 @@ Most permissive-licensed UI products monetise via the **adjacent moat**, not the
 For Pulse, the parallels would be:
 
 - **Pulse Premium themes** — pack of 20 new variants + brand-customisation tooling, sold as a one-time purchase via Gumroad / Lemon Squeezy.
-- **Pulse Studio** — hosted brand-the-player web app: customers tune a variant in-browser, get the CSS variable overrides + JSON config back, pay a one-time fee. Backed by the same `@pulse/tokens` API.
+- **Pulse Studio** — hosted brand-the-player web app: customers tune a variant in-browser, get the CSS variable overrides + JSON config back, pay a one-time fee. Backed by the same `@pulse-music/tokens` API.
 - **White-glove integration consulting** — companies that adopt Pulse pay you to build their custom variant + analytics integration + DRM playback. This is how MUI X bootstrapped before introducing paid tiers.
 
 Each of these is YOUR proprietary product, not MIT. The core stays free, the value-add tier is closed-source.
@@ -94,7 +94,7 @@ Don't watermark the library JavaScript itself — that's user-hostile (consumers
 
 OSS analytics ethics are real — don't ship phone-home telemetry without an opt-in. But you can:
 
-- Watch npm download counts via https://npmjs.com/package/@pulse/react (public).
+- Watch npm download counts via https://npmjs.com/package/@pulse-music/react (public).
 - Watch GitHub clone / view counts via repo Insights tab (maintainer-only).
 - Use https://npmtrends.com/ to compare against competitors.
 

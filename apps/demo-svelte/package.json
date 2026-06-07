@@ -1,8 +1,8 @@
 {
-  "name": "@pulse/demo-svelte",
+  "name": "@pulse-music/demo-svelte",
   "version": "0.0.0",
   "private": true,
-  "description": "Svelte 5 demo of @pulse/svelte — shows <pulse-player> + <pulse-fab> Custom Elements + usePulseAudio() store contract in a real Svelte app.",
+  "description": "Svelte 5 demo of @pulse-music/svelte — shows <pulse-player> + <pulse-fab> Custom Elements + usePulseAudio() store contract in a real Svelte app.",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@pulse/svelte": "*",
+    "@pulse-music/svelte": "*",
     "svelte": "^5.56.3"
   },
   "devDependencies": {

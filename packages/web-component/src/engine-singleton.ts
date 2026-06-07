@@ -1,4 +1,4 @@
-import { PulseEngine } from '@pulse/core'
+import { PulseEngine } from '@pulse-music/core'
 
 /**
  * Shared PulseEngine singleton for the Web Components.
@@ -11,8 +11,8 @@ import { PulseEngine } from '@pulse/core'
  * Advanced consumers can override the singleton at module-init time
  * via `setSharedEngine(myEngine)`:
  *
- *   import { setSharedEngine } from '@pulse/web-component'
- *   import { PulseEngine } from '@pulse/core'
+ *   import { setSharedEngine } from '@pulse-music/web-component'
+ *   import { PulseEngine } from '@pulse-music/core'
  *
  *   setSharedEngine(new PulseEngine(myCustomPlaylist))
  *

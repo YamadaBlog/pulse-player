@@ -15,7 +15,7 @@ Live demo URL: **https://yamadablog.github.io/pulse-player/**. The `.github/work
 
 ---
 
-## 1. `@pulse/react-native` real implementation
+## 1. `@pulse-music/react-native` real implementation
 
 **Status:** scaffold only (`private: true`, no peer deps, no source code).
 
@@ -37,7 +37,7 @@ Live demo URL: **https://yamadablog.github.io/pulse-player/**. The `.github/work
 
 **Mitigation in place:**
 
-- `@pulse/types` already shared, so when the RN renderer lands it consumes the same shapes
+- `@pulse-music/types` already shared, so when the RN renderer lands it consumes the same shapes
 - `docs/frameworks/react-native.md` ships the feature parity matrix (web-only features marked ❌, RN-substituted features marked ⚠️)
 - The roadmap pushes this to a dedicated alpha (not the v3.0.0 stable critical path)
 
@@ -45,7 +45,7 @@ Live demo URL: **https://yamadablog.github.io/pulse-player/**. The `.github/work
 
 ---
 
-## 2. `npm publish @pulse/*` to the public registry
+## 2. `npm publish @pulse-music/*` to the public registry
 
 **Status:** package builds work locally (`npm run build:packages` produces `dist/{index.js,index.cjs,index.d.ts}` for every package). Nothing has been published.
 
@@ -60,20 +60,20 @@ Live demo URL: **https://yamadablog.github.io/pulse-player/**. The `.github/work
 - Every publishable package's `package.json` has the correct `exports`, `main`, `module`, `types`, `files` fields and a `publishConfig.access: public`
 - `prepublishOnly` script on the root runs the full CI gate (`npm run ci` + `npm run build:lib`) before any publish
 - `RELEASING.md` documents the publish flow
-- Scaffolds (`@pulse/angular`, `@pulse/react-native`) are explicitly `private: true` — they cannot be accidentally published
+- Scaffolds (`@pulse-music/angular`, `@pulse-music/react-native`) are explicitly `private: true` — they cannot be accidentally published
 
 **Path forward:**
 
 ```bash
 # Maintainer-only:
 npm login
-npm publish --workspace=@pulse/types
-npm publish --workspace=@pulse/core
-npm publish --workspace=@pulse/tokens
-npm publish --workspace=@pulse/web-component
-npm publish --workspace=@pulse/react
-npm publish --workspace=@pulse/svelte
-# (Skip @pulse/angular and @pulse/react-native until they go non-private.)
+npm publish --workspace=@pulse-music/types
+npm publish --workspace=@pulse-music/core
+npm publish --workspace=@pulse-music/tokens
+npm publish --workspace=@pulse-music/web-component
+npm publish --workspace=@pulse-music/react
+npm publish --workspace=@pulse-music/svelte
+# (Skip @pulse-music/angular and @pulse-music/react-native until they go non-private.)
 ```
 
 ---
@@ -87,7 +87,7 @@ npm publish --workspace=@pulse/svelte
 The migration requires:
 
 1. **Visual regression baselines for every viewport / variant / state** — the alpha.7 Playwright setup ships 2 stable baselines (hero + home-fold). Two more (`resize-stage` and `variants gallery`) are flaky because the running ambient EQ + auto-tour rAF loop never converges to a stable frame. Without these, a Vue refactor cannot prove pixel parity.
-2. **`@pulse/web-component` chrome at ≥95 % parity vs Vue v2.3.4** — alpha.7 sits at ~70 % (added mp**bg, mp**noise, prev/next, social icons, eyebrow, 3 responsive states, data-fab, drag-to-resize handle, FAB drag, ambient EQ, pulso, --pulse-scale). Still missing: FAB radial menu (palette + Pulso/Resizable/Hide toggles), fullscreen FAB, the guided demo tour wiring.
+2. **`@pulse-music/web-component` chrome at ≥95 % parity vs Vue v2.3.4** — alpha.7 sits at ~70 % (added mp**bg, mp**noise, prev/next, social icons, eyebrow, 3 responsive states, data-fab, drag-to-resize handle, FAB drag, ambient EQ, pulso, --pulse-scale). Still missing: FAB radial menu (palette + Pulso/Resizable/Hide toggles), fullscreen FAB, the guided demo tour wiring.
 3. **The Vue layer (`MusicPlayer.vue`, `MiniPlayer.vue`, `useAudioStore.ts`) refactored to wrap `<pulse-player>` / `<pulse-fab>`** while still exporting the same component-level API consumers depend on. This is a delicate operation — every prop binding, slot, and emit must map onto the underlying Custom Element without drift.
 
 **Why not done in this session:**
@@ -140,8 +140,8 @@ The migration requires:
 
 | Item                                   | Severity                   | Real blocker?                      | Path forward                        |
 | -------------------------------------- | -------------------------- | ---------------------------------- | ----------------------------------- |
-| `@pulse/react-native` real impl        | High (vs roadmap)          | Yes — needs RN tooling environment | v3.X.0 dedicated sprint             |
-| `npm publish @pulse/*`                 | Critical (vs distribution) | Yes — needs maintainer OTP         | Maintainer runs locally             |
+| `@pulse-music/react-native` real impl  | High (vs roadmap)          | Yes — needs RN tooling environment | v3.X.0 dedicated sprint             |
+| `npm publish @pulse-music/*`           | Critical (vs distribution) | Yes — needs maintainer OTP         | Maintainer runs locally             |
 | Vue migration                          | Medium (vs architecture)   | No — deferred for safety           | v3.0.0-alpha.9, gated by Playwright |
 | Playwright `resize-stage` + `variants` | Low (vs alpha.9 gate)      | No — animation tuning              | v3.0.0-alpha.8                      |
 | FAB radial menu                        | Medium (vs Vue parity)     | No — time-bounded                  | v3.0.0-alpha.8                      |

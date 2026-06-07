@@ -10,9 +10,9 @@
     "isolatedModules": true,
     "noEmit": true,
     "paths": {
-      "@pulse/types": ["../types/src/index.ts"],
-      "@pulse/core": ["../core/src/index.ts"],
-      "@pulse/web-component": ["../web-component/src/index.ts"]
+      "@pulse-music/types": ["../types/src/index.ts"],
+      "@pulse-music/core": ["../core/src/index.ts"],
+      "@pulse-music/web-component": ["../web-component/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts"]

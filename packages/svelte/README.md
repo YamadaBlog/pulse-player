@@ -1,6 +1,6 @@
-# @pulse/svelte
+# @pulse-music/svelte
 
-Svelte 5 wrapper for pulse-player. Components + runes-based store on top of `@pulse/web-component`.
+Svelte 5 wrapper for pulse-player. Components + runes-based store on top of `@pulse-music/web-component`.
 
 ## Status
 

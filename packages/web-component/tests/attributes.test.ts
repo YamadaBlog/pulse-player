@@ -13,7 +13,7 @@
  *     - show-menu   (alpha.8)         — boolean reflected, toggles popover
  *
  * Behavioural correctness of the underlying audio engine is gated by
- * the 27 @pulse/core tests; this suite focuses on the attribute /
+ * the 27 @pulse-music/core tests; this suite focuses on the attribute /
  * markup contract.
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'

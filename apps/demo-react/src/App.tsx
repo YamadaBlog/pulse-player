@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
-import { PulsePlayer, PulseFab, usePulseAudio, ALL_VARIANTS, type PulseVariant } from '@pulse/react'
+import { PulsePlayer, PulseFab, usePulseAudio, ALL_VARIANTS, type PulseVariant } from '@pulse-music/react'
 
 /**
- * React demo for @pulse/react — proves the wrapper works in a real
+ * React demo for @pulse-music/react — proves the wrapper works in a real
  * React app, not just under vitest. Variant picker switches the
  * `variant` prop on both `<PulsePlayer />` and `<PulseFab />`,
  * `usePulseAudio()` drives a live transport row, and every
  * forwarded event is logged.
  *
- * Run:  npm install --workspace=@pulse/demo-react && npm run dev --workspace=@pulse/demo-react
+ * Run:  npm install --workspace=@pulse-music/demo-react && npm run dev --workspace=@pulse-music/demo-react
  *       → http://localhost:5181
  */
 export function App() {

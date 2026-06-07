@@ -2,7 +2,7 @@
 
 Copy-paste-friendly integration patterns for the production-grade meta-frameworks. Each example is **the smallest possible integration** that gets Pulse rendering in the corresponding framework — no dependencies beyond what the framework needs, no extra abstractions.
 
-Once `@pulse/*` lands on npm (see [`PUBLISH_CHECKLIST.md`](../../docs/universal/PUBLISH_CHECKLIST.md)), every snippet here becomes copy-paste-runnable in a fresh project of the matching framework.
+Once `@pulse-music/*` lands on npm (see [`PUBLISH_CHECKLIST.md`](../../docs/universal/PUBLISH_CHECKLIST.md)), every snippet here becomes copy-paste-runnable in a fresh project of the matching framework.
 
 ## Index
 
@@ -17,7 +17,7 @@ Once `@pulse/*` lands on npm (see [`PUBLISH_CHECKLIST.md`](../../docs/universal/
 ## What every snippet has in common
 
 - ~30-50 lines, all the way through render.
-- Imports the framework's lightest Pulse package (`@pulse/react` / `@pulse/svelte` / `@pulse/web-component`).
+- Imports the framework's lightest Pulse package (`@pulse-music/react` / `@pulse-music/svelte` / `@pulse-music/web-component`).
 - Wires at minimum: `variant` prop, `ambient-eq`, `pulso`, an event handler.
 - Documents the one SSR/hydration gotcha that always trips first-time integrators.
 
@@ -31,6 +31,6 @@ Once `@pulse/*` lands on npm (see [`PUBLISH_CHECKLIST.md`](../../docs/universal/
 
 ## Pre-publish status
 
-Every snippet works **today** if you `git clone` this monorepo and reference `@pulse/*` via the local workspace (the apps/ demos do exactly this). After `npm publish @pulse/*`, the snippets work in any fresh project of the matching framework.
+Every snippet works **today** if you `git clone` this monorepo and reference `@pulse-music/*` via the local workspace (the apps/ demos do exactly this). After `npm publish @pulse-music/*`, the snippets work in any fresh project of the matching framework.
 
 The CHANGELOG entry for the alpha that ships the first npm publish will include a one-liner "examples/integrations/* now work standalone" line so the timeline is unambiguous.

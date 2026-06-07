@@ -4,9 +4,9 @@ Interactive playgrounds for evaluating Pulse without cloning the repo. Each link
 
 > 📺 **Prefer a video?** Watch the 3-minute demo on YouTube: [https://youtu.be/q_FJ1GWaCc8](https://youtu.be/q_FJ1GWaCc8). The video walks through every framework wrapper, the 9 themes, the resize / FAB / fullscreen interactions, and the keyboard shortcuts, in real time. No clone needed.
 
-> **Status:** these sandboxes activate once `@pulse/*` packages are published to npm (see [`BLOCKERS.md`](./BLOCKERS.md) #2). Until then, the links below resolve to placeholder URLs. The setup-to-publish-then-create flow is:
+> **Status:** these sandboxes activate once `@pulse-music/*` packages are published to npm (see [`BLOCKERS.md`](./BLOCKERS.md) #2). Until then, the links below resolve to placeholder URLs. The setup-to-publish-then-create flow is:
 >
-> 1. Maintainer runs `npm publish --workspace=@pulse/{types,core,tokens,web-component,react,svelte}` (one-time, requires OTP)
+> 1. Maintainer runs `npm publish --workspace=@pulse-music/{types,core,tokens,web-component,react,svelte}` (one-time, requires OTP)
 > 2. Create the StackBlitz / CodeSandbox project from the templates in `apps/demo-{vanilla,react,svelte}/`
 > 3. Replace the placeholder URLs below with the real share links
 > 4. Each sandbox includes a "Fork on StackBlitz" badge that lands consumers in an editable copy
@@ -18,7 +18,7 @@ Interactive playgrounds for evaluating Pulse without cloning the repo. Each link
 ```html
 <!doctype html>
 <script type="module">
-  import '@pulse/web-component'
+  import '@pulse-music/web-component'
 </script>
 <pulse-player variant="midnight" ambient-eq></pulse-player>
 <pulse-fab variant="vinyl" pulso></pulse-fab>
@@ -32,7 +32,7 @@ Source: [`apps/demo-vanilla/index.html`](../../apps/demo-vanilla/index.html)
 [![Edit on CodeSandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/pulse-player-react)
 
 ```tsx
-import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse/react'
+import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse-music/react'
 
 export default function App() {
   const { isPlaying, track, toggle } = usePulseAudio()
@@ -56,7 +56,7 @@ Source: [`apps/demo-react/`](../../apps/demo-react/)
 
 ```vue
 <script setup lang="ts">
-import { MusicPlayer, MiniPlayer } from '@pulse/vue'
+import { MusicPlayer, MiniPlayer } from '@pulse-music/vue'
 </script>
 
 <template>
@@ -65,7 +65,7 @@ import { MusicPlayer, MiniPlayer } from '@pulse/vue'
 </template>
 ```
 
-Source: [`src/App.vue`](../../src/App.vue) (v2.3.4 reference) — `@pulse/vue` is the soft re-export.
+Source: [`src/App.vue`](../../src/App.vue) (v2.3.4 reference) — `@pulse-music/vue` is the soft re-export.
 
 ## Svelte 5
 
@@ -73,7 +73,7 @@ Source: [`src/App.vue`](../../src/App.vue) (v2.3.4 reference) — `@pulse/vue` i
 
 ```svelte
 <script lang="ts">
-  import { usePulseAudio } from '@pulse/svelte'
+  import { usePulseAudio } from '@pulse-music/svelte'
   const audio = usePulseAudio()
 </script>
 
@@ -86,13 +86,13 @@ Source: [`apps/demo-svelte/`](../../apps/demo-svelte/)
 
 ## Angular 17+
 
-(Once `@pulse/angular` goes public — see [`BLOCKERS.md`](./BLOCKERS.md) for the `@angular/core` floor decision.)
+(Once `@pulse-music/angular` goes public — see [`BLOCKERS.md`](./BLOCKERS.md) for the `@angular/core` floor decision.)
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/pulse-player-angular)
 
 ```ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core'
-import { PulseModule } from '@pulse/angular'
+import { PulseModule } from '@pulse-music/angular'
 
 @Component({
   selector: 'app-root',
@@ -117,12 +117,12 @@ npm install
 npm run dev                                       # → http://localhost:5174
 
 # Per-framework demos
-npm run dev --workspace=@pulse/demo-vanilla       # → http://localhost:5180
-npm run dev --workspace=@pulse/demo-react         # → http://localhost:5181
-npm run dev --workspace=@pulse/demo-svelte        # → http://localhost:5182
+npm run dev --workspace=@pulse-music/demo-vanilla       # → http://localhost:5180
+npm run dev --workspace=@pulse-music/demo-react         # → http://localhost:5181
+npm run dev --workspace=@pulse-music/demo-svelte        # → http://localhost:5182
 ```
 
-Each demo aliases the `@pulse/*` packages to the workspace TypeScript sources, so edits in `packages/*/src/` reflect immediately without rebuilding.
+Each demo aliases the `@pulse-music/*` packages to the workspace TypeScript sources, so edits in `packages/*/src/` reflect immediately without rebuilding.
 
 ## Why both StackBlitz and CodeSandbox?
 

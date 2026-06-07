@@ -8,9 +8,9 @@ export default defineConfig({
   clean: true,
   treeshake: true,
   external: [
-    '@pulse/types',
-    '@pulse/core',
-    '@pulse/web-component',
+    '@pulse-music/types',
+    '@pulse-music/core',
+    '@pulse-music/web-component',
     'react',
     'react-dom',
     'react/jsx-runtime',

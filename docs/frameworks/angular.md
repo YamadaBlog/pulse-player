@@ -1,17 +1,17 @@
-# Pulse for Angular (`@pulse/angular`)
+# Pulse for Angular (`@pulse-music/angular`)
 
-Angular 17+ wrapper. Thin `PulseModule` + Custom Elements registration on top of `@pulse/web-component`.
+Angular 17+ wrapper. Thin `PulseModule` + Custom Elements registration on top of `@pulse-music/web-component`.
 
 > ✅ **Honest status (v3.0.0-alpha.10):** `PulseModule` is shipped and **tested via Vitest smoke tests (5 / 5)** that verify Custom Element registration + re-export integrity. The package is currently marked `private: true` because the floor peer dependency `@angular/core` >= 17.3.12 is required to avoid known CVEs (older 17.x has XSS issues per `npm audit`). Once v3.0.0 stable raises the floor to 19+, the package goes public. Chrome parity vs Vue v2.3.4 is **~95 %** (inherited from `<pulse-player>`).
 
 ## Install
 
 ```bash
-npm install @pulse/angular
+npm install @pulse-music/angular
 # Peer dep: @angular/core >= 17.3.12
 ```
 
-`@pulse/angular` side-effect-imports `@pulse/web-component`, which registers `<pulse-player>` and `<pulse-fab>` Custom Elements globally.
+`@pulse-music/angular` side-effect-imports `@pulse-music/web-component`, which registers `<pulse-player>` and `<pulse-fab>` Custom Elements globally.
 
 ## Setup
 
@@ -20,7 +20,7 @@ npm install @pulse/angular
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core'
 import { BrowserModule } from '@angular/platform-browser'
 import { AppComponent } from './app.component'
-import { PulseModule } from '@pulse/angular'
+import { PulseModule } from '@pulse-music/angular'
 
 @NgModule({
   declarations: [AppComponent],
@@ -35,7 +35,7 @@ If you're on standalone components (Angular 17+):
 
 ```ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core'
-import { PulseModule } from '@pulse/angular'
+import { PulseModule } from '@pulse-music/angular'
 
 @Component({
   selector: 'app-root',
@@ -66,7 +66,7 @@ export class AppComponent {}
 ```ts
 // app.component.ts
 import { Component } from '@angular/core'
-import type { EventMap } from '@pulse/angular'
+import type { EventMap } from '@pulse-music/angular'
 
 @Component({
   /* … */
@@ -116,7 +116,7 @@ For Angular services or imperative control flow, use the singleton `PulseEngine`
 
 ```ts
 import { Injectable } from '@angular/core'
-import { getSharedEngine, type PulseState } from '@pulse/angular'
+import { getSharedEngine, type PulseState } from '@pulse-music/angular'
 
 @Injectable({ providedIn: 'root' })
 export class AudioService {

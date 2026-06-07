@@ -1,4 +1,4 @@
-# Pulse Web Component (`@pulse/web-component`)
+# Pulse Web Component (`@pulse-music/web-component`)
 
 Universal Custom Elements. The renderer every framework wrapper consumes.
 
@@ -12,7 +12,7 @@ Universal Custom Elements. The renderer every framework wrapper consumes.
 
 ```html
 <!-- ES module, no framework required -->
-<script type="module" src="https://unpkg.com/@pulse/web-component"></script>
+<script type="module" src="https://unpkg.com/@pulse-music/web-component"></script>
 
 <pulse-player variant="midnight" ambient-eq accent-color="#8B5CF6"></pulse-player>
 <pulse-fab variant="vinyl" pulso></pulse-fab>
@@ -38,7 +38,7 @@ Works natively in:
 
 ## Why Custom Elements
 
-W3C standard, no framework lock-in. A bug fix in `@pulse/web-component` ships to every consumer simultaneously. New frameworks need only a ~50-LOC adapter, not a full re-implementation.
+W3C standard, no framework lock-in. A bug fix in `@pulse-music/web-component` ships to every consumer simultaneously. New frameworks need only a ~50-LOC adapter, not a full re-implementation.
 
 ## See also
 

@@ -25,7 +25,7 @@ The window is narrow. The decision should land before [PUBLISH_CHECKLIST.md](./P
 - The current repo URL is `github.com/YamadaBlog/pulse-player`. Renaming the GitHub repo doesn't change the canonical link history — GitHub auto-redirects, so the YouTube description + the alpha tag dates stay valid.
 - The current product name in the README is `pulse-player`. The 9 themes are not name-bound — they keep their names regardless.
 
-## Option A — Keep `pulse-player` + `@pulse/*` scope
+## Option A — Keep `pulse-player` + `@pulse-music/*` scope
 
 **Status quo.** Ship the v3.0.0-rc.0 with the current names.
 
@@ -40,7 +40,7 @@ The window is narrow. The decision should land before [PUBLISH_CHECKLIST.md](./P
 
 ## Option B — Keep `pulse-player` but use a unique scope `@yamadablog/*`
 
-Rename the npm packages from `@pulse/types` / `@pulse/core` / etc. to `@yamadablog/pulse-types` / `@yamadablog/pulse-core` — the repo name stays. The library's name remains "Pulse" for marketing purposes.
+Rename the npm packages from `@pulse-music/types` / `@pulse-music/core` / etc. to `@yamadablog/pulse-types` / `@yamadablog/pulse-core` — the repo name stays. The library's name remains "Pulse" for marketing purposes.
 
 | Pro                                                                                            | Con                                                               |
 | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -49,7 +49,7 @@ Rename the npm packages from `@pulse/types` / `@pulse/core` / etc. to `@yamadabl
 | 30-min rename (grep across `package.json` files + `tsup.config.ts` aliases + workspaces field) | The 5 sandbox URLs need updating                                  |
 | **Recommended if `@pulse` scope is taken on npm**                                              |                                                                   |
 
-**Recommended action if you pick this option:** I (Claude) can execute the rename in this session — `find packages/ -name 'package.json' -exec sed -i 's|@pulse/|@yamadablog/pulse-|g' {} \;` + sweep the tsup aliases + workspaces field + docs + then run the full CI gate.
+**Recommended action if you pick this option:** I (Claude) can execute the rename in this session — `find packages/ -name 'package.json' -exec sed -i 's|@pulse-music/|@yamadablog/pulse-|g' {} \;` + sweep the tsup aliases + workspaces field + docs + then run the full CI gate.
 
 ## Option C — Full rename to a unique product name
 
@@ -90,7 +90,7 @@ In the meantime: I haven't run the `npm view @pulse` command (it requires a netw
 
 ## What I CAN do in 30 minutes if you say "Go"
 
-For **Option B**: rename all `@pulse/*` → `@yamadablog/pulse-*` in `packages/*/package.json`, `tsup.config.ts` aliases, root workspaces, every `from '@pulse/...'` import across the source, every docs reference. Run the full CI gate. Commit + tag.
+For **Option B**: rename all `@pulse-music/*` → `@yamadablog/pulse-*` in `packages/*/package.json`, `tsup.config.ts` aliases, root workspaces, every `from '@pulse-music/...'` import across the source, every docs reference. Run the full CI gate. Commit + tag.
 
 For **Option C with a chosen name**: same as Option B + sweep README, CHANGELOG, docs/README.md, docs/universal/_, examples/integrations/_, every screenshot caption, every code comment that says "Pulse" by name. Run CI gate. Commit + tag.
 

@@ -1,4 +1,4 @@
-# @pulse/types
+# @pulse-music/types
 
 Shared TypeScript types for every pulse-player framework wrapper.
 
@@ -21,9 +21,9 @@ This package is a workspace dependency. Inside this monorepo:
 Once published to npm:
 
 ```bash
-npm install @pulse/types
+npm install @pulse-music/types
 # or
-pnpm add @pulse/types
+pnpm add @pulse-music/types
 ```
 
 ## Why
@@ -32,7 +32,7 @@ The audio engine, the renderers and the framework wrappers all need to talk abou
 
 ## Status
 
-✅ **Published shape** — these types are the stable contract that every other `@pulse/*` package depends on. Breaking changes here will bump the monorepo major.
+✅ **Published shape** — these types are the stable contract that every other `@pulse-music/*` package depends on. Breaking changes here will bump the monorepo major.
 
 ## License
 

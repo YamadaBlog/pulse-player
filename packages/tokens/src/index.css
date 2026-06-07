@@ -1,11 +1,11 @@
-/* @pulse/tokens — every CSS design token used by every web renderer.
+/* @pulse-music/tokens — every CSS design token used by every web renderer.
  *
  * Single source of truth for:
  *   - variant gradients + accent identities (`./variants.css`)
  *   - base palette + scale + shadows (`./base.css`)
  *   - shared @keyframes (`./animations.css`)
  *
- * Consumers (`@pulse/web-component`, `@pulse/vue`, future React + others)
+ * Consumers (`@pulse-music/web-component`, `@pulse-music/vue`, future React + others)
  * import only the slices they need.
  *
  * Status: SCAFFOLD. The actual extraction of `src/lib/shared/variants.css`

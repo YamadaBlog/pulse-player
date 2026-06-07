@@ -7,15 +7,15 @@ export default defineConfig({
   server: { port: 5182 },
   resolve: {
     alias: {
-      '@pulse/types': fileURLToPath(new URL('../../packages/types/src/index.ts', import.meta.url)),
-      '@pulse/core': fileURLToPath(new URL('../../packages/core/src/index.ts', import.meta.url)),
-      '@pulse/tokens': fileURLToPath(
+      '@pulse-music/types': fileURLToPath(new URL('../../packages/types/src/index.ts', import.meta.url)),
+      '@pulse-music/core': fileURLToPath(new URL('../../packages/core/src/index.ts', import.meta.url)),
+      '@pulse-music/tokens': fileURLToPath(
         new URL('../../packages/tokens/src/index.ts', import.meta.url),
       ),
-      '@pulse/web-component': fileURLToPath(
+      '@pulse-music/web-component': fileURLToPath(
         new URL('../../packages/web-component/src/index.ts', import.meta.url),
       ),
-      '@pulse/svelte': fileURLToPath(
+      '@pulse-music/svelte': fileURLToPath(
         new URL('../../packages/svelte/src/index.ts', import.meta.url),
       ),
     },

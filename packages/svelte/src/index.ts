@@ -1,5 +1,5 @@
 /**
- * @pulse/svelte — Svelte 5 wrapper for pulse-player.
+ * @pulse-music/svelte — Svelte 5 wrapper for pulse-player.
  *
  * Svelte's DOM-first philosophy means `<pulse-player>` and
  * `<pulse-fab>` Custom Elements work **directly** in any Svelte
@@ -11,14 +11,14 @@
  *     the action surface. Equivalent to Vue's `useAudioStore` and
  *     React's `usePulseAudio()`.
  *   - Re-exports of the engine, the singleton helpers, and every
- *     `@pulse/types` shape, so consumers pull everything from one
+ *     `@pulse-music/types` shape, so consumers pull everything from one
  *     import.
  *
  * Example:
  *
  * ```svelte
  * <script lang="ts">
- *   import { usePulseAudio } from '@pulse/svelte'
+ *   import { usePulseAudio } from '@pulse-music/svelte'
  *   const audio = usePulseAudio()
  * </script>
  *
@@ -39,7 +39,7 @@
  */
 
 // Side-effect import registers <pulse-player> + <pulse-fab>.
-import '@pulse/web-component'
+import '@pulse-music/web-component'
 
 export { usePulseAudio, type UsePulseAudioStore } from './usePulseAudio'
 
@@ -47,7 +47,7 @@ export {
   PulseEngine,
   getSharedEngine,
   setSharedEngine,
-} from '@pulse/web-component'
+} from '@pulse-music/web-component'
 
 export type {
   AudioEvent,
@@ -58,6 +58,6 @@ export type {
   PulseVariant,
   Track,
   Unsubscribe,
-} from '@pulse/types'
+} from '@pulse-music/types'
 
-export { ALL_VARIANTS } from '@pulse/types'
+export { ALL_VARIANTS } from '@pulse-music/types'

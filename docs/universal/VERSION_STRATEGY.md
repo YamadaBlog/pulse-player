@@ -25,10 +25,10 @@ The work since alpha.0 has produced a publishable artifact. We just haven't publ
 
 1. Run `bash scripts/publish-dry-run.sh` — verify all checks green.
 2. Bump every `packages/*/package.json` from `0.0.0` to `3.0.0-rc.0` (single sed sweep).
-3. Publish each `@pulse/*` package to npm with `npm publish --access=public`.
+3. Publish each `@pulse-music/*` package to npm with `npm publish --access=public`.
 4. Tag the commit `v3.0.0-rc.0` and push.
 
-**Gate:** `npm view @pulse/react version` returns `3.0.0-rc.0`.
+**Gate:** `npm view @pulse-music/react version` returns `3.0.0-rc.0`.
 
 **Why rc.0, not 1.0.0:** v1.0.0 implies an API freeze. We want a release candidate that signals "we believe this is stable, please use it, but we'll iterate on feedback before locking the API". This is the standard cadence (Vue 3 did rc.1 → rc.13 before 3.0.0 stable).
 
@@ -67,7 +67,7 @@ The work since alpha.0 has produced a publishable artifact. We just haven't publ
 
 1. Rename `v3.0.0-rc.X` → `v3.0.0` in the npm tarball metadata.
 2. Tag `v3.0.0` on the commit.
-3. Bump `pulse-player` root package (Vue v2.3.4 reference) version to `3.0.0` as well, so the Vue lib becomes "pulse-player 3.0.0" alongside `@pulse/*`.
+3. Bump `pulse-player` root package (Vue v2.3.4 reference) version to `3.0.0` as well, so the Vue lib becomes "pulse-player 3.0.0" alongside `@pulse-music/*`.
 4. Publish a "v3.0.0 is out" blog post / dev.to article / YouTube announcement.
 5. README "v3 is in alpha" banner removed.
 

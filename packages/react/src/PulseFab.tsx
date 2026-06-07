@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import type { EventMap, PulseVariant } from '@pulse/types'
+import type { EventMap, PulseVariant } from '@pulse-music/types'
 import { useDomEvent } from './useDomEvent'
 
 /**
@@ -15,7 +15,7 @@ import { useDomEvent } from './useDomEvent'
  * ```
  */
 
-import '@pulse/web-component'
+import '@pulse-music/web-component'
 
 export interface PulseFabProps {
   variant?: PulseVariant

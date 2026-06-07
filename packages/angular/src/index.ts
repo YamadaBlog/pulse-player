@@ -1,5 +1,5 @@
 /**
- * @pulse/angular — Angular 17+ wrapper for pulse-player.
+ * @pulse-music/angular — Angular 17+ wrapper for pulse-player.
  *
  * Exposes `PulseModule` and re-exports the engine + types so
  * consumers can pull everything from one import.
@@ -27,4 +27,4 @@ export type {
   PulseVariant,
   Track,
   Unsubscribe,
-} from '@pulse/types'
+} from '@pulse-music/types'

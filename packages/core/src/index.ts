@@ -1,12 +1,12 @@
 /**
- * @pulse/core — framework-agnostic audio engine.
+ * @pulse-music/core — framework-agnostic audio engine.
  *
  * Public surface:
  *   - `PulseEngine` class — owns the singleton audio graph + state
- *     machine. Every framework wrapper (`@pulse/vue`, `@pulse/react`,
+ *     machine. Every framework wrapper (`@pulse-music/vue`, `@pulse-music/react`,
  *     etc.) creates one engine instance and projects its state into
  *     the framework's reactivity primitive via `onStateChange()`.
- *   - Re-exports `@pulse/types` so framework wrappers can pull
+ *   - Re-exports `@pulse-music/types` so framework wrappers can pull
  *     everything from a single import.
  *
  * Status: v3.0.0-alpha.1 — first real release. Audio engine extracted
@@ -26,6 +26,6 @@ export type {
   PulseVariant,
   Track,
   Unsubscribe,
-} from '@pulse/types'
+} from '@pulse-music/types'
 
-export { ALL_VARIANTS } from '@pulse/types'
+export { ALL_VARIANTS } from '@pulse-music/types'

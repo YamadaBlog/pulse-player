@@ -17,15 +17,15 @@
 
 ### Now an audio component you can drop into any framework.
 
-| Framework                               | Package                                        | Status today                                                                                                   | Chrome parity vs Vue v2.3.4 |
-| --------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| **Vue 3**                               | `pulse-player` (today) / `@pulse/vue` (v3.0.0) | ✅ **Production-ready** (v2.3.4 validated, 15 alphas untouched)                                                | **100 %**                   |
-| **React 18 / 19**                       | `@pulse/react`                                 | ✅ wrapper + 16 RTL tests + apps/demo-react runnable                                                           | **~95 %**                   |
-| **Svelte 5**                            | `@pulse/svelte`                                | ✅ plain TS hook + 8 store tests + apps/demo-svelte runnable                                                   | **~95 %**                   |
-| **Web Components**                      | `@pulse/web-component`                         | ✅ `<pulse-player>` + `<pulse-fab>` (Lit) + 22 element tests                                                   | **~95 %**                   |
-| **Vanilla HTML / Solid / Astro / Qwik** | `@pulse/web-component`                         | ✅ apps/demo-vanilla runnable, inherits web-component chrome                                                   | **~95 %**                   |
-| **Angular 17+**                         | `@pulse/angular`                               | ⚠️ PulseModule + 5 smoke tests, `private: true` (CVE peer floor)                                               | **~95 %**                   |
-| **React Native**                        | `@pulse/react-native`                          | 🚫 interface types + 10 contract tests (renderer deferred, see [BLOCKERS.md](./docs/universal/BLOCKERS.md) #1) | **0 %**                     |
+| Framework                               | Package                                              | Status today                                                                                                   | Chrome parity vs Vue v2.3.4 |
+| --------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| **Vue 3**                               | `pulse-player` (today) / `@pulse-music/vue` (v3.0.0) | ✅ **Production-ready** (v2.3.4 validated, 15 alphas untouched)                                                | **100 %**                   |
+| **React 18 / 19**                       | `@pulse-music/react`                                 | ✅ wrapper + 16 RTL tests + apps/demo-react runnable                                                           | **~95 %**                   |
+| **Svelte 5**                            | `@pulse-music/svelte`                                | ✅ plain TS hook + 8 store tests + apps/demo-svelte runnable                                                   | **~95 %**                   |
+| **Web Components**                      | `@pulse-music/web-component`                         | ✅ `<pulse-player>` + `<pulse-fab>` (Lit) + 22 element tests                                                   | **~95 %**                   |
+| **Vanilla HTML / Solid / Astro / Qwik** | `@pulse-music/web-component`                         | ✅ apps/demo-vanilla runnable, inherits web-component chrome                                                   | **~95 %**                   |
+| **Angular 17+**                         | `@pulse-music/angular`                               | ⚠️ PulseModule + 5 smoke tests, `private: true` (CVE peer floor)                                               | **~95 %**                   |
+| **React Native**                        | `@pulse-music/react-native`                          | 🚫 interface types + 10 contract tests (renderer deferred, see [BLOCKERS.md](./docs/universal/BLOCKERS.md) #1) | **0 %**                     |
 
 **Need the full premium chrome today (resize handle, three responsive states, social icons, prev / next, FAB drag, palette / menu, fullscreen)?** → use the Vue version.
 **Just need the audio engine + minimum card chrome (play / pause / variants / ambient EQ / pulso)?** → any framework wrapper works.
@@ -34,7 +34,7 @@
 
 [![Open Vanilla in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/pulse-player-vanilla) &nbsp; [![Open React in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/pulse-player-react) &nbsp; [![Open Svelte in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/pulse-player-svelte)
 
-See [`docs/universal/SANDBOXES.md`](./docs/universal/SANDBOXES.md) for activation status (sandboxes go live once `@pulse/*` is published to npm).
+See [`docs/universal/SANDBOXES.md`](./docs/universal/SANDBOXES.md) for activation status (sandboxes go live once `@pulse-music/*` is published to npm).
 
 ### Production-framework integration snippets
 

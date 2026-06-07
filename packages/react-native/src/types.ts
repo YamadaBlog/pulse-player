@@ -1,9 +1,9 @@
 /**
- * @pulse/react-native — public API types (interface-only).
+ * @pulse-music/react-native — public API types (interface-only).
  *
  * The real React Native renderer requires CocoaPods / Gradle / the
  * native module pipeline of `react-native-audio-api` — out of scope
- * for the npm monorepo session that built the rest of @pulse/*. See
+ * for the npm monorepo session that built the rest of @pulse-music/*. See
  * `docs/universal/BLOCKERS.md` #1 for the deferral rationale and the
  * path forward (v3.X.0 dedicated sprint).
  *
@@ -20,7 +20,7 @@ import type {
   EventMap,
   PulseState,
   Unsubscribe,
-} from '@pulse/types'
+} from '@pulse-music/types'
 
 /** Props for the `<PulsePlayerRN />` React Native component. */
 export interface PulsePlayerRNProps {

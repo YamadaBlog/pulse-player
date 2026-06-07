@@ -1,8 +1,8 @@
 {
-  "name": "@pulse/demo-react",
+  "name": "@pulse-music/demo-react",
   "version": "0.0.0",
   "private": true,
-  "description": "React demo of @pulse/react — shows <PulsePlayer />, <PulseFab />, usePulseAudio() in a real React app.",
+  "description": "React demo of @pulse-music/react — shows <PulsePlayer />, <PulseFab />, usePulseAudio() in a real React app.",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@pulse/react": "*",
+    "@pulse-music/react": "*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

@@ -17,7 +17,7 @@
  */
 import { describe, expect, it, vi } from 'vitest'
 import { PulseEngine } from '../src/PulseEngine'
-import type { PulseState } from '@pulse/types'
+import type { PulseState } from '@pulse-music/types'
 
 describe('PulseEngine', () => {
   describe('initial state', () => {

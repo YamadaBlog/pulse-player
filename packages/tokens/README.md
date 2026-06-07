@@ -1,4 +1,4 @@
-# @pulse/tokens
+# @pulse-music/tokens
 
 CSS design tokens for pulse-player. Shared by every web renderer.
 
@@ -12,11 +12,11 @@ CSS design tokens for pulse-player. Shared by every web renderer.
 
 ```css
 /* Everything */
-@import '@pulse/tokens';
+@import '@pulse-music/tokens';
 
 /* Or pick what you need */
-@import '@pulse/tokens/variants.css';
-@import '@pulse/tokens/animations.css';
+@import '@pulse-music/tokens/variants.css';
+@import '@pulse-music/tokens/animations.css';
 ```
 
 `sideEffects: ["**/*.css"]` is set, so tree-shaking-aware bundlers preserve the styles when only one consumer imports the package.

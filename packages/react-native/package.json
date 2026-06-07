@@ -1,5 +1,5 @@
 {
-  "name": "@pulse/react-native",
+  "name": "@pulse-music/react-native",
   "version": "3.0.0-rc.0",
   "description": "React Native wrapper for pulse-player. INTERFACE TYPES + parity matrix (v3.0.0-alpha.8). Runtime renderer in v3.X.0 dedicated sprint. Sentinel exports throw a clear error message until then.",
   "license": "MIT",
@@ -25,7 +25,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@pulse/types": "*"
+    "@pulse-music/types": "*"
   },
   "publishConfig": {
     "access": "public"

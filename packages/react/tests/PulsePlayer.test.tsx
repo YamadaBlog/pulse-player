@@ -8,7 +8,7 @@
  *   - Listener cleanup detaches on unmount (no leaks).
  *
  * Behavioural correctness of the underlying audio engine is gated by
- * the 27 @pulse/core tests; this suite focuses on the React ↔ DOM
+ * the 27 @pulse-music/core tests; this suite focuses on the React ↔ DOM
  * bridge.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'

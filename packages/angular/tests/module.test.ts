@@ -1,19 +1,19 @@
 /**
- * `@pulse/angular` smoke tests.
+ * `@pulse-music/angular` smoke tests.
  *
  * Verifies the module's contract:
- *   - Importing `@pulse/angular` side-effect-registers `<pulse-player>`
+ *   - Importing `@pulse-music/angular` side-effect-registers `<pulse-player>`
  *     and `<pulse-fab>` Custom Elements with the browser registry.
  *   - The re-exports (`PulseEngine`, `getSharedEngine`,
  *     `setSharedEngine`, `ALL_VARIANTS`) resolve to the same symbols
- *     `@pulse/web-component` exports.
+ *     `@pulse-music/web-component` exports.
  *
  * Full Angular component integration (template binding, change
  * detection) would need the Angular runtime — out of scope here.
  */
 import { describe, expect, it } from 'vitest'
 
-describe('@pulse/angular — smoke tests', () => {
+describe('@pulse-music/angular — smoke tests', () => {
   it('side-effect-registers <pulse-player> on import', async () => {
     await import('../src/index')
     expect(customElements.get('pulse-player')).toBeDefined()

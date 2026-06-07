@@ -25,7 +25,7 @@
  *
  * ```svelte
  * <script lang="ts">
- *   import { usePulseAudio } from '@pulse/svelte'
+ *   import { usePulseAudio } from '@pulse-music/svelte'
  *
  *   const audio = usePulseAudio()
  * </script>
@@ -43,7 +43,7 @@ import {
   type PulseEngine,
   type PulseState,
   type Track,
-} from '@pulse/web-component'
+} from '@pulse-music/web-component'
 
 type Subscriber = (state: PulseState & { track: Track; progress: number }) => void
 

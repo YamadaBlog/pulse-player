@@ -13,13 +13,13 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@pulse/types': fileURLToPath(new URL('../types/src/index.ts', import.meta.url)),
-      '@pulse/core': fileURLToPath(new URL('../core/src/index.ts', import.meta.url)),
-      '@pulse/web-component': fileURLToPath(
+      '@pulse-music/types': fileURLToPath(new URL('../types/src/index.ts', import.meta.url)),
+      '@pulse-music/core': fileURLToPath(new URL('../core/src/index.ts', import.meta.url)),
+      '@pulse-music/web-component': fileURLToPath(
         new URL('../web-component/src/index.ts', import.meta.url),
       ),
-      '@pulse/tokens': fileURLToPath(new URL('../tokens/src/index.ts', import.meta.url)),
-      '@pulse/test-utils': fileURLToPath(new URL('../test-utils/src/index.ts', import.meta.url)),
+      '@pulse-music/tokens': fileURLToPath(new URL('../tokens/src/index.ts', import.meta.url)),
+      '@pulse-music/test-utils': fileURLToPath(new URL('../test-utils/src/index.ts', import.meta.url)),
     },
   },
 })

@@ -7,5 +7,5 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   treeshake: true,
-  external: ['@pulse/types', '@pulse/core', '@pulse/tokens', 'lit', 'lit/decorators.js'],
+  external: ['@pulse-music/types', '@pulse-music/core', '@pulse-music/tokens', 'lit', 'lit/decorators.js'],
 })

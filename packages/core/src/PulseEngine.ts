@@ -31,7 +31,7 @@ import type {
   PulseState,
   Track,
   Unsubscribe,
-} from '@pulse/types'
+} from '@pulse-music/types'
 
 const DEFAULT_TRACKS: Track[] = [
   {

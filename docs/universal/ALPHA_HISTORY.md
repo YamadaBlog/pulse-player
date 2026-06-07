@@ -22,23 +22,23 @@ The full per-alpha breakdown stays in [`CHANGELOG.md`](../../CHANGELOG.md) for a
 
 ### alpha.1
 
-**`@pulse/core` + `@pulse/tokens`.** Audio engine extracted from the Vue store as a plain TypeScript class (framework-agnostic). Variant gradients + base CSS extracted as `@pulse/tokens` — single source of truth consumed by Lit / Vue / React.
+**`@pulse-music/core` + `@pulse-music/tokens`.** Audio engine extracted from the Vue store as a plain TypeScript class (framework-agnostic). Variant gradients + base CSS extracted as `@pulse-music/tokens` — single source of truth consumed by Lit / Vue / React.
 
 ### alpha.2 - alpha.3
 
-**`@pulse/web-component` (Lit) + `@pulse/react` + `@pulse/svelte`.** First runnable multi-framework wrappers. 9 Lit element tests prove the chrome renders identically across frameworks. README universal table introduced.
+**`@pulse-music/web-component` (Lit) + `@pulse-music/react` + `@pulse-music/svelte`.** First runnable multi-framework wrappers. 9 Lit element tests prove the chrome renders identically across frameworks. README universal table introduced.
 
 ### alpha.4 - alpha.6
 
-**Docs honesty + tsup builds + test-utils + useDomEvent DRY.** Removed 4 duplicated `setup.ts` files into shared `@pulse/test-utils`. 8 React `useEffect` blocks collapsed into one-liners via `useDomEvent` hook. CI matrix (Node 18 / 20 / 22) introduced. Tests reach 85 / 85.
+**Docs honesty + tsup builds + test-utils + useDomEvent DRY.** Removed 4 duplicated `setup.ts` files into shared `@pulse-music/test-utils`. 8 React `useEffect` blocks collapsed into one-liners via `useDomEvent` hook. CI matrix (Node 18 / 20 / 22) introduced. Tests reach 85 / 85.
 
 ### alpha.7 - alpha.9
 
-**Chrome parity push.** `@pulse/web-component` gains 3 responsive states (220 / 130 / 110 px), ambient EQ, pulso heartbeat, data-fab morph, `mp__bg` blur backdrop, `mp__noise` overlay, drag-resize handle, FAB drag-to-reposition with localStorage. Visual regression CI (Playwright) introduced. `@pulse/angular` lands. `@pulse/vue` soft re-export ships. Tests reach 108 / 108.
+**Chrome parity push.** `@pulse-music/web-component` gains 3 responsive states (220 / 130 / 110 px), ambient EQ, pulso heartbeat, data-fab morph, `mp__bg` blur backdrop, `mp__noise` overlay, drag-resize handle, FAB drag-to-reposition with localStorage. Visual regression CI (Playwright) introduced. `@pulse-music/angular` lands. `@pulse-music/vue` soft re-export ships. Tests reach 108 / 108.
 
 ### alpha.10 - alpha.11
 
-**Real SVG icons + keybindings + tests for tokens / Angular / RN.** GitHub Octocat + generic streaming icon (trademark-safe per Spotify brand guidelines). Keyboard shortcuts Space / K / J / L / ← / →. `@pulse/tokens` gets 11 contract tests. `@pulse/angular` gets 5 smoke tests. `@pulse/react-native` gets 10 interface-only tests (renderer deferred to RN sprint). Tests reach 134 / 134. `docs/universal/API.md` + `FEATURE_MATRIX.md` ship.
+**Real SVG icons + keybindings + tests for tokens / Angular / RN.** GitHub Octocat + generic streaming icon (trademark-safe per Spotify brand guidelines). Keyboard shortcuts Space / K / J / L / ← / →. `@pulse-music/tokens` gets 11 contract tests. `@pulse-music/angular` gets 5 smoke tests. `@pulse-music/react-native` gets 10 interface-only tests (renderer deferred to RN sprint). Tests reach 134 / 134. `docs/universal/API.md` + `FEATURE_MATRIX.md` ship.
 
 ### alpha.12
 
@@ -46,7 +46,7 @@ The full per-alpha breakdown stays in [`CHANGELOG.md`](../../CHANGELOG.md) for a
 
 ### alpha.13
 
-**GitHub topics + multi-framework description + release-please + coverage + CC0 audio docs + WC icons split.** Repo description rewritten to reflect the multi-framework reality. 13 topics added. `release-please.yml` + `coverage.yml` workflows. `scripts/setup-demo-audio.sh` for one-command CC0 replacement of placeholders. `@pulse/web-component/src/icons.ts` extracted (PulsePlayer.ts went 480 → 462 LOC).
+**GitHub topics + multi-framework description + release-please + coverage + CC0 audio docs + WC icons split.** Repo description rewritten to reflect the multi-framework reality. 13 topics added. `release-please.yml` + `coverage.yml` workflows. `scripts/setup-demo-audio.sh` for one-command CC0 replacement of placeholders. `@pulse-music/web-component/src/icons.ts` extracted (PulsePlayer.ts went 480 → 462 LOC).
 
 ### alpha.14
 
@@ -74,7 +74,7 @@ The full per-alpha breakdown stays in [`CHANGELOG.md`](../../CHANGELOG.md) for a
 
 ## What's next (post-alpha.19)
 
-The series closes with this `ALPHA_HISTORY.md` entry. The next tag should be `v3.0.0-rc.0` paired with the first `npm publish @pulse/*` — see [`VERSION_STRATEGY.md`](./VERSION_STRATEGY.md) for the rc → stable cadence + [`PUBLISH_CHECKLIST.md`](./PUBLISH_CHECKLIST.md) for the 5-minute OTP procedure.
+The series closes with this `ALPHA_HISTORY.md` entry. The next tag should be `v3.0.0-rc.0` paired with the first `npm publish @pulse-music/*` — see [`VERSION_STRATEGY.md`](./VERSION_STRATEGY.md) for the rc → stable cadence + [`PUBLISH_CHECKLIST.md`](./PUBLISH_CHECKLIST.md) for the 5-minute OTP procedure.
 
 ## Why this page exists
 

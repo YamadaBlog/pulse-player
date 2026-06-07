@@ -1,12 +1,12 @@
 /**
  * Variant tokens as a TypeScript string — consumable by Shadow DOM
  * renderers that can't inherit the document-level `[data-variant]`
- * cascade (every `@pulse/web-component` Custom Element).
+ * cascade (every `@pulse-music/web-component` Custom Element).
  *
  * SINGLE SOURCE OF TRUTH for the 4 mood gradients. Previously
  * declared twice: once in `variants.css` (for document-level
  * consumers) and once as `:host([variant='X'])` rules inside
- * `@pulse/web-component/src/styles.ts`. Drift inevitable.
+ * `@pulse-music/web-component/src/styles.ts`. Drift inevitable.
  *
  * Now: this string is the canonical declaration. The CSS file
  * (`variants.css`) is a copy generated for plain-CSS consumers

@@ -1,5 +1,5 @@
 /**
- * `@pulse/react-native` contract tests.
+ * `@pulse-music/react-native` contract tests.
  *
  * The package ships INTERFACE TYPES + sentinel runtime (the renderer
  * itself is deferred to a v3.X.0 dedicated sprint — see
@@ -11,7 +11,7 @@
  *   - The sentinel runtime exports (`PulsePlayerRN`, `PulseFabRN`,
  *     `usePulseAudioRN`) throw a clear, actionable error message
  *     instead of silently failing or returning `undefined`
- *   - Re-exports from `@pulse/types` are present so RN consumers can
+ *   - Re-exports from `@pulse-music/types` are present so RN consumers can
  *     write their integration code today against the planned API
  */
 import { describe, expect, it } from 'vitest'
@@ -23,7 +23,7 @@ import {
   ALL_VARIANTS,
 } from '../src/index'
 
-describe('@pulse/react-native — parity matrix', () => {
+describe('@pulse-music/react-native — parity matrix', () => {
   it('declares every web feature the consumer might expect', () => {
     const expectedKeys = [
       'audioPlayback',
@@ -63,10 +63,10 @@ describe('@pulse/react-native — parity matrix', () => {
   })
 })
 
-describe('@pulse/react-native — sentinel runtime', () => {
+describe('@pulse-music/react-native — sentinel runtime', () => {
   it('PulsePlayerRN throws a clear error naming BLOCKERS.md', () => {
     expect(() => PulsePlayerRN({} as never)).toThrowError(/BLOCKERS\.md/)
-    expect(() => PulsePlayerRN({} as never)).toThrowError(/@pulse\/react-native/)
+    expect(() => PulsePlayerRN({} as never)).toThrowError(/@pulse-music\/react-native/)
   })
 
   it('PulseFabRN throws the same actionable error', () => {
@@ -78,11 +78,11 @@ describe('@pulse/react-native — sentinel runtime', () => {
   })
 
   it('error message points at the web wrappers as the interim solution', () => {
-    expect(() => usePulseAudioRN()).toThrowError(/@pulse\/web-component/)
+    expect(() => usePulseAudioRN()).toThrowError(/@pulse-music\/web-component/)
   })
 })
 
-describe('@pulse/react-native — type re-exports', () => {
+describe('@pulse-music/react-native — type re-exports', () => {
   it('re-exports ALL_VARIANTS with the canonical 10 entries', () => {
     expect(ALL_VARIANTS.length).toBe(10)
     expect(ALL_VARIANTS).toContain('vinyl')

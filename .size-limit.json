@@ -1,43 +1,43 @@
 [
   {
-    "name": "@pulse/types",
+    "name": "@pulse-music/types",
     "path": "packages/types/dist/index.js",
     "limit": "1 KB",
     "gzip": true
   },
   {
-    "name": "@pulse/core (audio engine)",
+    "name": "@pulse-music/core (audio engine)",
     "path": "packages/core/dist/index.js",
     "limit": "5 KB",
     "gzip": true,
-    "ignore": ["@pulse/types"]
+    "ignore": ["@pulse-music/types"]
   },
   {
-    "name": "@pulse/tokens",
+    "name": "@pulse-music/tokens",
     "path": "packages/tokens/dist/index.js",
     "limit": "2 KB",
     "gzip": true
   },
   {
-    "name": "@pulse/web-component (Lit + chrome)",
+    "name": "@pulse-music/web-component (Lit + chrome)",
     "path": "packages/web-component/dist/index.js",
     "limit": "20 KB",
     "gzip": true,
-    "ignore": ["@pulse/core", "@pulse/tokens", "@pulse/types", "lit", "lit/decorators.js"]
+    "ignore": ["@pulse-music/core", "@pulse-music/tokens", "@pulse-music/types", "lit", "lit/decorators.js"]
   },
   {
-    "name": "@pulse/react (wrapper, peer-React excluded)",
+    "name": "@pulse-music/react (wrapper, peer-React excluded)",
     "path": "packages/react/dist/index.js",
     "limit": "3 KB",
     "gzip": true,
-    "ignore": ["@pulse/core", "@pulse/web-component", "@pulse/types", "react", "react-dom", "react/jsx-runtime"]
+    "ignore": ["@pulse-music/core", "@pulse-music/web-component", "@pulse-music/types", "react", "react-dom", "react/jsx-runtime"]
   },
   {
-    "name": "@pulse/svelte (wrapper)",
+    "name": "@pulse-music/svelte (wrapper)",
     "path": "packages/svelte/dist/index.js",
     "limit": "1 KB",
     "gzip": true,
-    "ignore": ["@pulse/core", "@pulse/web-component", "@pulse/types"]
+    "ignore": ["@pulse-music/core", "@pulse-music/web-component", "@pulse-music/types"]
   },
   {
     "name": "Vue v2.3.4 lib (root build)",

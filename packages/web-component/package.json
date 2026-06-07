@@ -1,5 +1,5 @@
 {
-  "name": "@pulse/web-component",
+  "name": "@pulse-music/web-component",
   "version": "3.0.0-rc.0",
   "description": "Universal Web Component renderer for pulse-player — Lit-based `<pulse-player>` and `<pulse-fab>`. Works in React, Vue, Angular, Svelte, Solid, vanilla JS, or plain HTML.",
   "license": "MIT",
@@ -25,9 +25,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@pulse/core": "*",
-    "@pulse/tokens": "*",
-    "@pulse/types": "*",
+    "@pulse-music/core": "*",
+    "@pulse-music/tokens": "*",
+    "@pulse-music/types": "*",
     "lit": "^3.1.0"
   },
   "publishConfig": {

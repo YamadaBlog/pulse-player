@@ -1,10 +1,10 @@
-# @pulse/react-native
+# @pulse-music/react-native
 
 React Native implementation of pulse-player. **Separate renderer** — no DOM, no CSS, no Web Audio API.
 
 ## Why separate
 
-The other framework wrappers (`@pulse/react`, `@pulse/vue`, `@pulse/angular`, `@pulse/svelte`) all consume the shared `@pulse/web-component` Custom Elements. React Native has none of the browser primitives those Custom Elements depend on, so the renderer is rebuilt from scratch using RN primitives (View, Image, Animated, Reanimated, react-native-svg).
+The other framework wrappers (`@pulse-music/react`, `@pulse-music/vue`, `@pulse-music/angular`, `@pulse-music/svelte`) all consume the shared `@pulse-music/web-component` Custom Elements. React Native has none of the browser primitives those Custom Elements depend on, so the renderer is rebuilt from scratch using RN primitives (View, Image, Animated, Reanimated, react-native-svg).
 
 The audio engine uses one of:
 

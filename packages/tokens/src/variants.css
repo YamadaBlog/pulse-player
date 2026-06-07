@@ -21,7 +21,7 @@
  * stays per-surface.
  *
  * Import as a side-effect from any web renderer
- * (`@pulse/web-component`, `@pulse/vue` post-migration, future
+ * (`@pulse-music/web-component`, `@pulse-music/vue` post-migration, future
  * framework wrappers). Vite's CSS aggregation will fold it into the
  * consumer's stylesheet.
  */

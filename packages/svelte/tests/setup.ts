@@ -1,8 +1,8 @@
 /**
- * Test bootstrap for @pulse/svelte — shared stubs from @pulse/test-utils.
+ * Test bootstrap for @pulse-music/svelte — shared stubs from @pulse-music/test-utils.
  */
 import { beforeEach, vi } from 'vitest'
-import { installAllStubs } from '@pulse/test-utils'
+import { installAllStubs } from '@pulse-music/test-utils'
 
 installAllStubs()
 

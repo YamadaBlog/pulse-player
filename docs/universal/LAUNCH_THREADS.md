@@ -1,6 +1,6 @@
 # Pulse — ready-to-post launch threads
 
-Pre-written posts the maintainer can copy-paste verbatim once `npm publish @pulse/*` lands. Each thread targets one specific audience and follows that audience's posting conventions (Reddit = no over-promotion, Bluesky = motion-rich, HN = no superlatives, dev.to = long-form).
+Pre-written posts the maintainer can copy-paste verbatim once `npm publish @pulse-music/*` lands. Each thread targets one specific audience and follows that audience's posting conventions (Reddit = no over-promotion, Bluesky = motion-rich, HN = no superlatives, dev.to = long-form).
 
 Replace the bracketed `[STARS]` / `[DOWNLOADS]` placeholders with the real numbers at post time.
 
@@ -26,16 +26,16 @@ What it does:
 
 Why I'm posting:
 v3.0.0-rc.0 is the first release I'd actually want feedback on. The Vue
-v2.3.4 reference is bit-for-bit stable (16 alphas), and the @pulse/vue
+v2.3.4 reference is bit-for-bit stable (16 alphas), and the @pulse-music/vue
 package is a soft re-export so existing consumers don't break.
 
 Live demo: https://yamadablog.github.io/pulse-player/
 GitHub: https://github.com/YamadaBlog/pulse-player
 YouTube walkthrough: https://youtu.be/q_FJ1GWaCc8
-npm: https://www.npmjs.com/package/@pulse/vue
+npm: https://www.npmjs.com/package/@pulse-music/vue
 
 What I'd love feedback on:
-- The dual-track `pulse-player` v2.3.4 vs `@pulse/vue` v3.0.0-rc.0 naming.
+- The dual-track `pulse-player` v2.3.4 vs `@pulse-music/vue` v3.0.0-rc.0 naming.
   Confusing? Right call?
 - The 9-theme palette — too many? Wrong colours?
 - Performance on lower-end devices — backdrop-filter is expensive, would
@@ -49,27 +49,27 @@ Happy to answer anything in the thread.
 
 ## 2. Reddit — r/reactjs (post AFTER npm publish)
 
-**Title:** `@pulse/react — a 1 kB music player wrapper around a 8 kB Web Component`
+**Title:** `@pulse-music/react — a 1 kB music player wrapper around a 8 kB Web Component`
 
 **Body:**
 
 ````
 Hi r/reactjs,
 
-Shipped @pulse/react today — a React 18 / 19 wrapper for Pulse, a
+Shipped @pulse-music/react today — a React 18 / 19 wrapper for Pulse, a
 multi-framework music player I've been building.
 
 The bundle math:
-- @pulse/react: 1 kB gzip (wrapper)
-- @pulse/web-component: 8.5 kB gzip (shared chrome runtime)
-- @pulse/core: 2 kB gzip (audio engine)
+- @pulse-music/react: 1 kB gzip (wrapper)
+- @pulse-music/web-component: 8.5 kB gzip (shared chrome runtime)
+- @pulse-music/core: 2 kB gzip (audio engine)
 
 Total cost if you only use the audio + minimal chrome: ~3 kB gzip.
 Full chrome (ambient EQ + pulso + FAB + themes): ~12 kB gzip.
 
 API:
 ```jsx
-import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse/react'
+import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse-music/react'
 
 export function App() {
   const { isPlaying, track, toggle } = usePulseAudio()
@@ -100,7 +100,7 @@ documents the suppressHydrationWarning gotcha).
 
 ## 3. Reddit — r/sveltejs (post AFTER npm publish)
 
-**Title:** `@pulse/svelte — plain TS hook, no Svelte compiler dependency`
+**Title:** `@pulse-music/svelte — plain TS hook, no Svelte compiler dependency`
 
 **Body:**
 
@@ -108,7 +108,7 @@ documents the suppressHydrationWarning gotcha).
 
 r/sveltejs,
 
-Shipped @pulse/svelte — a Svelte 5 wrapper for a multi-framework music
+Shipped @pulse-music/svelte — a Svelte 5 wrapper for a multi-framework music
 player I've been refactoring.
 
 Design choice: no .svelte component, just a plain TypeScript hook
@@ -128,7 +128,7 @@ Example:
 
 ```svelte
 <script lang="ts">
-  import { usePulseAudio } from '@pulse/svelte'
+  import { usePulseAudio } from '@pulse-music/svelte'
   const audio = usePulseAudio()
 </script>
 
@@ -164,10 +164,10 @@ multi-framework component over a focused audit-driven cycle.
 What's in the box:
 
 - Vue 3 reference build (14 kB gzip, v2.3.4 — production-stable)
-- @pulse/react, @pulse/svelte, @pulse/web-component (3-9 kB gzip
+- @pulse-music/react, @pulse-music/svelte, @pulse-music/web-component (3-9 kB gzip
   each, v3.0.0-rc.0)
-- @pulse/angular shipped as a NgModule
-- Shared audio engine (@pulse/core), shared tokens (@pulse/tokens)
+- @pulse-music/angular shipped as a NgModule
+- Shared audio engine (@pulse-music/core), shared tokens (@pulse-music/tokens)
 
 Differentiators vs Plyr / Howler / Vidstack:
 
@@ -205,7 +205,7 @@ stable.
 
 1. The original (Vue v2.3.4) — what worked, why it shipped, why I refactored
 2. The "going universal" choice — could have stayed Vue-only forever, why I didn't
-3. The architecture that makes it work — single @pulse/core engine, single @pulse/tokens variants, framework wrappers as thin adapters
+3. The architecture that makes it work — single @pulse-music/core engine, single @pulse-music/tokens variants, framework wrappers as thin adapters
 4. The brutal CTO audit cycle — every 24 hours, the audit told me what was real vs what I'd over-claimed. Examples: "CI is red since alpha.12" (alpha.14 fixed), "tests pass locally but not CI" (alpha.17 a11y triage), "0 stars on a 1-day-old repo is fine, stop self-evaluating at 9/10" (alpha.18)
 5. The honest comparison vs alternatives — Plyr, Howler, Vidstack
 6. The publishing decision — open MIT + GitHub Sponsors + optional premium themes later (the Tailwind / MUI / shadcn playbook)
@@ -234,7 +234,7 @@ stable.
 
 **Post 3 (multi-framework):**
 
-> @pulse/react (1 kB gzip wrapper) + @pulse/svelte (0.4 kB hook) + @pulse/web-component (8 kB chrome) + @pulse/angular (NgModule).
+> @pulse-music/react (1 kB gzip wrapper) + @pulse-music/svelte (0.4 kB hook) + @pulse-music/web-component (8 kB chrome) + @pulse-music/angular (NgModule).
 >
 > Vue stays as the v2.3.4 reference — 16 alphas, bit-for-bit identical. The migration is dual-track.
 
@@ -258,7 +258,7 @@ Same content as Bluesky thread, ~5-10 % shorter per post to fit 280 chars. Tag #
 
 | Channel | When |
 | --- | --- |
-| `npm publish @pulse/*` | Day 0 |
+| `npm publish @pulse-music/*` | Day 0 |
 | GitHub Discussions "rc.0 feedback" | Day 0 |
 | Reddit r/vuejs | Day 0 + 1 hour |
 | Reddit r/reactjs | Day 0 + 4 hours (avoid double-posting) |

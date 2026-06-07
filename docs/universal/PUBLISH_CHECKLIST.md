@@ -1,6 +1,6 @@
 # Pulse — npm publish checklist (maintainer)
 
-This document is the step-by-step procedure for the **first ever `npm publish`** of the `@pulse/*` packages. It assumes the maintainer is YamadaBlog and has 2FA enabled on the npm account (the modern requirement for any new publish).
+This document is the step-by-step procedure for the **first ever `npm publish`** of the `@pulse-music/*` packages. It assumes the maintainer is YamadaBlog and has 2FA enabled on the npm account (the modern requirement for any new publish).
 
 ## Prerequisites (one-time setup)
 
@@ -30,7 +30,7 @@ If you'd rather start more conservatively, **`0.1.0`** is fine — it tells cons
 ## Step 2 — Bump versions in every publishable package
 
 ```bash
-# From repo root — bumps every @pulse/* package in one go
+# From repo root — bumps every @pulse-music/* package in one go
 for pkg in types core tokens web-component react svelte; do
   cd "packages/$pkg"
   npm version 3.0.0-rc.0 --no-git-tag-version
@@ -38,7 +38,7 @@ for pkg in types core tokens web-component react svelte; do
 done
 ```
 
-Workspace `*` dependencies (e.g. `@pulse/core: "*"` in `@pulse/web-component`) will be resolved at publish time to the actual version we're publishing. npm handles this automatically via the `workspaces` field — no manual edit needed.
+Workspace `*` dependencies (e.g. `@pulse-music/core: "*"` in `@pulse-music/web-component`) will be resolved at publish time to the actual version we're publishing. npm handles this automatically via the `workspaces` field — no manual edit needed.
 
 ## Step 3 — Publish in dependency order
 
@@ -76,24 +76,24 @@ Total time once you're at the keyboard: ~5 minutes, mostly typing OTPs.
 ```bash
 # Check each package is live + correct version
 for pkg in types core tokens web-component react svelte; do
-  echo "@pulse/$pkg latest:"
-  npm view "@pulse/$pkg" version
+  echo "@pulse-music/$pkg latest:"
+  npm view "@pulse-music/$pkg" version
 done
 ```
 
 Open the npm pages in a browser to spot-check the README rendered correctly:
 
-- https://www.npmjs.com/package/@pulse/types
-- https://www.npmjs.com/package/@pulse/core
-- https://www.npmjs.com/package/@pulse/tokens
-- https://www.npmjs.com/package/@pulse/web-component
-- https://www.npmjs.com/package/@pulse/react
-- https://www.npmjs.com/package/@pulse/svelte
+- https://www.npmjs.com/package/@pulse-music/types
+- https://www.npmjs.com/package/@pulse-music/core
+- https://www.npmjs.com/package/@pulse-music/tokens
+- https://www.npmjs.com/package/@pulse-music/web-component
+- https://www.npmjs.com/package/@pulse-music/react
+- https://www.npmjs.com/package/@pulse-music/svelte
 
 ## Step 5 — Tag the publish in git
 
 ```bash
-git tag -a v3.0.0-rc.0 -m "First npm publish — @pulse/* at v3.0.0-rc.0"
+git tag -a v3.0.0-rc.0 -m "First npm publish — @pulse-music/* at v3.0.0-rc.0"
 git push origin v3.0.0-rc.0
 ```
 
@@ -114,13 +114,13 @@ The repo is public, the demo is at https://yamadablog.github.io/pulse-player/, t
 ## What if a publish fails mid-way?
 
 - **OTP expired:** retry with a fresh code. No state to roll back.
-- **Package name taken:** the `@pulse` scope is yours; this shouldn't happen on the first publish. If it does, you're hitting an org-scope conflict — check `npm view @pulse/<name>` to see who owns it.
+- **Package name taken:** the `@pulse` scope is yours; this shouldn't happen on the first publish. If it does, you're hitting an org-scope conflict — check `npm view @pulse-music/<name>` to see who owns it.
 - **`npm ERR! 403`:** you don't have publish rights on the scope. Confirm `npm whoami` returns `yamadablog` and you're an owner of the `@pulse` org.
 - **Half-published state (e.g. `types` published but `core` failed):** safe. Resume from the failing package — `npm publish` is idempotent at the (name, version) level, so if the same version was already pushed, it errors with "cannot publish over existing version". Bump the patch in the failing package only (`0.0.1`) and re-publish.
 
 ## Unpublish window
 
-npm allows `npm unpublish @pulse/<name>@<version>` within **72 hours** of publish. After that, the version is permanent (you can deprecate it via `npm deprecate` but cannot remove it). Use the 72-hour window only if you discover a critical bug in the published tarball — otherwise let it stand and ship a patch release.
+npm allows `npm unpublish @pulse-music/<name>@<version>` within **72 hours** of publish. After that, the version is permanent (you can deprecate it via `npm deprecate` but cannot remove it). Use the 72-hour window only if you discover a critical bug in the published tarball — otherwise let it stand and ship a patch release.
 
 ## Cost
 

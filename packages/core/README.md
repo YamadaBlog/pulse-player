@@ -1,4 +1,4 @@
-# @pulse/core
+# @pulse-music/core
 
 Framework-agnostic audio engine for pulse-player. Pure TypeScript, no DOM, no framework imports.
 

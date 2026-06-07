@@ -5,10 +5,10 @@ The Next.js App Router defaults to **React Server Components**. Pulse renders a 
 ## Install
 
 ```bash
-npm install @pulse/react @pulse/core
+npm install @pulse-music/react @pulse-music/core
 ```
 
-Both packages are listed because `@pulse/react` declares `@pulse/core` as a peer in its tarball — npm will install them together once they're on the registry.
+Both packages are listed because `@pulse-music/react` declares `@pulse-music/core` as a peer in its tarball — npm will install them together once they're on the registry.
 
 ## The client component
 
@@ -17,8 +17,8 @@ Both packages are listed because `@pulse/react` declares `@pulse/core` as a peer
 ```tsx
 'use client'
 
-import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse/react'
-import type { Track } from '@pulse/react'
+import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse-music/react'
+import type { Track } from '@pulse-music/react'
 
 // Optional — replace the bundled demo playlist with your own URLs.
 const tracks: Track[] = [
@@ -78,7 +78,7 @@ export default function Page() {
 
 ## The SSR gotcha
 
-`@pulse/react` internally renders `<pulse-player>` Custom Element + sets a few imperative properties via `ref`. The Custom Element registry doesn't exist on the Node.js server, so calling `customElements.define()` there is a no-op. The package handles this — it doesn't crash — but the host element does render as a bare unknown tag during SSR.
+`@pulse-music/react` internally renders `<pulse-player>` Custom Element + sets a few imperative properties via `ref`. The Custom Element registry doesn't exist on the Node.js server, so calling `customElements.define()` there is a no-op. The package handles this — it doesn't crash — but the host element does render as a bare unknown tag during SSR.
 
 If you see `Hydration mismatch: server rendered <pulse-player>, client expected <pulse-player>` (which is fine — both render the same tag), suppress with:
 

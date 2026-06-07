@@ -1,4 +1,4 @@
-# Pulse for Vue 3 (`@pulse/vue`)
+# Pulse for Vue 3 (`@pulse-music/vue`)
 
 The Vue 3 wrapper. Reference implementation — the visual + behavioural source of truth that every other framework wrapper is benchmarked against.
 
@@ -6,14 +6,14 @@ The Vue 3 wrapper. Reference implementation — the visual + behavioural source 
 
 ## Current status
 
-The validated v2.3.4 codebase lives at the repo root under `src/lib/`. The migration into `packages/vue/` (with a refactor that turns the Vue layer into a thin wrapper over `@pulse/web-component`) is **deferred until the web-component chrome reaches feature parity** (currently planned for v3.0.0-alpha.7). Until then, the import path is unchanged:
+The validated v2.3.4 codebase lives at the repo root under `src/lib/`. The migration into `packages/vue/` (with a refactor that turns the Vue layer into a thin wrapper over `@pulse-music/web-component`) is **deferred until the web-component chrome reaches feature parity** (currently planned for v3.0.0-alpha.7). Until then, the import path is unchanged:
 
 ```ts
 // Pre-migration (today, v2.x)
 import { MusicPlayer, MiniPlayer, useAudioStore } from 'pulse-player'
 
 // Post-migration (v3.0.0+)
-import { MusicPlayer, MiniPlayer, useAudioStore } from '@pulse/vue'
+import { MusicPlayer, MiniPlayer, useAudioStore } from '@pulse-music/vue'
 ```
 
 The consumer-facing API stays pixel-perfect identical. Visual regression tests in CI enforce that.

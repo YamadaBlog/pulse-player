@@ -2,9 +2,9 @@ import { defineConfig } from 'vitest/config'
 import { fileURLToPath } from 'node:url'
 
 /**
- * Vitest config for @pulse/react.
+ * Vitest config for @pulse-music/react.
  *
- * jsdom env + setup file matching @pulse/core's. JSX is handled by
+ * jsdom env + setup file matching @pulse-music/core's. JSX is handled by
  * vitest's esbuild loader (the `.tsx` extension + a `jsx: 'automatic'`
  * defaults inferred from tsconfig).
  *
@@ -26,13 +26,13 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@pulse/types': fileURLToPath(new URL('../types/src/index.ts', import.meta.url)),
-      '@pulse/core': fileURLToPath(new URL('../core/src/index.ts', import.meta.url)),
-      '@pulse/web-component': fileURLToPath(
+      '@pulse-music/types': fileURLToPath(new URL('../types/src/index.ts', import.meta.url)),
+      '@pulse-music/core': fileURLToPath(new URL('../core/src/index.ts', import.meta.url)),
+      '@pulse-music/web-component': fileURLToPath(
         new URL('../web-component/src/index.ts', import.meta.url),
       ),
-      '@pulse/tokens': fileURLToPath(new URL('../tokens/src/index.ts', import.meta.url)),
-      '@pulse/test-utils': fileURLToPath(new URL('../test-utils/src/index.ts', import.meta.url)),
+      '@pulse-music/tokens': fileURLToPath(new URL('../tokens/src/index.ts', import.meta.url)),
+      '@pulse-music/test-utils': fileURLToPath(new URL('../test-utils/src/index.ts', import.meta.url)),
     },
   },
 })
