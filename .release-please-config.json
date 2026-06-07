@@ -1,0 +1,53 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "node",
+  "include-component-in-tag": false,
+  "include-v-in-tag": true,
+  "bump-minor-pre-major": true,
+  "bump-patch-for-minor-pre-major": false,
+  "draft": false,
+  "draft-pull-request": false,
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "pulse-player",
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": []
+    },
+    "packages/types": {
+      "release-type": "node",
+      "package-name": "@pulse/types",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/core": {
+      "release-type": "node",
+      "package-name": "@pulse/core",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/tokens": {
+      "release-type": "node",
+      "package-name": "@pulse/tokens",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/web-component": {
+      "release-type": "node",
+      "package-name": "@pulse/web-component",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/react": {
+      "release-type": "node",
+      "package-name": "@pulse/react",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/svelte": {
+      "release-type": "node",
+      "package-name": "@pulse/svelte",
+      "changelog-path": "CHANGELOG.md"
+    }
+  },
+  "plugins": [
+    {
+      "type": "node-workspace"
+    }
+  ]
+}

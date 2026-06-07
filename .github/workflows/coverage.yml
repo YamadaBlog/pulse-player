@@ -1,0 +1,61 @@
+name: Coverage
+
+# Runs the Vue v2.3.4 reference test coverage via vitest + v8 provider
+# on every push to main. Uploads a coverage summary as a job artefact
+# and posts it as a PR comment (when run from a PR).
+#
+# Why only the root Vue suite for now:
+#   - The 6 publishable @pulse/* packages each have their own vitest
+#     config and don't share coverage thresholds yet. Adding them needs
+#     a coverage merge step (nyc / istanbul-merge) — out of scope for
+#     this workflow's first iteration.
+#   - The root suite already covers the most consequential code path
+#     (the Pinia store + the demo tour) — most of the package-level
+#     coverage would just be re-asserting the same engine.
+#
+# Coverage gate: the root vitest config declares a 60 % line floor.
+# The job fails if coverage drops below.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: coverage-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  coverage:
+    name: Coverage (Vue v2.3.4 root suite)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --prefer-offline
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14

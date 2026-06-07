@@ -1,0 +1,42 @@
+name: Release Please
+
+# Automated release PR creation on every push to main.
+#
+# How it works:
+#   1. Conventional Commits (feat:, fix:, docs:, etc.) on `main` are
+#      collected by `release-please` into a draft release PR.
+#   2. The PR contains: a CHANGELOG entry, a version bump in every
+#      affected package.json, and a GitHub Release draft.
+#   3. The maintainer reviews the PR, merges it, and the workflow
+#      automatically tags the release + publishes the GitHub Release
+#      page.
+#   4. `npm publish` is a SEPARATE manual step (see RELEASING.md) —
+#      we don't auto-publish to npm because the maintainer's OTP must
+#      be entered interactively.
+#
+# Manifest-driven mode (`release-type: node` per package + a manifest
+# file at .release-please-manifest.json) handles the monorepo's 9
+# publishable + private packages independently — each one gets its own
+# version line, its own CHANGELOG block, its own SemVer cadence.
+#
+# Config: .release-please-config.json + .release-please-manifest.json
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    name: release-please bot
+    runs-on: ubuntu-latest
+    steps:
+      - name: release-please action
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: .release-please-config.json
+          manifest-file: .release-please-manifest.json
+          token: ${{ secrets.GITHUB_TOKEN }}

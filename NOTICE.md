@@ -41,13 +41,18 @@ They are **not** part of the MIT-licensed source code.
 | `public/audio/cover.webp`  | Image (15 KB)  | Placeholder.                            | Replace with art you own or have licensed.                                 |
 | `public/audio/cover2.webp` | Image (10 KB)  | Placeholder.                            | Replace with art you own or have licensed.                                 |
 
-Recommended CC0 sources for audio: [Free Music Archive](https://freemusicarchive.org/),
-[ccMixter](https://dig.ccmixter.org/), [Pixabay Music](https://pixabay.com/music/).
-Recommended CC0 sources for images: [Unsplash](https://unsplash.com/),
-[Pexels](https://www.pexels.com/), [Pixabay](https://pixabay.com/).
+### How to replace the placeholders (curated CC0 sources, 2026-06)
 
-If you ship pulse-player with any of these placeholders in production,
-you are publishing media of unverified provenance. Don't.
+| Asset | Curated CC0 source | Why this one | Manual download command |
+| --- | --- | --- | --- |
+| Both audio tracks | [Pixabay Music — "Ambient"](https://pixabay.com/music/search/genre/ambient/) | CC0, no attribution required, royalty-free, OPUS-friendly. Filter by length (90 s — 4 min) and mood (ambient / electronic / lofi). | Right-click → "Download MP3" then convert: `ffmpeg -i pixabay-track.mp3 -c:a libopus -b:a 96k public/audio/track1.webm` |
+| Both cover images | [Unsplash — "Album cover"](https://unsplash.com/s/photos/album-cover) | Unsplash License (free for any use incl. commercial, attribution appreciated but not required). High-resolution, square-crop ready. | `curl -L "https://unsplash.com/photos/<id>/download?w=400" -o public/audio/cover.webp` then `cwebp -q 85 cover.jpg -o public/audio/cover.webp` |
+| Alternative for audio | [Free Music Archive — CC0 tag](https://freemusicarchive.org/license/cc0-1-0/) | Strictly CC0 1.0. Curated, archive-grade metadata. | `curl -L "https://freemusicarchive.org/file/<artist>/<track>/download" -o public/audio/track1.mp3` |
+| Alternative for audio | [ccMixter — Public Domain tag](http://dig.ccmixter.org/free) | Public Domain tracks, downloadable as MP3, ready to convert to WebM. | (same `ffmpeg` step) |
+
+**Don't ship the placeholders to production.** If you do, you're publishing media of unverified provenance — even if no rights holder ever notices, the act itself is a compliance failure for any business deploying Pulse.
+
+The maintainer's stance: this repo's `public/audio/` placeholders are documented as **unknown provenance, do-not-ship**, and the recommended path is a 5-minute trip to Pixabay before any commercial deployment.
 
 ## 4. Trademarks and brand names
 
