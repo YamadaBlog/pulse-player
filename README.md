@@ -13,15 +13,15 @@
 
 ### Now an audio component you can drop into any framework.
 
-| Framework | Package | Status today | Chrome parity vs Vue v2.3.4 |
-| --- | --- | --- | --- |
-| **Vue 3** | `pulse-player` (today) / `@pulse/vue` (v3.0.0) | ✅ **Production-ready** (v2.3.4 validated) | **100 %** |
-| **React 18 / 19** | `@pulse/react` | 🛠 alpha — wrapper code shipped, no RTL tests yet | **~30 %** (play / pause / cover / variants / ambient EQ / pulso) |
-| **Svelte 5** | `@pulse/svelte` | 🛠 alpha — plain TS hook + native Custom Elements | ~30 % (same as React, inherits the web-component chrome) |
-| **Web Components** | `@pulse/web-component` | 🛠 alpha — `<pulse-player>` + `<pulse-fab>` (Lit) | **~30 %** |
-| **Vanilla HTML / Solid / Astro / Qwik** | `@pulse/web-component` | 🛠 alpha — works in any HTML page | ~30 % (same as Web Components) |
-| **Angular 17+** | `@pulse/angular` | ⏳ scaffold — v3.1.0 | 0 % |
-| **React Native** | `@pulse/react-native` | ⏳ scaffold — separate renderer (no DOM) | N/A — RN feature parity matrix in `docs/frameworks/react-native.md` |
+| Framework                               | Package                                        | Status today                                      | Chrome parity vs Vue v2.3.4                                         |
+| --------------------------------------- | ---------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------- |
+| **Vue 3**                               | `pulse-player` (today) / `@pulse/vue` (v3.0.0) | ✅ **Production-ready** (v2.3.4 validated)        | **100 %**                                                           |
+| **React 18 / 19**                       | `@pulse/react`                                 | 🛠 alpha — wrapper code shipped, no RTL tests yet | **~30 %** (play / pause / cover / variants / ambient EQ / pulso)    |
+| **Svelte 5**                            | `@pulse/svelte`                                | 🛠 alpha — plain TS hook + native Custom Elements | ~30 % (same as React, inherits the web-component chrome)            |
+| **Web Components**                      | `@pulse/web-component`                         | 🛠 alpha — `<pulse-player>` + `<pulse-fab>` (Lit) | **~30 %**                                                           |
+| **Vanilla HTML / Solid / Astro / Qwik** | `@pulse/web-component`                         | 🛠 alpha — works in any HTML page                 | ~30 % (same as Web Components)                                      |
+| **Angular 17+**                         | `@pulse/angular`                               | ⏳ scaffold — v3.1.0                              | 0 %                                                                 |
+| **React Native**                        | `@pulse/react-native`                          | ⏳ scaffold — separate renderer (no DOM)          | N/A — RN feature parity matrix in `docs/frameworks/react-native.md` |
 
 **Need the full premium chrome today (resize handle, three responsive states, social icons, prev / next, FAB drag, palette / menu, fullscreen)?** → use the Vue version.
 **Just need the audio engine + minimum card chrome (play / pause / variants / ambient EQ / pulso)?** → any framework wrapper works.

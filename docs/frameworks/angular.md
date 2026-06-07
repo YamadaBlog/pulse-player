@@ -68,7 +68,9 @@ export class AppComponent {}
 import { Component } from '@angular/core'
 import type { EventMap } from '@pulse/angular'
 
-@Component({ /* … */ })
+@Component({
+  /* … */
+})
 export class AppComponent {
   onPlay(e: CustomEvent<EventMap['play']>) {
     console.log('▶', e.detail.track.title, e.detail.time)
@@ -120,9 +122,15 @@ import { getSharedEngine, type PulseState } from '@pulse/angular'
 export class AudioService {
   private engine = getSharedEngine()
 
-  play() { this.engine.toggle() }
-  next() { this.engine.next() }
-  setVolume(_v: number) { /* future API */ }
+  play() {
+    this.engine.toggle()
+  }
+  next() {
+    this.engine.next()
+  }
+  setVolume(_v: number) {
+    /* future API */
+  }
 
   /** Subscribe Angular components to state changes. */
   onStateChange(cb: (state: PulseState) => void) {

@@ -4,22 +4,22 @@ This folder is the canonical entry point for every Pulse documentation page. The
 
 ## Choose your path
 
-| You are… | Start here |
-| --- | --- |
-| A **first-time visitor** evaluating Pulse | [README.md](../README.md) → [`docs/universal/SANDBOXES.md`](./universal/SANDBOXES.md) |
-| A **Vue 3 developer** ready to integrate | [`docs/frameworks/vue.md`](./frameworks/vue.md) → [`docs/API.md`](./API.md) → [`docs/ADVANCED_USAGE.md`](./ADVANCED_USAGE.md) |
-| A **React** developer | [`docs/frameworks/react.md`](./frameworks/react.md) → [`docs/universal/API.md`](./universal/API.md) |
-| A **Svelte** developer | [`docs/frameworks/svelte.md`](./frameworks/svelte.md) → [`docs/universal/API.md`](./universal/API.md) |
-| An **Angular** developer | [`docs/frameworks/angular.md`](./frameworks/angular.md) → [`docs/universal/API.md`](./universal/API.md) |
-| A **React Native** developer | [`docs/frameworks/react-native.md`](./frameworks/react-native.md) (read the parity matrix first) |
-| Building with **vanilla HTML / Solid / Astro / Qwik** | [`docs/frameworks/web-component.md`](./frameworks/web-component.md) |
-| **Comparing** frameworks before choosing | [`docs/universal/FEATURE_MATRIX.md`](./universal/FEATURE_MATRIX.md) |
-| Curious about the **architecture** | [`docs/universal/ARCHITECTURE.md`](./universal/ARCHITECTURE.md) |
-| **Migrating** from `pulse-player` v2.3.4 | (v2.3.4 keeps working — see [`docs/frameworks/vue.md`](./frameworks/vue.md)) |
-| **Contributing** | [`CONTRIBUTING.md`](../CONTRIBUTING.md) |
-| Looking for the **changelog** | [`CHANGELOG.md`](../CHANGELOG.md) |
-| Looking for the **licence** | [`LICENSE`](../LICENSE) + [`docs/universal/LICENSING.md`](./universal/LICENSING.md) |
-| Reporting a **security issue** | [`SECURITY.md`](../SECURITY.md) |
+| You are…                                              | Start here                                                                                                                    |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| A **first-time visitor** evaluating Pulse             | [README.md](../README.md) → [`docs/universal/SANDBOXES.md`](./universal/SANDBOXES.md)                                         |
+| A **Vue 3 developer** ready to integrate              | [`docs/frameworks/vue.md`](./frameworks/vue.md) → [`docs/API.md`](./API.md) → [`docs/ADVANCED_USAGE.md`](./ADVANCED_USAGE.md) |
+| A **React** developer                                 | [`docs/frameworks/react.md`](./frameworks/react.md) → [`docs/universal/API.md`](./universal/API.md)                           |
+| A **Svelte** developer                                | [`docs/frameworks/svelte.md`](./frameworks/svelte.md) → [`docs/universal/API.md`](./universal/API.md)                         |
+| An **Angular** developer                              | [`docs/frameworks/angular.md`](./frameworks/angular.md) → [`docs/universal/API.md`](./universal/API.md)                       |
+| A **React Native** developer                          | [`docs/frameworks/react-native.md`](./frameworks/react-native.md) (read the parity matrix first)                              |
+| Building with **vanilla HTML / Solid / Astro / Qwik** | [`docs/frameworks/web-component.md`](./frameworks/web-component.md)                                                           |
+| **Comparing** frameworks before choosing              | [`docs/universal/FEATURE_MATRIX.md`](./universal/FEATURE_MATRIX.md)                                                           |
+| Curious about the **architecture**                    | [`docs/universal/ARCHITECTURE.md`](./universal/ARCHITECTURE.md)                                                               |
+| **Migrating** from `pulse-player` v2.3.4              | (v2.3.4 keeps working — see [`docs/frameworks/vue.md`](./frameworks/vue.md))                                                  |
+| **Contributing**                                      | [`CONTRIBUTING.md`](../CONTRIBUTING.md)                                                                                       |
+| Looking for the **changelog**                         | [`CHANGELOG.md`](../CHANGELOG.md)                                                                                             |
+| Looking for the **licence**                           | [`LICENSE`](../LICENSE) + [`docs/universal/LICENSING.md`](./universal/LICENSING.md)                                           |
+| Reporting a **security issue**                        | [`SECURITY.md`](../SECURITY.md)                                                                                               |
 
 ## Universal documentation (`docs/universal/`)
 

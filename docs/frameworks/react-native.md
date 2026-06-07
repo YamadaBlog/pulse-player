@@ -10,19 +10,19 @@ React Native implementation. **Separate renderer** — no DOM, no CSS, no Web Au
 
 React Native is the one consumer that DOESN'T share `@pulse/web-component`'s rendering — it has none of the browser primitives those Custom Elements depend on. The renderer is rebuilt from scratch using RN primitives.
 
-| Feature                          | Status | Notes |
-| -------------------------------- | ------ | ----- |
-| Audio playback                   | ✅ | via `react-native-audio-api` (Swansion) or `expo-audio` |
-| FFT visualisation                | ✅ | `react-native-audio-api` ships an AnalyserNode-compatible API |
-| 9 themes + custom                | ✅ | StyleSheet equivalents of the CSS gradients |
-| Ambient EQ                       | ✅ | Reanimated equivalent of the CSS keyframes |
-| Pulso heartbeat                  | ✅ | Reanimated |
-| FAB drag                         | ✅ | `react-native-gesture-handler` |
-| `prefers-reduced-motion`         | ✅ | `AccessibilityInfo.isReduceMotionEnabled()` |
-| Backdrop-filter chrome           | ⚠️ | `react-native-blur` substitute |
-| Drag-to-resize                   | ❌ | No DOM resize concept on mobile native — single-size component |
-| `<Teleport to="body">` FAB       | ❌ | Use absolute positioning at the navigation root instead |
-| Guided demo tour                 | ❌ | Web-specific. Not part of the library API anyway. |
+| Feature                    | Status | Notes                                                          |
+| -------------------------- | ------ | -------------------------------------------------------------- |
+| Audio playback             | ✅     | via `react-native-audio-api` (Swansion) or `expo-audio`        |
+| FFT visualisation          | ✅     | `react-native-audio-api` ships an AnalyserNode-compatible API  |
+| 9 themes + custom          | ✅     | StyleSheet equivalents of the CSS gradients                    |
+| Ambient EQ                 | ✅     | Reanimated equivalent of the CSS keyframes                     |
+| Pulso heartbeat            | ✅     | Reanimated                                                     |
+| FAB drag                   | ✅     | `react-native-gesture-handler`                                 |
+| `prefers-reduced-motion`   | ✅     | `AccessibilityInfo.isReduceMotionEnabled()`                    |
+| Backdrop-filter chrome     | ⚠️     | `react-native-blur` substitute                                 |
+| Drag-to-resize             | ❌     | No DOM resize concept on mobile native — single-size component |
+| `<Teleport to="body">` FAB | ❌     | Use absolute positioning at the navigation root instead        |
+| Guided demo tour           | ❌     | Web-specific. Not part of the library API anyway.              |
 
 ## Planned API
 

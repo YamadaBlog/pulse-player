@@ -38,7 +38,9 @@ export default function App() {
     <>
       <PulsePlayer variant="midnight" ambientEq />
       <PulseFab variant="vinyl" pulso draggable showMenu />
-      <button onClick={toggle}>{isPlaying ? '⏸' : '▶'} {track.title}</button>
+      <button onClick={toggle}>
+        {isPlaying ? '⏸' : '▶'} {track.title}
+      </button>
     </>
   )
 }

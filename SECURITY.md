@@ -2,11 +2,11 @@
 
 ## Supported versions
 
-| Version line | Status | Security fixes |
-| --- | --- | --- |
-| `v2.3.x` (Vue 3, current stable) | ✅ Active | Yes |
+| Version line                       | Status            | Security fixes                  |
+| ---------------------------------- | ----------------- | ------------------------------- |
+| `v2.3.x` (Vue 3, current stable)   | ✅ Active         | Yes                             |
 | `v3.0.0-alpha.*` (multi-framework) | 🛠 In development | Yes — patched in the next alpha |
-| `< v2.3.0` | ❌ Unsupported | No |
+| `< v2.3.0`                         | ❌ Unsupported    | No                              |
 
 Patch releases land within 7 days for high-severity reports, 14 days for moderate, 30 days for low.
 

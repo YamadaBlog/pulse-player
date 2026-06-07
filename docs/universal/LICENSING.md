@@ -75,12 +75,12 @@ Audio + cover assets ship as **demo placeholders** under explicit attribution in
 
 ## Summary
 
-| Aspect | Decision |
-| --- | --- |
-| Licence | **MIT** |
-| Revenue model | Sponsorship (GitHub Sponsors) + optional Premium themes (future) + consulting |
-| Asset licensing | Demo placeholders documented in NOTICE.md, must be replaced before redistribution |
-| Trademark exposure | GitHub: allowed (per GitHub logos policy). Streaming: generic icon, no exposure. |
-| Commercial use | Allowed |
-| Fork allowed | Yes (MIT) |
+| Aspect                | Decision                                                                                                                                                              |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Licence               | **MIT**                                                                                                                                                               |
+| Revenue model         | Sponsorship (GitHub Sponsors) + optional Premium themes (future) + consulting                                                                                         |
+| Asset licensing       | Demo placeholders documented in NOTICE.md, must be replaced before redistribution                                                                                     |
+| Trademark exposure    | GitHub: allowed (per GitHub logos policy). Streaming: generic icon, no exposure.                                                                                      |
+| Commercial use        | Allowed                                                                                                                                                               |
+| Fork allowed          | Yes (MIT)                                                                                                                                                             |
 | Trade name protection | The "pulse-player" name is not trademark-registered; the maintainer can do so via WIPO / EUIPO / USPTO if and when commercial scale justifies the ~$300 — $1000 cost. |

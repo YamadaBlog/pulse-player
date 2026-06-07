@@ -339,17 +339,17 @@ The React wrapper exposes them as `githubUrl` / `spotifyUrl` camelCase props.
 
 When the host element has focus:
 
-| Key | Action |
-| --- | --- |
+| Key           | Action              |
+| ------------- | ------------------- |
 | `Space` / `K` | Toggle play / pause |
-| `J` / `←` | Previous track |
-| `L` / `→` | Next track |
+| `J` / `←`     | Previous track      |
+| `L` / `→`     | Next track          |
 
 The host gets `tabIndex="0"` by default (consumers can override with `tabindex="-1"` to skip in tab order). The handler ignores keypresses when the event target is an `<input>`, `<textarea>`, or `contenteditable` element — so slotted forms don't get hijacked. Listener registered + detached in `connected/disconnectedCallback`.
 
 ### LOT 3 — `docs/frameworks/web-component.md` banner refresh
 
-Banner updated from "Chrome parity ~45 %" to "**Chrome parity ~95 %**" with the full list of shipped features (ambient EQ, pulso, --pulse-scale ResizeObserver, 3 responsive states, prev/next ghost buttons, real GitHub + Spotify SVG icons, data-fab morph, mp__bg + mp__noise, drag-to-resize handle, FAB drag-to-reposition + localStorage, FAB radial menu, fullscreen API, keyboard shortcuts, prefers-reduced-motion). The "Not implemented" list shrinks to just the guided demo tour (deliberately out of scope — `App.vue` consumer concern, not library).
+Banner updated from "Chrome parity ~45 %" to "**Chrome parity ~95 %**" with the full list of shipped features (ambient EQ, pulso, --pulse-scale ResizeObserver, 3 responsive states, prev/next ghost buttons, real GitHub + Spotify SVG icons, data-fab morph, mp**bg + mp**noise, drag-to-resize handle, FAB drag-to-reposition + localStorage, FAB radial menu, fullscreen API, keyboard shortcuts, prefers-reduced-motion). The "Not implemented" list shrinks to just the guided demo tour (deliberately out of scope — `App.vue` consumer concern, not library).
 
 ### LOT 4 — `@pulse/angular` smoke tests (5 / 5)
 
@@ -435,7 +435,7 @@ Vue v2.3.4 codebase at `src/lib/` remains bit-for-bit identical.
 
 `packages/web-component/tests/attributes.test.ts` covers the chrome features added in alpha.4 through alpha.8:
 
-- `<pulse-player>`: `ambient-eq`, `data-fab`, `resizable` reflected attributes; 12 ambient bars rendered; prev / next ghost buttons present; mp__bg + mp__noise overlays present.
+- `<pulse-player>`: `ambient-eq`, `data-fab`, `resizable` reflected attributes; 12 ambient bars rendered; prev / next ghost buttons present; mp**bg + mp**noise overlays present.
 - `<pulse-fab>`: `draggable`, `persist-key`, `show-menu` attributes; menu toggle opens popover; palette renders 9 chips (8 variants + auto, excludes `custom`).
 
 Total `@pulse/web-component` tests: **22 / 22** (was 9).
@@ -451,9 +451,17 @@ Total `@pulse/react` tests: **16 / 16** (was 8).
 `packages/vue/src/index.ts` (replaces the alpha.0 placeholder `export {}`) re-exports from `../../../src/lib/index.ts`:
 
 ```ts
-export { MusicPlayer, MiniPlayer, useAudioStore, setAudioTracks,
-         type Track, type PulseVariant, type MusicPlayerVariant,
-         type MiniPlayerVariant, ALL_VARIANTS } from '../../../src/lib/index'
+export {
+  MusicPlayer,
+  MiniPlayer,
+  useAudioStore,
+  setAudioTracks,
+  type Track,
+  type PulseVariant,
+  type MusicPlayerVariant,
+  type MiniPlayerVariant,
+  ALL_VARIANTS,
+} from '../../../src/lib/index'
 ```
 
 This lets downstream consumers already write:
@@ -551,14 +559,14 @@ Attempted workarounds in this alpha:
 
 All 6 publishable packages produce valid tarballs:
 
-| Package | Tarball | Files |
-| --- | --- | --- |
-| `@pulse/types` | 3.2 kB | 9 |
-| `@pulse/core` | 11.8 kB | 10 |
-| `@pulse/tokens` | 5.7 kB | 15 |
-| `@pulse/web-component` | 59.1 kB | 13 |
-| `@pulse/react` | 11.1 kB | 14 |
-| `@pulse/svelte` | 4.1 kB | 10 |
+| Package                | Tarball | Files |
+| ---------------------- | ------- | ----- |
+| `@pulse/types`         | 3.2 kB  | 9     |
+| `@pulse/core`          | 11.8 kB | 10    |
+| `@pulse/tokens`        | 5.7 kB  | 15    |
+| `@pulse/web-component` | 59.1 kB | 13    |
+| `@pulse/react`         | 11.1 kB | 14    |
+| `@pulse/svelte`        | 4.1 kB  | 10    |
 
 **Total monorepo public package size:** ~95 kB tarball (~30 kB gzip on the wire). `@pulse/angular` and `@pulse/react-native` stay `private: true`.
 
@@ -661,13 +669,13 @@ npm run dev --workspace=@pulse/demo-svelte
 
 `docs/universal/BLOCKERS.md` (NEW) — honest record of what's not done and why, for each remaining item:
 
-| Item | Severity | Real blocker? | Path forward |
-| --- | --- | --- | --- |
-| `@pulse/react-native` real impl | High vs roadmap | Yes — needs RN tooling environment (CocoaPods / Gradle) | v3.X.0 sprint |
-| `npm publish @pulse/*` | Critical | Yes — needs maintainer OTP | Maintainer-only |
-| Vue migration src/lib → packages/vue | Medium | No — deferred for safety | v3.0.0-alpha.9 (gated by Playwright) |
-| 2 Playwright captures | Low | No — animation tuning | v3.0.0-alpha.8 |
-| FAB radial menu + fullscreen | Medium | No — time-bounded | v3.0.0-alpha.8 |
+| Item                                 | Severity        | Real blocker?                                           | Path forward                         |
+| ------------------------------------ | --------------- | ------------------------------------------------------- | ------------------------------------ |
+| `@pulse/react-native` real impl      | High vs roadmap | Yes — needs RN tooling environment (CocoaPods / Gradle) | v3.X.0 sprint                        |
+| `npm publish @pulse/*`               | Critical        | Yes — needs maintainer OTP                              | Maintainer-only                      |
+| Vue migration src/lib → packages/vue | Medium          | No — deferred for safety                                | v3.0.0-alpha.9 (gated by Playwright) |
+| 2 Playwright captures                | Low             | No — animation tuning                                   | v3.0.0-alpha.8                       |
+| FAB radial menu + fullscreen         | Medium          | No — time-bounded                                       | v3.0.0-alpha.8                       |
 
 ### Quality gate
 
@@ -777,9 +785,9 @@ useDomEvent<EventMap['play']>(ref, 'pulse-play', onPlay)
 `.github/workflows/ci.yml` now runs **after** the Vue tests pass:
 
 ```yaml
-- npm run test:packages    # 52 tests across @pulse/{core,web-component,react,svelte}
-- npm run build:lib        # Vue library
-- npm run build:packages   # 6 @pulse/* packages via tsup
+- npm run test:packages # 52 tests across @pulse/{core,web-component,react,svelte}
+- npm run build:lib # Vue library
+- npm run build:packages # 6 @pulse/* packages via tsup
 ```
 
 The matrix (Node 18 / 20 / 22) gates on the full monorepo, not just the Vue v2.3.4 reference. Regression on any `@pulse/*` package blocks the PR.
@@ -929,13 +937,13 @@ The universal `README.md` framework picker now shows **chrome parity % vs Vue v2
 
 Five packages now build to ESM + CJS + .d.ts via `tsup`:
 
-| Package | ESM | CJS | Types | External deps |
-| --- | --- | --- | --- | --- |
-| `@pulse/types` | 0.5 KB | 0.7 KB | 2.5 KB | (none — pure types) |
-| `@pulse/core` | 5.4 KB | 5.8 KB | 3.4 KB | `@pulse/types` |
-| `@pulse/web-component` | 10 KB | 10 KB | 4.5 KB | `@pulse/core`, `@pulse/tokens`, `@pulse/types`, `lit` |
-| `@pulse/react` | 4.7 KB | 5.1 KB | 4.6 KB | `@pulse/core`, `@pulse/web-component`, `react`, `react-dom` |
-| `@pulse/svelte` | 1.3 KB | 1.4 KB | 2.6 KB | `@pulse/core`, `@pulse/web-component` |
+| Package                | ESM    | CJS    | Types  | External deps                                               |
+| ---------------------- | ------ | ------ | ------ | ----------------------------------------------------------- |
+| `@pulse/types`         | 0.5 KB | 0.7 KB | 2.5 KB | (none — pure types)                                         |
+| `@pulse/core`          | 5.4 KB | 5.8 KB | 3.4 KB | `@pulse/types`                                              |
+| `@pulse/web-component` | 10 KB  | 10 KB  | 4.5 KB | `@pulse/core`, `@pulse/tokens`, `@pulse/types`, `lit`       |
+| `@pulse/react`         | 4.7 KB | 5.1 KB | 4.6 KB | `@pulse/core`, `@pulse/web-component`, `react`, `react-dom` |
+| `@pulse/svelte`        | 1.3 KB | 1.4 KB | 2.6 KB | `@pulse/core`, `@pulse/web-component`                       |
 
 Root script: `npm run build:packages` builds all five sequentially. Cross-package deps are marked `external` in each `tsup.config.ts` so the consumer's bundler does the linking — no nested duplication.
 
@@ -966,8 +974,17 @@ It is now **plain TypeScript** (`usePulseAudio.ts`) following the Svelte classic
 ```ts
 export function usePulseAudio() {
   return {
-    subscribe(run) { /* … */ return engine.onStateChange(/* … */) },
-    toggle, next, prev, seek, setAudioTracks, setAmbientEq, fmt, engine,
+    subscribe(run) {
+      /* … */ return engine.onStateChange(/* … */)
+    },
+    toggle,
+    next,
+    prev,
+    seek,
+    setAudioTracks,
+    setAmbientEq,
+    fmt,
+    engine,
   }
 }
 ```
@@ -1117,14 +1134,14 @@ v2.3.4 demo              → bit-for-bit identical
 
 ### Packages with REAL code in v3.0.0-alpha.3
 
-| Package | LOC | Tests | Notes |
-| --- | --- | --- | --- |
-| `@pulse/types` | ~80 | (validated via consumer tests) | Shared TS shapes |
-| `@pulse/core` | ~340 | 27 / 27 | Audio engine + state machine |
-| `@pulse/tokens` | ~150 | (CSS — validated visually) | variants / base / animations |
-| `@pulse/web-component` | ~430 | 9 / 9 | `<pulse-player>` + `<pulse-fab>` (Lit) |
-| `@pulse/react` | ~280 | (pending — JSX rendering jsdom setup) | Hooks + JSX components |
-| `@pulse/svelte` | ~80 | (pending — Svelte runes test runner) | Runes store + re-exports |
+| Package                | LOC  | Tests                                 | Notes                                  |
+| ---------------------- | ---- | ------------------------------------- | -------------------------------------- |
+| `@pulse/types`         | ~80  | (validated via consumer tests)        | Shared TS shapes                       |
+| `@pulse/core`          | ~340 | 27 / 27                               | Audio engine + state machine           |
+| `@pulse/tokens`        | ~150 | (CSS — validated visually)            | variants / base / animations           |
+| `@pulse/web-component` | ~430 | 9 / 9                                 | `<pulse-player>` + `<pulse-fab>` (Lit) |
+| `@pulse/react`         | ~280 | (pending — JSX rendering jsdom setup) | Hooks + JSX components                 |
+| `@pulse/svelte`        | ~80  | (pending — Svelte runes test runner)  | Runes store + re-exports               |
 
 ### What's still ahead
 
@@ -1179,7 +1196,7 @@ setSharedEngine(new PulseEngine(myCustomPlaylist))
 export { PulsePlayerElement, PulseFabElement } from './…'
 export { getSharedEngine, setSharedEngine } from './engine-singleton'
 export { PulseEngine } from '@pulse/core'
-export type { /* every @pulse/types export */ }
+export /* every @pulse/types export */ type {}
 ```
 
 Importing the package side-effect-registers both Custom Elements with the global registry. Consumers that need lazy registration import the individual classes and call `customElements.define()` themselves.

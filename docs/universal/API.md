@@ -6,51 +6,51 @@ Canonical API surface shared across every framework wrapper. Every `@pulse/*` pa
 
 ### `<PulsePlayer />` / `<pulse-player>` — inline card
 
-| Prop / Attribute | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `variant` | `PulseVariant` | `'auto'` | Mood: `auto`, `transparent`, `solid`, `dark`, `light`, `sunset`, `midnight`, `aurora`, `vinyl`, `custom` |
-| `accentColor` / `accent-color` | `string` | inherits theme | CSS colour — overrides `--pulse-accent` |
-| `tracks` | `Track[]` | engine default | Playlist override |
-| `ambientEq` / `ambient-eq` | `boolean` | `false` | 12-bar pure-CSS EQ behind chrome |
-| `dataFab` / `data-fab` | `boolean` | `false` | Force the disc shape regardless of width |
-| `resizable` | `boolean` | `false` | Bottom-right drag-to-resize handle |
-| `githubUrl` / `github-url` | `string` | — | Turns the GitHub icon into a link |
-| `spotifyUrl` / `spotify-url` | `string` | — | Turns the Spotify icon into a link |
+| Prop / Attribute               | Type           | Default        | Meaning                                                                                                  |
+| ------------------------------ | -------------- | -------------- | -------------------------------------------------------------------------------------------------------- |
+| `variant`                      | `PulseVariant` | `'auto'`       | Mood: `auto`, `transparent`, `solid`, `dark`, `light`, `sunset`, `midnight`, `aurora`, `vinyl`, `custom` |
+| `accentColor` / `accent-color` | `string`       | inherits theme | CSS colour — overrides `--pulse-accent`                                                                  |
+| `tracks`                       | `Track[]`      | engine default | Playlist override                                                                                        |
+| `ambientEq` / `ambient-eq`     | `boolean`      | `false`        | 12-bar pure-CSS EQ behind chrome                                                                         |
+| `dataFab` / `data-fab`         | `boolean`      | `false`        | Force the disc shape regardless of width                                                                 |
+| `resizable`                    | `boolean`      | `false`        | Bottom-right drag-to-resize handle                                                                       |
+| `githubUrl` / `github-url`     | `string`       | —              | Turns the GitHub icon into a link                                                                        |
+| `spotifyUrl` / `spotify-url`   | `string`       | —              | Turns the Spotify icon into a link                                                                       |
 
 ### `<PulseFab />` / `<pulse-fab>` — floating action button
 
-| Prop / Attribute | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `variant` | `PulseVariant` | `'auto'` | Same as `<PulsePlayer />` |
-| `pulso` | `boolean` | `false` | Heartbeat ring while audio plays |
-| `showMenu` / `show-menu` | `boolean` | `false` | Palette + Pulso/Fullscreen popover |
-| `draggable` | `boolean` | `false` | Pointer drag to reposition |
-| `persistKey` / `persist-key` | `string` | `'pulse-fab-pos'` | `localStorage` key for the persisted position |
+| Prop / Attribute             | Type           | Default           | Meaning                                       |
+| ---------------------------- | -------------- | ----------------- | --------------------------------------------- |
+| `variant`                    | `PulseVariant` | `'auto'`          | Same as `<PulsePlayer />`                     |
+| `pulso`                      | `boolean`      | `false`           | Heartbeat ring while audio plays              |
+| `showMenu` / `show-menu`     | `boolean`      | `false`           | Palette + Pulso/Fullscreen popover            |
+| `draggable`                  | `boolean`      | `false`           | Pointer drag to reposition                    |
+| `persistKey` / `persist-key` | `string`       | `'pulse-fab-pos'` | `localStorage` key for the persisted position |
 
 ### Events (typed `EventMap` from `@pulse/types`)
 
-| Event | Payload | Fired by |
-| --- | --- | --- |
-| `play` | `{ track: Track, time: number }` | `engine.toggle()` when transitioning to playing |
-| `pause` | `{ track: Track, time: number }` | `engine.toggle()` when transitioning to paused |
-| `trackchange` | `{ from: number, to: number, track: Track }` | `engine.next()`, `engine.prev()`, `engine.loadTrack(i)` |
-| `error` | `{ track: Track, reason: ErrorReason, detail?: unknown }` | autoplay rejection (`'play-rejected'`), `<audio>` error event (`'media-error'`), `<audio>` stalled event (`'stalled'`) |
+| Event         | Payload                                                   | Fired by                                                                                                               |
+| ------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `play`        | `{ track: Track, time: number }`                          | `engine.toggle()` when transitioning to playing                                                                        |
+| `pause`       | `{ track: Track, time: number }`                          | `engine.toggle()` when transitioning to paused                                                                         |
+| `trackchange` | `{ from: number, to: number, track: Track }`              | `engine.next()`, `engine.prev()`, `engine.loadTrack(i)`                                                                |
+| `error`       | `{ track: Track, reason: ErrorReason, detail?: unknown }` | autoplay rejection (`'play-rejected'`), `<audio>` error event (`'media-error'`), `<audio>` stalled event (`'stalled'`) |
 
-| Framework | Listener syntax |
-| --- | --- |
-| Vue 3 | `@play="…"`, `@pause="…"`, `@trackchange="…"`, `@error="…"` |
-| React | `onPlay={…}`, `onPause={…}`, `onTrackChange={…}`, `onError={…}` |
-| Svelte 5 | `onpulse-play={…}` (property) or `on:pulse-play={…}` (directive) |
-| Angular | `(pulse-play)="…"`, `(pulse-pause)="…"`, `(pulse-trackchange)="…"`, `(pulse-error)="…"` |
-| Web Components / vanilla | `el.addEventListener('pulse-play', …)` |
+| Framework                | Listener syntax                                                                         |
+| ------------------------ | --------------------------------------------------------------------------------------- |
+| Vue 3                    | `@play="…"`, `@pause="…"`, `@trackchange="…"`, `@error="…"`                             |
+| React                    | `onPlay={…}`, `onPause={…}`, `onTrackChange={…}`, `onError={…}`                         |
+| Svelte 5                 | `onpulse-play={…}` (property) or `on:pulse-play={…}` (directive)                        |
+| Angular                  | `(pulse-play)="…"`, `(pulse-pause)="…"`, `(pulse-trackchange)="…"`, `(pulse-error)="…"` |
+| Web Components / vanilla | `el.addEventListener('pulse-play', …)`                                                  |
 
 ## Keyboard shortcuts (host element with focus)
 
-| Key | Action |
-| --- | --- |
+| Key          | Action              |
+| ------------ | ------------------- |
 | `Space`, `K` | Toggle play / pause |
-| `J`, `←` | Previous track |
-| `L`, `→` | Next track |
+| `J`, `←`     | Previous track      |
+| `L`, `→`     | Next track          |
 
 Handler ignores keypresses when the target is an `<input>`, `<textarea>`, or `contenteditable` element. The host defaults to `tabIndex="0"`; set `tabindex="-1"` to skip in tab order.
 
@@ -62,14 +62,14 @@ The framework-agnostic class every wrapper consumes via the shared singleton (`g
 
 ```ts
 interface PulseState {
-  currentTrack: number      // index into the playlist
+  currentTrack: number // index into the playlist
   isPlaying: boolean
-  currentTime: number       // seconds
-  duration: number          // seconds
-  isVisible: boolean        // FAB visibility flag (used by MiniPlayer)
-  hasBeenOpened: boolean    // sticky once true
-  ambientEq: boolean        // ambient EQ visualisation toggle
-  playCount: number         // privacy-friendly per-session counter
+  currentTime: number // seconds
+  duration: number // seconds
+  isVisible: boolean // FAB visibility flag (used by MiniPlayer)
+  hasBeenOpened: boolean // sticky once true
+  ambientEq: boolean // ambient EQ visualisation toggle
+  playCount: number // privacy-friendly per-session counter
   pauseCount: number
   trackChangeCount: number
 }
@@ -78,7 +78,7 @@ interface PulseState {
 ### Computed
 
 ```ts
-engine.track    // Track — clamped to a valid index
+engine.track // Track — clamped to a valid index
 engine.progress // number — 0..100 percentage of duration
 ```
 
@@ -131,13 +131,13 @@ Re-exported by every wrapper:
 ```ts
 import type {
   Track,
-  PulseVariant,        // 'auto' | 'transparent' | 'solid' | 'dark' | 'light' | 'sunset' | 'midnight' | 'aurora' | 'vinyl' | 'custom'
+  PulseVariant, // 'auto' | 'transparent' | 'solid' | 'dark' | 'light' | 'sunset' | 'midnight' | 'aurora' | 'vinyl' | 'custom'
   PulseState,
   EventMap,
-  AudioEvent,          // keyof EventMap
+  AudioEvent, // keyof EventMap
   EventListener,
-  ErrorReason,         // 'play-rejected' | 'media-error' | 'stalled'
-  Unsubscribe,         // () => void
+  ErrorReason, // 'play-rejected' | 'media-error' | 'stalled'
+  Unsubscribe, // () => void
 } from '@pulse/<framework>'
 
 import { ALL_VARIANTS } from '@pulse/<framework>'

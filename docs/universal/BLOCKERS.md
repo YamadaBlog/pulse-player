@@ -27,7 +27,6 @@ GitHub Pages on a **private repository** requires a **GitHub Pro / Team / Enterp
 
 ---
 
-
 ## 1. `@pulse/react-native` real implementation
 
 **Status:** scaffold only (`private: true`, no peer deps, no source code).
@@ -100,7 +99,7 @@ npm publish --workspace=@pulse/svelte
 The migration requires:
 
 1. **Visual regression baselines for every viewport / variant / state** — the alpha.7 Playwright setup ships 2 stable baselines (hero + home-fold). Two more (`resize-stage` and `variants gallery`) are flaky because the running ambient EQ + auto-tour rAF loop never converges to a stable frame. Without these, a Vue refactor cannot prove pixel parity.
-2. **`@pulse/web-component` chrome at ≥95 % parity vs Vue v2.3.4** — alpha.7 sits at ~70 % (added mp__bg, mp__noise, prev/next, social icons, eyebrow, 3 responsive states, data-fab, drag-to-resize handle, FAB drag, ambient EQ, pulso, --pulse-scale). Still missing: FAB radial menu (palette + Pulso/Resizable/Hide toggles), fullscreen FAB, the guided demo tour wiring.
+2. **`@pulse/web-component` chrome at ≥95 % parity vs Vue v2.3.4** — alpha.7 sits at ~70 % (added mp**bg, mp**noise, prev/next, social icons, eyebrow, 3 responsive states, data-fab, drag-to-resize handle, FAB drag, ambient EQ, pulso, --pulse-scale). Still missing: FAB radial menu (palette + Pulso/Resizable/Hide toggles), fullscreen FAB, the guided demo tour wiring.
 3. **The Vue layer (`MusicPlayer.vue`, `MiniPlayer.vue`, `useAudioStore.ts`) refactored to wrap `<pulse-player>` / `<pulse-fab>`** while still exporting the same component-level API consumers depend on. This is a delicate operation — every prop binding, slot, and emit must map onto the underlying Custom Element without drift.
 
 **Why not done in this session:**
@@ -143,7 +142,7 @@ The migration requires:
 - The current `<pulse-fab>` doesn't have a notion of "second-level UI"
 - Vue's `MiniPlayer.vue` ships this via a `<Teleport to="body">` + a separate menu component (`FabMenu.vue`); the Lit element would need an equivalent in Shadow DOM
 
-**Why deferred:** time-bounded session. The features that landed in alpha.7 (mp__bg, mp__noise, drag-to-resize, FAB drag, data-fab, 3 responsive states, prev/next, social icons, NOW PLAYING eyebrow) collectively moved chrome parity from 60 % → 70 % and are higher-leverage for the typical consumer than the radial menu.
+**Why deferred:** time-bounded session. The features that landed in alpha.7 (mp**bg, mp**noise, drag-to-resize, FAB drag, data-fab, 3 responsive states, prev/next, social icons, NOW PLAYING eyebrow) collectively moved chrome parity from 60 % → 70 % and are higher-leverage for the typical consumer than the radial menu.
 
 **Path forward:** v3.0.0-alpha.8 sprint with the fullscreen FAB and the radial menu together.
 
@@ -151,10 +150,10 @@ The migration requires:
 
 ## Summary table
 
-| Item | Severity | Real blocker? | Path forward |
-| --- | --- | --- | --- |
-| `@pulse/react-native` real impl | High (vs roadmap) | Yes — needs RN tooling environment | v3.X.0 dedicated sprint |
-| `npm publish @pulse/*` | Critical (vs distribution) | Yes — needs maintainer OTP | Maintainer runs locally |
-| Vue migration | Medium (vs architecture) | No — deferred for safety | v3.0.0-alpha.9, gated by Playwright |
-| Playwright `resize-stage` + `variants` | Low (vs alpha.9 gate) | No — animation tuning | v3.0.0-alpha.8 |
-| FAB radial menu | Medium (vs Vue parity) | No — time-bounded | v3.0.0-alpha.8 |
+| Item                                   | Severity                   | Real blocker?                      | Path forward                        |
+| -------------------------------------- | -------------------------- | ---------------------------------- | ----------------------------------- |
+| `@pulse/react-native` real impl        | High (vs roadmap)          | Yes — needs RN tooling environment | v3.X.0 dedicated sprint             |
+| `npm publish @pulse/*`                 | Critical (vs distribution) | Yes — needs maintainer OTP         | Maintainer runs locally             |
+| Vue migration                          | Medium (vs architecture)   | No — deferred for safety           | v3.0.0-alpha.9, gated by Playwright |
+| Playwright `resize-stage` + `variants` | Low (vs alpha.9 gate)      | No — animation tuning              | v3.0.0-alpha.8                      |
+| FAB radial menu                        | Medium (vs Vue parity)     | No — time-bounded                  | v3.0.0-alpha.8                      |

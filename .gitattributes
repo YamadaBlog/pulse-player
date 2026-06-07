@@ -1,0 +1,50 @@
+# Force LF line endings for all text-like files. Without this, Windows
+# contributors create files with CRLF locally and the CI `prettier --check`
+# (which expects LF) fails — exactly the alpha.13 regression we just hit.
+#
+# Order matters: the `* text=auto` default lets Git autodetect text vs
+# binary; the explicit `eol=lf` overrides on the specific extensions
+# below so they're checked in with LF regardless of `core.autocrlf`.
+
+* text=auto
+
+# Source code — LF everywhere, no exceptions
+*.ts        text eol=lf
+*.tsx       text eol=lf
+*.js        text eol=lf
+*.jsx       text eol=lf
+*.mjs       text eol=lf
+*.cjs       text eol=lf
+*.vue       text eol=lf
+*.svelte    text eol=lf
+
+# Markdown + JSON + YAML + config — LF, the Prettier baseline
+*.md        text eol=lf
+*.json      text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.html      text eol=lf
+*.css       text eol=lf
+*.scss      text eol=lf
+*.toml      text eol=lf
+
+# Shell scripts must be LF or they fail to run on Linux CI runners
+*.sh        text eol=lf
+
+# Binary assets — never converted
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.webp      binary
+*.svg       text eol=lf
+*.webm      binary
+*.mp4       binary
+*.mp3       binary
+*.ogg       binary
+*.woff      binary
+*.woff2     binary
+*.ttf       binary
+*.eot       binary
+*.ico       binary
+*.pdf       binary

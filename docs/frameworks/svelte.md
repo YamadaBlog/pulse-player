@@ -53,13 +53,13 @@ const audio = usePulseAudio()
 
 Returns a Svelte classic-store + an action surface:
 
-| Member | Type | Meaning |
-| --- | --- | --- |
-| `subscribe(run)` | `(snapshot) => Unsubscribe` | Svelte contract — fires snapshot synchronously on subscribe, then on every change |
-| `engine` | `PulseEngine` | Escape hatch for advanced consumers |
-| `toggle()`, `next()`, `prev()`, `seek(fraction)` | actions | Same as the React hook |
-| `setAudioTracks(tracks)`, `setAmbientEq(on)` | actions | Configuration |
-| `fmt(seconds)` | `(number) => string` | Format `0:42` style |
+| Member                                           | Type                        | Meaning                                                                           |
+| ------------------------------------------------ | --------------------------- | --------------------------------------------------------------------------------- |
+| `subscribe(run)`                                 | `(snapshot) => Unsubscribe` | Svelte contract — fires snapshot synchronously on subscribe, then on every change |
+| `engine`                                         | `PulseEngine`               | Escape hatch for advanced consumers                                               |
+| `toggle()`, `next()`, `prev()`, `seek(fraction)` | actions                     | Same as the React hook                                                            |
+| `setAudioTracks(tracks)`, `setAmbientEq(on)`     | actions                     | Configuration                                                                     |
+| `fmt(seconds)`                                   | `(number) => string`        | Format `0:42` style                                                               |
 
 Snapshot shape (what `subscribe` delivers, what `$audio.X` reads):
 

@@ -47,46 +47,58 @@ export function App() {
 
 ## `<PulsePlayer />` props
 
-| Prop | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `variant` | `PulseVariant` | `'auto'` | Mood. One of: `auto`, `transparent`, `solid`, `dark`, `light`, `sunset`, `midnight`, `aurora`, `vinyl`, `custom` |
-| `accentColor` | `string?` | inherits theme | CSS colour — overrides `--pulse-accent` |
-| `tracks` | `Track[]?` | engine default | Override the playlist |
-| `ambientEq` | `boolean` | `false` | Background EQ visualisation |
-| `dataFab` | `boolean` | `false` | Force the FAB disc shape regardless of width |
-| `resizable` | `boolean` | `false` | Bottom-right drag-to-resize handle |
-| `githubUrl` | `string?` | — | Turns the GitHub icon into a link |
-| `spotifyUrl` | `string?` | — | Turns the Spotify icon into a link |
-| `onPlay` | `(payload) => void` | — | `{ track, time }` synchronous with `engine.toggle()` |
-| `onPause` | `(payload) => void` | — | `{ track, time }` |
-| `onTrackChange` | `(payload) => void` | — | `{ from, to, track }` |
-| `onError` | `(payload) => void` | — | `{ track, reason, detail? }`, `reason ∈ { 'play-rejected', 'media-error', 'stalled' }` |
-| `className`, `style` | passthrough | — | Standard React layout props |
+| Prop                 | Type                | Default        | Meaning                                                                                                          |
+| -------------------- | ------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `variant`            | `PulseVariant`      | `'auto'`       | Mood. One of: `auto`, `transparent`, `solid`, `dark`, `light`, `sunset`, `midnight`, `aurora`, `vinyl`, `custom` |
+| `accentColor`        | `string?`           | inherits theme | CSS colour — overrides `--pulse-accent`                                                                          |
+| `tracks`             | `Track[]?`          | engine default | Override the playlist                                                                                            |
+| `ambientEq`          | `boolean`           | `false`        | Background EQ visualisation                                                                                      |
+| `dataFab`            | `boolean`           | `false`        | Force the FAB disc shape regardless of width                                                                     |
+| `resizable`          | `boolean`           | `false`        | Bottom-right drag-to-resize handle                                                                               |
+| `githubUrl`          | `string?`           | —              | Turns the GitHub icon into a link                                                                                |
+| `spotifyUrl`         | `string?`           | —              | Turns the Spotify icon into a link                                                                               |
+| `onPlay`             | `(payload) => void` | —              | `{ track, time }` synchronous with `engine.toggle()`                                                             |
+| `onPause`            | `(payload) => void` | —              | `{ track, time }`                                                                                                |
+| `onTrackChange`      | `(payload) => void` | —              | `{ from, to, track }`                                                                                            |
+| `onError`            | `(payload) => void` | —              | `{ track, reason, detail? }`, `reason ∈ { 'play-rejected', 'media-error', 'stalled' }`                           |
+| `className`, `style` | passthrough         | —              | Standard React layout props                                                                                      |
 
 ## `<PulseFab />` props
 
-| Prop | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `variant` | `PulseVariant` | `'auto'` | Same as `<PulsePlayer />` |
-| `pulso` | `boolean` | `false` | Heartbeat ring while audio plays |
-| `showMenu` | `boolean` | `false` | Chevron toggle opens palette + Pulso + Fullscreen popover |
-| `draggable` | `boolean` | `false` | Pointer drag to reposition |
-| `persistKey` | `string?` | `'pulse-fab-pos'` | `localStorage` key for the persisted position |
-| `onPlay`, `onPause`, `onTrackChange`, `onError`, `className`, `style` | — | — | Same as `<PulsePlayer />` |
+| Prop                                                                  | Type           | Default           | Meaning                                                   |
+| --------------------------------------------------------------------- | -------------- | ----------------- | --------------------------------------------------------- |
+| `variant`                                                             | `PulseVariant` | `'auto'`          | Same as `<PulsePlayer />`                                 |
+| `pulso`                                                               | `boolean`      | `false`           | Heartbeat ring while audio plays                          |
+| `showMenu`                                                            | `boolean`      | `false`           | Chevron toggle opens palette + Pulso + Fullscreen popover |
+| `draggable`                                                           | `boolean`      | `false`           | Pointer drag to reposition                                |
+| `persistKey`                                                          | `string?`      | `'pulse-fab-pos'` | `localStorage` key for the persisted position             |
+| `onPlay`, `onPause`, `onTrackChange`, `onError`, `className`, `style` | —              | —                 | Same as `<PulsePlayer />`                                 |
 
 ## `usePulseAudio()` hook
 
 ```tsx
 const {
   // State (re-renders on change)
-  isPlaying, currentTime, duration,
-  isVisible, hasBeenOpened, ambientEq,
-  playCount, pauseCount, trackChangeCount,
+  isPlaying,
+  currentTime,
+  duration,
+  isVisible,
+  hasBeenOpened,
+  ambientEq,
+  playCount,
+  pauseCount,
+  trackChangeCount,
   currentTrack,
   // Computed
-  track, progress,
+  track,
+  progress,
   // Actions (stable identity)
-  toggle, next, prev, seek, setAudioTracks, setAmbientEq,
+  toggle,
+  next,
+  prev,
+  seek,
+  setAudioTracks,
+  setAmbientEq,
   // Event bus
   subscribe, // typed: subscribe('play', ({ track, time }) => …)
   // Utility
@@ -111,11 +123,11 @@ React 19+ has native Custom Element support — kebab-case attributes and on-han
 
 When `<pulse-player>` (or `<PulsePlayer />`) has keyboard focus:
 
-| Key | Action |
-| --- | --- |
+| Key           | Action              |
+| ------------- | ------------------- |
 | `Space` / `K` | Toggle play / pause |
-| `J` / `←` | Previous track |
-| `L` / `→` | Next track |
+| `J` / `←`     | Previous track      |
+| `L` / `→`     | Next track          |
 
 The host element exposes `tabIndex="0"` by default; consumers in an interactive container can override with `<PulsePlayer tabIndex={-1} />` to skip it in the tab order.
 

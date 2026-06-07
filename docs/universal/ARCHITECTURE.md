@@ -42,30 +42,30 @@ With the layered design above, a fix in `@pulse/core` automatically benefits eve
 
 ## Package responsibilities
 
-| Package | Owns | Depends on |
-| --- | --- | --- |
-| `@pulse/types` | `Track`, `PulseVariant`, `EventMap`, `PulseState`, `Unsubscribe` | (nothing) |
-| `@pulse/core` | `PulseEngine` class — `<audio>`, `AudioContext`, `AnalyserNode`, state machine, typed event bus, all actions | `@pulse/types` |
-| `@pulse/tokens` | CSS variables, variant gradients, `@keyframes`, base palette | (nothing) |
-| `@pulse/web-component` | `<pulse-player>` + `<pulse-fab>` Custom Elements (Lit), CSS imports from `@pulse/tokens` | `@pulse/core`, `@pulse/tokens`, `@pulse/types`, `lit` |
-| `@pulse/vue` | Vue 3 wrapper — `<MusicPlayer />`, `<MiniPlayer />`, `useAudioStore()` | `@pulse/types`, `@pulse/web-component` (after alpha.1 migration), `vue`, `pinia` |
-| `@pulse/react` | React wrapper — `<PulsePlayer />`, `<PulseFab />`, `usePulseAudio()` | `@pulse/types`, `@pulse/web-component`, `react` |
-| `@pulse/svelte` | Svelte 5 wrapper — `<PulsePlayer />`, `<PulseFab />`, runes store | `@pulse/types`, `@pulse/web-component`, `svelte` |
-| `@pulse/angular` | Angular 17+ wrapper — `PulseModule`, components | `@pulse/types`, `@pulse/web-component`, `@angular/core` |
-| `@pulse/react-native` | RN native implementation — separate renderer using View / Image / Animated / Reanimated | `@pulse/types`, `react`, `react-native`, `react-native-audio-api` (or `expo-audio`) |
+| Package                | Owns                                                                                                         | Depends on                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `@pulse/types`         | `Track`, `PulseVariant`, `EventMap`, `PulseState`, `Unsubscribe`                                             | (nothing)                                                                           |
+| `@pulse/core`          | `PulseEngine` class — `<audio>`, `AudioContext`, `AnalyserNode`, state machine, typed event bus, all actions | `@pulse/types`                                                                      |
+| `@pulse/tokens`        | CSS variables, variant gradients, `@keyframes`, base palette                                                 | (nothing)                                                                           |
+| `@pulse/web-component` | `<pulse-player>` + `<pulse-fab>` Custom Elements (Lit), CSS imports from `@pulse/tokens`                     | `@pulse/core`, `@pulse/tokens`, `@pulse/types`, `lit`                               |
+| `@pulse/vue`           | Vue 3 wrapper — `<MusicPlayer />`, `<MiniPlayer />`, `useAudioStore()`                                       | `@pulse/types`, `@pulse/web-component` (after alpha.1 migration), `vue`, `pinia`    |
+| `@pulse/react`         | React wrapper — `<PulsePlayer />`, `<PulseFab />`, `usePulseAudio()`                                         | `@pulse/types`, `@pulse/web-component`, `react`                                     |
+| `@pulse/svelte`        | Svelte 5 wrapper — `<PulsePlayer />`, `<PulseFab />`, runes store                                            | `@pulse/types`, `@pulse/web-component`, `svelte`                                    |
+| `@pulse/angular`       | Angular 17+ wrapper — `PulseModule`, components                                                              | `@pulse/types`, `@pulse/web-component`, `@angular/core`                             |
+| `@pulse/react-native`  | RN native implementation — separate renderer using View / Image / Animated / Reanimated                      | `@pulse/types`, `react`, `react-native`, `react-native-audio-api` (or `expo-audio`) |
 
 ## What changes vs the v2.3.4 monolith
 
 The validated Vue v2.3.4 codebase at `src/lib/` owns BOTH the audio engine AND the rendering. v3.0.0-alpha.1 splits those concerns:
 
-| v2.3.4 (today) | v3.0.0+ (split) |
-| --- | --- |
-| `src/lib/useAudioStore.ts` | `@pulse/core` (audio engine) + `@pulse/vue` (Pinia adapter) |
+| v2.3.4 (today)                         | v3.0.0+ (split)                                                        |
+| -------------------------------------- | ---------------------------------------------------------------------- |
+| `src/lib/useAudioStore.ts`             | `@pulse/core` (audio engine) + `@pulse/vue` (Pinia adapter)            |
 | `src/lib/MusicPlayer.vue` markup + CSS | `@pulse/web-component` `<pulse-player>` + `@pulse/tokens` variants.css |
-| `src/lib/MiniPlayer.vue` markup + CSS | `@pulse/web-component` `<pulse-fab>` + same tokens |
-| `src/lib/shared/types.ts` | `@pulse/types` |
-| `src/lib/shared/useProgressRing.ts` | Internal to `@pulse/web-component` (Lit reactive controller) |
-| `src/lib/shared/variants.css` | `@pulse/tokens/variants.css` |
+| `src/lib/MiniPlayer.vue` markup + CSS  | `@pulse/web-component` `<pulse-fab>` + same tokens                     |
+| `src/lib/shared/types.ts`              | `@pulse/types`                                                         |
+| `src/lib/shared/useProgressRing.ts`    | Internal to `@pulse/web-component` (Lit reactive controller)           |
+| `src/lib/shared/variants.css`          | `@pulse/tokens/variants.css`                                           |
 
 The Vue consumer-facing API (`import { MusicPlayer, MiniPlayer, useAudioStore } from '@pulse/vue'`) stays pixel-perfect identical to v2.3.4. Visual regression tests in CI enforce that.
 
