@@ -222,4 +222,35 @@ describe('useAudioStore', () => {
       b()
     })
   })
+
+  describe('dispose()', () => {
+    it('clears event listeners + state', () => {
+      const store = useAudioStore()
+      const cb = vi.fn()
+      store.subscribe('play', cb)
+      store.toggle() // start audio + emit play
+      expect(cb).toHaveBeenCalledTimes(1)
+      store.dispose()
+      // Listener was cleared, so re-toggling should NOT call cb again.
+      store.toggle()
+      expect(cb).toHaveBeenCalledTimes(1)
+      expect(store.isPlaying).toBe(true) // new audio graph initialised
+      store.dispose()
+    })
+
+    it('is safe to call without initAudio', () => {
+      const store = useAudioStore()
+      expect(() => store.dispose()).not.toThrow()
+    })
+
+    it('is idempotent — multiple calls do not throw', () => {
+      const store = useAudioStore()
+      store.toggle()
+      expect(() => {
+        store.dispose()
+        store.dispose()
+        store.dispose()
+      }).not.toThrow()
+    })
+  })
 })

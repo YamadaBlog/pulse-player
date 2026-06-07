@@ -18,9 +18,18 @@ import { resolve } from 'node:path'
  */
 const isLib = process.env.VITE_BUILD_TARGET === 'lib'
 
+// GitHub Pages serves the demo from `https://<user>.github.io/<repo>/`
+// — Vite needs the sub-path so asset URLs resolve. Set `BASE_PATH=/`
+// (or leave undefined) for local dev and any non-Pages deploy.
+const basePath = process.env.BASE_PATH || '/'
+
 export default defineConfig({
   plugins: [vue()],
   server: { port: 5174 },
+  base: isLib ? '/' : basePath,
+  // Library mode must NOT copy `public/` (demo audio + cover art = 8 MB+).
+  // The demo build does copy it — that's where the files belong.
+  publicDir: isLib ? false : 'public',
   build: isLib
     ? {
         outDir: 'dist/lib',

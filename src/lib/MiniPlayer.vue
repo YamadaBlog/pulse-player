@@ -18,11 +18,12 @@
  *  - `size`: diameter in px. Defaults to 56. Min recommended 40.
  *  - `offset`: bottom/right offset in px. Defaults to `{ bottom: 32, right: 16 }`.
  */
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { Play, Pause, SkipForward, X } from 'lucide-vue-next'
 import { useAudioStore } from './useAudioStore'
 
 import type { PulseVariant } from './shared/types'
+import { useProgressRing } from './shared/useProgressRing'
 
 // Public alias — keeps the import-from-MiniPlayer ergonomic but the
 // canonical definition lives in `shared/types.ts` (single source).
@@ -72,6 +73,10 @@ function openMenu() {
   menuOpen.value = true
 }
 
+function closeMenu() {
+  menuOpen.value = false
+}
+
 function handleNext() {
   store.next()
   menuOpen.value = false
@@ -81,6 +86,48 @@ function handleClose() {
   store.close()
   menuOpen.value = false
   dragPos.value = { x: 0, y: 0 }
+}
+
+// ─── Radial menu keyboard navigation ─────────────────────────────────
+//
+// When the menu opens, focus jumps to the first menu item so a keyboard
+// user can land in the right place without an extra Tab. Arrow keys
+// cycle between menu items, Home / End jump to the first / last item,
+// Escape closes the menu and restores focus to the FAB button.
+const menuRef = ref<HTMLElement | null>(null)
+const fabBtnRef = ref<HTMLElement | null>(null)
+
+watch(menuOpen, async (open) => {
+  if (open) {
+    await nextTick()
+    const first = menuRef.value?.querySelector<HTMLElement>('[role="menuitem"]')
+    first?.focus()
+  } else {
+    // Restore focus on the FAB button so a keyboard user doesn't get lost
+    // after Escape.
+    fabBtnRef.value?.focus()
+  }
+})
+
+/**
+ * Move focus within the open menu.
+ *   delta=1  → next item (wraps to first at end)
+ *   delta=-1 → previous item (wraps to last at start)
+ *   mode='absolute' + delta=0  → first item
+ *   mode='absolute' + delta=-1 → last item
+ */
+function focusMenuItem(delta: number, mode: 'relative' | 'absolute' = 'relative'): void {
+  if (!menuRef.value) return
+  const items = Array.from(menuRef.value.querySelectorAll<HTMLElement>('[role="menuitem"]'))
+  if (!items.length) return
+  if (mode === 'absolute') {
+    const target = delta < 0 ? items[items.length - 1] : items[0]
+    target.focus()
+    return
+  }
+  const current = items.indexOf(document.activeElement as HTMLElement)
+  const nextIndex = (current + delta + items.length) % items.length
+  items[nextIndex].focus()
 }
 
 function onDocClick(e: MouseEvent) {
@@ -220,13 +267,17 @@ function onContextMenu(e: Event) {
   openMenu()
 }
 
-// ═ PROGRESS RING — sized off `size` prop
+// ═ PROGRESS RING — sized off `size` prop. Geometry shared with the
+// inline FAB chrome in MusicPlayer via `useProgressRing` so the
+// formula lives in exactly one place.
 const STROKE = 3
-const RADIUS = computed(() => (props.size - STROKE) / 2)
-const CIRCUMFERENCE = computed(() => 2 * Math.PI * RADIUS.value)
-const ringOffset = computed(
-  () => CIRCUMFERENCE.value - (store.progress / 100) * CIRCUMFERENCE.value,
+const ring = useProgressRing(
+  computed(() => props.size),
+  STROKE,
 )
+const RADIUS = ring.radius
+const CIRCUMFERENCE = ring.circumference
+const ringOffset = computed(() => ring.offset(store.progress))
 
 const fabStyle = computed(() => {
   const base: Record<string, string> = {
@@ -300,9 +351,13 @@ onUnmounted(() => {
         </svg>
 
         <button
+          ref="fabBtnRef"
           class="fab__btn"
           @click="togglePlay"
           :aria-label="store.isPlaying ? 'Pause' : 'Play'"
+          :aria-pressed="store.isPlaying"
+          :aria-haspopup="menuOpen ? 'true' : undefined"
+          :aria-expanded="menuOpen ? 'true' : undefined"
         >
           <!-- Cover art (auto variant only) -->
           <div v-if="variant === 'auto'" class="fab__cover">
@@ -360,18 +415,33 @@ onUnmounted(() => {
         </button>
 
         <Transition name="menu-pop">
-          <div v-if="menuOpen" class="fab__menu">
+          <div
+            v-if="menuOpen"
+            ref="menuRef"
+            class="fab__menu"
+            role="menu"
+            aria-label="FAB actions"
+            @keydown.escape.prevent="closeMenu"
+            @keydown.arrow-up.prevent="focusMenuItem(-1)"
+            @keydown.arrow-down.prevent="focusMenuItem(1)"
+            @keydown.arrow-left.prevent="focusMenuItem(-1)"
+            @keydown.arrow-right.prevent="focusMenuItem(1)"
+            @keydown.home.prevent="focusMenuItem(0, 'absolute')"
+            @keydown.end.prevent="focusMenuItem(-1, 'absolute')"
+          >
             <button
               class="fab__menu-btn fab__menu-btn--next"
+              role="menuitem"
               @click.stop="handleNext"
-              aria-label="Next"
+              aria-label="Next track"
             >
               <SkipForward :size="14" />
             </button>
             <button
               class="fab__menu-btn fab__menu-btn--close"
+              role="menuitem"
               @click.stop="handleClose"
-              aria-label="Close"
+              aria-label="Close player"
             >
               <X :size="14" />
             </button>

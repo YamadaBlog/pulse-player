@@ -363,6 +363,61 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
       .padStart(2, '0')}`
   }
 
+  /**
+   * Tear down the audio graph and detach every internal reference.
+   *
+   * In a long-lived SPA the singleton store survives every navigation,
+   * which is exactly what you want. In dev-time hot-reload, server-side
+   * tests, or browser-extension popups that destroy and recreate Vue
+   * apps, that singleton can hold the `<audio>` element, the
+   * `AudioContext`, and several listener sets across reloads — slowly
+   * leaking until the tab is closed.
+   *
+   * Call `dispose()` from the consuming app's `onBeforeUnmount` hook
+   * (or HMR teardown) when you genuinely want the store to forget
+   * everything. The next call to `toggle()` will re-initialise the
+   * audio graph from scratch.
+   */
+  function dispose() {
+    stopEqLoop()
+    if (audio) {
+      audio.pause()
+      audio.src = ''
+      // Remove every listener attached in initAudio(). The audio element
+      // itself becomes eligible for GC once we drop the reference.
+      audio.removeAttribute('src')
+      audio.load()
+    }
+    if (sourceNode) {
+      try {
+        sourceNode.disconnect()
+      } catch {
+        /* already disconnected — fine */
+      }
+    }
+    if (analyser) {
+      try {
+        analyser.disconnect()
+      } catch {
+        /* idem */
+      }
+    }
+    if (audioCtx && audioCtx.state !== 'closed') {
+      audioCtx.close().catch(() => {
+        /* closing an already-closed context is harmless */
+      })
+    }
+    audio = null
+    audioCtx = null
+    analyser = null
+    sourceNode = null
+    _listeners.clear()
+    isPlaying.value = false
+    isVisible.value = false
+    currentTime.value = 0
+    duration.value = 0
+  }
+
   return {
     // State
     currentTrack,
@@ -397,5 +452,7 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     // Ambient EQ visibility registry — internal-but-public so
     // <MusicPlayer /> can declare "I'm currently rendering ambient EQ".
     registerAmbientView,
+    // Tear-down for SPA shells that hot-reload Vue apps.
+    dispose,
   }
 })

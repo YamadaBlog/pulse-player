@@ -51,6 +51,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { Play, Pause, SkipBack, SkipForward } from 'lucide-vue-next'
 import { useAudioStore } from './useAudioStore'
 import type { PulseVariant } from './shared/types'
+import { useProgressRing } from './shared/useProgressRing'
 
 // Public alias — keeps the import-from-MusicPlayer ergonomic but the
 // canonical definition lives in `shared/types.ts` (single source).
@@ -156,14 +157,15 @@ const isCompact = computed(() => containerWidth.value < COMPACT_THRESHOLD)
 // threshold, lifting the cap.
 const isFab = computed(() => (userWidth.value ?? containerWidth.value) < FAB_THRESHOLD)
 
-// ─── FAB chrome geometry (only used when isFab is true) ─────────
+// ─── FAB chrome geometry (only used when isFab is true). Geometry
+// shared with MiniPlayer via `useProgressRing` — single source of
+// truth for the radius / circumference / stroke-dashoffset maths.
 const FAB_STROKE = 2.5
 const fabSize = computed(() => Math.max(40, Math.round(containerWidth.value)))
-const fabRadius = computed(() => (fabSize.value - FAB_STROKE) / 2)
-const fabCircumference = computed(() => 2 * Math.PI * fabRadius.value)
-const fabRingOffset = computed(
-  () => fabCircumference.value - (store.progress / 100) * fabCircumference.value,
-)
+const _fabRing = useProgressRing(fabSize, FAB_STROKE)
+const fabRadius = _fabRing.radius
+const fabCircumference = _fabRing.circumference
+const fabRingOffset = computed(() => _fabRing.offset(store.progress))
 let resizeObs: ResizeObserver | null = null
 
 /** Hide just the NOW PLAYING label so icons (GitHub / Spotify) can stay. */

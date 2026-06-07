@@ -1,6 +1,6 @@
 {
   "name": "pulse-player",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A premium drop-in music player for Vue 3 — inline card + floating FAB, FFT visualiser, nine themes, guided demo tour, ~49 kB gzip.",
   "type": "module",
   "license": "MIT",
@@ -25,20 +25,26 @@
     "pinia",
     "component"
   ],
-  "main": "./src/lib/index.ts",
+  "main": "./dist/lib/pulse-player.cjs.js",
+  "module": "./dist/lib/pulse-player.es.js",
   "types": "./src/lib/index.ts",
   "exports": {
     ".": {
       "types": "./src/lib/index.ts",
-      "import": "./src/lib/index.ts"
+      "import": "./dist/lib/pulse-player.es.js",
+      "require": "./dist/lib/pulse-player.cjs.js"
     },
-    "./style.css": "./dist/assets/style.css"
+    "./style.css": "./dist/lib/pulse-player.css",
+    "./src/*": "./src/*"
   },
   "files": [
+    "dist/lib",
     "src/lib",
     "README.md",
     "LICENSE",
-    "docs"
+    "NOTICE.md",
+    "CHANGELOG.md",
+    "docs/*.md"
   ],
   "sideEffects": [
     "**/*.css",
@@ -59,6 +65,7 @@
     "test:coverage": "vitest run --coverage",
     "audit": "npm audit --omit=dev --audit-level=moderate",
     "ci": "npm run type-check && npm run lint && npm run test && npm run build && npm run audit",
+    "prepublishOnly": "npm run ci && npm run build:lib",
     "prepare": "husky 2>/dev/null || true"
   },
   "peerDependencies": {
