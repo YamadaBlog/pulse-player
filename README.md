@@ -4,28 +4,28 @@
 
 # 🎵 &nbsp;pulse-player
 
-### A premium drop-in music player, going universal.
+### A premium drop-in music player — now on npm for Vue, React, Svelte, Angular, and Web Components.
 
 [![Watch the demo on YouTube](https://img.youtube.com/vi/q_FJ1GWaCc8/maxresdefault.jpg)](https://youtu.be/q_FJ1GWaCc8 'Watch the 3-minute Pulse demo on YouTube')
 
 <sub>▶ [Watch the 3-minute demo on YouTube](https://youtu.be/q_FJ1GWaCc8) — 9 themes, ambient EQ, pulso heartbeat, drag-to-resize, FAB radial menu, keyboard shortcuts, multi-framework architecture.</sub>
 
-> **v3 is in alpha.** The Vue 3 reference (current `v2.3.4`, tagged on `main`) keeps shipping bit-for-bit identical while the multi-framework architecture lands in `packages/` over the coming alphas. The framework wrappers below (React, Svelte, Web Components) all ship real code today.
-> See [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md) and [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md) for the plan.
+> **`v3.0.0-rc.0` is LIVE on npm (2026-06-08).** The six core `@pulse-music/*` packages just shipped after a 21-tag audit-driven alpha cycle. The Vue 3 reference (`pulse-player` v2.3.4) keeps shipping bit-for-bit identical alongside the new scope. **Try it now:** `npm install @pulse-music/react @pulse-music/core` — see the install block below.
+> Architecture map: [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md). Cadence to v3.0.0 stable: [`docs/universal/VERSION_STRATEGY.md`](./docs/universal/VERSION_STRATEGY.md). Roadmap: [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md).
 
 ### Originally a Vue 3 music player that grows with the page.
 
 ### Now an audio component you can drop into any framework.
 
-| Framework                               | Package                                              | Status today                                                                                                   | Chrome parity vs Vue v2.3.4 |
-| --------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| **Vue 3**                               | `pulse-player` (today) / `@pulse-music/vue` (v3.0.0) | ✅ **Production-ready** (v2.3.4 validated, 15 alphas untouched)                                                | **100 %**                   |
-| **React 18 / 19**                       | `@pulse-music/react`                                 | ✅ wrapper + 16 RTL tests + apps/demo-react runnable                                                           | **~95 %**                   |
-| **Svelte 5**                            | `@pulse-music/svelte`                                | ✅ plain TS hook + 8 store tests + apps/demo-svelte runnable                                                   | **~95 %**                   |
-| **Web Components**                      | `@pulse-music/web-component`                         | ✅ `<pulse-player>` + `<pulse-fab>` (Lit) + 22 element tests                                                   | **~95 %**                   |
-| **Vanilla HTML / Solid / Astro / Qwik** | `@pulse-music/web-component`                         | ✅ apps/demo-vanilla runnable, inherits web-component chrome                                                   | **~95 %**                   |
-| **Angular 17+**                         | `@pulse-music/angular`                               | ⚠️ PulseModule + 5 smoke tests, `private: true` (CVE peer floor)                                               | **~95 %**                   |
-| **React Native**                        | `@pulse-music/react-native`                          | 🚫 interface types + 10 contract tests (renderer deferred, see [BLOCKERS.md](./docs/universal/BLOCKERS.md) #1) | **0 %**                     |
+| Framework                               | Package                                             | Status today                                                                                                   | Chrome parity vs Vue v2.3.4 |
+| --------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| **Vue 3**                               | `pulse-player` (v2.3.4) / `@pulse-music/vue` (rc.0) | ✅ **Production-ready** (v2.3.4 validated, 22 alphas + rc.0 byte-identical)                                    | **100 %**                   |
+| **React 18 / 19**                       | `@pulse-music/react`                                | ✅ wrapper + 16 RTL tests + apps/demo-react runnable                                                           | **~95 %**                   |
+| **Svelte 5**                            | `@pulse-music/svelte`                               | ✅ plain TS hook + 8 store tests + apps/demo-svelte runnable                                                   | **~95 %**                   |
+| **Web Components**                      | `@pulse-music/web-component`                        | ✅ `<pulse-player>` + `<pulse-fab>` (Lit) + 22 element tests                                                   | **~95 %**                   |
+| **Vanilla HTML / Solid / Astro / Qwik** | `@pulse-music/web-component`                        | ✅ apps/demo-vanilla runnable, inherits web-component chrome                                                   | **~95 %**                   |
+| **Angular 17+**                         | `@pulse-music/angular`                              | ⚠️ PulseModule + 5 smoke tests, `private: true` (CVE peer floor)                                               | **~95 %**                   |
+| **React Native**                        | `@pulse-music/react-native`                         | 🚫 interface types + 10 contract tests (renderer deferred, see [BLOCKERS.md](./docs/universal/BLOCKERS.md) #1) | **0 %**                     |
 
 **Need the full premium chrome today (resize handle, three responsive states, social icons, prev / next, FAB drag, palette / menu, fullscreen)?** → use the Vue version.
 **Just need the audio engine + minimum card chrome (play / pause / variants / ambient EQ / pulso)?** → any framework wrapper works.
@@ -90,15 +90,18 @@ Honest, datapoint-by-datapoint comparison with [Plyr](https://github.com/sampott
 
 <br>
 
+[![npm @pulse-music/react](https://img.shields.io/npm/v/@pulse-music/react?label=%40pulse-music%2Freact&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@pulse-music/react)
+[![npm @pulse-music/svelte](https://img.shields.io/npm/v/@pulse-music/svelte?label=%40pulse-music%2Fsvelte&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@pulse-music/svelte)
+[![npm @pulse-music/web-component](https://img.shields.io/npm/v/@pulse-music/web-component?label=%40pulse-music%2Fweb-component&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@pulse-music/web-component)
+[![npm @pulse-music/core](https://img.shields.io/npm/v/@pulse-music/core?label=%40pulse-music%2Fcore&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@pulse-music/core)
 [![Vue 3](https://img.shields.io/badge/Vue-3.4+-42b883?logo=vue.js&logoColor=white)](https://vuejs.org/)
 [![React 18 / 19](https://img.shields.io/badge/React-18%20%2F%2019-61dafb?logo=react&logoColor=white)](https://react.dev/)
 [![Svelte 5](https://img.shields.io/badge/Svelte-5-ff3e00?logo=svelte&logoColor=white)](https://svelte.dev/)
 [![Web Components](https://img.shields.io/badge/Web%20Components-Lit-324fff?logo=lit&logoColor=white)](https://lit.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3DBDA7.svg)](./LICENSE)
-[![Vue lib gzip](https://img.shields.io/badge/Vue%20lib-14%20kB%20gzip-3DBDA7)](./docs/ARCHITECTURE.md)
 [![Tests](https://img.shields.io/badge/tests-132%20%2F%20132-3DBDA7.svg)](./CHANGELOG.md)
-[![Status](https://img.shields.io/badge/status-active-3DBDA7.svg)]()
+[![CI](https://img.shields.io/github/actions/workflow/status/YamadaBlog/pulse-player/ci.yml?branch=main&label=CI&logo=github)](https://github.com/YamadaBlog/pulse-player/actions)
 [![Live demo](https://img.shields.io/badge/demo-live-3DBDA7?logo=github&logoColor=white)](https://yamadablog.github.io/pulse-player/)
 [![Watch demo](https://img.shields.io/badge/demo-YouTube-FF0000?logo=youtube&logoColor=white)](https://youtu.be/q_FJ1GWaCc8)
 
@@ -119,10 +122,22 @@ Honest, datapoint-by-datapoint comparison with [Plyr](https://github.com/sampott
 
 ## ✨ &nbsp;What it is
 
-`pulse-player` is two Vue 3 components — **`MusicPlayer`** (inline card) and
-**`MiniPlayer`** (floating FAB) — backed by a tiny Pinia store that owns the
-audio session. Drop them anywhere, they stay in sync. Mount the FAB at the
-app root, playback survives every route change.
+**pulse-player** started as two Vue 3 components — **`MusicPlayer`** (inline
+card) + **`MiniPlayer`** (floating FAB) — backed by a Pinia store that owns
+the audio session. Drop them anywhere, they stay in sync. Mount the FAB at
+the app root, playback survives every route change.
+
+As of `v3.0.0-rc.0` (2026-06-08), the same chrome ships across **5 web
+frameworks** under the **`@pulse-music/*`** scope on npm:
+
+- **React 18 / 19** — `npm install @pulse-music/react @pulse-music/core`
+- **Svelte 5** — `npm install @pulse-music/svelte @pulse-music/core`
+- **Web Components / Vanilla / Solid / Astro / Qwik** — `npm install @pulse-music/web-component`
+- **Angular 17+** — `@pulse-music/angular` (NgModule, awaiting peer-dep floor bump)
+- **Vue 3** — `pulse-player` (v2.3.4 reference) or `@pulse-music/vue` (re-export)
+
+All wrappers share the same `@pulse-music/core` audio engine and
+`@pulse-music/tokens` variant tokens. See [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md).
 
 The unusual bit: **every visible dimension scales from one CSS variable.**
 A `ResizeObserver` watches the container, writes `--pulse-scale` inline, and
