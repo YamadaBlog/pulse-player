@@ -36,7 +36,31 @@
 
 See [`docs/universal/SANDBOXES.md`](./docs/universal/SANDBOXES.md) for activation status (sandboxes go live once `@pulse/*` is published to npm).
 
-Read [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md) for the dependency graph, [`docs/universal/FEATURE_MATRIX.md`](./docs/universal/FEATURE_MATRIX.md) for what works in each framework, [`docs/universal/API.md`](./docs/universal/API.md) for the canonical API reference, [`docs/universal/LICENSING.md`](./docs/universal/LICENSING.md) for the MIT-and-why strategy, and [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md) for the per-alpha plan.
+### Production-framework integration snippets
+
+Copy-paste-ready integration patterns for the most-asked-about meta-frameworks. Each one is the smallest possible "Pulse is now in my app" sample — ~30-50 LOC, no extra abstractions.
+
+- [Next.js 14+ (App Router)](./examples/integrations/next-app-router.md) — client-component pattern + SSR-safe dynamic import
+- [Nuxt 3+](./examples/integrations/nuxt.md) — `.client.vue` + `<ClientOnly>` wrappers
+- [SvelteKit 2+](./examples/integrations/sveltekit.md) — `+page.svelte` + Vite `optimizeDeps` tweak
+- [Astro 4+](./examples/integrations/astro.md) — Custom Element + `client:load` directive
+- [Vanilla HTML + CDN](./examples/integrations/vanilla-cdn.md) — one `<script type="module">` line, no build step
+
+### How Pulse compares
+
+Honest, datapoint-by-datapoint comparison with [Plyr](https://github.com/sampotts/plyr), [Howler.js](https://howlerjs.com/), [WaveSurfer.js](https://wavesurfer.xyz/), [Vidstack Player](https://github.com/vidstack/player), and [react-player](https://www.npmjs.com/package/react-player). See [`docs/universal/COMPARISON.md`](./docs/universal/COMPARISON.md) for the full table — including when Pulse is **not** the right choice. Headline summary:
+
+| You build…                                                              | Use…                                                        |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------- |
+| A content site / portfolio / landing page with polished audio           | **Pulse** (smallest scope, premium chrome, multi-framework) |
+| A media platform at scale (Netflix-clone, podcast app, music streaming) | Vidstack or Plyr (battle-tested, video + HLS)               |
+| A DAW / audio editor / podcast cutter (waveform UI)                     | WaveSurfer.js + Howler                                      |
+| A React-only app needing YouTube / Vimeo embed                          | react-player                                                |
+| A game with 3D spatial audio                                            | Howler.js                                                   |
+
+### Architecture & process docs
+
+[`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md) — dependency graph · [`docs/universal/FEATURE_MATRIX.md`](./docs/universal/FEATURE_MATRIX.md) — what works in each framework · [`docs/universal/API.md`](./docs/universal/API.md) — canonical API reference · [`docs/universal/LICENSING.md`](./docs/universal/LICENSING.md) — the MIT-and-why strategy · [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md) — per-alpha plan · [`docs/universal/COMPARISON.md`](./docs/universal/COMPARISON.md) — vs Plyr / Vidstack / Howler · [`docs/universal/PUBLISH_CHECKLIST.md`](./docs/universal/PUBLISH_CHECKLIST.md) — npm publish procedure · [`docs/universal/PROTECTION_NOTES.md`](./docs/universal/PROTECTION_NOTES.md) — MIT realism · [`docs/universal/SCREEN_READER_TEST_PLAN.md`](./docs/universal/SCREEN_READER_TEST_PLAN.md) — manual SR test plan · [`docs/universal/REACT_NATIVE_RUNTIME_SETUP.md`](./docs/universal/REACT_NATIVE_RUNTIME_SETUP.md) — RN playbook · [`docs/universal/VERSION_STRATEGY.md`](./docs/universal/VERSION_STRATEGY.md) — alpha → rc → stable cadence · [`docs/universal/RENAMING_DECISION.md`](./docs/universal/RENAMING_DECISION.md) — naming options before publish.
 
 <br>
 
