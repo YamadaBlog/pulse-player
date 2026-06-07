@@ -8,6 +8,49 @@ Tags: every release listed below is pinned to a signed git tag of the same name 
 
 Tracked separately in [the v2.0.0 audit branch](https://github.com/YamadaBlog/pulse-player/issues?q=is%3Aissue+label%3Av2.0.0).
 
+## 3.0.0-alpha.0 — 2026-06-07
+
+First alpha of the multi-framework architecture. **No Vue code moved yet.** The validated `v2.3.4` codebase at `src/lib/` keeps shipping the `pulse-player` npm package bit-for-bit identical. This alpha lays the monorepo foundation around it.
+
+What lands:
+
+- **Monorepo enabled.** `pnpm-workspace.yaml`, `turbo.json`, and a `workspaces` field in the root `package.json`. Contributors can use pnpm, npm or yarn — the workspace layout is shared.
+- **9 package scaffolds** under `packages/`:
+  - `@pulse/types` — shared TypeScript types (real, ships now). `Track`, `PulseVariant`, `ALL_VARIANTS`, `EventMap`, `AudioEvent`, `EventListener<E>`, `Unsubscribe`, `PulseState`. Zero runtime, zero risk.
+  - `@pulse/core` — framework-agnostic audio engine. SCAFFOLD; implementation in alpha.1.
+  - `@pulse/tokens` — CSS variables, variant gradients, animation keyframes. SCAFFOLD; populated in alpha.1.
+  - `@pulse/web-component` — Lit-based universal `<pulse-player>` / `<pulse-fab>`. SCAFFOLD; implementation in alpha.2.
+  - `@pulse/vue` — Vue 3 wrapper. Pre-migration scaffold; the v2.3.4 code at `src/lib/` moves here in alpha.3 with a refactor to wrap the new web-component layer.
+  - `@pulse/react` — React 18 / 19 wrapper. SCAFFOLD; alpha.4.
+  - `@pulse/react-native` — RN implementation (separate renderer, no DOM). SCAFFOLD; alpha.5.
+  - `@pulse/angular` — Angular 17+ wrapper. SCAFFOLD; v3.1.0.
+  - `@pulse/svelte` — Svelte 5 wrapper. SCAFFOLD; v3.1.0.
+- **Multi-framework documentation:**
+  - `docs/universal/ARCHITECTURE.md` — dependency graph, package responsibilities, why the layered design.
+  - `docs/universal/ROADMAP.md` — phase-by-phase migration plan (Phase 0 → Phase 7).
+  - `docs/frameworks/{vue,react,react-native,web-component,angular,svelte}.md` — per-framework usage pages (forward-looking specs for the ones that haven't shipped yet).
+
+What's **explicitly not** in this alpha:
+
+- No code is moved out of `src/lib/`. The current Vue v2.3.4 implementation remains the validated reference and continues to be the package consumers install today (`pulse-player`, not `@pulse/*`).
+- No new framework wrapper is functional yet. Every `@pulse/*` package other than `@pulse/types` is a scaffold with READMEs and stub `src/index.ts` files.
+- No npm publishes yet. The `@pulse/*` namespace is reserved for v3.0.0 stable.
+- The visual regression tests against the v2.3.4 Vue demo (which will gate the alpha.3 Vue refactor) land in alpha.2 alongside `@pulse/web-component`.
+
+Quality gate after alpha.0 scaffold:
+
+```
+type-check    → clean
+lint          → 0 errors, 0 warnings
+format        → pass
+tests         → 33 / 33
+build (demo)  → 129 kB JS + 42 kB CSS → 48 kB gzip
+build:lib     → ~14 kB gzip total
+audit         → 0 vulnerabilities
+```
+
+The Vue v2.3.4 codebase is untouched. Visual rendering, ambient EQ behaviour, FAB drag, pulso, demo tour, spotlight system — all bit-for-bit identical to the tagged `v2.3.4`.
+
 ## 2.3.4 — 2026-06-07
 
 **Fix / refactor** — closes the four code items the v2.3.2 audit flagged.

@@ -3,6 +3,11 @@
   "version": "2.3.4",
   "description": "A premium drop-in music player for Vue 3 — inline card + floating FAB, FFT visualiser, nine themes, guided demo tour, ~49 kB gzip.",
   "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "examples/*"
+  ],
   "license": "MIT",
   "author": "YamadaBlog",
   "repository": {

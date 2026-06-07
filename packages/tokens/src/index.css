@@ -1,0 +1,17 @@
+/* @pulse/tokens — every CSS design token used by every web renderer.
+ *
+ * Single source of truth for:
+ *   - variant gradients + accent identities (`./variants.css`)
+ *   - base palette + scale + shadows (`./base.css`)
+ *   - shared @keyframes (`./animations.css`)
+ *
+ * Consumers (`@pulse/web-component`, `@pulse/vue`, future React + others)
+ * import only the slices they need.
+ *
+ * Status: SCAFFOLD. The actual extraction of `src/lib/shared/variants.css`
+ * (from the validated Vue v2.3.4 build) into this package lands in
+ * v3.0.0-alpha.1.
+ */
+@import './variants.css';
+@import './base.css';
+@import './animations.css';

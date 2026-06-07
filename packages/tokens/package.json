@@ -1,0 +1,25 @@
+{
+  "name": "@pulse/tokens",
+  "version": "0.0.0",
+  "description": "CSS design tokens for pulse-player — variant gradients, accent colours, animation keyframes. Shared by every web renderer.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.css",
+  "exports": {
+    ".": "./src/index.css",
+    "./variants.css": "./src/variants.css",
+    "./base.css": "./src/base.css",
+    "./animations.css": "./src/animations.css"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "private": false
+}

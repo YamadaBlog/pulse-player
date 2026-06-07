@@ -4,7 +4,12 @@
 
 # 🎵 &nbsp;pulse-player
 
-### A Vue 3 music player that grows with the page.
+### A premium drop-in music player, going universal.
+
+> **v3 is in alpha.** The Vue 3 reference (current `v2.3.4`, tagged on `main`) keeps shipping bit-for-bit identical while the multi-framework architecture (`@pulse/core`, `@pulse/web-component`, `@pulse/react`, `@pulse/react-native`, `@pulse/angular`, `@pulse/svelte`) lands in `packages/` over the coming alphas.
+> See [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md) and [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md) for the plan.
+
+### Originally a Vue 3 music player that grows with the page.
 
 <br>
 

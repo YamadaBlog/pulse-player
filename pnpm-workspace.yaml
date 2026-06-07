@@ -1,0 +1,7 @@
+# pnpm workspace declaration. The monorepo is also npm-workspaces
+# compatible via the `workspaces` field in the root package.json, so
+# contributors can use either package manager.
+packages:
+  - 'packages/*'
+  - 'apps/*'
+  - 'examples/*'
