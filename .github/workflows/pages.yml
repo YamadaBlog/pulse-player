@@ -1,8 +1,23 @@
 name: Deploy demo to GitHub Pages
 
+# Manual-only trigger.
+#
+# GitHub Pages on a PRIVATE repository requires a GitHub Pro / Team /
+# Enterprise plan. This repo is on the Free plan, so the workflow fails
+# with HTTP 422 on every run. Triggering on every push to main turned
+# every push into a red CI status — pure noise. Switched to
+# `workflow_dispatch` (manual button) so the workflow stays in the repo,
+# ready to enable, but doesn't pollute the build history.
+#
+# Re-enable push trigger once ONE of these is decided:
+#   1. Upgrade to GitHub Pro ($4/mo) — activates Pages on private repos
+#   2. Make the repo public — Pages works on the Free plan
+#   3. Migrate hosting to Cloudflare Pages / Netlify / Vercel (free tier;
+#      the workflow gets retired in favour of their deploy hook)
+#
+# See docs/universal/BLOCKERS.md #0 for the decision matrix.
+
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 # Allow only one concurrent deployment, skipping runs queued between

@@ -19,9 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-NOTE: the demo audio tracks and cover images shipped under public/audio/ are
-included only for the local demo. They are not part of the MIT-licensed
-software. Replace them with content you own (or have licensed) before any
-public deployment. See NOTICE.md for the full provenance / attribution
-record and the list of demo assets that must be replaced.
