@@ -507,40 +507,57 @@ onUnmounted(() => {
   animation-name: pulso-wave-dub;
 }
 
+/* The waves are emitted AT the heartbeat peaks, not before them. The
+   button cycle puts its scale peaks at 6 % (lub) and 20 % (dub) of
+   the 5 s cycle; the previous timings had the waves visible at 0 %
+   and 14 % respectively, so each wave appeared ~300 ms BEFORE its
+   matching thump. The eye reads the wave as "caused by" the thump,
+   so the temporal mismatch felt like a delay or stutter. Aligning
+   the wave's first visible frame with the heartbeat's peak frame
+   restores the cause-and-effect feel.
+
+   Cycle map (5 s):
+     0 %  → 6 %   : button compresses up to the lub peak (300 ms)
+     6 %        : lub wave EMERGES, scale 1, opacity 0.45
+     6 % → 20 % : wave expands to scale 1.6, fades to 0 (700 ms ride)
+     20 %       : dub wave EMERGES, scale 1, opacity 0.45
+     20 % → 34 %: wave expands to scale 1.6, fades (700 ms)
+     34 % → 100 %: both waves dormant (rest, 3.3 s) */
 @keyframes pulso-wave-lub {
-  /* Wave appears at the lub thump and fades quickly. Stays dormant
-     the rest of the cycle. */
-  0% {
+  0%,
+  5% {
     transform: scale(1);
-    opacity: 0.3;
+    opacity: 0;
+  }
+  6% {
+    transform: scale(1);
+    opacity: 0.45;
   }
   20% {
-    transform: scale(1.7);
+    transform: scale(1.6);
     opacity: 0;
   }
   100% {
-    transform: scale(1.7);
+    transform: scale(1.6);
     opacity: 0;
   }
 }
 @keyframes pulso-wave-dub {
-  /* Same shape, fired at 14 % so it lines up with the second thump
-     peak (which is at 20 %). */
   0%,
-  14% {
+  19% {
     transform: scale(1);
     opacity: 0;
   }
-  14.01% {
+  20% {
     transform: scale(1);
-    opacity: 0.3;
+    opacity: 0.45;
   }
   34% {
-    transform: scale(1.7);
+    transform: scale(1.6);
     opacity: 0;
   }
   100% {
-    transform: scale(1.7);
+    transform: scale(1.6);
     opacity: 0;
   }
 }
