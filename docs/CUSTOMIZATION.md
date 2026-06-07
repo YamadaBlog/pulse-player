@@ -82,7 +82,34 @@ Both components fall back to teal (`#3DBDA7`) when the variables are absent, so 
 
 <!-- Bigger FAB, pinned higher -->
 <MiniPlayer variant="aurora" :size="72" :offset="{ bottom: 56, right: 24 }" />
+
+<!-- User-resizable hero with the ambient EQ baked in -->
+<MusicPlayer
+  variant="midnight"
+  accent-color="#8B5CF6"
+  resizable
+  :min-width="60"
+  :max-width="720"
+  ambient-eq
+/>
+
+<!-- Quiet inline player — no grain, no ambient EQ -->
+<MusicPlayer variant="auto" :noise="false" :ambient-eq="false" />
+
+<!-- FAB with heartbeat ripple and a custom localStorage key -->
+<MiniPlayer variant="midnight" pulso persist-key="my-app-fab-pos" />
 ```
+
+### Toggle the ambient EQ from anywhere
+
+```ts
+import { useAudioStore } from 'pulse-player'
+
+const store = useAudioStore()
+store.ambientEq = true     // every <MusicPlayer /> without a local override lights up
+```
+
+A local `:ambient-eq="false"` prop on a specific instance opts that instance out, even when the global flag is on.
 
 ## Want a new variant?
 

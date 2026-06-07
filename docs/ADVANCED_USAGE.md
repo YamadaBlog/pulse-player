@@ -107,6 +107,7 @@ The analyser is wrapped in a `try / catch`. Nothing to disable — if you don't 
 
 ## Limitations
 
-- One global `<audio>` element per store id. For two independent players, clone the store with `defineStore('audio-second', …)`.
-- First play must follow a user gesture (browser autoplay policy).
-- The default UI ships prev / next + scrub only. Volume, shuffle and repeat aren't in the chrome — the actions exist on the store, wire your own UI if you need them.
+- One global `<audio>` element per store id. For two independent players (one inline, one FAB, both playing different tracks at once), clone the store with `defineStore('audio-second', …)` — the singleton pattern is per-store, not per-app.
+- First play must follow a user gesture (browser autoplay policy). If `audio.play()` rejects, `isPlaying` still flips to `true` because the call site sets it synchronously — check the browser console for autoplay-policy warnings and gate your first play on a user click.
+- Cross-origin tracks freeze the EQ bars. The Web Audio analyser requires CORS-enabled responses when used with `MediaElementAudioSourceNode`. Either serve the audio with `Access-Control-Allow-Origin: *` or host it on the same origin.
+- The default UI ships prev / next + scrub only. Volume, shuffle and repeat aren't in the chrome — the actions exist on the store, wire your own UI if you need them (see "Build your own controls" above).

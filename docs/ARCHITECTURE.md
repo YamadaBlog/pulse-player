@@ -39,9 +39,10 @@ flowchart LR
 
 | Layer | Owns | Type |
 |---|---|---|
-| `useAudioStore` | the `<audio>` element, the `AudioContext` + `AnalyserNode`, reactive state, all actions | Pinia store (singleton) |
-| `MusicPlayer.vue` | the inline card layout, all CSS variables tied to `--pulse-scale` | Vue 3 SFC |
-| `MiniPlayer.vue` | the floating FAB, drag/swipe gestures, radial menu, progress ring | Vue 3 SFC (Teleport to body) |
+| `useAudioStore` | the `<audio>` element, the `AudioContext` + `AnalyserNode`, reactive state, the `ambientEq` global flag, all actions, the opt-in event bus, per-session counters | Pinia store (singleton) |
+| `MusicPlayer.vue` | the inline card layout, the four responsive states (narrow/compact/FAB), the drag-resize handle, all CSS variables tied to `--pulse-scale` | Vue 3 SFC |
+| `MiniPlayer.vue` | the floating FAB, drag/swipe gestures, radial menu, progress ring, optional pulso heartbeat | Vue 3 SFC (Teleport to body) |
+| `useDemoTour` | the guided product tour — scripted timeline, two-tier abort, pause/resume, step jump, scroll/tween helpers, `prefers-reduced-motion` gate | Composable |
 | `setAudioTracks(tracks)` | replace the playlist before mount | function |
 
 ## Why one store
@@ -59,15 +60,18 @@ HTMLAudioElement
 MediaElementAudioSourceNode
    │
    ▼  sourceNode.connect(analyser)
-AnalyserNode (FFT, fftSize=32, smoothing=0.7)
+AnalyserNode (FFT, fftSize=256, smoothing=0.5)
    │
    ▼  analyser.connect(audioCtx.destination)
 Audio output
    │
    │  (also)
    ▼  analyser.getByteFrequencyData() — every frame
-eqBars: [4 floats 0..1] → reactive state
+eqBars (4 bars)        → ShallowRef + triggerRef  → NOW PLAYING + FAB chrome
+eqAmbientBars (64 bars) → ShallowRef + triggerRef  → ambient EQ visualiser
 ```
+
+The rAF loop is **cancellable** and tied to the play state — it starts on `toggle()` → play, stops on pause/close, so idle CPU is genuinely zero. Arrays are mutated in place and signalled via `triggerRef()` → zero allocations on the hot path. `AudioContext` falls back to `webkitAudioContext` for Safari < 14.1.
 
 The analyser is wrapped in a `try / catch` — if the browser refuses the connection (cross-origin without CORS, missing API, …) the bars stay flat but **playback still works**.
 

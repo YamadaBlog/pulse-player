@@ -61,6 +61,13 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
   const eqAmbientBars = shallowRef<number[]>(new Array(64).fill(0))
   const isVisible = ref(false)       // mini-player visible
   const hasBeenOpened = ref(false)    // user started playback at least once
+  // Lightweight, privacy-friendly counters. Incremented locally only —
+  // no network, no third-party. Useful for "how often did the user
+  // press play" analytics that the integrator can hook up to their
+  // own backend if they want.
+  const playCount = ref(0)
+  const pauseCount = ref(0)
+  const trackChangeCount = ref(0)
   /** Global ambient-EQ toggle. When true, every <MusicPlayer /> in the
    *  app that doesn't explicitly override the `ambientEq` prop will show
    *  the ambient visualiser. Flip from anywhere via `store.ambientEq`. */
@@ -72,6 +79,33 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
   let analyser: AnalyserNode | null = null
   let sourceNode: MediaElementAudioSourceNode | null = null
   let eqRaf: number | null = null
+
+  // ═ EVENT BUS — opt-in. Default: empty, no listeners, no cost.
+  //  `store.subscribe('play', cb)` returns an unsubscribe function.
+  //  Events emitted by this store:
+  //    'play'        — payload: { track: Track, time: number }
+  //    'pause'       — payload: { track: Track, time: number }
+  //    'trackchange' — payload: { from: number, to: number, track: Track }
+  type AudioEvent = 'play' | 'pause' | 'trackchange'
+  type EventPayload = Record<string, unknown>
+  type Listener = (payload: EventPayload) => void
+  const _listeners = new Map<AudioEvent, Set<Listener>>()
+
+  function subscribe(event: AudioEvent, cb: Listener): () => void {
+    let set = _listeners.get(event)
+    if (!set) { set = new Set(); _listeners.set(event, set) }
+    set.add(cb)
+    return () => { set!.delete(cb) }
+  }
+
+  function emit(event: AudioEvent, payload: EventPayload): void {
+    const set = _listeners.get(event)
+    if (!set) return
+    set.forEach((cb) => {
+      // One listener throwing must NEVER take the store down.
+      try { cb(payload) } catch (e) { /* eslint-disable-next-line no-console */ console.error(`[useAudioStore] listener for "${event}" threw:`, e) }
+    })
+  }
 
   // ═ GETTERS
   const progress = computed(() => {
@@ -167,19 +201,26 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     if (isPlaying.value) {
       audio.pause()
       isPlaying.value = false
+      pauseCount.value++
       stopEqLoop()                 // stop the rAF — the spectrum is flat anyway
+      emit('pause', { track: track.value, time: currentTime.value })
     } else {
       audio.play()
       isPlaying.value = true
       hasBeenOpened.value = true
       isVisible.value = true
+      playCount.value++
       startEqLoop()                // start (or resume) the rAF
+      emit('play', { track: track.value, time: currentTime.value })
     }
   }
 
   function loadTrack(i: number) {
     if (i < 0 || i >= _tracks.length) return
+    const from = currentTrack.value
+    if (from === i) return                  // no-op
     currentTrack.value = i
+    trackChangeCount.value++
     if (audio) {
       audio.src = _tracks[i].src
       audio.load()
@@ -187,6 +228,7 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
       duration.value = 0
       if (isPlaying.value) audio.play()
     }
+    emit('trackchange', { from, to: i, track: _tracks[i] })
   }
 
   function next() { loadTrack((currentTrack.value + 1) % _tracks.length) }
@@ -221,9 +263,13 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     // State
     currentTrack, isPlaying, currentTime, duration, eqBars, eqAmbientBars, ambientEq,
     isVisible, hasBeenOpened,
+    // Privacy-friendly local counters (no network)
+    playCount, pauseCount, trackChangeCount,
     // Getters
     progress, track, tracks,
     // Actions
     toggle, next, prev, seek, open, close, fmt, initAudio, loadTrack,
+    // Opt-in event subscription (returns unsubscribe)
+    subscribe,
   }
 })

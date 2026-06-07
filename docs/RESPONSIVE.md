@@ -2,61 +2,73 @@
 
 [← back to README](../README.md)
 
-`pulse-player` watches its own container with a `ResizeObserver` and writes a unitless scale factor inline to `--pulse-scale`. Every visible dimension — artwork, title, NOW PLAYING label, icons, buttons, padding, border-radius, shadows, EQ bars, progress and gaps — is `calc(base × var(--pulse-scale))`. The result is a component that **actually grows** with its container, not a stretched mobile one.
+`pulse-player` watches its own container with a `ResizeObserver` and writes a unitless scale factor inline to `--pulse-scale`. Every visible dimension — artwork, title, NOW PLAYING label, icons, buttons, padding, border-radius, shadows, EQ bars, progress and gaps — is `calc(base × var(--pulse-scale))`. The result is a component that **actually grows** with its container, not a stretched mobile one. Three layered breakpoints kick in on top of the smooth scale so the component never breaks — it adapts.
 
-## The three breakpoints
+## The four states
 
-### Mobile (≤ 420 px container)
+| State | Width range | What changes |
+|---|---|---|
+| **Full** | ≥ 220 px | Everything visible: NOW PLAYING label, GitHub + Spotify icons, full title, prev/next, progress bar, optional ambient EQ. |
+| **Narrow** | 130–220 px | NOW PLAYING label hides. GitHub + Spotify icons stay (tighter gap). Title still readable. |
+| **Compact** | 110–130 px | Top row removed. Only artwork + title + prev/next remain, centred. |
+| **FAB** | < 110 px | The player morphs into a circular disc — cover art, dark scrim, play/pause icon, animated progress ring, optional ambient EQ. Tap to play/pause. |
 
-<img src="./screenshots/responsive-mobile.png" alt="mobile rendering at 390 px viewport" width="320" />
+Thresholds live in `src/lib/MusicPlayer.vue`:
 
-- Artwork at ~33 % of the container width — same proportions as the original dashboard.
-- Title left-aligned next to the artwork.
-- All icons visible until the container drops below the compact threshold.
+```ts
+const NARROW_THRESHOLD = 220
+const COMPACT_THRESHOLD = 130
+const FAB_THRESHOLD = 110
+```
 
-### Tablet (~ 480 – 900 px container)
-
-<img src="./screenshots/responsive-tablet.png" alt="tablet rendering at 820 px viewport" width="100%" />
-
-- Same layout, larger everything.
-- Artwork holds its 33 % ratio; the body breathes.
-
-### Desktop (≥ 720 px container)
-
-<img src="./screenshots/responsive-desktop.png" alt="desktop rendering at 1280 px viewport" width="100%" />
-
-- Title sits flush left next to the artwork (not centered).
-- Bigger artwork, larger type, deeper chrome — proportional to scale.
+The morph between every pair of states uses **`cubic-bezier(0.65, 0, 0.35, 1)`** over 400 ms. While the guided demo is running, a body-level class overrides that to 550 ms for a buttery feel during scripted resizes. Inside the threshold morphs, every transitioned property uses GPU-friendly compositing where possible — the EQ bars in particular run on `transform: scaleY()` so they never trigger layout reflow.
 
 ## The scale curve
 
+The auto-scale is a **two-zone ramp** — gentle above 280 px, steeper below to keep the layout legible at smaller container widths.
+
 | Container width | `--pulse-scale` | Artwork | Title | Icon |
 |---:|---:|---:|---:|---:|
-| 240 px | 0.69 | _compact mode_ | _compact mode_ | _hidden_ |
-| 280 px | 0.75 | 102 px | 20 px | 13 px |
-| 360 px | 0.89 | 121 px | 23 px | 15 px |
-| 480 px | 1.10 | 150 px | 29 px | 19 px |
-| 720 px | 1.52 | 207 px | 40 px | 26 px |
-| 800 px | 1.66 | 226 px | 43 px | 28 px |
+| 130 px | _compact mode_ | _compact_ | _compact_ | _hidden_ |
+| 170 px | 0.45 | 61 px | 13 px (floor) | 11 px (floor) |
+| 220 px | 0.63 | 86 px | 16 px | 11 px |
+| 280 px | 0.85 | 116 px | 22 px | 14 px |
+| 360 px | 0.97 | 132 px | 25 px | 16 px |
+| 480 px | 1.17 | 159 px | 30 px | 20 px |
+| 720 px | 1.50 | 204 px | 39 px | 25 px |
+| 800 px+ | 1.65 | 224 px | 43 px | 28 px |
 
-## Compact mode
+Text-bearing dimensions use `max(floor, calc(base × scale))` so the title, NOW PLAYING label, icons and buttons floor at a readable minimum even when the container goes very small — no shrinking-into-invisibility.
 
-<img src="./screenshots/compact.png" alt="compact mode at &lt; 240 px container" width="240" />
+## Drag-to-resize (optional)
 
-Below **240 px** of container width the layout collapses to a compact strip — artwork + title + prev/next. NOW PLAYING and the secondary icons are hidden to keep the title readable. Toggle and seek still work as expected, so the component never breaks visually no matter how narrow you make it.
+Add the `resizable` prop on `MusicPlayer` and a small diagonal handle appears in the bottom-right corner. Pointer events drive it — **mouse, touch and stylus all run the same code path** via `setPointerCapture`.
 
-The threshold lives in `src/lib/MusicPlayer.vue`:
-
-```ts
-const COMPACT_THRESHOLD = 240
+```vue
+<MusicPlayer
+  resizable
+  :min-width="60"
+  :max-width="720"
+/>
 ```
 
-## Manual override
+| Prop | Default | Notes |
+|---|---|---|
+| `resizable` | `false` | Show the handle. |
+| `width` | `null` | Programmatic width override (used by the guided demo). Pass `null` to release control. |
+| `minWidth` | `60` | Floor (px). |
+| `maxWidth` | `720` | Ceiling (px) — keeps the player from stretching into a disproportionate band on very wide screens. |
 
-If the auto-scale doesn't match what you need, pass the `size` prop. A number between `0.6` and `1.8`. Auto-scale stops driving the variable as soon as `size` is set.
+The drag crosses the same thresholds as the auto-scale, so resizing by hand reproduces the exact same narrow / compact / FAB transitions. Going below `FAB_THRESHOLD` morphs the rectangle into the circular FAB and back as you drag past 110 px in either direction.
+
+## Manual scale override
+
+If the auto-scale doesn't match what you need, pass the `size` prop. A number, typically between `0.6` and `1.8`. Auto-scale stops driving the variable as soon as `size` is set.
 
 ```vue
 <MusicPlayer :size="0.75" />   <!-- compact sidebar -->
 <MusicPlayer :size="1.0"  />   <!-- card -->
 <MusicPlayer :size="1.7"  />   <!-- hero -->
 ```
+
+For width-based control (the slider in the live demo), bind `:width` instead — that's the same prop the drag handle and the guided demo tour use, so behaviour stays consistent across the three entry points.
