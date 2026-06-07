@@ -2,30 +2,90 @@
 
 Thanks for taking a look at the source. The library aims to ship a small surface, hold a 10/10 quality bar, and keep its design language consistent. The notes below cover what we hold ourselves to so you can match the bar on a PR.
 
+## Monorepo layout (v3.0.0-alpha.9+)
+
+The repo is a workspace monorepo. Vue v2.3.4 still lives at `src/lib/` (the validated reference); the multi-framework architecture lands under `packages/`:
+
+```
+src/lib/                  ← Vue v2.3.4 reference implementation (UNTOUCHED)
+src/App.vue               ← the demo page
+src/composables/          ← demo-only composables (useDemoTour, etc.)
+packages/
+  ├── types/              ← shared TS types (no runtime)
+  ├── core/               ← framework-agnostic audio engine (27 tests)
+  ├── tokens/             ← CSS variants + base + animations (single source)
+  ├── web-component/      ← Lit-based <pulse-player> + <pulse-fab> (22 tests)
+  ├── react/              ← React 18/19 hooks + JSX components (16 tests)
+  ├── svelte/             ← Svelte 5 classic-store hook (8 tests)
+  ├── angular/            ← Angular 17+ PulseModule
+  ├── react-native/       ← interface types + sentinel runtime (renderer deferred)
+  ├── vue/                ← soft re-export from src/lib/
+  └── test-utils/         ← shared vitest stubs
+apps/
+  ├── demo-vanilla/       ← HTML standalone (no framework)
+  ├── demo-react/         ← Vite + React
+  └── demo-svelte/        ← Vite + Svelte 5
+tests/
+  └── visual/             ← Playwright baselines vs Vue v2.3.4 demo
+docs/
+  ├── universal/          ← multi-framework architecture, roadmap, blockers
+  └── frameworks/         ← per-framework usage pages
+```
+
 ## Setup
 
 ```bash
 git clone https://github.com/YamadaBlog/pulse-player.git
 cd pulse-player
 npm install
-npm run dev          # http://localhost:5174
+npm run dev          # http://localhost:5174  (Vue v2.3.4 demo)
 ```
 
-Node 18+ required.
+Node 18+ required. The workspaces field in `package.json` resolves every `@pulse/*` package via symlinks, so changes in `packages/*/src/` reflect immediately.
+
+To run a per-framework demo:
+
+```bash
+npm run dev --workspace=@pulse/demo-vanilla  # http://localhost:5180  (no framework)
+npm run dev --workspace=@pulse/demo-react    # http://localhost:5181
+npm run dev --workspace=@pulse/demo-svelte   # http://localhost:5182
+```
 
 ## The quality gate
 
 Every PR has to pass `npm run ci`, which is exactly what GitHub Actions runs:
 
 ```bash
-npm run type-check   # vue-tsc --noEmit
-npm run lint         # eslint, no warnings, no errors
-npm run test         # vitest, 100 % of suites must pass
-npm run build        # vite + vue-tsc
-npm run audit        # production dependencies, moderate or higher
+npm run type-check       # vue-tsc --noEmit
+npm run lint             # eslint, no warnings, no errors
+npm run test             # vitest — 33 / 33 Vue Pinia + useDemoTour
+npm run test:packages    # vitest — 60+ tests across 4 framework wrappers
+npm run build            # vite — Vue demo
+npm run build:lib        # vite library mode — Vue lib
+npm run build:packages   # tsup — 6 framework packages
+npm run audit            # production dependencies, moderate or higher
 ```
 
 A pre-commit hook (via `husky` + `lint-staged`) auto-fixes formatting and lint issues on staged files so most of this is invisible day-to-day.
+
+Visual regression runs in a separate workflow (`.github/workflows/visual.yml`):
+
+```bash
+npm run test:visual          # Playwright vs Vue v2.3.4 demo (2 baselines)
+npm run test:visual:update   # regenerate baselines after intentional change
+```
+
+## Adding a new framework wrapper
+
+The pattern (mirrors `@pulse/react`, `@pulse/svelte`, `@pulse/angular`):
+
+1. Create `packages/<framework>/` with `package.json`, `README.md`, `src/index.ts`, `tsup.config.ts`, `tsconfig.json`.
+2. Declare `peerDependencies` on the framework and `dependencies` on `@pulse/types` + `@pulse/web-component`.
+3. The wrapper imports `<pulse-player>` and `<pulse-fab>` Custom Elements (side-effect-registered by importing `@pulse/web-component`) and exposes a framework-native component plus an audio hook over the singleton `PulseEngine`.
+4. Add tests under `packages/<framework>/tests/` using `@pulse/test-utils` for the shared stubs.
+5. Update the README framework picker table + add `docs/frameworks/<framework>.md`.
+
+Reference: `packages/react/` is ~110 LOC + 16 tests + tsup config — that's the canonical size of a new wrapper.
 
 ## What ships in `src/lib/`
 
