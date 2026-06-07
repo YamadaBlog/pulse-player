@@ -281,41 +281,80 @@ const demoSteps: DemoStep[] = [
     },
   },
 
-  // ─── 5. "Pick a mood." — land HIGH (only the first row of cards
-  //        visible at the top), then descend through the gallery at a
-  //        very slow reading pace over ~12 s, then hand off to the
-  //        next step which boost-scrolls to the FAB section.
+  // ─── 5. "Pick a mood." — frame the first row of three cards only,
+  //        let the viewer read it, then descend in a single continuous
+  //        sweep to reveal the rest of the gallery. The motion is one
+  //        tween from start to end with `inOutCubic` easing, so there
+  //        is no velocity discontinuity to read as a stutter or jolt.
+  //
+  //        Why the previous version felt janky:
+  //        1) `scrollTo(speed:slow)` decelerated to v=0, then a `delay`
+  //           held v=0, then `tween(linear)` snapped instantly to a
+  //           constant non-zero velocity. The velocity discontinuity at
+  //           that handoff read as a perceptible jolt.
+  //        2) `linear` at 12 s over ~600 px averages ~0.83 px/frame.
+  //           That's near the browser's pixel-snap threshold, so on
+  //           many frames the rendered scroll position simply didn't
+  //           move — visible as micro-stutter.
+  //        3) The descent started below the section heading, so the
+  //           viewer already saw every theme on landing; the "progressive
+  //           reveal" intent of the step was lost.
   {
     title: 'Pick a mood',
     run: async (ctx) => {
-      // Land the section header right at the top of the viewport.
-      // `offset: 8` (≈ 8 px from top) leaves the heading visible with
-      // just the first row of three cards directly underneath — every
-      // subsequent row is below the fold, ready to be revealed by the
-      // slow scroll below.
-      await ctx.scrollTo('.variants', { speed: 'slow', offset: 8 })
-      await ctx.delay(800)
-      ctx.setMessage('Nine carefully tuned themes ship in — not just colour swatches.')
-
-      // Then descend through the rest of the gallery at a deliberately
-      // slow reading pace. 12 s of linear scroll = the user has time
-      // to actually look at every card, not just whoosh past them.
       const variantsEl = document.querySelector('.variants') as HTMLElement | null
-      if (variantsEl) {
-        const startY = window.scrollY
-        const sectionBottom =
-          variantsEl.getBoundingClientRect().bottom + window.scrollY - window.innerHeight * 0.35
-        const pageBottom = document.documentElement.scrollHeight - window.innerHeight
-        const endY = Math.max(startY, Math.min(sectionBottom, pageBottom))
-        await ctx.tween((y) => window.scrollTo(0, y), startY, endY, 12000, 'linear')
-      } else {
-        await ctx.delay(12000)
-      }
+      const firstCell = document.querySelector('.variants .grid__cell') as HTMLElement | null
 
-      ctx.setMessage('Auto, Midnight, Sunset, Aurora, Vinyl, Dark, Light, Transparent, Custom.')
-      await ctx.delay(2400)
-      ctx.setMessage('Pair any of them with your own accent colour. Brand fit, every time.')
-      await ctx.delay(2200)
+      if (variantsEl && firstCell) {
+        // Frame the first row of three cards at the top of the viewport,
+        // leaving a sliver of room above for the section heading. Every
+        // subsequent row is below the fold — exactly the brief.
+        const firstCellAbsoluteTop = firstCell.getBoundingClientRect().top + window.scrollY
+        const headerBreathing = 56
+        const startY = Math.max(0, firstCellAbsoluteTop - headerBreathing)
+
+        // Land position for the descent: the bottom of the section just
+        // clears the viewport bottom, so the last row has been fully on
+        // screen by the time the tween settles.
+        const sectionBottomAbsolute = variantsEl.getBoundingClientRect().bottom + window.scrollY
+        const pageBottom = document.documentElement.scrollHeight - window.innerHeight
+        const endY = Math.min(
+          pageBottom,
+          Math.max(startY, sectionBottomAbsolute - window.innerHeight + 32),
+        )
+
+        // 1) Cinematic landing on the first row. `inOutCubic` ramps the
+        //    velocity smoothly down to 0 at the end, ready to chain into
+        //    the next tween without any handoff jolt.
+        await ctx.tween(
+          (y) => window.scrollTo(0, y),
+          window.scrollY,
+          startY,
+          1800,
+          'inOutCubic',
+        )
+
+        // Read the first row.
+        ctx.setMessage('Nine carefully tuned themes ship in — not just colour swatches.')
+        await ctx.delay(1900)
+
+        // 2) Single continuous descent. `inOutCubic` starts at v=0
+        //    (matches the previous step's v=0) and ends at v=0 (gentle
+        //    settle on the last row). Mid-tween peak velocity is ~3×
+        //    the linear average, comfortably above the pixel-snap
+        //    threshold — so the rendered position changes every frame
+        //    and the motion reads as a single sweep, not a step train.
+        await ctx.tween((y) => window.scrollTo(0, y), startY, endY, 12000, 'inOutCubic')
+
+        ctx.setMessage('Auto, Midnight, Sunset, Aurora, Vinyl, Dark, Light, Transparent, Custom.')
+        await ctx.delay(2300)
+        ctx.setMessage('Pair any of them with your own accent colour. Brand fit, every time.')
+        await ctx.delay(1900)
+      } else {
+        // Conservative fallback — element missing or layout pending.
+        await ctx.scrollTo('.variants', { speed: 'slow', offset: 56 })
+        await ctx.delay(14000)
+      }
     },
   },
 
