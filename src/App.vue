@@ -1057,6 +1057,7 @@ const hero = computed(() => ({
             {{ opt.label }}
           </button>
         </div>
+        <p class="palette__group-label">Options</p>
         <div class="palette__hint">
           <button class="cta cta--ghost cta--sm" @click="store.open" :disabled="store.isVisible">
             Show FAB
@@ -1985,7 +1986,16 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 16px;
+  /* Bottom spacing handled by `.palette__group-label`'s margin-top so
+     the colour chips and the "Options" divider compose cleanly. */
+}
+.palette__group-label {
+  margin: 22px 0 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pg-text-mid);
 }
 .palette__chip {
   padding: 9px 16px;
