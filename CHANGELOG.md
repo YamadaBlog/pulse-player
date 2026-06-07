@@ -8,6 +8,106 @@ Tags: every release listed below is pinned to a signed git tag of the same name 
 
 Tracked separately in [the v2.0.0 audit branch](https://github.com/YamadaBlog/pulse-player/issues?q=is%3Aissue+label%3Av2.0.0).
 
+## 3.0.0-alpha.5 — 2026-06-07
+
+Closes 4 of the v3.0.0-alpha.4 audit follow-ups: **`@pulse/react` RTL tests**, **`@pulse/svelte` tests**, **Constructable StyleSheet refactor** (single source of truth for variants), and **`apps/demo-react/`** (runnable React example).
+
+Monorepo test count goes from **69 / 69 to 85 / 85**. Vue v2.3.4 codebase at `src/lib/` is bit-for-bit identical.
+
+### `@pulse/react` — 8 RTL tests landed
+
+`packages/react/tests/PulsePlayer.test.tsx` covers the wrapper contract:
+
+- Renders a `<pulse-player>` Custom Element into the DOM.
+- `variant` prop maps to the kebab-case attribute.
+- `accentColor` maps to `accent-color`.
+- `onPlay` is invoked with `{ track, time }` when the engine emits play.
+- `onPause` is invoked on the second toggle.
+- `onTrackChange` is invoked with `{ from, to, track }` on `engine.next()`.
+- Handlers are detached on unmount (no leak).
+- `className` passes through.
+
+Stack: `vitest` + `@testing-library/react` + `jsdom`. Setup file ports the Web Audio / rAF stubs from `@pulse/core`.
+
+`beforeEach` resets the singleton via `setSharedEngine(new PulseEngine())` so state doesn't leak between tests — same pattern the web-component suite uses.
+
+### `@pulse/svelte` — 8 tests landed
+
+`packages/svelte/tests/usePulseAudio.test.ts` covers the Svelte classic-store contract:
+
+- `subscribe(run)` fires `run(snapshot)` **synchronously** on subscription (matters for `$store` autosubscribe initial render).
+- `subscribe(run)` fires again on every engine state change.
+- The returned unsubscribe detaches the listener.
+- The snapshot includes derived `track` and `progress` values.
+- `toggle`, `next` etc. proxy to the engine.
+- `audio.engine` is the shared singleton.
+- `fmt(s)` formats m:ss.
+
+These tests run as plain TypeScript — no Svelte compiler required, matching the alpha.4 plain-TS rewrite of the hook.
+
+### Constructable StyleSheet refactor — single source of truth for variants
+
+The previous design declared the 4 mood gradients **twice**:
+
+- `packages/tokens/src/variants.css` — for document-level consumers (Vue v2.3.4, plain HTML).
+- `packages/web-component/src/styles.ts` — as `:host([variant='X'])` rules for Shadow DOM consumers.
+
+Drift inevitable. Closes audit item P2 from the v3.0.0-alpha.4 audit.
+
+`packages/tokens/src/variants.ts` (NEW) exports the variants as a TypeScript string — the **canonical declaration**. The `.css` file is now a copy generated for plain-CSS consumers; the web-component package consumes the string via Lit's `unsafeCSS(variantsCss)` so the same gradients + accent RGB triplets land in both the document and the Shadow DOM.
+
+`packages/web-component/src/styles.ts` drops the 8 duplicated `:host([variant='X'])` rules. The Lit element renders `<div class="mp" data-variant=${variant}>` inside Shadow DOM; the tokens stylesheet's `[data-variant='X']` selectors match that inner element and CSS variables (`--variant-bg-gradient`, `--variant-accent-rgb`) cascade down to the chrome.
+
+Side effects:
+
+- `@pulse/tokens` gets its first `tsup` build (was CSS-only before). 5 → 6 packages building.
+- `package.json` `exports` adds `@pulse/tokens` (TS entry) alongside the existing `@pulse/tokens/variants.css` etc. file exports.
+- 9 / 9 web-component tests still pass — no behaviour change.
+
+### `apps/demo-react/` — runnable React app
+
+A real React + Vite app proving `@pulse/react` works outside vitest:
+
+- `<PulsePlayer />` with a live variant picker
+- `<PulseFab pulso />` floating button
+- `usePulseAudio()` driving a Prev / Play / Next transport row
+- Live event log capturing every `onPlay`, `onPause`, `onTrackChange`, `onError`
+- TypeScript + JSX
+
+Vite config aliases every `@pulse/*` package to its workspace TS source so edits in `packages/*/src/` reflect immediately without rebuilding. Build size: 185 kB JS → **58 kB gzip** (includes React + react-dom + Pulse).
+
+```bash
+npm run dev --workspace=@pulse/demo-react
+# → http://localhost:5181
+```
+
+### Quality gate
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings
+tests (root, Vue Pinia)  → 33 / 33
+tests (@pulse/core)      → 27 / 27
+tests (@pulse/web-comp)  →  9 /  9
+tests (@pulse/react)     →  8 /  8   NEW
+tests (@pulse/svelte)    →  8 /  8   NEW
+TOTAL                    → 85 / 85 across the monorepo
+build (Vue demo)         → 129 kB JS + 42 kB CSS → 48 kB gzip
+build:lib (Vue lib)      → ~14 kB gzip
+build:packages           → 6 packages — ESM + CJS + .d.ts each
+build (demo-react)       → 185 kB JS → 58 kB gzip
+audit (prod-only)        → 0 vulnerabilities
+Vue v2.3.4 demo          → bit-for-bit identical
+src/lib/                 → ZERO file modified
+```
+
+### What's still ahead
+
+- v3.0.0-alpha.6 → Playwright visual regression vs the v2.3.4 demo (gates the Vue migration).
+- v3.0.0-alpha.7 → Chrome parity Phase 2 (three responsive states, social icons, prev / next on inline, FAB drag, palette / menu, drag-to-resize) — closes the gap to ~95 %.
+- v3.0.0-alpha.8 → Vue migration `src/lib/` → `packages/vue/`.
+- v3.0.0 → stable, `npm publish @pulse/*`.
+
 ## 3.0.0-alpha.4 — 2026-06-07
 
 Closes 4 of the P0 / P1 items the previous audit (note 6.5 / 10) flagged: **docs honesty**, **publishability** (every package now has a `tsup` build), **Svelte runtime safety**, and **chrome feature parity Phase 1** (ambient EQ + pulso heartbeat + ResizeObserver `--pulse-scale`). Vue v2.3.4 codebase at `src/lib/` is bit-for-bit identical.

@@ -1,23 +1,22 @@
 import { css, unsafeCSS } from 'lit'
+import { variantsCss } from '@pulse/tokens'
 
 /**
  * Shared CSS for the Web Component layer.
  *
  * Mirrors the validated v2.3.4 base chrome (mp/mp__art/mp__title/
- * mp__progress) — pixel-perfect parity is enforced by the Playwright
- * visual regression suite that lands alongside this package.
+ * mp__progress).
  *
- * The `[data-variant]` attribute selectors from `@pulse/tokens` cascade
- * into the Shadow DOM only when we explicitly forward them via the
- * `:host([variant='X'])` selector — see the per-variant rules below.
- *
- * NOTE: this is the v3.0.0-alpha.2 SKELETON. Full chrome parity with
- * v2.3.4 (ambient EQ, pulso heartbeat, FAB drag, drag-to-resize)
- * lands in subsequent alphas as we close visual regression gaps.
+ * Variant tokens come from `@pulse/tokens` (single source of truth).
+ * The inner `<div class="mp" data-variant=${variant}>` rendered by
+ * each Custom Element triggers the `[data-variant='X']` selectors
+ * declared in the tokens string, so the SAME gradients and accent
+ * RGB triplets land in both the document (Vue v2.3.4 chrome) and the
+ * Shadow DOM — no duplication, no drift.
  */
 const TOKENS = unsafeCSS(`
   :host {
-    /* ─── Geometry ─────────────────────────────────────────── */
+    /* ─── Geometry (the --pulse-scale system) ─────────────── */
     --pulse-scale: 1;
     --pulse-art: calc(140px * var(--pulse-scale));
     --pulse-title: calc(16px * var(--pulse-scale));
@@ -33,50 +32,17 @@ const TOKENS = unsafeCSS(`
     --pulse-accent: #3dbda7;
     --pulse-accent-rgb: 61, 189, 167;
   }
-
-  /* ─── Variant tokens — duplicated from @pulse/tokens because
-       Shadow DOM doesn't inherit the document-level [data-variant]
-       cascade by default. Each :host([variant='X']) sets the same
-       --variant-bg-gradient + --variant-accent-rgb that the
-       document-level tokens would. ──────────────────────────── */
-  :host([variant='sunset']) {
-    --variant-bg-gradient: linear-gradient(135deg, #1a1410 0%, #2d241c 50%, #4a3527 100%);
-    --variant-accent-rgb: 245, 158, 11;
-  }
-  :host([variant='midnight']) {
-    --variant-bg-gradient: linear-gradient(135deg, #0a0a18 0%, #14142a 50%, #1a1a3a 100%);
-    --variant-accent-rgb: 139, 92, 246;
-  }
-  :host([variant='aurora']) {
-    --variant-bg-gradient: linear-gradient(135deg, #061a1a 0%, #0a2e2e 40%, #103040 100%);
-    --variant-accent-rgb: 6, 182, 212;
-  }
-  :host([variant='vinyl']) {
-    --variant-bg-gradient:
-      radial-gradient(ellipse at 30% 20%, rgba(200, 169, 126, 0.06) 0%, transparent 60%),
-      linear-gradient(135deg, #030302 0%, #0a0907 50%, #1a1712 100%);
-    --variant-accent-rgb: 200, 169, 126;
-  }
-  :host([variant='dark']) {
-    --variant-bg-gradient: linear-gradient(135deg, #0e0e12 0%, #1a1a22 100%);
-    --variant-accent-rgb: 255, 255, 255;
-  }
-  :host([variant='light']) {
-    --variant-bg-gradient: #f4f4f7;
-    --variant-accent-rgb: 20, 20, 26;
-  }
-  :host([variant='solid']) {
-    --variant-bg-gradient: #14141a;
-    --variant-accent-rgb: 255, 255, 255;
-  }
-  :host([variant='transparent']) {
-    --variant-bg-gradient: transparent;
-    --variant-accent-rgb: 255, 255, 255;
-  }
 `)
+
+// Variant gradients + accent RGB triplets, imported from @pulse/tokens.
+// Selectors are `[data-variant='X']` (no host prefix); they match the
+// inner <div class="mp" data-variant=${variant}> rendered by each
+// element, and CSS custom properties cascade down to the chrome.
+const VARIANT_TOKENS = unsafeCSS(variantsCss)
 
 export const baseStyles = css`
   ${TOKENS}
+  ${VARIANT_TOKENS}
 
   :host {
     display: block;

@@ -20,7 +20,9 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "peerDependencies": {
     "svelte": "^5.0.0"
