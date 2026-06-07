@@ -44,7 +44,7 @@
 | `currentTime`      | `Ref<number>`          | Seconds.                                                                                      |
 | `duration`         | `Ref<number>`          | Seconds.                                                                                      |
 | `eqBars`           | `ShallowRef<number[]>` | 4-bar FFT for NOW PLAYING / FAB chrome. Updated 60 fps.                                       |
-| `eqAmbientBars`    | `ShallowRef<number[]>` | 64-bar FFT for ambient EQ. Updated 30 fps.                                                    |
+| `eqAmbientBars`    | `ShallowRef<number[]>` | 32 zeros. Kept as a stable reference for custom visualisers; the built-in ambient EQ is now driven by a pure-CSS @keyframes animation, so this ref is no longer mutated. |
 | `isVisible`        | `Ref<boolean>`         | FAB visible.                                                                                  |
 | `hasBeenOpened`    | `Ref<boolean>`         | True after first play, persists in-memory.                                                    |
 | `ambientEq`        | `Ref<boolean>`         | **Global** ambient EQ toggle — every `<MusicPlayer />` without a local override follows this. |
@@ -73,7 +73,7 @@
 | `close()`              | Pause + hide the FAB.                                                                                                  |
 | `fmt(seconds)`         | Formats seconds as `m:ss`.                                                                                             |
 | `subscribe(event, cb)` | See **Events** below. Returns an unsubscribe function.                                                                 |
-| `registerAmbientView()` | Declare "I'm currently displaying the ambient EQ on screen". Returns an unregister function. The store skips the 64-bar FFT computation while the count is 0 — significant perf win on routes where no ambient EQ is mounted or where every instance scrolled off-screen. `<MusicPlayer />` calls this automatically via `IntersectionObserver`; you almost never need to call it by hand. |
+| `registerAmbientView()` | Kept as a stable no-op since v1.0.2. The ambient EQ is now a pure-CSS animation with no per-frame JavaScript cost, so there's no visibility gating left to do. Returns a no-op unsubscribe; safe to call from old integrations. |
 
 ### Events
 

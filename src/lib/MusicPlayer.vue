@@ -3,9 +3,10 @@
 // computed once when the module loads. Keep this block tiny.
 
 // HSL sweep used by every ambient EQ. Pure data, no reactivity, no
-// per-instance recomputation. 64 entries.
+// per-instance recomputation. 32 entries — the bars are visually rich
+// enough at this density and the bar count halves the DOM footprint.
 const AMBIENT_BAR_STYLES: { color: string }[] = (() => {
-  const N = 64
+  const N = 32
   const out: { color: string }[] = new Array(N)
   for (let i = 0; i < N; i++) {
     const r = i / (N - 1)
@@ -272,61 +273,15 @@ onUnmounted(() => {
     resizeObs.disconnect()
     resizeObs = null
   }
-  ambientObs?.disconnect()
-  releaseAmbient?.()
-  ambientObs = null
-  releaseAmbient = null
 })
 
-// ─── Ambient EQ visibility registry ──────────────────────────
-//
-// The 64-bar FFT computation runs in the store only while at least
-// one MusicPlayer is showing the ambient EQ on screen. We watch
-// ourselves via IntersectionObserver: visible + effectiveAmbientEq
-// = register; otherwise = release. The store handles the rest.
-let ambientObs: IntersectionObserver | null = null
-let releaseAmbient: (() => void) | null = null
-let isVisibleInViewport = false
-
-function syncAmbientRegistration() {
-  const shouldRegister = effectiveAmbientEq.value && isVisibleInViewport
-  if (shouldRegister && !releaseAmbient) {
-    releaseAmbient = store.registerAmbientView()
-  } else if (!shouldRegister && releaseAmbient) {
-    releaseAmbient()
-    releaseAmbient = null
-  }
-}
-
-onMounted(() => {
-  nextTick(() => {
-    if (!containerRef.value || typeof IntersectionObserver === 'undefined') {
-      // No IO support → assume always visible. The store still gates on
-      // `effectiveAmbientEq`, so cost only kicks in when ambient is on.
-      isVisibleInViewport = true
-      syncAmbientRegistration()
-      return
-    }
-    ambientObs = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          isVisibleInViewport = entry.isIntersecting
-          syncAmbientRegistration()
-        }
-      },
-      // Trigger slightly BEFORE the player scrolls into view so the
-      // bars have a frame to land at their correct height — and let go
-      // 100 px after it leaves so quick scroll-bys don't strobe the
-      // registry.
-      { rootMargin: '100px' },
-    )
-    ambientObs.observe(containerRef.value)
-  })
-})
-
-// React to the global toggle / local prop changing while the player is
-// mounted (e.g. the demo flipping `store.ambientEq` mid-tour).
-watch(effectiveAmbientEq, syncAmbientRegistration)
+// Note (v1.0.2+): the ambient EQ no longer needs an IntersectionObserver
+// or store registration. The visualiser is a pure-CSS @keyframes
+// animation now — zero JavaScript per frame and zero reactive
+// broadcasts regardless of how many instances are mounted, on or off
+// screen. The previous IO machinery was retired with the FFT-driven
+// 64-bar pipeline; `store.registerAmbientView()` is now a no-op kept
+// only for API stability.
 
 // When the inline transforms into a FAB, we DON'T call store.open() —
 // the inline morphs IN PLACE into a circular FAB (see the CSS for
@@ -376,17 +331,24 @@ watch(effectiveAmbientEq, syncAmbientRegistration)
          dashboard). Disable with `:noise="false"`. -->
     <div v-if="noise" class="mp__noise" aria-hidden="true"></div>
 
-    <!-- Ambient EQ — Spotify-style background visualiser flush to the
-         bottom edge, edge-to-edge. Each bar reads its OWN log-mapped
-         FFT bin AND its own hue (subtle Spotify-green → mint-cyan
-         sweep across the spectrum). Globally toggleable via the
-         `ambientEq` ref on the audio store. -->
-    <div v-if="effectiveAmbientEq" class="mp__ambient" aria-hidden="true">
+    <!-- Ambient EQ — Spotify-style background visualiser, edge-to-edge.
+         Pure CSS-animated. The bars cycle on staggered @keyframes
+         that run entirely on the compositor — ZERO JavaScript per
+         frame, ZERO Vue patches per frame. The `--bar-idx` and
+         `--bar-c` custom properties are set once at mount and
+         never touched again. Globally toggleable via the `ambientEq`
+         ref on the audio store. -->
+    <div
+      v-if="effectiveAmbientEq"
+      class="mp__ambient"
+      :class="{ 'mp__ambient--playing': store.isPlaying }"
+      aria-hidden="true"
+    >
       <i
-        v-for="n in 64"
+        v-for="n in 32"
         :key="n"
         :style="{
-          '--bar-y': store.isPlaying ? Math.max(0.06, store.eqAmbientBars[n - 1] ?? 0) : 0.06,
+          '--bar-idx': n - 1,
           '--bar-c': ambientBarStyles[n - 1].color,
         }"
       ></i>
@@ -1003,24 +965,36 @@ watch(effectiveAmbientEq, syncAmbientRegistration)
 .mp__ambient i {
   flex: 1 1 0;
   min-width: 0;
-  /* Bars are full-height boxes animated via `scaleY` — composited on
-     the GPU, no layout reflow. Two crucial choices below:
-     1) NO `will-change: transform`. Forcing it on every bar would
-        create one dedicated compositor layer per bar (× ~15 instances
-        on the demo page = 960 layers). Mobile compositors choke
-        well before that. Modern browsers auto-promote on an animated
-        transform anyway — `will-change` adds the cost, not the win.
-     2) Tighter transition (50 ms). The FFT tick lands a new height
-        every ~33 ms; a longer transition stacks unfinished tweens
-        on top of each other and the GPU never catches up. 50 ms is
-        long enough to smooth FFT noise, short enough to finish
-        before the next sample. */
+  /* Idle resting height when the music is paused. */
   height: 100%;
   border-radius: 1px 1px 0 0;
   background: linear-gradient(to top, var(--bar-c, #1db954), transparent);
-  transform: scaleY(var(--bar-y, 0.06));
+  transform: scaleY(0.14);
   transform-origin: 50% 100%;
-  transition: transform 0.05s linear;
+  transition: transform 0.4s ease;
+}
+/* Playing — bars cycle through a small wave via a SINGLE shared
+   @keyframes animation. The animation runs entirely on the
+   compositor (GPU): no per-frame JavaScript, no per-frame Vue
+   re-render, no per-frame style recalc. The wave looks "musical"
+   because each bar's animation-delay is offset by --bar-idx, so
+   the energy ripples across the row.
+
+   Cost on a 15-instance demo page: identical to a 1-instance page.
+   The compositor handles 480 (15 × 32) animated transforms with
+   the same effort as 32 of them — they're all the same keyframe. */
+.mp__ambient--playing i {
+  animation: mp-ambient-wave 1.7s ease-in-out infinite;
+  animation-delay: calc(var(--bar-idx, 0) * -53ms);
+}
+@keyframes mp-ambient-wave {
+  0%,
+  100% {
+    transform: scaleY(0.16);
+  }
+  50% {
+    transform: scaleY(0.72);
+  }
 }
 /* On light variant: bars need a touch more density to stay visible. */
 .mp[data-variant='light'] .mp__ambient {

@@ -63,13 +63,12 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
    * fast on the landing page (15+ subscribers, 30 fps × 64 bars).
    */
   const eqBars = shallowRef<number[]>([0, 0, 0, 0])
-  /** Pre-mapped 64-value array for the ambient EQ visualiser.
-   *  Each value drives one bar directly. The mapping in startEqLoop()
-   *  spreads the FFT bins LOGARITHMICALLY (pitch is perceived
-   *  logarithmically, and most musical energy sits in the low bins)
-   *  and applies a frequency-dependent gain so the high-frequency
-   *  bars don't go quiet just because high-end bins have less energy. */
-  const eqAmbientBars = shallowRef<number[]>(new Array(64).fill(0))
+  /** Stable shallow ref kept as a public hook for integrators who want
+   *  to drive their own ambient visualiser. Since v1.0.2 the built-in
+   *  ambient EQ is a pure-CSS animation, so the store no longer mutates
+   *  this array — it stays as 32 zeros. You can mutate it from outside
+   *  and `triggerRef()` your own consumers. */
+  const eqAmbientBars = shallowRef<number[]>(new Array(32).fill(0))
   const isVisible = ref(false) // mini-player visible
   const hasBeenOpened = ref(false) // user started playback at least once
   // Lightweight, privacy-friendly counters. Incremented locally only —
@@ -130,22 +129,17 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     })
   }
 
-  // ═ AMBIENT EQ REGISTRY
+  // ═ AMBIENT EQ REGISTRY (kept as a stable no-op for backward compat)
   //
-  // The 64-bar visualiser is the expensive one. Each `<MusicPlayer />`
-  // that's currently displaying the ambient EQ on screen registers
-  // itself via `registerAmbientView()`; the tick gates the 64-bar
-  // computation on `ambientSubscribers > 0`. So:
-  //  - No ambient EQ on screen (none mounted, or all scrolled off):
-  //    the loop still runs the cheap 4-bar focal pass, but skips the
-  //    64 Math.pow calls + the broadcast to every subscriber. Zero
-  //    GPU layer pressure, zero v-for diff.
-  //  - One ambient EQ visible: the full pipeline runs as before.
-  let ambientSubscribers = 0
+  // v1.0.2 moved the ambient visualiser from a per-frame FFT pipeline
+  // to a pure-CSS @keyframes animation, so there is nothing left to
+  // gate on visibility — the bars composite on the GPU regardless and
+  // cost nothing per frame. The function stays exported so any
+  // integrator that built against v1.0.1 doesn't break; it returns
+  // a no-op unsubscribe.
   function registerAmbientView(): () => void {
-    ambientSubscribers++
     return () => {
-      ambientSubscribers = Math.max(0, ambientSubscribers - 1)
+      /* no-op since v1.0.2 — kept for API stability */
     }
   }
 
@@ -199,24 +193,10 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
   function startEqLoop() {
     if (!analyser || eqRaf !== null) return // already running
     const data = new Uint8Array(analyser.frequencyBinCount)
-    const N = 64
-    // Log-frequency map of bar index → FFT bin. minBin = 2 skips the
-    // DC bin. maxBin = 48 stays well inside the energetic part of a
-    // typical music spectrum (~ 8 kHz at 44.1 kHz / fftSize 256) so
-    // the high bars actually move instead of dying at silent bins.
-    const minBin = 2
-    const maxBin = Math.min(48, data.length - 1)
-    const binMap = new Array(N)
-    for (let i = 0; i < N; i++) {
-      const r = i / (N - 1)
-      binMap[i] = Math.round(minBin * Math.pow(maxBin / minBin, r))
-    }
-    // Mutate the EQ ref buffers IN PLACE every tick + call triggerRef.
-    // shallowRef skips deep proxy work, triggerRef notifies all consumers
-    // with a single update. No per-frame allocations: ~0 GC pressure.
+    // Mutate the focal EQ buffer IN PLACE every tick + call triggerRef.
+    // shallowRef skips deep proxy work, triggerRef notifies all
+    // consumers with a single update. No per-frame allocations.
     const focal = eqBars.value
-    const ambient = eqAmbientBars.value
-    let frame = 0
     function tick() {
       if (!analyser) {
         eqRaf = null
@@ -229,19 +209,12 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
       focal[2] = data[18] / 255
       focal[3] = data[36] / 255
       triggerRef(eqBars)
-      // 64-bar ambient — half rate, visually continuous. Gated on
-      // `ambientSubscribers > 0` so when no <MusicPlayer /> is showing
-      // the ambient EQ on screen, the Math.pow loop and the reactive
-      // broadcast are skipped entirely.
-      if (ambientSubscribers > 0 && (frame++ & 1) === 0) {
-        for (let i = 0; i < N; i++) {
-          const r = i / (N - 1)
-          const raw = data[binMap[i]] / 255
-          const gain = 0.65 + r * 0.5
-          ambient[i] = Math.min(1, Math.pow(raw, 0.55) * gain)
-        }
-        triggerRef(eqAmbientBars)
-      }
+      // Note: since v1.0.2, the 64-bar `eqAmbientBars` ref is no longer
+      // driven from this loop. The ambient EQ visualiser runs entirely
+      // on a shared CSS @keyframes animation — composited on the GPU,
+      // zero JavaScript per frame, zero reactive broadcasts. We keep
+      // the ref on the store as a stable shallowRef in case any
+      // integrator wants to point a custom visualiser at it.
       eqRaf = requestAnimationFrame(tick)
     }
     eqRaf = requestAnimationFrame(tick)
