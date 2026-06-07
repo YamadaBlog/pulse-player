@@ -1550,8 +1550,15 @@ code {
 }
 
 /* ─── MUSIC-PLAYER TRANSITIONS while the tour runs ─────────
-   Buttery 0.55s curves replace the default 0.40s so the morph
-   between every size feels continuous, not stepped. */
+   Buttery 0.55s curves on the chrome that morphs WITH the wrapper
+   (the player envelope, the body, the progress bar, the FAB chrome).
+   The cover artwork (`mp__art`) is DELIBERATELY NOT in this list —
+   its native 0.3 s (set in v1.0.8) is the right pace; bumping it
+   to 0.55 s during the tour made the artwork lag behind the
+   scripted resize and kept resizing for ~250 ms AFTER the tween
+   finished, which the user reported as "the image takes too long
+   to reach its correct size." Keep it native, let it follow the
+   wrapper tightly. */
 body.tour-running .mp,
 body.tour-running .mp[data-fab='true'] {
   transition-duration: 0.55s !important;
@@ -1561,8 +1568,6 @@ body.tour-running .mp .mp__body,
 body.tour-running .mp[data-fab='true'] .mp__body,
 body.tour-running .mp .mp__bar,
 body.tour-running .mp[data-fab='true'] .mp__bar,
-body.tour-running .mp .mp__art,
-body.tour-running .mp[data-fab='true'] .mp__art,
 body.tour-running .mp .mp__fab-chrome,
 body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   transition-duration: 0.55s !important;
