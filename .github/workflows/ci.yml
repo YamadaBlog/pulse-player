@@ -61,3 +61,10 @@ jobs:
 
       - name: Audit production dependencies
         run: npm run audit
+
+      - name: Bundle size budget (size-limit)
+        # Only run on Node 20 — size-limit reads the built dist/ output,
+        # and the budget is the same across Node versions. Running on every
+        # matrix entry would triple the wall-clock without adding signal.
+        if: matrix.node-version == 20
+        run: npm run size

@@ -2,6 +2,8 @@
 
 Interactive playgrounds for evaluating Pulse without cloning the repo. Each link opens a pre-configured project on a free CodeSandbox or StackBlitz workspace.
 
+> 📺 **Prefer a video?** Watch the 3-minute demo on YouTube: [https://youtu.be/q_FJ1GWaCc8](https://youtu.be/q_FJ1GWaCc8). The video walks through every framework wrapper, the 9 themes, the resize / FAB / fullscreen interactions, and the keyboard shortcuts, in real time. No clone needed.
+
 > **Status:** these sandboxes activate once `@pulse/*` packages are published to npm (see [`BLOCKERS.md`](./BLOCKERS.md) #2). Until then, the links below resolve to placeholder URLs. The setup-to-publish-then-create flow is:
 >
 > 1. Maintainer runs `npm publish --workspace=@pulse/{types,core,tokens,web-component,react,svelte}` (one-time, requires OTP)

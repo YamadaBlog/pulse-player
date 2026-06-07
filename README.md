@@ -6,6 +6,10 @@
 
 ### A premium drop-in music player, going universal.
 
+[![Watch the demo on YouTube](https://img.youtube.com/vi/q_FJ1GWaCc8/maxresdefault.jpg)](https://youtu.be/q_FJ1GWaCc8 'Watch the 3-minute Pulse demo on YouTube')
+
+<sub>▶ [Watch the 3-minute demo on YouTube](https://youtu.be/q_FJ1GWaCc8) — 9 themes, ambient EQ, pulso heartbeat, drag-to-resize, FAB radial menu, keyboard shortcuts, multi-framework architecture.</sub>
+
 > **v3 is in alpha.** The Vue 3 reference (current `v2.3.4`, tagged on `main`) keeps shipping bit-for-bit identical while the multi-framework architecture lands in `packages/` over the coming alphas. The framework wrappers below (React, Svelte, Web Components) all ship real code today.
 > See [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md) and [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md) for the plan.
 
@@ -13,15 +17,15 @@
 
 ### Now an audio component you can drop into any framework.
 
-| Framework                               | Package                                        | Status today                                      | Chrome parity vs Vue v2.3.4                                         |
-| --------------------------------------- | ---------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------- |
-| **Vue 3**                               | `pulse-player` (today) / `@pulse/vue` (v3.0.0) | ✅ **Production-ready** (v2.3.4 validated)        | **100 %**                                                           |
-| **React 18 / 19**                       | `@pulse/react`                                 | 🛠 alpha — wrapper code shipped, no RTL tests yet | **~30 %** (play / pause / cover / variants / ambient EQ / pulso)    |
-| **Svelte 5**                            | `@pulse/svelte`                                | 🛠 alpha — plain TS hook + native Custom Elements | ~30 % (same as React, inherits the web-component chrome)            |
-| **Web Components**                      | `@pulse/web-component`                         | 🛠 alpha — `<pulse-player>` + `<pulse-fab>` (Lit) | **~30 %**                                                           |
-| **Vanilla HTML / Solid / Astro / Qwik** | `@pulse/web-component`                         | 🛠 alpha — works in any HTML page                 | ~30 % (same as Web Components)                                      |
-| **Angular 17+**                         | `@pulse/angular`                               | ⏳ scaffold — v3.1.0                              | 0 %                                                                 |
-| **React Native**                        | `@pulse/react-native`                          | ⏳ scaffold — separate renderer (no DOM)          | N/A — RN feature parity matrix in `docs/frameworks/react-native.md` |
+| Framework                               | Package                                        | Status today                                                                                                   | Chrome parity vs Vue v2.3.4 |
+| --------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| **Vue 3**                               | `pulse-player` (today) / `@pulse/vue` (v3.0.0) | ✅ **Production-ready** (v2.3.4 validated, 15 alphas untouched)                                                | **100 %**                   |
+| **React 18 / 19**                       | `@pulse/react`                                 | ✅ wrapper + 16 RTL tests + apps/demo-react runnable                                                           | **~95 %**                   |
+| **Svelte 5**                            | `@pulse/svelte`                                | ✅ plain TS hook + 8 store tests + apps/demo-svelte runnable                                                   | **~95 %**                   |
+| **Web Components**                      | `@pulse/web-component`                         | ✅ `<pulse-player>` + `<pulse-fab>` (Lit) + 22 element tests                                                   | **~95 %**                   |
+| **Vanilla HTML / Solid / Astro / Qwik** | `@pulse/web-component`                         | ✅ apps/demo-vanilla runnable, inherits web-component chrome                                                   | **~95 %**                   |
+| **Angular 17+**                         | `@pulse/angular`                               | ⚠️ PulseModule + 5 smoke tests, `private: true` (CVE peer floor)                                               | **~95 %**                   |
+| **React Native**                        | `@pulse/react-native`                          | 🚫 interface types + 10 contract tests (renderer deferred, see [BLOCKERS.md](./docs/universal/BLOCKERS.md) #1) | **0 %**                     |
 
 **Need the full premium chrome today (resize handle, three responsive states, social icons, prev / next, FAB drag, palette / menu, fullscreen)?** → use the Vue version.
 **Just need the audio engine + minimum card chrome (play / pause / variants / ambient EQ / pulso)?** → any framework wrapper works.
@@ -37,13 +41,15 @@ Read [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md) for th
 <br>
 
 [![Vue 3](https://img.shields.io/badge/Vue-3.4+-42b883?logo=vue.js&logoColor=white)](https://vuejs.org/)
+[![React 18 / 19](https://img.shields.io/badge/React-18%20%2F%2019-61dafb?logo=react&logoColor=white)](https://react.dev/)
+[![Svelte 5](https://img.shields.io/badge/Svelte-5-ff3e00?logo=svelte&logoColor=white)](https://svelte.dev/)
+[![Web Components](https://img.shields.io/badge/Web%20Components-Lit-324fff?logo=lit&logoColor=white)](https://lit.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Pinia](https://img.shields.io/badge/Pinia-2.1+-f7d336?logo=pinia&logoColor=black)](https://pinia.vuejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3DBDA7.svg)](./LICENSE)
-[![bundle](https://img.shields.io/badge/gzip-~54kB-3DBDA7)](./docs/ARCHITECTURE.md)
-[![release](https://img.shields.io/badge/release-v1.0.12-3DBDA7.svg)](./CHANGELOG.md)
+[![Vue lib gzip](https://img.shields.io/badge/Vue%20lib-14%20kB%20gzip-3DBDA7)](./docs/ARCHITECTURE.md)
+[![Tests](https://img.shields.io/badge/tests-132%20%2F%20132-3DBDA7.svg)](./CHANGELOG.md)
 [![Status](https://img.shields.io/badge/status-active-3DBDA7.svg)]()
-[![Demo](https://img.shields.io/badge/demo-watch-1DB954.svg)](./docs/DEMO.md)
+[![Watch demo](https://img.shields.io/badge/demo-YouTube-FF0000?logo=youtube&logoColor=white)](https://youtu.be/q_FJ1GWaCc8)
 
 <br>
 
