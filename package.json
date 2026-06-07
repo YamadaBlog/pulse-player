@@ -76,8 +76,11 @@
     "test:tokens-pkg": "vitest run -c packages/tokens/vitest.config.ts",
     "test:react-native-pkg": "vitest run -c packages/react-native/vitest.config.ts",
     "test:packages": "npm run test:core && npm run test:tokens-pkg && npm run test:web-component && npm run test:react-pkg && npm run test:svelte-pkg && npm run test:angular-pkg && npm run test:react-native-pkg",
-    "test:visual": "playwright test",
-    "test:visual:update": "playwright test --update-snapshots",
+    "test:visual": "playwright test --grep-invert a11y",
+    "test:visual:update": "playwright test --update-snapshots --grep-invert a11y",
+    "test:a11y": "PULSE_A11Y=1 playwright test --grep a11y",
+    "size": "size-limit",
+    "size:why": "size-limit --why",
     "build:packages": "npm run build --workspace=@pulse/types --workspace=@pulse/core --workspace=@pulse/web-component --workspace=@pulse/react --workspace=@pulse/svelte",
     "audit": "npm audit --omit=dev --audit-level=moderate",
     "ci": "npm run type-check && npm run lint && npm run test && npm run test:packages && npm run build && npm run audit",
@@ -92,6 +95,7 @@
     "lucide-vue-next": "^0.300.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^14.3.1",

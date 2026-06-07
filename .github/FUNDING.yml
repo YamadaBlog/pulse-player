@@ -1,0 +1,23 @@
+# GitHub Sponsors + alternative funding surfaces.
+#
+# Renders a "Sponsor" button on the repo home and on every release
+# page. The maintainer keeps the full sponsorship amount on
+# GitHub Sponsors (GitHub waives its 0 % fee on individual
+# sponsorships through at least 2027). Other platforms charge
+# 5-10 %, so default to GitHub Sponsors.
+
+github:
+  - YamadaBlog
+
+# Uncomment any of the lines below when the maintainer enables the
+# corresponding platform. Each one needs an account + ID setup before
+# committing — leaving them empty surfaces a broken button in the UI.
+#
+# patreon: USERNAME
+# open_collective: PROJECT
+# ko_fi: USERNAME
+# buy_me_a_coffee: USERNAME
+# liberapay: USERNAME
+# polar: USERNAME
+# tidelift: 'npm/pulse-player'
+# custom: ['https://example.com/donate']

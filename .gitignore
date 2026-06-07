@@ -24,3 +24,17 @@ yarn-error.log*
 
 # vue-tsc cache
 *.tsbuildinfo
+
+# tooling caches (regenerated on every run, no value in committing)
+.eslintcache
+.prettiercache
+.turbo/
+.cache/
+
+# Playwright transient
+playwright-report/
+test-results/
+
+# Coverage
+coverage/
+*.lcov

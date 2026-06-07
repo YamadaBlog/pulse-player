@@ -1,0 +1,55 @@
+name: Accessibility (Axe-core)
+
+# Runs Axe-core a11y rules against the Vue v2.3.4 demo via Playwright.
+# Catches WCAG 2.1 violations in the rendered chrome that the unit
+# tests can't see — colour contrast, ARIA hierarchy, focus order,
+# keyboard reachability.
+#
+# Like the visual regression workflow, this runs informationally
+# (`continue-on-error: true`) until the maintainer triages the
+# baseline violations. Once the rule set is stable, drop the flag
+# to make it a hard gate.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: a11y-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  axe:
+    name: Axe-core scan (Vue v2.3.4 demo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --prefer-offline
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run Axe-core scan
+        run: npm run test:a11y
+        continue-on-error: true
+
+      - name: Upload Axe-core report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axe-report
+          path: a11y-report/
+          retention-days: 7

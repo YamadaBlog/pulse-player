@@ -88,9 +88,47 @@ export class PulseFabElement extends LitElement {
     if (this.menuOpen) this.menuOpen = false
   }
 
+  /**
+   * Keyboard navigation inside the open radial menu.
+   *
+   * Listens on `keydown` so `Escape` closes the menu (and returns
+   * focus to the toggle) and `ArrowDown` / `ArrowUp` move through
+   * the menu items, wrapping at the edges. Mirrors the WAI-ARIA
+   * "Menu Button" pattern.
+   */
+  private onMenuKeydown = (e: KeyboardEvent): void => {
+    if (!this.menuOpen) return
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      this.menuOpen = false
+      // Return focus to the chevron toggle.
+      const toggle = this.shadowRoot?.querySelector(
+        '.fab__menu-toggle',
+      ) as HTMLButtonElement | null
+      toggle?.focus()
+      return
+    }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+    e.preventDefault()
+    const items = Array.from(
+      this.shadowRoot?.querySelectorAll<HTMLElement>(
+        '.fab__chip, .fab__menu-item',
+      ) ?? [],
+    )
+    if (!items.length) return
+    const active = (this.shadowRoot?.activeElement ?? null) as HTMLElement | null
+    const idx = active ? items.indexOf(active) : -1
+    const next =
+      e.key === 'ArrowDown'
+        ? items[(idx + 1) % items.length]
+        : items[(idx - 1 + items.length) % items.length]
+    next?.focus()
+  }
+
   override connectedCallback(): void {
     super.connectedCallback()
     document.addEventListener('click', this.onDocumentClick)
+    this.addEventListener('keydown', this.onMenuKeydown)
     this.offState = this.engine.onStateChange((s) => {
       this.state = { ...s }
     })
@@ -122,6 +160,7 @@ export class PulseFabElement extends LitElement {
   override disconnectedCallback(): void {
     super.disconnectedCallback()
     document.removeEventListener('click', this.onDocumentClick)
+    this.removeEventListener('keydown', this.onMenuKeydown)
     this.offState?.()
     this.offPlay?.()
     this.offPause?.()

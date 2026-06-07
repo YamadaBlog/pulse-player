@@ -1,0 +1,96 @@
+# Dependabot config — automated dependency PRs.
+#
+# Strategy:
+#   - npm (root + every workspace package) — weekly, grouped by ecosystem
+#     so we get ONE PR per Monday per group instead of dozens
+#   - GitHub Actions — weekly, grouped, to keep CI runners current
+#   - No daily cadence: avoids noise on a private repo where humans
+#     review every change
+#
+# Groups (`groups:` field):
+#   - dev-deps   : everything in `devDependencies` (vitest, tsup, etc.)
+#   - lit        : Lit + its directives
+#   - react      : React + React DOM + @testing-library/*
+#   - vue        : Vue + Vue ecosystem (vue-tsc, @vitejs/plugin-vue, Pinia)
+#   - eslint     : eslint + plugins + parser
+#   - actions    : GitHub Actions versions
+#
+# Security updates (CVE-flagged) bypass the schedule and land as
+# individual PRs immediately — that's Dependabot's default behaviour.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Europe/Paris
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - automated
+    groups:
+      lit:
+        patterns:
+          - 'lit'
+          - 'lit/*'
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - '@types/react*'
+          - '@testing-library/*'
+      vue:
+        patterns:
+          - 'vue'
+          - 'vue-tsc'
+          - 'pinia'
+          - '@vitejs/plugin-vue'
+          - '@vue/test-utils'
+      svelte:
+        patterns:
+          - 'svelte'
+          - '@sveltejs/*'
+      eslint:
+        patterns:
+          - 'eslint'
+          - 'eslint-*'
+          - '@typescript-eslint/*'
+      vitest:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
+          - 'jsdom'
+      build:
+        patterns:
+          - 'tsup'
+          - 'vite'
+          - 'typescript'
+          - 'prettier'
+      ci:
+        patterns:
+          - '@playwright/test'
+      dev-deps:
+        dependency-type: 'development'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Europe/Paris
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
+      - automated
+    groups:
+      actions:
+        patterns:
+          - '*'

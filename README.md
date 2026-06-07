@@ -26,7 +26,13 @@
 **Need the full premium chrome today (resize handle, three responsive states, social icons, prev / next, FAB drag, palette / menu, fullscreen)?** → use the Vue version.
 **Just need the audio engine + minimum card chrome (play / pause / variants / ambient EQ / pulso)?** → any framework wrapper works.
 
-Read [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md) for the dependency graph and [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md) for the per-alpha plan.
+### Try it in 30 seconds
+
+[![Open Vanilla in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/pulse-player-vanilla) &nbsp; [![Open React in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/pulse-player-react) &nbsp; [![Open Svelte in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/pulse-player-svelte)
+
+See [`docs/universal/SANDBOXES.md`](./docs/universal/SANDBOXES.md) for activation status (sandboxes go live once `@pulse/*` is published to npm).
+
+Read [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md) for the dependency graph, [`docs/universal/FEATURE_MATRIX.md`](./docs/universal/FEATURE_MATRIX.md) for what works in each framework, [`docs/universal/API.md`](./docs/universal/API.md) for the canonical API reference, [`docs/universal/LICENSING.md`](./docs/universal/LICENSING.md) for the MIT-and-why strategy, and [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md) for the per-alpha plan.
 
 <br>
 

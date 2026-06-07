@@ -1,0 +1,49 @@
+[
+  {
+    "name": "@pulse/types",
+    "path": "packages/types/dist/index.js",
+    "limit": "1 KB",
+    "gzip": true
+  },
+  {
+    "name": "@pulse/core (audio engine)",
+    "path": "packages/core/dist/index.js",
+    "limit": "5 KB",
+    "gzip": true,
+    "ignore": ["@pulse/types"]
+  },
+  {
+    "name": "@pulse/tokens",
+    "path": "packages/tokens/dist/index.js",
+    "limit": "2 KB",
+    "gzip": true
+  },
+  {
+    "name": "@pulse/web-component (Lit + chrome)",
+    "path": "packages/web-component/dist/index.js",
+    "limit": "20 KB",
+    "gzip": true,
+    "ignore": ["@pulse/core", "@pulse/tokens", "@pulse/types", "lit", "lit/decorators.js"]
+  },
+  {
+    "name": "@pulse/react (wrapper, peer-React excluded)",
+    "path": "packages/react/dist/index.js",
+    "limit": "3 KB",
+    "gzip": true,
+    "ignore": ["@pulse/core", "@pulse/web-component", "@pulse/types", "react", "react-dom", "react/jsx-runtime"]
+  },
+  {
+    "name": "@pulse/svelte (wrapper)",
+    "path": "packages/svelte/dist/index.js",
+    "limit": "1 KB",
+    "gzip": true,
+    "ignore": ["@pulse/core", "@pulse/web-component", "@pulse/types"]
+  },
+  {
+    "name": "Vue v2.3.4 lib (root build)",
+    "path": "dist/lib/pulse-player.es.js",
+    "limit": "11 KB",
+    "gzip": true,
+    "ignore": ["vue", "pinia", "lucide-vue-next"]
+  }
+]
