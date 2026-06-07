@@ -272,7 +272,61 @@ onUnmounted(() => {
     resizeObs.disconnect()
     resizeObs = null
   }
+  ambientObs?.disconnect()
+  releaseAmbient?.()
+  ambientObs = null
+  releaseAmbient = null
 })
+
+// ─── Ambient EQ visibility registry ──────────────────────────
+//
+// The 64-bar FFT computation runs in the store only while at least
+// one MusicPlayer is showing the ambient EQ on screen. We watch
+// ourselves via IntersectionObserver: visible + effectiveAmbientEq
+// = register; otherwise = release. The store handles the rest.
+let ambientObs: IntersectionObserver | null = null
+let releaseAmbient: (() => void) | null = null
+let isVisibleInViewport = false
+
+function syncAmbientRegistration() {
+  const shouldRegister = effectiveAmbientEq.value && isVisibleInViewport
+  if (shouldRegister && !releaseAmbient) {
+    releaseAmbient = store.registerAmbientView()
+  } else if (!shouldRegister && releaseAmbient) {
+    releaseAmbient()
+    releaseAmbient = null
+  }
+}
+
+onMounted(() => {
+  nextTick(() => {
+    if (!containerRef.value || typeof IntersectionObserver === 'undefined') {
+      // No IO support → assume always visible. The store still gates on
+      // `effectiveAmbientEq`, so cost only kicks in when ambient is on.
+      isVisibleInViewport = true
+      syncAmbientRegistration()
+      return
+    }
+    ambientObs = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          isVisibleInViewport = entry.isIntersecting
+          syncAmbientRegistration()
+        }
+      },
+      // Trigger slightly BEFORE the player scrolls into view so the
+      // bars have a frame to land at their correct height — and let go
+      // 100 px after it leaves so quick scroll-bys don't strobe the
+      // registry.
+      { rootMargin: '100px' },
+    )
+    ambientObs.observe(containerRef.value)
+  })
+})
+
+// React to the global toggle / local prop changing while the player is
+// mounted (e.g. the demo flipping `store.ambientEq` mid-tour).
+watch(effectiveAmbientEq, syncAmbientRegistration)
 
 // When the inline transforms into a FAB, we DON'T call store.open() —
 // the inline morphs IN PLACE into a circular FAB (see the CSS for
@@ -799,8 +853,7 @@ onUnmounted(() => {
   background: #1db954;
   transform: scaleY(var(--bar-y, 0.2));
   transform-origin: 50% 100%;
-  will-change: transform;
-  transition: transform 0.08s linear;
+  transition: transform 0.05s linear;
 }
 
 /* Animated progress ring around the disc — the "time elapsed" contour.
@@ -950,18 +1003,24 @@ onUnmounted(() => {
 .mp__ambient i {
   flex: 1 1 0;
   min-width: 0;
-  /* Bars are full-height boxes — they animate via a `scaleY` transform
-     anchored to their bottom edge. Transforms are composited on the GPU
-     and DON'T trigger layout reflow, unlike `height: %`. Net effect:
-     ambient EQ runs ~10x cheaper, and resizing while it's on no longer
-     drops frames. */
+  /* Bars are full-height boxes animated via `scaleY` — composited on
+     the GPU, no layout reflow. Two crucial choices below:
+     1) NO `will-change: transform`. Forcing it on every bar would
+        create one dedicated compositor layer per bar (× ~15 instances
+        on the demo page = 960 layers). Mobile compositors choke
+        well before that. Modern browsers auto-promote on an animated
+        transform anyway — `will-change` adds the cost, not the win.
+     2) Tighter transition (50 ms). The FFT tick lands a new height
+        every ~33 ms; a longer transition stacks unfinished tweens
+        on top of each other and the GPU never catches up. 50 ms is
+        long enough to smooth FFT noise, short enough to finish
+        before the next sample. */
   height: 100%;
   border-radius: 1px 1px 0 0;
   background: linear-gradient(to top, var(--bar-c, #1db954), transparent);
   transform: scaleY(var(--bar-y, 0.06));
   transform-origin: 50% 100%;
-  transition: transform 0.1s cubic-bezier(0.25, 0.8, 0.35, 1);
-  will-change: transform;
+  transition: transform 0.05s linear;
 }
 /* On light variant: bars need a touch more density to stay visible. */
 .mp[data-variant='light'] .mp__ambient {
@@ -1112,8 +1171,7 @@ onUnmounted(() => {
   background: #1db954;
   transform: scaleY(var(--bar-y, 0.15));
   transform-origin: 50% 100%;
-  will-change: transform;
-  transition: transform 0.08s linear;
+  transition: transform 0.05s linear;
 }
 
 .mp__icons {
@@ -1339,6 +1397,14 @@ onUnmounted(() => {
    that fade in (FAB chrome, cover-blur, noise, ambient EQ,
    art-hover scrim), the progress ring, and every EQ visualiser. */
 @media (prefers-reduced-motion: reduce) {
+  /* The ambient EQ is a decorative visualiser. When the user asks
+     for less motion, hide it entirely — that also short-circuits the
+     compositor cost and aligns with the WCAG 2.3.3 (Animation from
+     Interactions) recommendation. The cheaper EQ bars stay because
+     they're directly tied to the music's state. */
+  .mp__ambient {
+    display: none;
+  }
   .mp,
   .mp__btn,
   .mp__bg,

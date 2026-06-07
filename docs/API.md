@@ -73,6 +73,7 @@
 | `close()`              | Pause + hide the FAB.                                                                                                  |
 | `fmt(seconds)`         | Formats seconds as `m:ss`.                                                                                             |
 | `subscribe(event, cb)` | See **Events** below. Returns an unsubscribe function.                                                                 |
+| `registerAmbientView()` | Declare "I'm currently displaying the ambient EQ on screen". Returns an unregister function. The store skips the 64-bar FFT computation while the count is 0 — significant perf win on routes where no ambient EQ is mounted or where every instance scrolled off-screen. `<MusicPlayer />` calls this automatically via `IntersectionObserver`; you almost never need to call it by hand. |
 
 ### Events
 

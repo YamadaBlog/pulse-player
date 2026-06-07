@@ -130,6 +130,25 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     })
   }
 
+  // ═ AMBIENT EQ REGISTRY
+  //
+  // The 64-bar visualiser is the expensive one. Each `<MusicPlayer />`
+  // that's currently displaying the ambient EQ on screen registers
+  // itself via `registerAmbientView()`; the tick gates the 64-bar
+  // computation on `ambientSubscribers > 0`. So:
+  //  - No ambient EQ on screen (none mounted, or all scrolled off):
+  //    the loop still runs the cheap 4-bar focal pass, but skips the
+  //    64 Math.pow calls + the broadcast to every subscriber. Zero
+  //    GPU layer pressure, zero v-for diff.
+  //  - One ambient EQ visible: the full pipeline runs as before.
+  let ambientSubscribers = 0
+  function registerAmbientView(): () => void {
+    ambientSubscribers++
+    return () => {
+      ambientSubscribers = Math.max(0, ambientSubscribers - 1)
+    }
+  }
+
   // ═ GETTERS
   const progress = computed(() => {
     if (duration.value === 0) return 0
@@ -210,8 +229,11 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
       focal[2] = data[18] / 255
       focal[3] = data[36] / 255
       triggerRef(eqBars)
-      // 64-bar ambient — half rate, still visually continuous.
-      if ((frame++ & 1) === 0) {
+      // 64-bar ambient — half rate, visually continuous. Gated on
+      // `ambientSubscribers > 0` so when no <MusicPlayer /> is showing
+      // the ambient EQ on screen, the Math.pow loop and the reactive
+      // broadcast are skipped entirely.
+      if (ambientSubscribers > 0 && (frame++ & 1) === 0) {
         for (let i = 0; i < N; i++) {
           const r = i / (N - 1)
           const raw = data[binMap[i]] / 255
@@ -336,5 +358,8 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     loadTrack,
     // Opt-in event subscription (returns unsubscribe)
     subscribe,
+    // Ambient EQ visibility registry — internal-but-public so
+    // <MusicPlayer /> can declare "I'm currently rendering ambient EQ".
+    registerAmbientView,
   }
 })

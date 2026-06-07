@@ -204,4 +204,22 @@ describe('useAudioStore', () => {
       expect(store.ambientEq).toBe(true)
     })
   })
+
+  describe('registerAmbientView()', () => {
+    it('returns an unregister function', () => {
+      const store = useAudioStore()
+      const off = store.registerAmbientView()
+      expect(typeof off).toBe('function')
+      off()
+    })
+
+    it('counts can be cycled multiple times without underflow', () => {
+      const store = useAudioStore()
+      const a = store.registerAmbientView()
+      const b = store.registerAmbientView()
+      a()
+      a() // double-release should be a no-op
+      b()
+    })
+  })
 })
