@@ -78,7 +78,7 @@
     "test:packages": "npm run test:core && npm run test:tokens-pkg && npm run test:web-component && npm run test:react-pkg && npm run test:svelte-pkg && npm run test:angular-pkg && npm run test:react-native-pkg",
     "test:visual": "playwright test --grep-invert a11y",
     "test:visual:update": "playwright test --update-snapshots --grep-invert a11y",
-    "test:a11y": "PULSE_A11Y=1 playwright test --grep a11y",
+    "test:a11y": "cross-env PULSE_A11Y=1 playwright test --grep a11y",
     "size": "size-limit",
     "size:why": "size-limit --why",
     "setup:demo-audio": "bash scripts/setup-demo-audio.sh",

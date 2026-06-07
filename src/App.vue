@@ -1214,7 +1214,12 @@ const hero = computed(() => ({
   --pg-border: rgba(255, 255, 255, 0.07);
   --pg-text: #ffffff;
   --pg-text-mid: rgba(255, 255, 255, 0.65);
-  --pg-text-low: rgba(255, 255, 255, 0.45);
+  /* WCAG 2.1 AA fix (v3.0.0-alpha.17): was 0.45 → contrast 4.48 against
+     #05050a (just below the 4.5 threshold). Bumped to 0.55 → contrast
+     ~5.1, comfortably above. Tiny visual diff (caption text marginally
+     more legible). All `.grid__caption`, `.section__sub`, and similar
+     low-emphasis captions inherit this fix automatically. */
+  --pg-text-low: rgba(255, 255, 255, 0.55);
   --pg-accent: #3dbda7;
 }
 
