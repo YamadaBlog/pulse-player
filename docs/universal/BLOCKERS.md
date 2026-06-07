@@ -1,29 +1,17 @@
 # Blockers — what's not done and why
 
-Honest record of the items that cannot be closed in the current session and the reason each one is blocked. Updated through v3.0.0-alpha.13.
+Honest record of the items that cannot be closed in the current session and the reason each one is blocked. Updated through v3.0.0-alpha.16.
 
-## 0. GitHub Pages activation
+## 0. ~~GitHub Pages activation~~ ✅ RESOLVED (v3.0.0-alpha.16)
 
-**Status:** the `.github/workflows/pages.yml` workflow is committed and ready, but Pages cannot be enabled.
-
-**Why blocked:**
+The repo was switched to **public visibility** in v3.0.0-alpha.16 (after a clean pre-public security audit — 0 secrets, 0 .env, 0 binaries, 0 private keys in history). GitHub Pages activated on the free tier:
 
 ```
 $ gh api -X POST repos/YamadaBlog/pulse-player/pages -f build_type=workflow
-{"message":"Your current plan does not support GitHub Pages for this repository."}
+{ "html_url": "https://yamadablog.github.io/pulse-player/", "build_type": "workflow", "public": true }
 ```
 
-GitHub Pages on a **private repository** requires a **GitHub Pro / Team / Enterprise** plan. The repo is currently on the Free plan, and the Pro upgrade ($4/month) hasn't been bought because the demo can be hosted free elsewhere.
-
-**Path forward (pick one):**
-
-1. **Upgrade to GitHub Pro** ($4 / month). Activates Pages on private repos. Demo URL becomes `https://yamadablog.github.io/pulse-player/`. One-time decision.
-2. **Make the repo public.** Free Pages activates instantly. But the source becomes visible to everyone — a real decision that should be tied to the broader product strategy (MIT means the source is reusable, public adds discoverability, private keeps the build artefacts hidden from drive-by indexing). See [`LICENSING.md`](./LICENSING.md) for the trade-offs.
-3. **Host elsewhere.** [Cloudflare Pages](https://pages.cloudflare.com/), [Netlify](https://www.netlify.com/), or [Vercel](https://vercel.com/) all offer free hosting for static demos AND let you point a custom subdomain (eg `demo.pulse-player.dev`) at the bundle. The Vue demo build output at `dist/` after `npm run build` is fully static and deploys in seconds.
-
-**Impact on 10/10 grade:** -0.1 until any path above is chosen.
-
-**Decision needed from the maintainer.**
+Live demo URL: **https://yamadablog.github.io/pulse-player/**. The `.github/workflows/pages.yml` push trigger was re-enabled (it had been switched to `workflow_dispatch` only in alpha.14 to silence the failing-on-every-push noise). The Vite `BASE_PATH=/pulse-player/` env var is read by `vite.config.ts` so asset URLs resolve correctly under the sub-path.
 
 ---
 

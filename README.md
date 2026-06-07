@@ -49,6 +49,7 @@ Read [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md) for th
 [![Vue lib gzip](https://img.shields.io/badge/Vue%20lib-14%20kB%20gzip-3DBDA7)](./docs/ARCHITECTURE.md)
 [![Tests](https://img.shields.io/badge/tests-132%20%2F%20132-3DBDA7.svg)](./CHANGELOG.md)
 [![Status](https://img.shields.io/badge/status-active-3DBDA7.svg)]()
+[![Live demo](https://img.shields.io/badge/demo-live-3DBDA7?logo=github&logoColor=white)](https://yamadablog.github.io/pulse-player/)
 [![Watch demo](https://img.shields.io/badge/demo-YouTube-FF0000?logo=youtube&logoColor=white)](https://youtu.be/q_FJ1GWaCc8)
 
 <br>

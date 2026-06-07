@@ -22,8 +22,15 @@ name: Release Please
 # Config: .release-please-config.json + .release-please-manifest.json
 
 on:
-  push:
-    branches: [main]
+  # Manual-only trigger until we cut v3.0.0-rc.0.
+  #
+  # The auto-PR proposed by release-please jumps every @pulse/* package
+  # from 0.0.0 to 1.0.0 on each push, which collides with the
+  # v3.0.0-alpha.N cadence we use for the multi-framework refactor.
+  # Re-enable the push trigger once the manifest is updated to reflect
+  # the alpha-then-rc-then-stable lineage and the maintainer is ready
+  # to cut v3.0.0-rc.0.
+  workflow_dispatch:
 
 permissions:
   contents: write
