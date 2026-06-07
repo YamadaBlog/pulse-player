@@ -185,12 +185,70 @@ export const playerStyles = css`
     font-variant-numeric: tabular-nums;
   }
 
+  /* ─── Ambient EQ — pure CSS, 0 JS / frame ───────────────────
+     12 bars layered behind the chrome. Staggered animation-delay
+     gives the impression of a moving wave under the audio without
+     touching the FFT analyser. Toggled on via the ambient-eq
+     attribute on the host. */
+  .mp__ambient {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    pointer-events: none;
+    padding: 0 12%;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: 0;
+  }
+  :host([ambient-eq]) .mp__ambient {
+    opacity: 0.28;
+  }
+  .mp__ambient-bar {
+    width: 3px;
+    height: calc(var(--pulse-art) * 0.42);
+    border-radius: 999px;
+    background: var(--pulse-accent);
+    transform-origin: center;
+    transform: scaleY(0.16);
+    animation: mp-ambient-wave 1600ms ease-in-out infinite;
+  }
+  .mp__ambient-bar:nth-child(1) { animation-delay: 0ms; }
+  .mp__ambient-bar:nth-child(2) { animation-delay: 80ms; }
+  .mp__ambient-bar:nth-child(3) { animation-delay: 160ms; }
+  .mp__ambient-bar:nth-child(4) { animation-delay: 240ms; }
+  .mp__ambient-bar:nth-child(5) { animation-delay: 320ms; }
+  .mp__ambient-bar:nth-child(6) { animation-delay: 400ms; }
+  .mp__ambient-bar:nth-child(7) { animation-delay: 480ms; }
+  .mp__ambient-bar:nth-child(8) { animation-delay: 400ms; }
+  .mp__ambient-bar:nth-child(9) { animation-delay: 320ms; }
+  .mp__ambient-bar:nth-child(10) { animation-delay: 240ms; }
+  .mp__ambient-bar:nth-child(11) { animation-delay: 160ms; }
+  .mp__ambient-bar:nth-child(12) { animation-delay: 80ms; }
+
+  .mp {
+    position: relative;
+    overflow: hidden;
+  }
+  .mp__body, .mp__art {
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes mp-ambient-wave {
+    0%, 100% { transform: scaleY(0.16); }
+    50%      { transform: scaleY(0.72); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .mp,
     .mp__art,
     .mp__btn,
-    .mp__progress-fill {
+    .mp__progress-fill,
+    .mp__ambient-bar {
       transition: none !important;
+      animation: none !important;
     }
   }
 `
@@ -232,5 +290,71 @@ export const fabStyles = css`
       0 4px 20px rgba(0, 0, 0, 0.5),
       0 0 0 1px rgb(var(--variant-accent-rgb, 255, 255, 255) / 0.4),
       0 0 28px rgb(var(--variant-accent-rgb, 255, 255, 255) / 0.25);
+  }
+
+  /* ─── Pulso heartbeat — lub-dub-rest ────────────────────────
+     Cycle map (5 s):
+       0 %  →  6 %  : compress to the lub peak (300 ms)
+       6 %          : lub wave EMERGES at opacity 0.45
+       6 % → 20 %   : lub wave expands to scale 1.6, fades (700 ms)
+       20 %         : dub wave emerges
+       20 % → 34 %  : dub wave expands, fades (700 ms)
+       34 % → 100 % : rest (3.3 s)
+     Waves fire AT the peak, not before — preserves cause/effect feel. */
+  .fab--pulso {
+    animation: pulso-heartbeat 5s ease-in-out infinite;
+  }
+
+  .fab--pulso::before,
+  .fab--pulso::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--fab-size);
+    height: var(--fab-size);
+    margin-top: calc(var(--fab-size) / -2);
+    margin-left: calc(var(--fab-size) / -2);
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.85);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 1;
+    animation: pulso-wave-lub 5s ease-out infinite;
+  }
+  .fab--pulso::after {
+    animation-name: pulso-wave-dub;
+  }
+
+  @keyframes pulso-heartbeat {
+    0%   { transform: scale(1); }
+    6%   { transform: scale(1.05); }
+    12%  { transform: scale(1); }
+    20%  { transform: scale(1.05); }
+    26%  { transform: scale(1); }
+    100% { transform: scale(1); }
+  }
+  @keyframes pulso-wave-lub {
+    0%, 5%  { transform: scale(1); opacity: 0; }
+    6%      { transform: scale(1); opacity: 0.45; }
+    20%     { transform: scale(1.6); opacity: 0; }
+    100%    { transform: scale(1.6); opacity: 0; }
+  }
+  @keyframes pulso-wave-dub {
+    0%, 19% { transform: scale(1); opacity: 0; }
+    20%     { transform: scale(1); opacity: 0.45; }
+    34%     { transform: scale(1.6); opacity: 0; }
+    100%    { transform: scale(1.6); opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fab,
+    .fab--pulso,
+    .fab--pulso::before,
+    .fab--pulso::after {
+      animation: none !important;
+      transition: none !important;
+    }
   }
 `

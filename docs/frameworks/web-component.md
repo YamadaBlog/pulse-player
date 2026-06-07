@@ -2,6 +2,8 @@
 
 Universal Custom Elements. The renderer every framework wrapper consumes.
 
+> ⚠️ **Honest status (v3.0.0-alpha.3):** `<pulse-player>` and `<pulse-fab>` are real Lit elements that work in every modern framework. **But the chrome is a SKELETON** — about 15 % of the Vue v2.3.4 reference's feature set. Working today: play / pause, title, cover art, progress bar, time read-out, 8 mood variants, ambient EQ + pulso heartbeat (added in alpha.4). **Not yet implemented:** drag-to-resize, three responsive states (220 / 130 / 110 thresholds), social icons, prev / next on the inline card, FAB drag-to-reposition, FAB radial menu, fullscreen FAB chrome, `mp__bg` blur backdrop, `mp__noise` SVG filter. Read this page as a forward-looking spec and the [CHANGELOG](../../CHANGELOG.md) for what shipped per alpha. If you need the full premium chrome today, use **`pulse-player` (Vue, v2.3.4)** instead.
+
 ## Status
 
 ⏳ **Implementation lands in v3.0.0-alpha.2.**

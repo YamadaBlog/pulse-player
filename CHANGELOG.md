@@ -8,6 +8,108 @@ Tags: every release listed below is pinned to a signed git tag of the same name 
 
 Tracked separately in [the v2.0.0 audit branch](https://github.com/YamadaBlog/pulse-player/issues?q=is%3Aissue+label%3Av2.0.0).
 
+## 3.0.0-alpha.4 — 2026-06-07
+
+Closes 4 of the P0 / P1 items the previous audit (note 6.5 / 10) flagged: **docs honesty**, **publishability** (every package now has a `tsup` build), **Svelte runtime safety**, and **chrome feature parity Phase 1** (ambient EQ + pulso heartbeat + ResizeObserver `--pulse-scale`). Vue v2.3.4 codebase at `src/lib/` is bit-for-bit identical.
+
+### P0 #1 — Doc honesty (banners on every per-framework page)
+
+Each `docs/frameworks/*.md` now opens with an **Honest status** banner:
+
+- `web-component.md` — "Chrome is a SKELETON, ~15 % of Vue v2.3.4 reference. Working: play/pause/title/cover/progress/8 variants/ambient EQ/pulso. Not yet: drag-to-resize, three responsive states, social icons, prev/next, FAB drag, etc. If you need the full premium chrome today, use the Vue version."
+- `react.md` — "Wrapper code shipped, underlying CE skeleton. Tests not yet."
+- `svelte.md` — "Plain TypeScript hook. Custom Elements work directly in templates."
+- `vue.md` — "Vue is the ONLY fully-featured version. Use it if you need the full chrome."
+
+The universal `README.md` framework picker now shows **chrome parity % vs Vue v2.3.4** per framework (~30 % for React / Svelte / Web Components, 100 % for Vue, 0 % for Angular, N/A for React Native).
+
+### P0 #2 — Build configs per publishable package (`tsup`)
+
+Five packages now build to ESM + CJS + .d.ts via `tsup`:
+
+| Package | ESM | CJS | Types | External deps |
+| --- | --- | --- | --- | --- |
+| `@pulse/types` | 0.5 KB | 0.7 KB | 2.5 KB | (none — pure types) |
+| `@pulse/core` | 5.4 KB | 5.8 KB | 3.4 KB | `@pulse/types` |
+| `@pulse/web-component` | 10 KB | 10 KB | 4.5 KB | `@pulse/core`, `@pulse/tokens`, `@pulse/types`, `lit` |
+| `@pulse/react` | 4.7 KB | 5.1 KB | 4.6 KB | `@pulse/core`, `@pulse/web-component`, `react`, `react-dom` |
+| `@pulse/svelte` | 1.3 KB | 1.4 KB | 2.6 KB | `@pulse/core`, `@pulse/web-component` |
+
+Root script: `npm run build:packages` builds all five sequentially. Cross-package deps are marked `external` in each `tsup.config.ts` so the consumer's bundler does the linking — no nested duplication.
+
+`package.json` `exports` field on every package now points at `./dist/{index.js,index.cjs,index.d.ts}` so consumers consuming the package via npm resolve the built artifacts, while the workspace setup keeps using the TS sources at `./src/*` for local dev (vitest, type-check).
+
+@pulse/angular and @pulse/react-native stay scaffold-only (`private: true`, no peer deps, no build) until they reach implementation-ready status.
+
+### P0 #3 — Feature parity Phase 1 (ambient EQ + pulso + ResizeObserver)
+
+`<pulse-player>`:
+
+- New `ambient-eq` reflected boolean attribute. Toggles a 12-bar pure-CSS ambient wave behind the chrome — staggered animation-delay, 0 JS / frame, matches the v2.3.4 implementation bit-for-bit.
+- ResizeObserver computes `--pulse-scale` from the host's current width (linear map [110 px .. 680 px] → [0.30 .. 1.30]). Every chrome measurement (`--pulse-art`, `--pulse-title`, `--pulse-pad`, `--pulse-radius`, …) breathes from this single variable — the v2.3.4 container-aware signature, now in Custom Element form.
+- Disconnects the observer in `disconnectedCallback` — zero leak.
+
+`<pulse-fab>`:
+
+- Full pulso heartbeat keyframes: `pulso-heartbeat` (lub at 6 %, dub at 20 %, rest 34 %→100 %), `pulso-wave-lub` and `pulso-wave-dub` rings fire AT the peak (not before), `prefers-reduced-motion` guard. Copied verbatim from the validated v2.3.4 `MiniPlayer.vue`.
+
+`@pulse/web-component` 9-test suite still passes 9/9.
+
+### P1 #1 — Svelte runtime safety
+
+The previous `usePulseAudio.svelte.ts` used Svelte 5 `$state` + `$effect` runes. Those require the Svelte 5 compiler in the consumer's toolchain — and the monorepo doesn't bundle one for its own packages. The file's runtime behaviour was suspect (audit flag).
+
+It is now **plain TypeScript** (`usePulseAudio.ts`) following the Svelte classic-store contract:
+
+```ts
+export function usePulseAudio() {
+  return {
+    subscribe(run) { /* … */ return engine.onStateChange(/* … */) },
+    toggle, next, prev, seek, setAudioTracks, setAmbientEq, fmt, engine,
+  }
+}
+```
+
+Svelte 4 + Svelte 5 both honour the `$store` autosubscribe on any object exposing `subscribe(callback)`. No compiler dependency, works in every Svelte project today.
+
+### P1 #2 — `apps/demo-vanilla/` (runnable example, zero framework)
+
+`apps/demo-vanilla/index.html` is a single static HTML file that imports `@pulse/web-component`'s built bundle, mounts `<pulse-player ambient-eq>` and `<pulse-fab pulso>`, wires a variant picker, and logs every DOM `CustomEvent` into a live console panel. Serves on `http-server` — no bundler, no framework. Proves the package works as advertised in a vanilla page.
+
+### Quality gate
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings (--max-warnings=0)
+tests (root, Vue Pinia)  → 33 / 33
+tests (@pulse/core)      → 27 / 27
+tests (@pulse/web-comp)  →  9 /  9
+TOTAL                    → 69 / 69 across the monorepo
+build (Vue demo)         → 129 kB JS + 42 kB CSS → 48 kB gzip
+build:lib (Vue lib)      → ~14 kB gzip
+build:packages           → 5 packages — ESM + CJS + .d.ts each
+audit (prod-only)        → 0 vulnerabilities
+v2.3.4 demo              → bit-for-bit identical
+```
+
+### Vue v2.3.4 — non-regression validated
+
+```
+Vue Pinia tests          → 33 / 33 (unchanged)
+useDemoTour tests        → included above
+Vue demo gzip            → 48 KB (unchanged from v3.0.0-alpha.3)
+Vue lib gzip             → 14 KB (unchanged)
+src/lib/                 → ZERO file modified
+```
+
+### What's still ahead
+
+- v3.0.0-alpha.5 → `@pulse/react` RTL tests + `@pulse/svelte` plain-TS tests; `apps/demo-react/`.
+- v3.0.0-alpha.6 → Playwright visual regression vs the v2.3.4 demo (gates the Vue migration).
+- v3.0.0-alpha.7 → Chrome parity Phase 2 (three responsive states, social icons, prev / next, FAB drag, palette / menu, drag-to-resize) — closes the gap to ~95 %.
+- v3.0.0-alpha.8 → Vue migration `src/lib/` → `packages/vue/`.
+- v3.0.0 → stable, npm publish.
+
 ## 3.0.0-alpha.3 — 2026-06-07
 
 `@pulse/react`, `@pulse/svelte`, and 9 new `@pulse/web-component` tests land with real code. **Pulse now ships for Vue 3 (today's v2.3.4 reference), React 18 / 19, Svelte 5 and every other framework that respects the DOM**, all sharing the same `@pulse/core` audio engine bit-for-bit. Vue v2.3.4 at `src/lib/` is untouched.

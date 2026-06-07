@@ -1,25 +1,32 @@
 {
   "name": "@pulse/svelte",
   "version": "0.0.0",
-  "description": "Svelte 5 wrapper for pulse-player — components + runes-based store built on @pulse/web-component.",
+  "description": "Svelte 5 wrapper for pulse-player. Plain TypeScript hook + Svelte classic-store contract over @pulse/web-component.",
   "license": "MIT",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     }
   },
   "files": [
+    "dist",
     "src",
     "README.md"
   ],
+  "scripts": {
+    "build": "tsup"
+  },
   "peerDependencies": {
     "svelte": "^5.0.0"
   },
   "dependencies": {
+    "@pulse/core": "*",
     "@pulse/types": "*",
     "@pulse/web-component": "*"
   },

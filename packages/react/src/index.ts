@@ -20,8 +20,11 @@
 // Side-effect import registers <pulse-player> + <pulse-fab>.
 import '@pulse/web-component'
 
-// JSX type augmentation for `<pulse-player>` / `<pulse-fab>`.
-import './jsx-elements'
+// JSX type augmentation for `<pulse-player>` / `<pulse-fab>` is at
+// `./jsx-elements.d.ts`. As a `.d.ts` file it is loaded automatically
+// by TypeScript via the project's `include` glob — no runtime
+// import needed, and adding one would crash any bundler at build
+// time (declaration files have no runtime payload).
 
 export { PulsePlayer, type PulsePlayerProps } from './PulsePlayer'
 export { PulseFab, type PulseFabProps } from './PulseFab'

@@ -13,16 +13,20 @@
 
 ### Now an audio component you can drop into any framework.
 
-| Framework | Package | Status | Quick example |
+| Framework | Package | Status today | Chrome parity vs Vue v2.3.4 |
 | --- | --- | --- | --- |
-| **Vue 3** | `pulse-player` (today) / `@pulse/vue` (v3.0.0) | ✅ Reference implementation (v2.3.4 validated) | `<MusicPlayer variant="midnight" />` |
-| **React 18 / 19** | `@pulse/react` | ✅ alpha.3 — hooks + JSX components | `<PulsePlayer variant="midnight" onPlay={…} />` |
-| **Svelte 5** | `@pulse/svelte` | ✅ alpha.3 — runes-based store + native CE usage | `<pulse-player variant="midnight"></pulse-player>` |
-| **Web Components** | `@pulse/web-component` | ✅ alpha.2 — `<pulse-player>` + `<pulse-fab>` (Lit) | `<pulse-player variant="midnight"></pulse-player>` |
-| **Angular 17+** | `@pulse/angular` | ⏳ scaffold — v3.1.0 | `<pulse-player variant="midnight"></pulse-player>` |
-| **React Native** | `@pulse/react-native` | ⏳ scaffold — v3.0.0-alpha.5 (separate renderer) | `<PulsePlayer variant="midnight" />` (RN primitives) |
-| **Vanilla HTML** | `@pulse/web-component` | ✅ alpha.2 — works in any HTML page | `<pulse-player variant="midnight"></pulse-player>` |
-| **Solid / Astro / Qwik** | `@pulse/web-component` | ✅ alpha.2 — native Custom Element support | (same as vanilla) |
+| **Vue 3** | `pulse-player` (today) / `@pulse/vue` (v3.0.0) | ✅ **Production-ready** (v2.3.4 validated) | **100 %** |
+| **React 18 / 19** | `@pulse/react` | 🛠 alpha — wrapper code shipped, no RTL tests yet | **~30 %** (play / pause / cover / variants / ambient EQ / pulso) |
+| **Svelte 5** | `@pulse/svelte` | 🛠 alpha — plain TS hook + native Custom Elements | ~30 % (same as React, inherits the web-component chrome) |
+| **Web Components** | `@pulse/web-component` | 🛠 alpha — `<pulse-player>` + `<pulse-fab>` (Lit) | **~30 %** |
+| **Vanilla HTML / Solid / Astro / Qwik** | `@pulse/web-component` | 🛠 alpha — works in any HTML page | ~30 % (same as Web Components) |
+| **Angular 17+** | `@pulse/angular` | ⏳ scaffold — v3.1.0 | 0 % |
+| **React Native** | `@pulse/react-native` | ⏳ scaffold — separate renderer (no DOM) | N/A — RN feature parity matrix in `docs/frameworks/react-native.md` |
+
+**Need the full premium chrome today (resize handle, three responsive states, social icons, prev / next, FAB drag, palette / menu, fullscreen)?** → use the Vue version.
+**Just need the audio engine + minimum card chrome (play / pause / variants / ambient EQ / pulso)?** → any framework wrapper works.
+
+Read [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md) for the dependency graph and [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md) for the per-alpha plan.
 
 <br>
 

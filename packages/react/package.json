@@ -1,21 +1,27 @@
 {
   "name": "@pulse/react",
   "version": "0.0.0",
-  "description": "React wrapper for pulse-player — hooks + JSX components built on @pulse/web-component.",
+  "description": "React 18 / 19 wrapper for pulse-player — hooks + JSX components built on @pulse/web-component.",
   "license": "MIT",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     }
   },
   "files": [
+    "dist",
     "src",
     "README.md"
   ],
+  "scripts": {
+    "build": "tsup"
+  },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"

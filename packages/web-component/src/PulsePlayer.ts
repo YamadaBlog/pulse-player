@@ -47,6 +47,10 @@ export class PulsePlayerElement extends LitElement {
   @property({ type: String, attribute: 'accent-color' })
   accentColor: string | undefined
 
+  /** Toggle the ambient EQ background animation. Reflected as an attribute. */
+  @property({ type: Boolean, attribute: 'ambient-eq', reflect: true })
+  ambientEq = false
+
   /**
    * Optional custom playlist override. Pass an array of Track objects
    * to replace the engine's playlist. Most consumers will configure
@@ -81,6 +85,14 @@ export class PulsePlayerElement extends LitElement {
   private offTrackChange: Unsubscribe | undefined
   private offError: Unsubscribe | undefined
 
+  // Container-aware --pulse-scale system. A ResizeObserver on the host
+  // computes a scale between --pulse-scale-min (0.30) and
+  // --pulse-scale-max (1.30) based on the host's current width,
+  // mirroring the v2.3.4 Vue MusicPlayer.vue logic so the chrome
+  // (artwork, type, icons, padding, shadows, EQ bars, progress) all
+  // breathe from one variable.
+  private resizeObserver: ResizeObserver | undefined
+
   override connectedCallback(): void {
     super.connectedCallback()
 
@@ -102,6 +114,21 @@ export class PulsePlayerElement extends LitElement {
       this.fire('pulse-trackchange', detail),
     )
     this.offError = this.engine.subscribe('error', (detail) => this.fire('pulse-error', detail))
+
+    // Container-aware autoscale.
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver((entries) => {
+        const w = entries[0]?.contentRect.width ?? 0
+        if (!w) return
+        // Linear map [110 px .. 680 px] → [0.3 .. 1.3], clamped.
+        const min = 0.3
+        const max = 1.3
+        const ratio = Math.max(0, Math.min(1, (w - 110) / (680 - 110)))
+        const scale = min + (max - min) * ratio
+        this.style.setProperty('--pulse-scale', String(scale))
+      })
+      this.resizeObserver.observe(this)
+    }
   }
 
   override disconnectedCallback(): void {
@@ -111,6 +138,8 @@ export class PulsePlayerElement extends LitElement {
     this.offPause?.()
     this.offTrackChange?.()
     this.offError?.()
+    this.resizeObserver?.disconnect()
+    this.resizeObserver = undefined
   }
 
   override updated(changed: PropertyValues): void {
@@ -148,6 +177,11 @@ export class PulsePlayerElement extends LitElement {
 
     return html`
       <div class="mp" data-variant=${this.variant}>
+        <!-- Ambient EQ — 12 bars. Visible only when the ambient-eq attribute is on the host. Pure CSS, zero JS per frame. -->
+        <div class="mp__ambient" aria-hidden="true">
+          ${Array.from({ length: 12 }).map(() => html`<span class="mp__ambient-bar"></span>`)}
+        </div>
+
         <div
           class="mp__art"
           role="button"

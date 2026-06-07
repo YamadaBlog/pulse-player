@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pulse — Web Component vanilla demo</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family:
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a14 100%);
+        color: #f5f5f7;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+        padding: 48px 24px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+      }
+      .picker {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .picker button {
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.06);
+        color: inherit;
+        font-size: 13px;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          border-color 0.2s;
+      }
+      .picker button:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .picker button[aria-pressed='true'] {
+        background: #3dbda7;
+        color: #14141a;
+        border-color: transparent;
+      }
+      .stage {
+        width: 100%;
+        max-width: 520px;
+      }
+      .log {
+        font-family:
+          ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+        font-size: 12px;
+        opacity: 0.7;
+        max-height: 96px;
+        overflow: auto;
+        text-align: left;
+        width: 100%;
+        max-width: 520px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Pulse — Web Component (no framework)</h1>
+
+    <div class="picker" id="variant-picker" role="group" aria-label="Theme variant">
+      <button data-variant="auto" aria-pressed="true">auto</button>
+      <button data-variant="midnight">midnight</button>
+      <button data-variant="aurora">aurora</button>
+      <button data-variant="sunset">sunset</button>
+      <button data-variant="vinyl">vinyl</button>
+      <button data-variant="light">light</button>
+      <button data-variant="solid">solid</button>
+      <button data-variant="dark">dark</button>
+    </div>
+
+    <div class="stage">
+      <pulse-player id="player" variant="auto" ambient-eq></pulse-player>
+    </div>
+
+    <pulse-fab id="fab" variant="auto" pulso></pulse-fab>
+
+    <div class="log" id="log" aria-live="polite"></div>
+
+    <script type="module">
+      // In a published build, this import would be a bare specifier:
+      //   import '@pulse/web-component'
+      // Here we point at the workspace package's built ESM bundle so
+      // the demo runs without a bundler.
+      import '../../packages/web-component/dist/index.js'
+
+      const player = document.getElementById('player')
+      const fab = document.getElementById('fab')
+      const log = document.getElementById('log')
+
+      function append(line) {
+        const el = document.createElement('div')
+        el.textContent = `[${new Date().toLocaleTimeString()}] ${line}`
+        log.prepend(el)
+      }
+
+      for (const ev of ['pulse-play', 'pulse-pause', 'pulse-trackchange', 'pulse-error']) {
+        for (const el of [player, fab]) {
+          el.addEventListener(ev, (e) => {
+            append(`${el.tagName.toLowerCase()} → ${ev} ${JSON.stringify(e.detail).slice(0, 80)}`)
+          })
+        }
+      }
+
+      // Variant picker — sets the attribute on both elements so the
+      // singleton engine + shared chrome stay in sync.
+      document.getElementById('variant-picker').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-variant]')
+        if (!btn) return
+        const v = btn.dataset.variant
+        for (const sibling of e.currentTarget.querySelectorAll('button')) {
+          sibling.setAttribute('aria-pressed', sibling === btn ? 'true' : 'false')
+        }
+        player.setAttribute('variant', v)
+        fab.setAttribute('variant', v)
+      })
+    </script>
+  </body>
+</html>

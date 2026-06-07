@@ -41,7 +41,7 @@
 // Side-effect import registers <pulse-player> + <pulse-fab>.
 import '@pulse/web-component'
 
-export { usePulseAudio, type UsePulseAudioReturn } from './usePulseAudio.svelte'
+export { usePulseAudio, type UsePulseAudioStore } from './usePulseAudio'
 
 export {
   PulseEngine,
