@@ -8,6 +8,80 @@ Tags: every release listed below is pinned to a signed git tag of the same name 
 
 Tracked separately in [the v2.0.0 audit branch](https://github.com/YamadaBlog/pulse-player/issues?q=is%3Aissue+label%3Av2.0.0).
 
+## 3.0.0-alpha.2 — 2026-06-07
+
+`@pulse/web-component` ships its first real Custom Elements. `<pulse-player>` and `<pulse-fab>` register globally on import and work natively in React 19+, Vue 3, Angular 17+, Svelte 5, Solid, vanilla HTML, Astro and Qwik. **Vue v2.3.4 codebase at `src/lib/` is still untouched.**
+
+### `<pulse-player>` — universal inline card
+
+`packages/web-component/src/PulsePlayer.ts` — Lit `LitElement` wrapping the singleton `PulseEngine`. ~140 LOC. Renders the minimum-viable inline card chrome (artwork, title, play / pause button, progress bar, time read-out) and emits DOM `CustomEvent`s for every state change:
+
+- `pulse-play` — `detail: { track, time }`
+- `pulse-pause` — `detail: { track, time }`
+- `pulse-trackchange` — `detail: { from, to, track }`
+- `pulse-error` — `detail: { track, reason, detail? }`
+
+Events are configured `bubbles: true, composed: true` so a single parent listener catches them across Shadow DOM boundaries.
+
+Attributes:
+
+- `variant` (PulseVariant, reflected) — switches the mood gradient. 8 variants ship in alpha.2; `custom` arrives with the consumer styling hook in alpha.3.
+- `accent-color` (CSS color string) — overrides `--pulse-accent` inline on the host.
+- `tracks` (`Track[]`, property-only) — optional playlist override. Most consumers configure at engine level via `setSharedEngine(new PulseEngine(myTracks))`.
+
+Accessibility wired up: cover art is `role="button"` with `aria-pressed`, the play button has `aria-label` reflecting `play`/`pause`, the progress bar is `role="slider"` with `aria-valuemin/max/now`. `prefers-reduced-motion` disables every transition.
+
+### `<pulse-fab>` — universal floating action button
+
+`packages/web-component/src/PulseFab.ts` — `LitElement` for the compact disc-shaped player. Same singleton engine, same event surface. Adds the `pulso` presence attribute for the heartbeat ring (full keyframes ship in alpha.2.1).
+
+### Singleton engine
+
+`packages/web-component/src/engine-singleton.ts` — module-level lazy singleton. The v2.3.4 Pinia store was a singleton; the Web Component layer mirrors that so `<pulse-player>` and `<pulse-fab>` on the same page share an audio session bit-for-bit.
+
+Advanced consumers can override at module-init time:
+
+```ts
+import { setSharedEngine, PulseEngine } from '@pulse/web-component'
+setSharedEngine(new PulseEngine(myCustomPlaylist))
+```
+
+### Public API surface
+
+`packages/web-component/src/index.ts` re-exports:
+
+```ts
+export { PulsePlayerElement, PulseFabElement } from './…'
+export { getSharedEngine, setSharedEngine } from './engine-singleton'
+export { PulseEngine } from '@pulse/core'
+export type { /* every @pulse/types export */ }
+```
+
+Importing the package side-effect-registers both Custom Elements with the global registry. Consumers that need lazy registration import the individual classes and call `customElements.define()` themselves.
+
+### Shadow DOM styling strategy
+
+`packages/web-component/src/styles.ts` declares the variant tokens at the `:host([variant='X'])` level instead of the document-level `[data-variant='X']` selectors from `@pulse/tokens`. Shadow DOM doesn't inherit document-level CSS variable cascades by default — the duplication is the cost of self-contained encapsulation. Both files stay in sync via the same RGB triplets / gradient stops, and the planned alpha.3 design-tokens-as-Constructable-StyleSheet refactor will let `@pulse/web-component` consume `@pulse/tokens` directly.
+
+### Vue v2.3.4 — unchanged
+
+```
+type-check       → clean
+lint             → 0 errors, 0 warnings
+tests (root)     → 33 / 33    (Vue Pinia store + useDemoTour)
+tests (core)     → 27 / 27    (PulseEngine)
+TOTAL            → 60 / 60    across the monorepo
+build (demo)     → 129 kB JS + 42 kB CSS → 48 kB gzip
+audit            → 0 vulnerabilities
+v2.3.4 demo      → bit-for-bit identical
+```
+
+### What's still ahead
+
+- v3.0.0-alpha.2.1 → Playwright visual regression suite vs the v2.3.4 demo. Pixel-perfect parity required before alpha.3 can ship.
+- v3.0.0-alpha.2.2 → Full chrome parity: ambient EQ, pulso heartbeat keyframes, drag-to-resize, three responsive states, social icons, next/prev controls.
+- v3.0.0-alpha.3 → `@pulse/vue` migration (`src/lib/` → `packages/vue/`) refactored to wrap `<pulse-player>` / `<pulse-fab>`.
+
 ## 3.0.0-alpha.1.1 — 2026-06-07
 
 Tests for `@pulse/core`. 27 unit tests ported from the validated v2.3.4 `tests/useAudioStore.test.ts` (22) + 5 new tests for the PulseEngine-specific surface (`onStateChange`, `setAmbientEq`, idempotent `dispose`).
