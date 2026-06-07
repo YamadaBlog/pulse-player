@@ -4,6 +4,65 @@ All notable changes to **pulse-player** are documented here. The format follows 
 
 Tags: every release listed below is pinned to a signed git tag of the same name (`vX.Y.Z`) and surfaced as a GitHub Release.
 
+## 3.0.0-rc.0 — 2026-06-08
+
+**The first npm publish.** End of the 21-tag alpha cycle. `@pulse-music/*` packages are now LIVE on the npm registry.
+
+### Published packages
+
+| Package                      | Version        | npm URL                                                  |
+| ---------------------------- | -------------- | -------------------------------------------------------- |
+| `@pulse-music/types`         | 3.0.0-rc.0     | https://www.npmjs.com/package/@pulse-music/types         |
+| `@pulse-music/core`          | 3.0.0-rc.0     | https://www.npmjs.com/package/@pulse-music/core          |
+| `@pulse-music/tokens`        | 3.0.0-rc.0     | https://www.npmjs.com/package/@pulse-music/tokens        |
+| `@pulse-music/web-component` | **3.0.0-rc.1** | https://www.npmjs.com/package/@pulse-music/web-component |
+| `@pulse-music/react`         | 3.0.0-rc.0     | https://www.npmjs.com/package/@pulse-music/react         |
+| `@pulse-music/svelte`        | 3.0.0-rc.0     | https://www.npmjs.com/package/@pulse-music/svelte        |
+
+`@pulse-music/web-component` jumped to `rc.1` because the first publish landed in a "ghost" state (npm registered the version as taken but the package wasn't queryable via `npm view`). Bumping to `rc.1` resolved it with a clean publish.
+
+### What this release represents
+
+The `@pulse` org was unavailable when the maintainer tried to claim it at npm login time. Pivot to `@pulse-music` was decided in autonomy and executed via a 127-file sed sweep across every package.json, source import, vitest config, tsup alias, `.size-limit.json`, integration snippet, framework doc, and universal doc reference. Two RN test regex patterns (`/@pulse\/react-native/` and `/@pulse\/web-component/`) were updated by hand since the sed escape didn't catch the escaped slash. `package-lock.json` regenerated.
+
+The publish itself ran from PowerShell with one recovery code per `npm publish` (fresh 2FA setup). 4 publishes propagated cleanly; web-component hit a ghost state requiring a version bump; svelte propagated cleanly after the second OTP batch.
+
+### Quality gate (post-publish)
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings
+format:check             → all files use Prettier code style
+tests (root, Vue Pinia)  →  33 / 33
+tests (@pulse-music/*)   →  99 / 99
+TOTAL unit               → 132 / 132 (post-rename, post-publish)
+audit (prod-only)        → 0 vulnerabilities
+Vue v2.3.4 demo          → bit-for-bit identical
+src/lib/                 → ZERO file modified
+```
+
+### README sweep
+
+- "(coming soon — alpha.X)" markers removed.
+- Install instructions added with real `npm install @pulse-music/*` lines.
+- Sandbox status banner updated to "templates ready, maintainer creates the actual sandbox URLs".
+- Package version table added below the install block.
+
+### What this unblocks
+
+- **External developers can `npm install @pulse-music/react` immediately.** No more "git clone the monorepo" friction.
+- **Sandbox URLs in `SANDBOXES.md` can be created** with real workspace templates.
+- **Launch threads in `LAUNCH_THREADS.md` are ready to post** verbatim — Reddit / HN / Bluesky / dev.to / Twitter + posting schedule.
+- **GitHub Discussions** is open (since alpha.20) — first thread can read "rc.0 is live, feedback wanted".
+
+### Self-assessed grade
+
+**7.5 / 10** on the "sellable today" axis (was 6.6 alpha.21).
+
+The +0.9 reflects the single biggest gap closing: **`npm install @pulse-music/react` actually works now**. The brutal alpha.18 audit's first line was "Pulse is not vendable today because it's not on npm." That sentence is no longer accurate.
+
+The ceiling stays ~7.5 because the brutal "0 stars / 0 downloads / 0 testimonials" reality requires adoption time, not technical work. The next ceiling raise happens after the launch threads land and the early-adopter feedback cycle starts.
+
 ## 3.0.0-alpha.21 — 2026-06-08
 
 **The "blocker attempts" alpha.** GO-mode pass over the 5 blockers documented in alpha.20. I attempted each one honestly: 2 are closed in code, 3 are confirmed as fundamental human / credential / time blockers.

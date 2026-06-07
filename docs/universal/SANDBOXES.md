@@ -4,7 +4,7 @@ Interactive playgrounds for evaluating Pulse without cloning the repo. Each link
 
 > 📺 **Prefer a video?** Watch the 3-minute demo on YouTube: [https://youtu.be/q_FJ1GWaCc8](https://youtu.be/q_FJ1GWaCc8). The video walks through every framework wrapper, the 9 themes, the resize / FAB / fullscreen interactions, and the keyboard shortcuts, in real time. No clone needed.
 
-> **Status:** these sandboxes activate once `@pulse-music/*` packages are published to npm (see [`BLOCKERS.md`](./BLOCKERS.md) #2). Until then, the links below resolve to placeholder URLs. The setup-to-publish-then-create flow is:
+> **Status:** `@pulse-music/*` packages are LIVE on npm as of 2026-06-08. The StackBlitz / CodeSandbox links below are templates — the maintainer creates each sandbox using the snippets, then replaces the URLs here with the shared workspace links.
 >
 > 1. Maintainer runs `npm publish --workspace=@pulse-music/{types,core,tokens,web-component,react,svelte}` (one-time, requires OTP)
 > 2. Create the StackBlitz / CodeSandbox project from the templates in `apps/demo-{vanilla,react,svelte}/`

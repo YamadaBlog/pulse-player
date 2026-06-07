@@ -34,7 +34,33 @@
 
 [![Open Vanilla in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/pulse-player-vanilla) &nbsp; [![Open React in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/pulse-player-react) &nbsp; [![Open Svelte in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/pulse-player-svelte)
 
-See [`docs/universal/SANDBOXES.md`](./docs/universal/SANDBOXES.md) for activation status (sandboxes go live once `@pulse-music/*` is published to npm).
+See [`docs/universal/SANDBOXES.md`](./docs/universal/SANDBOXES.md) for the per-framework playground templates.
+
+### Install from npm (published 2026-06-08)
+
+```bash
+# React 18 / 19
+npm install @pulse-music/react @pulse-music/core
+
+# Svelte 5
+npm install @pulse-music/svelte @pulse-music/core
+
+# Vanilla / Solid / Astro / Qwik (Web Component)
+npm install @pulse-music/web-component
+
+# Vue 3 (reference build v2.3.4 — stays at its own version)
+npm install pulse-player
+```
+
+| Package                      | Version    | Bundle gzip |
+| ---------------------------- | ---------- | ----------- |
+| `@pulse-music/types`         | 3.0.0-rc.0 | 0.1 kB      |
+| `@pulse-music/core`          | 3.0.0-rc.0 | 2 kB        |
+| `@pulse-music/tokens`        | 3.0.0-rc.0 | 0.6 kB      |
+| `@pulse-music/web-component` | 3.0.0-rc.1 | 8.5 kB      |
+| `@pulse-music/react`         | 3.0.0-rc.0 | 1 kB        |
+| `@pulse-music/svelte`        | 3.0.0-rc.0 | 0.4 kB      |
+| `pulse-player` (Vue v2.3.4)  | 2.3.4      | 14 kB       |
 
 ### Production-framework integration snippets
 
