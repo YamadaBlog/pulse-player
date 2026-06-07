@@ -8,6 +8,35 @@ Tags: every release listed below is pinned to a signed git tag of the same name 
 
 Tracked separately in [the v2.0.0 audit branch](https://github.com/YamadaBlog/pulse-player/issues?q=is%3Aissue+label%3Av2.0.0).
 
+## 2.3.4 — 2026-06-07
+
+**Fix / refactor** — closes the four code items the v2.3.2 audit flagged.
+
+- `useDemoSpotlight`: scroll + resize handlers now coalesce into a single `requestAnimationFrame` callback. The previous implementation called `getBoundingClientRect()` on every wheel / touchmove tick — a forced layout per event. The rAF wrapper batches every pending re-aim into ONE rect read per frame, matching the browser's natural render cadence. Critical during the 6-second `inOutQuart` scroll tweens in steps 4 and 5.
+- `useDemoSpotlight`: returned refs (`active`, `x`, `y`, `radius`, `soft`) are now `Readonly<Ref<…>>`. The composable writes; consumers read. Prevents accidental mutation from outside.
+- `useDemoSpotlight`: dropped the dead `watch(active, …)` safety branch. The fallback path it covered is already handled by `focus()` itself, and the `window.innerWidth` read inside the watcher made the composable SSR-unsafe for no benefit.
+- `.demo-spotlight` mask comment in `src/App.vue` now honestly describes the asymmetric feather (1.5 × soft, biased toward the dim side) and explains why the asymmetry is intentional (tight clear edge, longer fade into dim). Previous comment claimed a `soft`-wide feather, which was a lie.
+
+**Docs** — `docs/DEMO.md` gains a "Multi-step spotlight" section covering the composable API, the CSS plumbing (`@property` registration + `mask: radial-gradient`), browser support, and a per-step wiring example.
+
+## 2.3.3 — 2026-06-07
+
+**Fix** — Cover artwork no longer lags during the demo's scripted resize. v1.0.0 added a `body.tour-running .mp__art { transition-duration: 0.55s !important }` override; v1.0.8 then tightened the native `.mp__art` transition to 0.30 s but forgot to update the tour override. The artwork was therefore almost 2× slower during the demo than during manual drag — visible as the image continuing to resize for ~250 ms after the wrapper had settled. The override is gone; the artwork falls back to its native 0.30 s in both paths.
+
+## 2.3.2 — 2026-06-07
+
+**Fix** — Demo steps 3 (Container-aware) and 4 (Drag-to-resize) now frame the **whole** section instead of just the inner stage. Both `<section>` elements gained `id="section-resize"` and `id="section-drag"`; the scroll + spotlight retarget to the section parent with `offset: window.innerHeight * 0.08`, so the heading + description + stage all stay in frame.
+
+## 2.3.1 — 2026-06-07
+
+**Fix** — Spotlight overlay now cuts a TRUE hole at the focused target via CSS `mask`. v2.3.0 used a `radial-gradient` background that went transparent in the centre — visually correct for the dim layer, but `backdrop-filter: blur(2px)` still applied across the entire element, so the focused target was blurred too. The overlay now has a uniform dim + a `mask` that makes the target region literally not render. Step 9 (Pulso) plays its double-thump TWICE in a row instead of once, so the user sees the four heartbeat ripples and can count along with the caption.
+
+## 2.3.0 — 2026-06-07
+
+**Feat** — Multi-step demo spotlight (`useDemoSpotlight` composable). Every demo step now aims the overlay at its own element via reactive CSS variables registered with `@property`; transitions between targets interpolate on the GPU compositor. `prefers-reduced-motion` honoured.
+
+**Refactor** — `src/lib/shared/variants.css` (audit P2 #8). The four mood gradients (sunset / midnight / aurora / vinyl) and their accent RGB triplets now live in one shared module, exposed as CSS variables on `[data-variant='X']`. MusicPlayer and MiniPlayer reference the same source.
+
 ## 1.0.12 — 2026-06-07
 
 **Fix** — Spotlight blur stays active during the Pulso demo step (the toggle is lifted above the spotlight via z-index, the same way the FAB is). Boost scroll to the FAB section is 1.5× slower (`outQuint`, distance-aware), so the transition between "Pick a mood" and "Floating FAB" reads cleanly.

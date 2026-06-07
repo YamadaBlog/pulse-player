@@ -1508,8 +1508,15 @@ code {
   -webkit-backdrop-filter: blur(3px) saturate(0.95);
   /* The mask draws BLACK (= overlay visible, dim + blur apply)
      everywhere except the spotlight circle, which fades to
-     TRANSPARENT (= overlay not visible, no blur, no dim). The two
-     stops blend across `--spotlight-soft` for a soft feather. */
+     TRANSPARENT (= overlay not visible, no blur, no dim). The
+     transparent stop sits at `radius - soft/2`, the black stop
+     at `radius + soft` — so the feather band is asymmetric: about
+     1.5 × soft wide, biased toward the dim side. That bias is
+     intentional: it gives the spotlight a tight, defined clear
+     edge against the target and a longer, gentler fade into the
+     surrounding dim. Symmetrising the stops would shrink the
+     spotlight perceptually; the asymmetry preserves the
+     "stage lighting" effect. */
   -webkit-mask: radial-gradient(
     circle at var(--spotlight-x) var(--spotlight-y),
     transparent calc(var(--spotlight-radius) - var(--spotlight-soft) / 2),

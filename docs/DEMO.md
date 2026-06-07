@@ -118,6 +118,108 @@ const demoSteps: DemoStep[] = [
 - `scrollTo(selector | Element, { speed, easing, offset }?)` — abortable smooth scroll. `speed` is `'gentle' | 'fast' | 'slow'` (default `gentle`).
 - `setMessage(string)` — updates the subtitle.
 
+## Multi-step spotlight (v2.3.0+)
+
+Every step that aims at a specific UI surface drives a moving spotlight overlay. The overlay is one fixed element that uses `mask: radial-gradient(...)` so the focused region is genuinely cut out — the `backdrop-filter: blur()` doesn't apply there, the target stays sharp.
+
+### The controller
+
+`useDemoSpotlight()` (`src/composables/useDemoSpotlight.ts`) returns:
+
+```ts
+const spotlight = useDemoSpotlight()
+
+spotlight.focus(target, opts?)   // aim at a selector or Element
+spotlight.clear()                 // release; overlay fades out
+spotlight.active                   // Readonly<Ref<boolean>>
+spotlight.x / .y / .radius / .soft // Readonly<Ref<number>> bound to CSS vars
+```
+
+Options:
+
+```ts
+interface SpotlightFocusOptions {
+  padding?: number // around the rect (default 60)
+  radius?: number // explicit override (bypasses rect)
+  soft?: number // feather distance (default 80)
+}
+```
+
+Listeners on `scroll` and `resize` are passive and **rAF-coalesced** — even a 6 s scripted scroll produces exactly one `getBoundingClientRect()` per frame, not one per wheel/touchmove event.
+
+### CSS plumbing
+
+Four CSS variables, registered via `@property` in the page stylesheet:
+
+```css
+@property --spotlight-x {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 50vw;
+}
+@property --spotlight-y {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 50vh;
+}
+@property --spotlight-radius {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 220px;
+}
+@property --spotlight-soft {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 80px;
+}
+```
+
+Because they're typed as `<length>`, the browser interpolates them when they change — every transition between two demo targets is **GPU compositor work**, no JS tween, no main-thread cost per frame.
+
+The overlay uses a `radial-gradient` mask:
+
+```css
+.demo-spotlight {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px) saturate(0.95);
+  mask: radial-gradient(
+    circle at var(--spotlight-x) var(--spotlight-y),
+    transparent calc(var(--spotlight-radius) - var(--spotlight-soft) / 2),
+    black calc(var(--spotlight-radius) + var(--spotlight-soft))
+  );
+  transition:
+    --spotlight-x 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    --spotlight-y 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    --spotlight-radius 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    --spotlight-soft 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+```
+
+Where the mask is `transparent`, the overlay element doesn't render — so `backdrop-filter` doesn't apply there either. That's why the focused target stays sharp while the rest of the page is dimmed + blurred.
+
+### Browser support
+
+- `@property` registration: Chrome 85+, Safari 16.4+, Firefox 128+. Older browsers get the spotlight without smooth interpolation between targets — it snaps, doesn't break.
+- `mask` (unprefixed): all modern engines. The `-webkit-mask` prefix is shipped as belt-and-braces.
+- `backdrop-filter`: prefixed `-webkit-backdrop-filter` shipped for older Safari.
+- `prefers-reduced-motion`: drops all spotlight transitions to a 200 ms opacity fade.
+
+### Wiring per step
+
+```ts
+{
+  title: 'Press play',
+  run: async (ctx) => {
+    spotlight.focus('.hero .mp', { padding: 80, soft: 100 })
+    ctx.setMessage('Real audio · real FFT. The bars react to the track itself.')
+    if (!store.isPlaying) store.toggle()
+    await ctx.delay(3800)
+  },
+},
+```
+
+Calling `focus()` multiple times across consecutive steps interpolates between targets smoothly (the four CSS variables ride the transition curve). Calling `clear()` fades the overlay out without snapping anywhere.
+
 ## Why a custom controller (and not driver.js / Shepherd.js / Intro.js)
 
 Those libraries are excellent product-tour tooltips for SaaS onboarding — a list of DOM selectors with numbered tooltips and Next/Back buttons. This is a different shape: a **scripted timeline** coordinating Vue refs, audio state, smooth scroll, number tweens and a fullscreen request. A plain `async/await` loop is the right primitive:
