@@ -1702,11 +1702,17 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   background: var(--pg-surface);
   border: 1px solid var(--pg-border);
   border-radius: 24px;
-  /* Hug the inline player's width when it grows past the stage's
-     natural mid-size — `fit-content` keeps the surface sized to the
-     widest child (the player) instead of forcing it back into the
-     section's max-width. */
+  /* Stable base size: the stage never shrinks below 680 × 233 even
+     when the inline player is small (compact / FAB modes), so the
+     demo surface stays visually stable while the player morphs.
+     `width: fit-content` + `min-width` together give us:
+       - content smaller than 680 → stage stays at 680
+       - content equal to 680     → stage stays at 680
+       - content larger than 680  → stage grows to fit the content
+     Same logic on the vertical axis via `min-height`. */
   width: fit-content;
+  min-width: 680px;
+  min-height: 233px;
   max-width: 100%;
   margin: 0 auto;
 }
@@ -1823,9 +1829,13 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   background: var(--pg-surface);
   border: 1px solid var(--pg-border);
   border-radius: 24px;
-  /* Grow with the player when it is dragged past the section's natural
-     mid-size — same trick as .resize-stage. */
+  /* Stable base size: same contract as `.resize-stage` — never below
+     680 × 233 even when the player has been dragged down into compact
+     or FAB mode. Grows past the baseline if the player is dragged
+     larger than 680 wide. */
   width: fit-content;
+  min-width: 680px;
+  min-height: 233px;
   max-width: 100%;
   margin: 0 auto;
 }
