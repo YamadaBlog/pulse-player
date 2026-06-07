@@ -1,3 +1,113 @@
-/* Placeholder. Will hold the shared @keyframes (mp-ambient-wave,
-   pulso-heartbeat, pulso-wave-lub/dub) extracted from MusicPlayer.vue
-   and MiniPlayer.vue in v3.0.0-alpha.1. */
+/* ─── Shared animation keyframes ─────────────────────────────
+ *
+ * Every motion that defines the pulse-player look. Extracted
+ * verbatim from the validated Vue v2.3.4 build (MusicPlayer.vue +
+ * MiniPlayer.vue) so every web renderer (`@pulse/web-component`,
+ * future `@pulse/vue` migration, React + others) shares the same
+ * keyframe authority.
+ *
+ * Contents:
+ *   - `mp-ambient-wave`   : 12-bar pure-CSS ambient EQ (0 JS / frame)
+ *   - `pulso-heartbeat`   : FAB heartbeat scale curve (lub-dub-rest)
+ *   - `pulso-wave-lub`    : first ring, emitted at the 6 % cycle mark
+ *   - `pulso-wave-dub`    : second ring, emitted at the 20 % cycle mark
+ *
+ * Timing notes carry over from v2.3.4:
+ *
+ *   Pulso cycle (5 s):
+ *     0 %  → 6 %   : button compresses up to the lub peak (300 ms)
+ *     6 %          : lub wave emerges, scale 1, opacity 0.45
+ *     6 % → 20 %  : wave expands to scale 1.6, fades to 0 (700 ms ride)
+ *     20 %         : dub wave emerges, scale 1, opacity 0.45
+ *     20 % → 34 % : wave expands to scale 1.6, fades (700 ms)
+ *     34 % → 100 %: both waves dormant (rest, 3.3 s)
+ *
+ *   The waves are emitted AT the heartbeat peaks, not before them.
+ *   Aligning the wave's first visible frame with the heartbeat's peak
+ *   frame preserves the cause-and-effect feel — moving them earlier
+ *   makes the eye read the wave as preceding the thump.
+ */
+
+/* ─── Ambient EQ ───────────────────────────────────────────── */
+@keyframes mp-ambient-wave {
+  0%,
+  100% {
+    transform: scaleY(0.16);
+  }
+  50% {
+    transform: scaleY(0.72);
+  }
+}
+
+/* ─── Pulso FAB heartbeat ──────────────────────────────────── */
+@keyframes pulso-heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  6% {
+    transform: scale(1.05);
+  } /* lub */
+  12% {
+    transform: scale(1);
+  }
+  20% {
+    transform: scale(1.05);
+  } /* dub */
+  26% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1);
+  } /* long pause */
+}
+
+@keyframes pulso-wave-lub {
+  0%,
+  5% {
+    transform: scale(1);
+    opacity: 0;
+  }
+  6% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  20% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes pulso-wave-dub {
+  0%,
+  19% {
+    transform: scale(1);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  34% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+/* ─── `prefers-reduced-motion` guard ──────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  /* Every animation defined above is short-circuited. Renderers can
+     also drop the corresponding state classes (.fab--pulso, the
+     ambient bar visibility) when they detect reduced-motion at the
+     JS layer — the CSS guard below is the belt-and-braces. */
+  :where(.mp__bar, .fab--pulso, .fab--pulso::before, .fab--pulso::after) {
+    animation: none !important;
+  }
+}

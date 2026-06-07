@@ -8,6 +8,79 @@ Tags: every release listed below is pinned to a signed git tag of the same name 
 
 Tracked separately in [the v2.0.0 audit branch](https://github.com/YamadaBlog/pulse-player/issues?q=is%3Aissue+label%3Av2.0.0).
 
+## 3.0.0-alpha.1 — 2026-06-07
+
+`@pulse/core` and `@pulse/tokens` land with real code. **Vue v2.3.4 codebase at `src/lib/` is still untouched** — the audio engine is now reimplemented as a plain TypeScript class in parallel, and the validated Vue Pinia store keeps running the demo.
+
+### `@pulse/core` — framework-agnostic audio engine
+
+`packages/core/src/PulseEngine.ts` (~340 LOC) — the `useAudioStore.ts` audio engine, ported to a plain TypeScript class. No Vue refs, no Pinia, no framework imports. Same behaviour bit-for-bit:
+
+- Singleton `<audio>` + AudioContext + AnalyserNode (FFT 256, smoothing 0.5).
+- Safari `webkitAudioContext` fallback.
+- 4-bar focal FFT mutated in place every rAF tick — zero allocations per frame.
+- 32-bar ambient FFT exposed as a stable hook (no-op since v1.0.2; ambient EQ is pure CSS).
+- `safePlay()` catches autoplay rejections, rolls UI state back, emits a typed `'error'` event with reason `'play-rejected'`.
+- Typed event bus: `subscribe<'play' | 'pause' | 'trackchange' | 'error'>(event, cb)` returns an `Unsubscribe`. Listener errors are caught + logged so a bad consumer can't break the engine.
+- Privacy-friendly per-session counters (`playCount`, `pauseCount`, `trackChangeCount`).
+- `track` getter clamps to a valid index — calling `setAudioTracks([smallerList])` mid-playback can't crash consumers.
+- `dispose()` tear-down for SPA shells.
+
+Consumer model changes from "reactive store" → "imperative class + observer callbacks":
+
+```ts
+const engine = new PulseEngine(tracks)
+const unsub = engine.onStateChange((state) => projectIntoVueRefs(state))
+const offPlay = engine.subscribe('play', ({ track, time }) => {
+  analytics.track('play', { id: track.title, time })
+})
+engine.toggle()
+// ...later
+unsub()
+offPlay()
+engine.dispose()
+```
+
+Framework wrappers (`@pulse/vue` once migrated, `@pulse/react`, `@pulse/svelte`, `@pulse/angular`, `@pulse/react-native`) each consume the class and project the state into their framework's reactivity primitive via `onStateChange()`.
+
+### `@pulse/tokens` — CSS design tokens
+
+Three real CSS files now ship in `packages/tokens/src/`:
+
+- **`variants.css`** — verbatim copy of `src/lib/shared/variants.css` (the four mood gradients sunset / midnight / aurora / vinyl with their accent RGB triplets, declared on `[data-variant='X']` attribute selectors so the tokens cascade into any surface).
+- **`base.css`** — the `--pulse-scale` system. One CSS variable propagating into 13 derived measurements (artwork, title, icons, padding, gaps, radii, shadows, EQ-bar geometry). Scoped to `[data-pulse-root]` so consumers explicitly opt in.
+- **`animations.css`** — every `@keyframes` (`mp-ambient-wave`, `pulso-heartbeat`, `pulso-wave-lub`, `pulso-wave-dub`) extracted from MusicPlayer.vue + MiniPlayer.vue, with the same timing notes carried over (pulso cycle map, "waves emit at peaks, not before" comment). Includes the `prefers-reduced-motion` guard.
+
+`@pulse/tokens` is imported as a side-effect from any web renderer.
+
+### Tooling
+
+- `packages/` and `apps/` workspace folders are now excluded from the root ESLint + Prettier ignore list. Each package gets its own lint config when it reaches alpha-ready status; until then the root toolchain keeps gating the validated Vue v2.3.4 codebase under `src/` only.
+- `packages/core/tsconfig.json` + `packages/types/tsconfig.json` — minimal per-package configs that respect the workspace structure (`@pulse/types` path mapping).
+
+### Vue v2.3.4 — unchanged
+
+The validated Vue codebase at `src/lib/` is bit-for-bit identical. Quality gate confirms:
+
+```
+type-check    → clean
+lint          → 0 errors, 0 warnings
+format        → pass
+tests         → 33 / 33
+build (demo)  → 129 kB JS + 42 kB CSS → 48 kB gzip
+build:lib     → ~14 kB gzip total
+audit         → 0 vulnerabilities
+v2.3.4 demo   → bit-for-bit identical, no behaviour change
+```
+
+### What's still ahead
+
+- v3.0.0-alpha.2 → `@pulse/web-component` (Lit-based `<pulse-player>` + `<pulse-fab>`), Playwright visual regression vs the v2.3.4 demo.
+- v3.0.0-alpha.3 → `@pulse/vue` migration (`src/lib/` → `packages/vue/`), refactored to wrap `@pulse/web-component`.
+- v3.0.0-alpha.4 → `@pulse/react`.
+- v3.0.0-alpha.5 → `@pulse/react-native`.
+- v3.0.0 → stable, npm publish.
+
 ## 3.0.0-alpha.0 — 2026-06-07
 
 First alpha of the multi-framework architecture. **No Vue code moved yet.** The validated `v2.3.4` codebase at `src/lib/` keeps shipping the `pulse-player` npm package bit-for-bit identical. This alpha lays the monorepo foundation around it.

@@ -4,3 +4,7 @@ coverage
 *.min.*
 public/audio
 docs/screenshots
+# packages/ and apps/ workspaces ship their own formatting story
+# (each one gets its own .prettierrc when promoted out of scaffold).
+packages
+apps

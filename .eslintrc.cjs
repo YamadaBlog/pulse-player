@@ -59,7 +59,19 @@ module.exports = {
     'no-debugger': 'error',
     'prefer-const': 'warn',
   },
-  ignorePatterns: ['dist', 'node_modules', 'coverage', '*.d.ts'],
+  ignorePatterns: [
+    'dist',
+    'node_modules',
+    'coverage',
+    '*.d.ts',
+    // The `packages/` and `apps/` workspace folders ship the
+    // multi-framework architecture (v3.0.0+). Each package gets its
+    // own lint config when it reaches alpha-ready status; until then
+    // the root toolchain keeps gating the validated Vue v2.3.4
+    // codebase under `src/` only.
+    'packages',
+    'apps',
+  ],
   overrides: [
     {
       files: ['tests/**/*.{ts,vue}', '**/*.test.{ts,vue}'],

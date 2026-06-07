@@ -1,2 +1,47 @@
-/* Placeholder. Will hold the base palette, `--pulse-scale` system and
-   shadow tokens extracted from the validated Vue v2.3.4 in v3.0.0-alpha.1. */
+/* ─── Base tokens: --pulse-scale system + shadows ─────────────
+ *
+ * The "container-aware" trick that powers pulse-player. ONE CSS
+ * variable, `--pulse-scale`, propagates through every measurement on
+ * the player — artwork, title, icons, padding, gaps, radii, shadows,
+ * EQ-bar geometry. A ResizeObserver in the host (`@pulse/web-component`
+ * or `@pulse/vue`) writes `--pulse-scale: <0.30..1.30>` inline on the
+ * root element. Every derived token below reads from it.
+ *
+ * The values are the ones baked into the validated Vue v2.3.4 build —
+ * extracted as a separate sheet so framework wrappers can subscribe
+ * to the scale without re-declaring them.
+ */
+
+/* The auto-scale envelope. Consumers can override --pulse-scale-min /
+   --pulse-scale-max on a parent element to retune the morph
+   thresholds. */
+[data-pulse-root] {
+  --pulse-scale: 1;
+  --pulse-scale-min: 0.3;
+  --pulse-scale-max: 1.3;
+
+  /* ─── Geometry ─────────────────────────────────────────── */
+  --pulse-art: calc(140px * var(--pulse-scale));
+  --pulse-title: calc(16px * var(--pulse-scale));
+  --pulse-subtitle: calc(11px * var(--pulse-scale));
+  --pulse-eyebrow: calc(9px * var(--pulse-scale));
+  --pulse-icon: calc(20px * var(--pulse-scale));
+  --pulse-icon-sm: calc(16px * var(--pulse-scale));
+  --pulse-btn: calc(36px * var(--pulse-scale));
+  --pulse-pad: calc(14px * var(--pulse-scale));
+  --pulse-gap: calc(12px * var(--pulse-scale));
+  --pulse-radius: calc(16px * var(--pulse-scale));
+  --pulse-bar-h: calc(28px * var(--pulse-scale));
+  --pulse-bar-w: calc(3px * var(--pulse-scale));
+  --pulse-progress-h: calc(3px * var(--pulse-scale));
+
+  /* ─── Depth / shadow ──────────────────────────────────── */
+  --pulse-shadow-soft: 0 calc(8px * var(--pulse-scale)) calc(24px * var(--pulse-scale))
+    rgba(0, 0, 0, 0.18);
+  --pulse-shadow-strong: 0 calc(16px * var(--pulse-scale)) calc(40px * var(--pulse-scale))
+    rgba(0, 0, 0, 0.28);
+
+  /* ─── Default accent (overridable via the `accentColor` prop) ── */
+  --pulse-accent: #3dbda7;
+  --pulse-accent-rgb: 61, 189, 167;
+}
