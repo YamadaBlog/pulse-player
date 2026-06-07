@@ -3,10 +3,15 @@
 // computed once when the module loads. Keep this block tiny.
 
 // HSL sweep used by every ambient EQ. Pure data, no reactivity, no
-// per-instance recomputation. 32 entries — the bars are visually rich
-// enough at this density and the bar count halves the DOM footprint.
+// per-instance recomputation. 12 entries — the headline cost of an
+// ambient EQ is `bar-count × instance-count` active CSS animations
+// hitting the compositor every frame; cutting bar count from 32 to
+// 12 (-62 %) is what keeps us under the per-frame composite budget
+// on a multi-instance page. The wave still reads as "musical" — at
+// this density each bar is wider, the gradient richer, and the eye
+// reads a smoother arc instead of a noisy spectrum.
 const AMBIENT_BAR_STYLES: { color: string }[] = (() => {
-  const N = 32
+  const N = 12
   const out: { color: string }[] = new Array(N)
   for (let i = 0; i < N; i++) {
     const r = i / (N - 1)
@@ -345,7 +350,7 @@ onUnmounted(() => {
       aria-hidden="true"
     >
       <i
-        v-for="n in 32"
+        v-for="n in 12"
         :key="n"
         :style="{
           '--bar-idx': n - 1,
@@ -957,10 +962,19 @@ onUnmounted(() => {
   opacity: 0.32;
   overflow: hidden;
   /* Isolate the EQ from the rest of the document. Style and layout
-     changes inside the bar row don't trigger reflow on the player
-     itself — critical for keeping resize smooth while the FFT
-     animates 60 times per second. */
+     changes inside the bar row stay contained — paint AND layout
+     are clipped to this box, so the compositor can short-circuit
+     work that would otherwise spread out to siblings. */
   contain: layout style paint;
+  /* Promote the WHOLE container to a single GPU layer. With the
+     individual bars NOT carrying their own `will-change`, the
+     compositor groups them under this one layer instead of giving
+     each bar its own — N bars share one compositor record, not N.
+     `translateZ(0)` is the cheap-and-portable way to ask for that
+     promotion; `will-change: transform` would also work but Chrome
+     keeps the layer alive permanently when we only need it during
+     the animation. */
+  transform: translateZ(0);
 }
 .mp__ambient i {
   flex: 1 1 0;
@@ -973,19 +987,28 @@ onUnmounted(() => {
   transform-origin: 50% 100%;
   transition: transform 0.4s ease;
 }
-/* Playing — bars cycle through a small wave via a SINGLE shared
-   @keyframes animation. The animation runs entirely on the
-   compositor (GPU): no per-frame JavaScript, no per-frame Vue
-   re-render, no per-frame style recalc. The wave looks "musical"
-   because each bar's animation-delay is offset by --bar-idx, so
-   the energy ripples across the row.
+/* Playing — bars cycle through a small wave on a SINGLE shared
+   @keyframes. The animation runs entirely on the compositor (GPU):
+   no per-frame JavaScript, no per-frame Vue re-render, no per-frame
+   style recalc. Each bar's animation-delay is offset by `--bar-idx`,
+   so the energy ripples across the row.
 
-   Cost on a 15-instance demo page: identical to a 1-instance page.
-   The compositor handles 480 (15 × 32) animated transforms with
-   the same effort as 32 of them — they're all the same keyframe. */
+   Tuning notes:
+   - 12 bars per instance is a deliberate cost ceiling. Each bar = one
+     active CSS animation on the compositor every frame. Compositors
+     on low-end mobile and integrated GPUs start dropping frames
+     somewhere around 300–400 simultaneous animations. We sit at
+     12 × visible-instances, comfortably under.
+   - 2.6 s cycle (longer than the 1.7 s used in v1.0.2): the slower
+     the animation, the fewer times per second the compositor walks
+     each layer to repaint, even when GPU-composited. The wave still
+     reads as alive without thrashing every frame.
+   - -210 ms stagger across 12 bars wraps a full cycle around the
+     row, so the ripple feels like a single travelling wave instead
+     of disconnected bars. */
 .mp__ambient--playing i {
-  animation: mp-ambient-wave 1.7s ease-in-out infinite;
-  animation-delay: calc(var(--bar-idx, 0) * -53ms);
+  animation: mp-ambient-wave 2.6s ease-in-out infinite;
+  animation-delay: calc(var(--bar-idx, 0) * -210ms);
 }
 @keyframes mp-ambient-wave {
   0%,
