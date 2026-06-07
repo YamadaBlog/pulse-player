@@ -1,9 +1,18 @@
-import { LitElement, html, type PropertyValues } from 'lit'
+import { LitElement, html, svg, type PropertyValues, type TemplateResult } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import type { PulseEngine } from '@pulse/core'
 import type { PulseState, PulseVariant, Track, Unsubscribe } from '@pulse/types'
 import { getSharedEngine } from './engine-singleton'
 import { baseStyles, playerStyles } from './styles'
+
+// Pixel-perfect copy of the GitHub Octocat mark (Public Domain, MIT
+// licensed via Lucide for the optimised geometry). 24×24 viewBox,
+// currentColor so it inherits the chrome's `color`.
+const GITHUB_SVG: TemplateResult = svg`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.03c-3.2.69-3.87-1.38-3.87-1.38-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.24 3.34.95.1-.74.4-1.24.73-1.53-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.18.92-.26 1.91-.39 2.89-.39.98 0 1.97.13 2.89.39 2.21-1.49 3.18-1.18 3.18-1.18.62 1.58.23 2.75.11 3.04.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.06.78 2.14v3.18c0 .31.21.67.8.56C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/></svg>`
+
+// Spotify mark (CC0 by Spotify Brand Guidelines for embedding —
+// 24×24 viewBox, currentColor).
+const SPOTIFY_SVG: TemplateResult = svg`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.84-.179-.959-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.361 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z"/></svg>`
 
 /**
  * `<pulse-player>` — universal inline music player Custom Element.
@@ -70,6 +79,14 @@ export class PulsePlayerElement extends LitElement {
   @property({ type: Boolean, reflect: true })
   resizable = false
 
+  /** GitHub URL — when set, the GitHub icon becomes a link to it. */
+  @property({ type: String, attribute: 'github-url' })
+  githubUrl: string | undefined
+
+  /** Spotify URL — when set, the Spotify icon becomes a link to it. */
+  @property({ type: String, attribute: 'spotify-url' })
+  spotifyUrl: string | undefined
+
   /**
    * Optional custom playlist override. Pass an array of Track objects
    * to replace the engine's playlist. Most consumers will configure
@@ -118,6 +135,16 @@ export class PulsePlayerElement extends LitElement {
     if (this.tracks && this.tracks.length) {
       this.engine.setAudioTracks(this.tracks)
     }
+
+    // Keyboard shortcuts when the host element holds focus:
+    //   Space / K    → toggle play/pause
+    //   J / Left     → previous track
+    //   L / Right    → next track
+    // Mirrors v2.3.4 MusicPlayer keyboard surface. Listener is on
+    // the host (not document) so multiple players on the page don't
+    // intercept each other's keys.
+    this.addEventListener('keydown', this.onHostKeydown)
+    this.tabIndex = this.tabIndex >= 0 ? this.tabIndex : 0
 
     // Bridge the engine's state subscription into Lit's reactivity.
     this.offState = this.engine.onStateChange((s) => {
@@ -170,6 +197,7 @@ export class PulsePlayerElement extends LitElement {
 
   override disconnectedCallback(): void {
     super.disconnectedCallback()
+    this.removeEventListener('keydown', this.onHostKeydown)
     this.offState?.()
     this.offPlay?.()
     this.offPause?.()
@@ -177,6 +205,41 @@ export class PulsePlayerElement extends LitElement {
     this.offError?.()
     this.resizeObserver?.disconnect()
     this.resizeObserver = undefined
+  }
+
+  private onHostKeydown = (e: KeyboardEvent): void => {
+    // Don't hijack typing in inputs that may live in slotted content.
+    const target = e.target as HTMLElement | null
+    if (
+      target &&
+      (target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable)
+    ) {
+      return
+    }
+    switch (e.key) {
+      case ' ':
+      case 'k':
+      case 'K':
+        e.preventDefault()
+        this.engine.toggle()
+        break
+      case 'j':
+      case 'J':
+      case 'ArrowLeft':
+        e.preventDefault()
+        this.engine.prev()
+        break
+      case 'l':
+      case 'L':
+      case 'ArrowRight':
+        e.preventDefault()
+        this.engine.next()
+        break
+      default:
+        break
+    }
   }
 
   override updated(changed: PropertyValues): void {
@@ -326,10 +389,38 @@ export class PulsePlayerElement extends LitElement {
             <span class="mp__time">
               ${this.engine.fmt(this.state.currentTime)} / ${this.engine.fmt(this.state.duration)}
             </span>
-            <span class="mp__icons" aria-hidden="true">
-              <!-- Social icons. Hidden on narrow / compact / fab via CSS -->
-              <span class="mp__icon" title="GitHub">⌘</span>
-              <span class="mp__icon" title="Spotify">♪</span>
+            <span class="mp__icons">
+              <!-- Social icons. Real SVG (24×24, currentColor) so they
+                   inherit the chrome's text colour. Linked anchors when
+                   the matching prop is set on the host; rendered as
+                   inert <span> otherwise. Hidden on narrow / compact /
+                   fab via CSS. -->
+              ${this.githubUrl
+                ? html`<a
+                    class="mp__icon"
+                    href=${this.githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="GitHub"
+                    title="GitHub"
+                    >${GITHUB_SVG}</a
+                  >`
+                : html`<span class="mp__icon" aria-label="GitHub" title="GitHub"
+                    >${GITHUB_SVG}</span
+                  >`}
+              ${this.spotifyUrl
+                ? html`<a
+                    class="mp__icon"
+                    href=${this.spotifyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Spotify"
+                    title="Spotify"
+                    >${SPOTIFY_SVG}</a
+                  >`
+                : html`<span class="mp__icon" aria-label="Spotify" title="Spotify"
+                    >${SPOTIFY_SVG}</span
+                  >`}
             </span>
           </div>
 

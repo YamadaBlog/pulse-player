@@ -44,6 +44,16 @@ export interface PulsePlayerProps {
   accentColor?: string
   /** Optional playlist override. Replaces the singleton engine's playlist. */
   tracks?: Track[]
+  /** Toggle the ambient EQ background animation. */
+  ambientEq?: boolean
+  /** Force the FAB morph regardless of host width. */
+  dataFab?: boolean
+  /** Enable the bottom-right drag-to-resize handle. */
+  resizable?: boolean
+  /** GitHub URL — turns the GitHub icon into a link. */
+  githubUrl?: string
+  /** Spotify URL — turns the Spotify icon into a link. */
+  spotifyUrl?: string
   /** Fired on every play (synchronous with the engine action). */
   onPlay?: (payload: EventMap['play']) => void
   /** Fired on every pause. */
@@ -62,6 +72,11 @@ export function PulsePlayer({
   variant = 'auto',
   accentColor,
   tracks,
+  ambientEq = false,
+  dataFab = false,
+  resizable = false,
+  githubUrl,
+  spotifyUrl,
   onPlay,
   onPause,
   onTrackChange,
@@ -89,11 +104,35 @@ export function PulsePlayer({
     el.tracks = tracks
   }, [tracks])
 
+  // Boolean presence attributes (React 18 boolean serialisation safety).
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (ambientEq) el.setAttribute('ambient-eq', '')
+    else el.removeAttribute('ambient-eq')
+  }, [ambientEq])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (dataFab) el.setAttribute('data-fab', '')
+    else el.removeAttribute('data-fab')
+  }, [dataFab])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (resizable) el.setAttribute('resizable', '')
+    else el.removeAttribute('resizable')
+  }, [resizable])
+
   return (
     <pulse-player
       ref={ref}
       variant={variant}
       accent-color={accentColor}
+      github-url={githubUrl}
+      spotify-url={spotifyUrl}
       class={className}
       style={style}
     />

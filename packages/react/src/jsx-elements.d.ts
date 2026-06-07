@@ -29,6 +29,8 @@ declare global {
         'ambient-eq'?: boolean | ''
         'data-fab'?: boolean | ''
         resizable?: boolean | ''
+        'github-url'?: string
+        'spotify-url'?: string
       }
       'pulse-fab': CustomElementProps<HTMLElement> & {
         variant?: PulseVariant

@@ -16,6 +16,10 @@
     "src",
     "README.md"
   ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "peerDependencies": {
     "@angular/core": ">=17.3.12"
   },

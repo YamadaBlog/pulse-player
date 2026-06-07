@@ -69,6 +69,25 @@ The validated Vue v2.3.4 codebase at `src/lib/` owns BOTH the audio engine AND t
 
 The Vue consumer-facing API (`import { MusicPlayer, MiniPlayer, useAudioStore } from '@pulse/vue'`) stays pixel-perfect identical to v2.3.4. Visual regression tests in CI enforce that.
 
+## Build orchestration — npm workspaces, not Turborepo
+
+The monorepo uses **plain `npm` workspaces** for build orchestration. `npm run build:packages` runs `tsup` sequentially across the 6 publishable packages:
+
+```bash
+npm run build:packages
+# Internally:
+#   npm run build --workspace=@pulse/types
+#   npm run build --workspace=@pulse/core
+#   npm run build --workspace=@pulse/tokens
+#   npm run build --workspace=@pulse/web-component
+#   npm run build --workspace=@pulse/react
+#   npm run build --workspace=@pulse/svelte
+```
+
+Total wall-clock: ~5 seconds. The dependency order is linear (`types → core/tokens → web-component → wrappers`) so sequential build catches dependency-graph regressions immediately.
+
+**Why not Turborepo?** Turbo adds value at scale (10+ packages with deep dependency graphs, builds taking minutes, distributed caching). For 6 packages with a linear graph and a 5-second sequential build, the install cost (~100 MB of binaries) plus the cache-management discipline outweigh the benefit. We can revisit if the package count crosses ~12 or per-package build time crosses 30 seconds.
+
 ## Versioning
 
 All `@pulse/*` packages share the same major.minor (cohesion). Patches are independent.
