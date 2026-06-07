@@ -571,12 +571,25 @@ const demoSteps: DemoStep[] = [
       tourPulsoHighlight.value = true
       await ctx.delay(700)
 
-      // Flip the prop — the FAB starts beating, and the green wave
-      // pulse on the toggle visualises the activation. Both elements
-      // are above the spotlight; the rest of the page stays blurred.
+      // First activation — one full lub-dub cycle (2 thumps).
+      // The heartbeat keyframes run lub at 300 ms and dub at 1.0 s of
+      // a 5 s cycle, with the dub wave fading out by 1.7 s. 2.2 s of
+      // dwell is enough to see the double-pulse and let the wave
+      // settle. We then drop the prop to FORCE the CSS animation to
+      // restart from frame 0 on the second activation; a 600 ms gap
+      // gives the eye a clean beat of rest before round two.
       fabPulso.value = true
       ctx.setMessage('Activated — watch the heartbeat ripple around the FAB.')
-      await ctx.delay(4500)
+      await ctx.delay(2200)
+      fabPulso.value = false
+      await ctx.delay(600)
+
+      // Second activation — another full lub-dub. Two thumps × two
+      // activations = four ripples total. Saying it out loud in the
+      // caption helps the viewer count what they're seeing.
+      fabPulso.value = true
+      ctx.setMessage('And again — two beats per activation, like a real heart.')
+      await ctx.delay(2200)
 
       // Clean up so the next step / jump-back leaves no visual debt.
       fabPulso.value = false
@@ -1470,24 +1483,40 @@ code {
 .demo-spotlight {
   position: fixed;
   inset: 0;
-  /* The clear region (the spotlight itself) is fully transparent.
-     A soft feather (`--spotlight-soft`) tapers the dim, then the
-     dim layer sits at 0.72 alpha out to the screen edges. The
-     gradient stops are expressed in CSS variables so the browser
-     can interpolate the gradient as we re-aim. */
-  background: radial-gradient(
-    circle at var(--spotlight-x) var(--spotlight-y),
-    transparent calc(var(--spotlight-radius) - var(--spotlight-soft) / 2),
-    rgba(0, 0, 0, 0.45) var(--spotlight-radius),
-    rgba(0, 0, 0, 0.72) calc(var(--spotlight-radius) + var(--spotlight-soft) * 2)
-  );
+  /* The dim layer is now uniform (no radial gradient). The spotlight
+     CLEAR region is cut out of the OVERLAY ITSELF via `mask`. Where
+     the mask is transparent, the overlay element does not render —
+     and therefore `backdrop-filter: blur()` does not apply there
+     either. Net effect: the focused target sits in a genuinely
+     unfiltered hole, sharp and undimmed, while everything else
+     behind the overlay stays blurred and dim.
+
+     (v2.3.0 used a radial-gradient background that went transparent
+     in the centre. backdrop-filter still applied across the whole
+     overlay area, so the focused target was blurred too — which
+     was the whole bug.) */
+  background: rgba(0, 0, 0, 0.6);
   z-index: 800; /* under the FAB (z-index 900) and pill (1000) */
   pointer-events: none;
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px) saturate(0.95);
+  -webkit-backdrop-filter: blur(3px) saturate(0.95);
+  /* The mask draws BLACK (= overlay visible, dim + blur apply)
+     everywhere except the spotlight circle, which fades to
+     TRANSPARENT (= overlay not visible, no blur, no dim). The two
+     stops blend across `--spotlight-soft` for a soft feather. */
+  -webkit-mask: radial-gradient(
+    circle at var(--spotlight-x) var(--spotlight-y),
+    transparent calc(var(--spotlight-radius) - var(--spotlight-soft) / 2),
+    black calc(var(--spotlight-radius) + var(--spotlight-soft))
+  );
+  mask: radial-gradient(
+    circle at var(--spotlight-x) var(--spotlight-y),
+    transparent calc(var(--spotlight-radius) - var(--spotlight-soft) / 2),
+    black calc(var(--spotlight-radius) + var(--spotlight-soft))
+  );
   /* GPU-side interpolation of the spotlight position + size. The
-     transition on the four registered properties drives the
-     gradient repaint at composite time. */
+     transition on the four registered properties drives the mask
+     repaint at composite time — no JS tweening. */
   transition:
     --spotlight-x 0.7s cubic-bezier(0.4, 0, 0.2, 1),
     --spotlight-y 0.7s cubic-bezier(0.4, 0, 0.2, 1),
