@@ -46,4 +46,16 @@ test.describe('Vue v2.3.4 demo — visual regression baselines', () => {
       maxDiffPixelRatio: 0.01,
     })
   })
+
 })
+
+/**
+ * Captures attempted for `.resize-stage` and `.variants` gallery
+ * sections didn't converge under the running demo's ambient EQ +
+ * pulso animation loops, even with `prefers-reduced-motion: reduce`
+ * emulation and explicit element masking. The two captures above
+ * (`hero` + `home-fold`) cover the highest-visibility surface and
+ * are stable across runs — enough to gate the alpha.9 Vue
+ * migration's most critical visual surface. See
+ * `docs/universal/BLOCKERS.md` #4 for the deferred follow-up.
+ */

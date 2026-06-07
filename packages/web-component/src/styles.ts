@@ -408,6 +408,117 @@ export const fabStyles = css`
     cursor: grabbing;
   }
 
+  /* ─── Radial menu (show-menu) ────────────────────────────────
+     A small popover anchored to the FAB. Toggled by the chevron
+     button. Houses the variant palette + Pulso/Fullscreen
+     toggles. Mirrors the v2.3.4 MiniPlayer radial menu in
+     functionality (different layout — popover instead of radial). */
+  .fab-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+  .fab__menu-toggle {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 0;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+  }
+  .fab__menu-toggle:hover {
+    opacity: 1;
+  }
+  .fab__menu-toggle:focus-visible {
+    outline: 2px solid rgb(var(--pulse-accent-rgb));
+    outline-offset: 2px;
+  }
+
+  .fab__menu {
+    position: absolute;
+    bottom: calc(var(--fab-size) + 12px);
+    right: 0;
+    min-width: 200px;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(14, 14, 18, 0.96);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    z-index: 1000;
+    color: #f5f5f7;
+    font-size: 13px;
+  }
+  .fab__menu-section {
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .fab__menu-section:last-child {
+    border-bottom: 0;
+  }
+  .fab__menu-label {
+    margin: 0 0 6px 0;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.55;
+  }
+  .fab__palette {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .fab__chip {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--variant-bg-gradient, #14141a);
+    cursor: pointer;
+    padding: 0;
+    transition:
+      transform 0.15s ease,
+      border-color 0.15s ease;
+  }
+  .fab__chip:hover {
+    transform: scale(1.1);
+  }
+  .fab__chip--active {
+    border: 2px solid #fff;
+  }
+  .fab__menu-item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 4px;
+    background: transparent;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    font-size: 13px;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+  }
+  .fab__menu-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .fab__menu-check {
+    color: rgb(var(--pulse-accent-rgb));
+    font-size: 14px;
+  }
+
   /* ─── Pulso heartbeat — lub-dub-rest ────────────────────────
      Cycle map (5 s):
        0 %  →  6 %  : compress to the lub peak (300 ms)

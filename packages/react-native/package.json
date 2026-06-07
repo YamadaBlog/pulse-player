@@ -1,7 +1,7 @@
 {
   "name": "@pulse/react-native",
   "version": "0.0.0",
-  "description": "React Native implementation of pulse-player. Separate renderer (no DOM, no CSS) sharing types + audio engine interface with the web packages. SCAFFOLD only — implementation lands in v3.0.0-alpha.5.",
+  "description": "React Native wrapper for pulse-player. INTERFACE TYPES + parity matrix (v3.0.0-alpha.8). Runtime renderer in v3.X.0 dedicated sprint. Sentinel exports throw a clear error message until then.",
   "license": "MIT",
   "type": "module",
   "main": "./src/index.ts",
@@ -10,6 +10,10 @@
     ".": {
       "types": "./src/index.ts",
       "import": "./src/index.ts"
+    },
+    "./types": {
+      "types": "./src/types.ts",
+      "import": "./src/types.ts"
     }
   },
   "files": [

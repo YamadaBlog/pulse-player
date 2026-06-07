@@ -26,10 +26,16 @@ declare global {
         variant?: PulseVariant
         'accent-color'?: string
         tracks?: Track[]
+        'ambient-eq'?: boolean | ''
+        'data-fab'?: boolean | ''
+        resizable?: boolean | ''
       }
       'pulse-fab': CustomElementProps<HTMLElement> & {
         variant?: PulseVariant
         pulso?: boolean | ''
+        'show-menu'?: boolean | ''
+        draggable?: boolean | ''
+        'persist-key'?: string
       }
     }
   }

@@ -20,6 +20,12 @@ import '@pulse/web-component'
 export interface PulseFabProps {
   variant?: PulseVariant
   pulso?: boolean
+  /** Show the radial menu (chevron toggle + popover with palette + Pulso/Fullscreen toggles). */
+  showMenu?: boolean
+  /** Allow drag-to-reposition. Position persists to localStorage. */
+  draggable?: boolean
+  /** localStorage key for the persisted FAB position. Default `pulse-fab-pos`. */
+  persistKey?: string
   onPlay?: (payload: EventMap['play']) => void
   onPause?: (payload: EventMap['pause']) => void
   onTrackChange?: (payload: EventMap['trackchange']) => void
@@ -31,6 +37,9 @@ export interface PulseFabProps {
 export function PulseFab({
   variant = 'auto',
   pulso = false,
+  showMenu = false,
+  draggable = false,
+  persistKey,
   onPlay,
   onPause,
   onTrackChange,
@@ -45,15 +54,35 @@ export function PulseFab({
   useDomEvent<EventMap['trackchange']>(ref, 'pulse-trackchange', onTrackChange)
   useDomEvent<EventMap['error']>(ref, 'pulse-error', onError)
 
-  // `pulso` is a boolean presence attribute. React 18 doesn't reliably
-  // serialise a `false` boolean to "remove the attribute" — we
-  // imperatively set / remove it for correctness across versions.
+  // Boolean presence attributes. React 18 doesn't reliably serialise
+  // `false` to "remove the attribute" — we imperatively set / remove
+  // them for correctness across versions.
   useEffect(() => {
     const el = ref.current
     if (!el) return
     if (pulso) el.setAttribute('pulso', '')
     else el.removeAttribute('pulso')
   }, [pulso])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (showMenu) el.setAttribute('show-menu', '')
+    else el.removeAttribute('show-menu')
+  }, [showMenu])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (draggable) el.setAttribute('draggable', '')
+    else el.removeAttribute('draggable')
+  }, [draggable])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el || !persistKey) return
+    el.setAttribute('persist-key', persistKey)
+  }, [persistKey])
 
   return <pulse-fab ref={ref} variant={variant} class={className} style={style} />
 }

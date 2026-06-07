@@ -2,6 +2,7 @@ import { LitElement, html } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import type { PulseEngine } from '@pulse/core'
 import type { PulseState, PulseVariant, Unsubscribe } from '@pulse/types'
+import { ALL_VARIANTS } from '@pulse/types'
 import { getSharedEngine } from './engine-singleton'
 import { baseStyles, fabStyles } from './styles'
 
@@ -50,6 +51,18 @@ export class PulseFabElement extends LitElement {
   @property({ type: String, attribute: 'persist-key' })
   persistKey = 'pulse-fab-pos'
 
+  /**
+   * Opt into the radial menu that lets the user pick a variant and
+   * toggle pulso / fullscreen at runtime. When `true`, a small chevron
+   * appears next to the FAB; clicking it opens the menu.
+   */
+  @property({ type: Boolean, attribute: 'show-menu', reflect: true })
+  showMenu = false
+
+  /** Whether the radial menu is currently open. Internal state. */
+  @state()
+  private menuOpen = false
+
   @state()
   private state: PulseState = {
     currentTrack: 0,
@@ -71,8 +84,13 @@ export class PulseFabElement extends LitElement {
   private offTrackChange: Unsubscribe | undefined
   private offError: Unsubscribe | undefined
 
+  private onDocumentClick = (): void => {
+    if (this.menuOpen) this.menuOpen = false
+  }
+
   override connectedCallback(): void {
     super.connectedCallback()
+    document.addEventListener('click', this.onDocumentClick)
     this.offState = this.engine.onStateChange((s) => {
       this.state = { ...s }
     })
@@ -103,6 +121,7 @@ export class PulseFabElement extends LitElement {
 
   override disconnectedCallback(): void {
     super.disconnectedCallback()
+    document.removeEventListener('click', this.onDocumentClick)
     this.offState?.()
     this.offPlay?.()
     this.offPause?.()
@@ -187,6 +206,54 @@ export class PulseFabElement extends LitElement {
     }
   }
 
+  // ─── Menu controls ─────────────────────────────────────────
+  private toggleMenu = (e: Event): void => {
+    e.stopPropagation()
+    this.menuOpen = !this.menuOpen
+  }
+
+  private closeMenu = (): void => {
+    this.menuOpen = false
+  }
+
+  private pickVariant(v: PulseVariant): void {
+    this.variant = v
+    this.menuOpen = false
+  }
+
+  private togglePulso(): void {
+    this.pulso = !this.pulso
+  }
+
+  /**
+   * Request fullscreen on `<html>` (the whole document). Most consumers
+   * want the page chrome to disappear when they tap fullscreen on the
+   * FAB, not just the FAB element. Mirrors the v2.3.4 demo.
+   * Re-tapping toggles back. Catches the promise rejection so a
+   * refusal (mobile Safari without user gesture, iframe sandboxed)
+   * doesn't crash.
+   */
+  private toggleFullscreen = (): void => {
+    if (typeof document === 'undefined') return
+    const doc = document as Document & {
+      webkitFullscreenElement?: Element
+      webkitExitFullscreen?: () => Promise<void>
+    }
+    const docEl = document.documentElement as HTMLElement & {
+      webkitRequestFullscreen?: () => Promise<void>
+    }
+    if (doc.fullscreenElement || doc.webkitFullscreenElement) {
+      const exit = doc.exitFullscreen ?? doc.webkitExitFullscreen
+      void exit?.call(doc)
+    } else {
+      const enter = docEl.requestFullscreen ?? docEl.webkitRequestFullscreen
+      void enter?.call(docEl).catch(() => {
+        /* refusal (no user gesture, iframe sandbox) — drop silently */
+      })
+    }
+    this.menuOpen = false
+  }
+
   override render() {
     const isPlaying = this.state.isPlaying
     const classes = `fab ${isPlaying ? 'fab--playing' : ''} ${this.pulso && isPlaying ? 'fab--pulso' : ''} ${this.draggable ? 'fab--draggable' : ''}`
@@ -194,24 +261,84 @@ export class PulseFabElement extends LitElement {
     // handler (when displacement < 4 px). Otherwise wire a normal
     // click → toggle.
     return html`
-      <button
-        class=${classes}
-        type="button"
-        data-variant=${this.variant}
-        aria-label=${isPlaying ? 'Pause' : 'Play'}
-        aria-pressed=${isPlaying}
-        @pointerdown=${this.onFabPointerDown}
-        @click=${(e: MouseEvent) => {
-          if (this.draggable) {
-            // Drag mode swallows the click — pointer-up emits toggle.
-            e.preventDefault()
-            return
-          }
-          this.engine.toggle()
-        }}
-      >
-        ${isPlaying ? '⏸' : '▶'}
-      </button>
+      <div class="fab-wrapper">
+        <button
+          class=${classes}
+          type="button"
+          data-variant=${this.variant}
+          aria-label=${isPlaying ? 'Pause' : 'Play'}
+          aria-pressed=${isPlaying}
+          @pointerdown=${this.onFabPointerDown}
+          @click=${(e: MouseEvent) => {
+            if (this.draggable) {
+              // Drag mode swallows the click — pointer-up emits toggle.
+              e.preventDefault()
+              return
+            }
+            this.engine.toggle()
+          }}
+        >
+          ${isPlaying ? '⏸' : '▶'}
+        </button>
+
+        ${this.showMenu
+          ? html`
+              <button
+                class="fab__menu-toggle"
+                type="button"
+                aria-label="Options"
+                aria-expanded=${this.menuOpen}
+                @click=${this.toggleMenu}
+              >
+                ⋮
+              </button>
+
+              ${this.menuOpen
+                ? html`
+                    <div class="fab__menu" role="menu" @click=${(e: Event) => e.stopPropagation()}>
+                      <div class="fab__menu-section">
+                        <p class="fab__menu-label">Variant</p>
+                        <div class="fab__palette">
+                          ${ALL_VARIANTS.filter((v) => v !== 'custom').map(
+                            (v) => html`
+                              <button
+                                class=${`fab__chip ${this.variant === v ? 'fab__chip--active' : ''}`}
+                                type="button"
+                                data-variant=${v}
+                                aria-pressed=${this.variant === v}
+                                aria-label=${`Variant ${v}`}
+                                title=${v}
+                                @click=${() => this.pickVariant(v)}
+                              ></button>
+                            `,
+                          )}
+                        </div>
+                      </div>
+
+                      <div class="fab__menu-section">
+                        <button
+                          class="fab__menu-item"
+                          role="menuitemcheckbox"
+                          aria-checked=${this.pulso}
+                          @click=${this.togglePulso}
+                        >
+                          <span>Pulso</span>
+                          <span class="fab__menu-check">${this.pulso ? '●' : '○'}</span>
+                        </button>
+                        <button
+                          class="fab__menu-item"
+                          role="menuitem"
+                          @click=${this.toggleFullscreen}
+                        >
+                          Fullscreen ⤢
+                        </button>
+                      </div>
+                    </div>
+                  `
+                : ''}
+            `
+          : ''}
+      </div>
     `
   }
 }
