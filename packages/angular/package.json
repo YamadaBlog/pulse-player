@@ -1,7 +1,7 @@
 {
   "name": "@pulse/angular",
   "version": "0.0.0",
-  "description": "Angular 17+ wrapper for pulse-player — module + components built on @pulse/web-component. SCAFFOLD only — implementation lands in v3.1.0.",
+  "description": "Angular 17+ wrapper for pulse-player. Thin module + Custom Elements registration on top of @pulse/web-component.",
   "license": "MIT",
   "type": "module",
   "main": "./src/index.ts",
@@ -16,6 +16,14 @@
     "src",
     "README.md"
   ],
+  "peerDependencies": {
+    "@angular/core": ">=17.3.12"
+  },
+  "peerDependenciesMeta": {
+    "@angular/core": {
+      "optional": false
+    }
+  },
   "dependencies": {
     "@pulse/types": "*",
     "@pulse/web-component": "*"

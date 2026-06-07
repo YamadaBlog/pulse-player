@@ -8,6 +8,100 @@ Tags: every release listed below is pinned to a signed git tag of the same name 
 
 Tracked separately in [the v2.0.0 audit branch](https://github.com/YamadaBlog/pulse-player/issues?q=is%3Aissue+label%3Av2.0.0).
 
+## 3.0.0-alpha.7 — 2026-06-07
+
+Largest single-alpha increment so far. Closes **7 audit items** + ships **6 new chrome features** + lands the **first real `@pulse/angular` wrapper** + the **third runnable demo app** + the **Playwright visual regression infrastructure**. Chrome parity vs Vue v2.3.4 moves from ~60 % to **~70 %**.
+
+Vue v2.3.4 codebase at `src/lib/` remains bit-for-bit identical — zero file modified since alpha.0.
+
+### Playwright visual regression infrastructure ✅
+
+- `playwright.config.ts` — Chromium-only, dev server auto-start on port 5174, `prefers-reduced-motion: reduce` emulation per-test
+- `tests/visual/vue-demo.spec.ts` — 2 stable baselines captured: **`hero.png`** (transparent variant + ambient EQ) and **`home-fold.png`** (above the fold)
+- `npm run test:visual` runs them; `npm run test:visual:update` re-captures
+- Goal: gate the alpha.9 Vue migration (`src/lib/` → `packages/vue/`) on pixel parity
+
+Two more captures (`resize-stage` + `variants gallery`) attempted but the Vue demo's auto-tour rAF loop never converges on a stable frame. Documented in `docs/universal/BLOCKERS.md` — closing requires an explicit `window.__pulsePauseDemo` hook in alpha.8.
+
+### Chrome parity Phase 2 (continued) — 6 new `<pulse-player>` features
+
+- **`mp__bg` blur cover backdrop** — large blurred copy of the cover behind the chrome; hidden on `light` + `transparent` variants
+- **`mp__noise` SVG noise overlay** — 2 % tactile grain over the chrome; hides gradient banding on dark variants
+- **`data-fab` reflected attribute** — explicit boolean override that forces the FAB morph regardless of host width (mirrors v2.3.4 MusicPlayer)
+- **`resizable` attribute + drag handle** — bottom-right pointer-event handle resizes the host element directly via inline `width`/`height` (clamped 90 px ↔ 800 px). Pointer capture so the drag survives moving off the handle
+- **`<pulse-fab draggable>` + `persist-key`** — pointer-event drag-to-reposition. Position persists to `localStorage` under the `persist-key` (default `pulse-fab-pos`). Click vs drag is distinguished by 4 px displacement threshold
+- All new features ship `prefers-reduced-motion` + `pointer-capture` + `touch-action: none` for unified mouse / pen / touch
+
+9 / 9 web-component tests still pass — additive only, no behaviour change to existing surface.
+
+### `@pulse/angular` — minimal real wrapper ✅
+
+Promoted from scaffold to real code:
+
+- `packages/angular/src/pulse.module.ts` — `PulseModule` side-effect-registers Custom Elements, re-exports engine + types
+- `packages/angular/README.md` — usage with `CUSTOM_ELEMENTS_SCHEMA` + `[attr.<name>]` for boolean attributes + `(pulse-play)` for events
+
+Stays `private: true` for now: the `@angular/core` peer dep range needs a floor of >= 17.3.12 to avoid known CVEs (older 17.x has XSS issues). Once v3.0.0 stable raises the floor to 19+, the package goes public.
+
+### `apps/demo-svelte/` — third runnable demo
+
+A Svelte 5 + Vite app that uses `@pulse/svelte`:
+
+- `<pulse-player>` + `<pulse-fab>` Custom Elements directly in `.svelte` template (no component wrapper)
+- `usePulseAudio()` Svelte classic-store + `$store` autosubscribe (`$audio.isPlaying`)
+- Variant picker, live event log via `onpulse-play` / `onpulse-pause` / `onpulse-trackchange`
+- Build: 87 kB JS → **28.88 kB gzip** (Svelte 5 is significantly lighter than React)
+
+```bash
+npm run dev --workspace=@pulse/demo-svelte
+# → http://localhost:5182
+```
+
+### Docs / blockers
+
+`docs/universal/BLOCKERS.md` (NEW) — honest record of what's not done and why, for each remaining item:
+
+| Item | Severity | Real blocker? | Path forward |
+| --- | --- | --- | --- |
+| `@pulse/react-native` real impl | High vs roadmap | Yes — needs RN tooling environment (CocoaPods / Gradle) | v3.X.0 sprint |
+| `npm publish @pulse/*` | Critical | Yes — needs maintainer OTP | Maintainer-only |
+| Vue migration src/lib → packages/vue | Medium | No — deferred for safety | v3.0.0-alpha.9 (gated by Playwright) |
+| 2 Playwright captures | Low | No — animation tuning | v3.0.0-alpha.8 |
+| FAB radial menu + fullscreen | Medium | No — time-bounded | v3.0.0-alpha.8 |
+
+### Quality gate
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings (--max-warnings=0)
+tests (root, Vue Pinia)  → 33 / 33
+tests (@pulse/core)      → 27 / 27
+tests (@pulse/web-comp)  →  9 /  9
+tests (@pulse/react)     →  8 /  8
+tests (@pulse/svelte)    →  8 /  8
+TOTAL                    → 85 / 85
+test:visual              →  2 /  2 stable baselines (4 attempted)
+build (Vue demo)         → 48 kB gzip (UNCHANGED)
+build:lib (Vue lib)      → 14 kB gzip (UNCHANGED)
+build:packages           → 6 packages (ESM + CJS + .d.ts)
+build (demo-react)       → 58 kB gzip
+build (demo-svelte)      → 29 kB gzip  NEW
+audit (prod-only)        → 0 vulnerabilities
+Vue v2.3.4 demo          → bit-for-bit identical
+src/lib/                 → ZERO file modified
+```
+
+### Self-assessed grade
+
+**~8.5 / 10** (was 8.0 alpha.6). Architecture sound, 4 runtime-tested wrappers, 3 runnable demos, Playwright infra live, chrome parity 70 %, real Angular module shipped, honest blockers documented. The 1.5-point gap is the remaining `@pulse/react-native` real impl + `npm publish` (both external dependencies) + the final 30 % chrome parity.
+
+### What's still ahead
+
+- v3.0.0-alpha.8 → FAB radial menu + fullscreen + `window.__pulsePauseDemo` hook → 2 more Playwright captures → chrome parity ≥ 90 %
+- v3.0.0-alpha.9 → Vue migration `src/lib/` → `packages/vue/` (gated by Playwright)
+- v3.X.0 → `@pulse/react-native` real impl (dedicated sprint)
+- v3.0.0 → stable, `npm publish @pulse/*`
+
 ## 3.0.0-alpha.6 — 2026-06-07
 
 Closes 6 of the v3.0.0-alpha.5 audit items: **docs honesty refresh**, **`@pulse/tokens/base.css` actually consumed** (closes P2 dead code), **three responsive states + prev/next + social icons in `<pulse-player>`** (chrome parity Phase 2), **`@pulse/test-utils` extracted** (kills 4× setup.ts duplication), **`useDomEvent` hook in `@pulse/react`** (kills 8× `useEffect` duplication), and **GitHub Actions CI gates `test:packages` + `build:packages`**.

@@ -73,6 +73,8 @@
     "test:react-pkg": "vitest run -c packages/react/vitest.config.ts",
     "test:svelte-pkg": "vitest run -c packages/svelte/vitest.config.ts",
     "test:packages": "npm run test:core && npm run test:web-component && npm run test:react-pkg && npm run test:svelte-pkg",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots",
     "build:packages": "npm run build --workspace=@pulse/types --workspace=@pulse/core --workspace=@pulse/web-component --workspace=@pulse/react --workspace=@pulse/svelte",
     "audit": "npm audit --omit=dev --audit-level=moderate",
     "ci": "npm run type-check && npm run lint && npm run test && npm run test:packages && npm run build && npm run audit",
@@ -87,6 +89,7 @@
     "lucide-vue-next": "^0.300.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^14.3.1",
     "@types/node": "^20.11.0",

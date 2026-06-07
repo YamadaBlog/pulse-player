@@ -52,6 +52,25 @@ export class PulsePlayerElement extends LitElement {
   ambientEq = false
 
   /**
+   * Force the FAB morph regardless of host width. When `true`, the
+   * `data-size="fab"` state is applied unconditionally — useful for
+   * consumers that want the disc shape inside a wide container
+   * without going through a `resizable` interaction. Mirrors the
+   * v2.3.4 MusicPlayer's `data-fab="true"` boolean.
+   */
+  @property({ type: Boolean, attribute: 'data-fab', reflect: true })
+  dataFab = false
+
+  /**
+   * Enables a drag handle in the bottom-right corner. Pointer events
+   * resize the host element directly via inline `width` and
+   * `height`. Mirrors the v2.3.4 MusicPlayer `resizable` prop —
+   * users can pull the player from any size down to FAB.
+   */
+  @property({ type: Boolean, reflect: true })
+  resizable = false
+
+  /**
    * Optional custom playlist override. Pass an array of Track objects
    * to replace the engine's playlist. Most consumers will configure
    * the playlist at the engine level via
@@ -188,13 +207,74 @@ export class PulsePlayerElement extends LitElement {
     this.engine.seek(fraction)
   }
 
+  // ─── Drag-to-resize handle (resizable) ───────────────────────
+  // Pointer events on the bottom-right handle resize the host
+  // element directly via inline width / height. Mirrors the v2.3.4
+  // MusicPlayer.vue logic: pointer capture so the drag survives
+  // moving off the handle, clamp to [90 px .. 800 px], and use the
+  // mouse / pen / touch unified pointer event interface.
+  private dragStartX = 0
+  private dragStartY = 0
+  private dragStartWidth = 0
+  private dragStartHeight = 0
+
+  private onResizePointerDown(e: PointerEvent): void {
+    e.preventDefault()
+    e.stopPropagation()
+    const rect = this.getBoundingClientRect()
+    this.dragStartX = e.clientX
+    this.dragStartY = e.clientY
+    this.dragStartWidth = rect.width
+    this.dragStartHeight = rect.height
+    ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
+    ;(e.currentTarget as Element).addEventListener(
+      'pointermove',
+      this.onResizePointerMove as unknown as EventListener,
+    )
+    ;(e.currentTarget as Element).addEventListener(
+      'pointerup',
+      this.onResizePointerUp as unknown as EventListener,
+    )
+  }
+
+  private onResizePointerMove = (e: PointerEvent): void => {
+    const dx = e.clientX - this.dragStartX
+    const dy = e.clientY - this.dragStartY
+    const w = Math.max(90, Math.min(800, this.dragStartWidth + dx))
+    const h = Math.max(90, Math.min(800, this.dragStartHeight + dy))
+    this.style.width = `${w}px`
+    this.style.height = `${h}px`
+  }
+
+  private onResizePointerUp = (e: PointerEvent): void => {
+    const target = e.currentTarget as Element
+    target.releasePointerCapture(e.pointerId)
+    target.removeEventListener(
+      'pointermove',
+      this.onResizePointerMove as unknown as EventListener,
+    )
+    target.removeEventListener('pointerup', this.onResizePointerUp as unknown as EventListener)
+  }
+
   override render() {
     const track = this.engine.track
     const progressPercent = this.engine.progress
     const playLabel = this.state.isPlaying ? 'Pause' : 'Play'
 
+    // `data-fab` overrides the auto-detected responsiveSize.
+    const effectiveSize = this.dataFab ? 'fab' : this.responsiveSize
     return html`
-      <div class="mp" data-variant=${this.variant} data-size=${this.responsiveSize}>
+      <div class="mp" data-variant=${this.variant} data-size=${effectiveSize}>
+        <!-- Cover blur backdrop (mp__bg). Same cover as the art, scaled large + blurred. Mirrors v2.3.4. -->
+        <div
+          class="mp__bg"
+          aria-hidden="true"
+          style=${`background-image: url('${track.cover}')`}
+        ></div>
+
+        <!-- SVG noise grain overlay (mp__noise). Hides gradient banding on dark variants. -->
+        <div class="mp__noise" aria-hidden="true"></div>
+
         <!-- Ambient EQ — 12 bars. Visible only when the ambient-eq attribute is on the host. Pure CSS, zero JS per frame. -->
         <div class="mp__ambient" aria-hidden="true">
           ${Array.from({ length: 12 }).map(() => html`<span class="mp__ambient-bar"></span>`)}
@@ -269,6 +349,17 @@ export class PulsePlayerElement extends LitElement {
             ></div>
           </div>
         </div>
+
+        ${this.resizable
+          ? html`
+              <span
+                class="mp__resize-handle"
+                aria-label="Resize"
+                role="separator"
+                @pointerdown=${this.onResizePointerDown}
+              ></span>
+            `
+          : ''}
       </div>
     `
   }

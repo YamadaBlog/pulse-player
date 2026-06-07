@@ -69,6 +69,50 @@ export const playerStyles = css`
     background-position: 50% 50%;
     cursor: pointer;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ─── Cover blur backdrop (mp__bg) ──────────────────────────
+     A large, blurred copy of the current cover sits behind the
+     chrome — gives the variants a hint of the album palette
+     without overwhelming the gradient. Mirrors v2.3.4
+     MusicPlayer.vue. Hidden when variant is 'transparent' (the
+     dashboard's own backdrop shows through) or 'light'
+     (would clash with the inverted palette). */
+  .mp__bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: 50% 50%;
+    filter: blur(40px) saturate(1.4);
+    opacity: 0.55;
+    z-index: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .mp[data-variant='light'] .mp__bg,
+  .mp[data-variant='transparent'] .mp__bg {
+    display: none;
+  }
+
+  /* ─── Noise overlay (mp__noise) ──────────────────────────────
+     A 2 % SVG noise filter over the chrome adds tactile grain
+     that hides gradient banding on the darker variants. Hidden
+     on light + transparent for the same reason as mp__bg. */
+  .mp__noise {
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2' /><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.6' /></svg>");
+    background-repeat: repeat;
+    opacity: 0.55;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .mp[data-variant='light'] .mp__noise,
+  .mp[data-variant='transparent'] .mp__noise {
+    display: none;
   }
 
   .mp__body {
@@ -230,6 +274,26 @@ export const playerStyles = css`
     justify-content: center;
   }
 
+  /* ─── Drag-to-resize handle ──────────────────────────────────
+     Bottom-right corner. Pointer events handled in JS. Mirrors
+     the v2.3.4 MusicPlayer resizable prop visual signature. */
+  .mp__resize-handle {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    width: 14px;
+    height: 14px;
+    cursor: nwse-resize;
+    opacity: 0.5;
+    z-index: 3;
+    background-image:
+      linear-gradient(135deg, transparent 0%, transparent 50%, currentColor 50%, currentColor 60%, transparent 60%, transparent 80%, currentColor 80%, currentColor 90%, transparent 90%);
+    transition: opacity 0.15s ease;
+  }
+  .mp__resize-handle:hover {
+    opacity: 1;
+  }
+
   /* ─── Ambient EQ — pure CSS, 0 JS / frame ───────────────────
      12 bars layered behind the chrome. Staggered animation-delay
      gives the impression of a moving wave under the audio without
@@ -335,6 +399,13 @@ export const fabStyles = css`
       0 4px 20px rgba(0, 0, 0, 0.5),
       0 0 0 1px rgb(var(--variant-accent-rgb, 255, 255, 255) / 0.4),
       0 0 28px rgb(var(--variant-accent-rgb, 255, 255, 255) / 0.25);
+  }
+  .fab--draggable {
+    cursor: grab;
+    touch-action: none;
+  }
+  .fab--draggable:active {
+    cursor: grabbing;
   }
 
   /* ─── Pulso heartbeat — lub-dub-rest ────────────────────────
