@@ -225,12 +225,16 @@ const demoSteps: DemoStep[] = [
   {
     title: 'Container-aware',
     run: async (ctx) => {
-      await ctx.scrollTo('.resize-stage')
+      // Frame the ENTIRE section (eyebrow + heading + description + the
+      // resize stage), not just the player. Scrolling to `.resize-stage`
+      // pushed the heading off the top of the viewport and the user
+      // lost the context the step is trying to communicate.
+      // `offset: window.innerHeight * 0.08` lands the section's top
+      // 8 % from the viewport top, leaving room for the heading +
+      // description + the stage below.
+      await ctx.scrollTo('#section-resize', { offset: window.innerHeight * 0.08 })
       await ctx.delay(900)
-      // Spotlight follows the resize stage so the user sees that the
-      // change is happening INSIDE a defined container, not on the
-      // whole page.
-      spotlight.focus('.resize-stage', { padding: 70, soft: 110 })
+      spotlight.focus('#section-resize', { padding: 100, soft: 160 })
       ctx.setMessage('Drop it at any container width — no media queries needed.')
       await ctx.tween(
         (v) => {
@@ -264,11 +268,13 @@ const demoSteps: DemoStep[] = [
   {
     title: 'Drag-to-resize',
     run: async (ctx) => {
-      await ctx.scrollTo('.drag-stage', { speed: 'slow' })
+      // Frame the ENTIRE section so the heading "Grab the corner.
+      // Resize it yourself." stays in view alongside the stage —
+      // previously only the stage was framed and the heading was
+      // clipped above the fold.
+      await ctx.scrollTo('#section-drag', { speed: 'slow', offset: window.innerHeight * 0.08 })
       await ctx.delay(1100)
-      // Bring focus on the drag stage — the morph between classic,
-      // compact and FAB modes plays out inside this surface.
-      spotlight.focus('.drag-stage', { padding: 70, soft: 120 })
+      spotlight.focus('#section-drag', { padding: 100, soft: 160 })
       ctx.setMessage('Ambient EQ on — let the wave settle in under the music.')
       store.ambientEq = true
       await ctx.delay(2400)
@@ -942,7 +948,7 @@ const hero = computed(() => ({
       <!-- ═══════════════════════════════════════════════════════════════
          INTERACTIVE — Resize the component live
          ═══════════════════════════════════════════════════════════════ -->
-      <section class="section section--narrow">
+      <section id="section-resize" class="section section--narrow">
         <p class="section__eyebrow">Live · Interactive</p>
         <h2 class="section__h">Resize it. Everything follows.</h2>
         <p class="section__sub">
@@ -993,7 +999,7 @@ const hero = computed(() => ({
       <!-- ═══════════════════════════════════════════════════════════════
          DRAG TO RESIZE — manual pointer-driven resize
          ═══════════════════════════════════════════════════════════════ -->
-      <section class="section section--narrow">
+      <section id="section-drag" class="section section--narrow">
         <p class="section__eyebrow">Drag · Pointer events</p>
         <h2 class="section__h">Grab the corner. Resize it yourself.</h2>
         <p class="section__sub">
