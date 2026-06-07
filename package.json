@@ -1,6 +1,6 @@
 {
   "name": "pulse-player",
-  "version": "1.0.12",
+  "version": "2.0.0",
   "description": "A premium drop-in music player for Vue 3 — inline card + floating FAB, FFT visualiser, nine themes, guided demo tour, ~49 kB gzip.",
   "type": "module",
   "license": "MIT",
@@ -47,6 +47,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
+    "build:lib": "vue-tsc --noEmit && cross-env VITE_BUILD_TARGET=lib vite build",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --ext .ts,.vue,.js,.tsx,.jsx --cache --max-warnings=0",
@@ -74,6 +75,7 @@
     "@vitejs/plugin-vue": "^5.0.0",
     "@vitest/coverage-v8": "^1.3.0",
     "@vue/test-utils": "^2.4.0",
+    "cross-env": "^10.1.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-vue": "^9.21.0",

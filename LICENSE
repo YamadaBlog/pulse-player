@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 pulse-player contributors
+Copyright (c) 2026 YamadaBlog (pulse-player authors)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,4 +23,5 @@ SOFTWARE.
 NOTE: the demo audio tracks and cover images shipped under public/audio/ are
 included only for the local demo. They are not part of the MIT-licensed
 software. Replace them with content you own (or have licensed) before any
-public deployment.
+public deployment. See NOTICE.md for the full provenance / attribution
+record and the list of demo assets that must be replaced.

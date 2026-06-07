@@ -12,7 +12,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Pinia](https://img.shields.io/badge/Pinia-2.1+-f7d336?logo=pinia&logoColor=black)](https://pinia.vuejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3DBDA7.svg)](./LICENSE)
-[![bundle](https://img.shields.io/badge/gzip-~49kB-3DBDA7)](./docs/ARCHITECTURE.md)
+[![bundle](https://img.shields.io/badge/gzip-~54kB-3DBDA7)](./docs/ARCHITECTURE.md)
+[![release](https://img.shields.io/badge/release-v1.0.12-3DBDA7.svg)](./CHANGELOG.md)
 [![Status](https://img.shields.io/badge/status-active-3DBDA7.svg)]()
 [![Demo](https://img.shields.io/badge/demo-watch-1DB954.svg)](./docs/DEMO.md)
 
@@ -182,21 +183,18 @@ That's it. Pinia is the only setup step. → [Detailed install + usage](./docs/A
 
 ## 📝 &nbsp;Changelog
 
-| Version    | Highlights                                                                                                                                                                                                                                                                                                  |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **0.13.0** | Audit-driven hardening: cancellable rAF EQ loop tied to play state, `prefers-reduced-motion` honoured across CSS + demo tour, `webkitAudioContext` Safari fallback, `ResizeObserver` feature-test, zero-allocation EQ (`shallowRef` + `triggerRef`), opt-in `subscribe()` event API + per-session counters. |
-| 0.12.x     | EQ bars GPU-composited (`transform: scaleY()` + `contain: layout style paint`). Demo tour gets Pause / Resume + per-step jump + true centred FAB drag + fit-content stages.                                                                                                                                 |
-| 0.11.x     | Guided demo tour ("Watch demo") with sticky pill controls and fullscreen. Pick-a-mood section + Vinyl/Aurora FAB showcase.                                                                                                                                                                                  |
-| 0.10.x     | `ambientEq` global toggle (`store.ambientEq`). 64-bar Spotify-style ambient visualiser. EQ bars locked to Spotify green for brand consistency.                                                                                                                                                              |
-| 0.9.x      | Resize handle (mouse + touch + stylus) on `MusicPlayer`. Drag-to-resize. FAB transformation at 110 px. Three threshold morph (narrow / compact / FAB).                                                                                                                                                      |
-| 0.8.x      | Pulso heartbeat ripple around the FAB (only while audio is playing). Subtle radial waves with reduced-motion gate.                                                                                                                                                                                          |
-| 0.7.x      | Noise grain overlay across every variant. `auto` cover-blur backdrop. Resize handle pointer-events. FAB drag persistence to localStorage.                                                                                                                                                                   |
-| 0.6.0      | Transparent variant restored with original dashboard gradient + noise. Clean element-level screenshots (no browser chrome).                                                                                                                                                                                 |
-| 0.5.0      | Compact mode. Slim product README. Docs split.                                                                                                                                                                                                                                                              |
-| 0.4.0      | Mermaid architecture diagram. Premium product README.                                                                                                                                                                                                                                                       |
-| 0.3.x      | `--pulse-scale` system. ResizeObserver auto-scale. Interactive size slider.                                                                                                                                                                                                                                 |
-| 0.2.x      | Variant system. ResizeObserver-driven responsive. Screenshots.                                                                                                                                                                                                                                              |
-| 0.1.0      | Initial release.                                                                                                                                                                                                                                                                                            |
+Every release is pinned to a signed git tag (`v1.0.0` … `v1.0.12`) and surfaced as a GitHub Release.
+
+| Latest         | One-line summary                                                                                                                                            |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **v1.0.12**    | Spotlight blur stays active during the Pulso demo step; boost to the FAB section is 1.5× slower for readability.                                            |
+| v1.0.11        | `Options` divider between the FAB colour palette and the action buttons.                                                                                    |
+| v1.0.10        | Stable `680 × 233` baseline for the demo stages — never shrinks, grows past the baseline if the player does.                                                |
+| v1.0.6 → 1.0.9 | Pick-a-mood demo step rewritten — precise framing, single continuous descent, title always in view; pulso ring + heartbeat aligned to the beat.             |
+| v1.0.1 → 1.0.5 | Ambient EQ moved to a pure-CSS animation (0 JS / frame), bullet-proof pulso centring, dem o tour pause / resume / step jump, distance-aware scroll easings. |
+| **v1.0.0**     | Production-ready: CI matrix, 30 unit tests, ESLint + Prettier + Husky, npm-publish-ready `package.json`, shared `PulseVariant` type, `CONTRIBUTING.md`.     |
+
+Full history with rationale per release: [`CHANGELOG.md`](./CHANGELOG.md).
 
 <br>
 

@@ -214,6 +214,44 @@ function seek(e: MouseEvent) {
   store.seek((e.clientX - r.left) / r.width)
 }
 
+/**
+ * Keyboard-driven seek for the progress bar slider.
+ *   ←  / →   : ±5 % of the track
+ *   Shift+←/→: ±1 %
+ *   Home/End : 0 % / 100 %
+ *   PageUp/Down: ±10 %
+ * Falls through (does not preventDefault) on any other key so screen-reader
+ * commands continue to work.
+ */
+function seekKey(e: KeyboardEvent): void {
+  if (!store.duration) return
+  const current = store.progress / 100
+  let next: number | null = null
+  switch (e.key) {
+    case 'ArrowLeft':
+      next = current + (e.shiftKey ? -0.01 : -0.05)
+      break
+    case 'ArrowRight':
+      next = current + (e.shiftKey ? 0.01 : 0.05)
+      break
+    case 'PageDown':
+      next = current - 0.1
+      break
+    case 'PageUp':
+      next = current + 0.1
+      break
+    case 'Home':
+      next = 0
+      break
+    case 'End':
+      next = 1
+      break
+  }
+  if (next === null) return
+  e.preventDefault()
+  store.seek(Math.max(0, Math.min(1, next)))
+}
+
 // ─── Manual resize via the bottom-right handle ───────────────────────
 // `userWidth` is declared above (forward-referenced by `isFab`).
 const isResizing = ref(false)
@@ -306,9 +344,6 @@ onUnmounted(() => {
   >
     <svg class="mp__filters" aria-hidden="true">
       <defs>
-        <filter id="pulseMpBlur">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="30" />
-        </filter>
         <filter id="pulseMpNoise">
           <feTurbulence
             type="fractalNoise"
@@ -359,7 +394,16 @@ onUnmounted(() => {
       ></i>
     </div>
 
-    <div class="mp__art" @click="store.toggle">
+    <div
+      class="mp__art"
+      role="button"
+      tabindex="0"
+      :aria-label="store.isPlaying ? 'Pause' : 'Play'"
+      :aria-pressed="store.isPlaying"
+      @click="store.toggle"
+      @keydown.enter.prevent="store.toggle"
+      @keydown.space.prevent="store.toggle"
+    >
       <img
         v-for="(t, i) in store.tracks"
         :key="t.cover"
@@ -372,7 +416,7 @@ onUnmounted(() => {
           transform: t.coverScale ? `scale(${t.coverScale})` : undefined,
         }"
       />
-      <div class="mp__art-hover">
+      <div class="mp__art-hover" aria-hidden="true">
         <Pause v-if="store.isPlaying" />
         <Play v-else />
       </div>
@@ -442,7 +486,18 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <div class="mp__bar" @click="seek">
+    <div
+      class="mp__bar"
+      role="slider"
+      tabindex="0"
+      aria-label="Seek"
+      :aria-valuemin="0"
+      :aria-valuemax="100"
+      :aria-valuenow="Math.round(store.progress)"
+      :aria-valuetext="`${store.fmt(store.currentTime)} of ${store.fmt(store.duration)}`"
+      @click="seek"
+      @keydown="seekKey"
+    >
       <div class="mp__fill" :style="{ width: store.progress + '%' }">
         <div class="mp__dot"></div>
       </div>
@@ -1295,9 +1350,14 @@ onUnmounted(() => {
   color: var(--pulse-text, rgba(255, 255, 255, 0.95));
   transform: scale(1.1);
 }
-.mp__btn:focus-visible {
+.mp__btn:focus-visible,
+.mp__art:focus-visible,
+.mp__bar:focus-visible,
+.mp__icon-link:focus-visible,
+.mp__resize:focus-visible {
   outline: 2px solid var(--pulse-accent, #3dbda7);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 .mp[data-variant='light'] .mp__btn {
   color: rgba(20, 20, 26, 0.55);

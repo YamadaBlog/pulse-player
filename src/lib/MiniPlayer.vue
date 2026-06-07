@@ -329,11 +329,11 @@ onUnmounted(() => {
             />
           </div>
 
-          <span v-if="store.isPlaying" class="fab__eq">
+          <span v-if="store.isPlaying" class="fab__eq" aria-hidden="true">
             <i
               v-for="(v, idx) in store.eqBars"
               :key="idx"
-              :style="{ height: Math.max(20, v * 100) + '%' }"
+              :style="{ '--bar-y': Math.max(0.2, v) }"
             ></i>
           </span>
 
@@ -725,9 +725,12 @@ onUnmounted(() => {
 .fab__eq i {
   display: block;
   width: 2px;
+  height: 100%; /* fixed height — animate via scaleY for GPU compositing */
   border-radius: 1px;
   background: var(--pulse-accent, #3dbda7);
-  transition: height 0.08s linear;
+  transform: scaleY(var(--bar-y, 0.2));
+  transform-origin: 50% 100%;
+  transition: transform 0.05s linear;
 }
 
 .fab__ring {

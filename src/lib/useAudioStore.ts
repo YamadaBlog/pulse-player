@@ -91,35 +91,42 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
   let eqRaf: number | null = null
 
   // ═ EVENT BUS — opt-in. Default: empty, no listeners, no cost.
-  //  `store.subscribe('play', cb)` returns an unsubscribe function.
-  //  Events emitted by this store:
-  //    'play'        — payload: { track: Track, time: number }
-  //    'pause'       — payload: { track: Track, time: number }
-  //    'trackchange' — payload: { from: number, to: number, track: Track }
-  type AudioEvent = 'play' | 'pause' | 'trackchange'
-  type EventPayload = Record<string, unknown>
-  type Listener = (payload: EventPayload) => void
-  const _listeners = new Map<AudioEvent, Set<Listener>>()
+  //
+  // Typed via discriminated union so `store.subscribe('play', cb)`
+  // narrows the payload to exactly `{ track, time }` (etc.) at the
+  // callsite. No more `as` casts in integrator code.
+  type EventMap = {
+    play: { track: Track; time: number }
+    pause: { track: Track; time: number }
+    trackchange: { from: number; to: number; track: Track }
+    error: { track: Track; reason: 'play-rejected' | 'media-error' | 'stalled'; detail?: unknown }
+  }
+  type AudioEvent = keyof EventMap
+  type Listener<E extends AudioEvent> = (payload: EventMap[E]) => void
+  // The Map's value is a Set of listeners of unknown event-shape — we
+  // re-narrow on emit via a cast that's safe because each Set only
+  // contains listeners for ITS key.
+  const _listeners = new Map<AudioEvent, Set<Listener<AudioEvent>>>()
 
-  function subscribe(event: AudioEvent, cb: Listener): () => void {
+  function subscribe<E extends AudioEvent>(event: E, cb: Listener<E>): () => void {
     let set = _listeners.get(event)
     if (!set) {
       set = new Set()
       _listeners.set(event, set)
     }
-    set.add(cb)
+    set.add(cb as Listener<AudioEvent>)
     return () => {
-      set!.delete(cb)
+      set!.delete(cb as Listener<AudioEvent>)
     }
   }
 
-  function emit(event: AudioEvent, payload: EventPayload): void {
+  function emit<E extends AudioEvent>(event: E, payload: EventMap[E]): void {
     const set = _listeners.get(event)
     if (!set) return
     set.forEach((cb) => {
       // One listener throwing must NEVER take the store down.
       try {
-        cb(payload)
+        ;(cb as Listener<E>)(payload)
       } catch (e) {
         /* eslint-disable-next-line no-console */ console.error(
           `[useAudioStore] listener for "${event}" threw:`,
@@ -149,7 +156,27 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     return (currentTime.value / duration.value) * 100
   })
 
-  const track = computed(() => _tracks[currentTrack.value])
+  /**
+   * Active track. Clamped to a valid index so that calling
+   * `setAudioTracks([smallerList])` AFTER playback started never returns
+   * `undefined` — the consumer gets the first track instead and templates
+   * stay safe.
+   */
+  const track = computed(() => {
+    const list = _tracks
+    if (!list.length) {
+      throw new Error('useAudioStore: track list is empty — pass at least one track')
+    }
+    const i = currentTrack.value
+    if (i < 0 || i >= list.length) {
+      // Clamp the index back into range. We don't reassign currentTrack
+      // here (the computed shouldn't have side effects) — but the action
+      // path (loadTrack/next/prev) will naturally re-normalise on the
+      // next user gesture.
+      return list[Math.max(0, Math.min(list.length - 1, i))]
+    }
+    return list[i]
+  })
   const tracks = computed(() => _tracks)
 
   // ═ ACTIONS
@@ -165,6 +192,21 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     })
     a.addEventListener('ended', () => {
       next()
+    })
+    // Network / media errors — a 404 or corrupt file used to leave the UI
+    // in a stuck "playing" state silently. Now we revert isPlaying and
+    // emit an 'error' event so the integrator can show a toast / retry.
+    a.addEventListener('error', () => {
+      isPlaying.value = false
+      stopEqLoop()
+      emit('error', {
+        track: track.value,
+        reason: 'media-error',
+        detail: a.error,
+      })
+    })
+    a.addEventListener('stalled', () => {
+      emit('error', { track: track.value, reason: 'stalled' })
     })
     audio = a
 
@@ -227,6 +269,27 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     }
   }
 
+  /**
+   * Handle the Promise returned by `HTMLMediaElement.play()`.
+   * Safari, Chromium and Firefox all reject this Promise when the browser's
+   * autoplay policy blocks the call (no user gesture, gesture already
+   * consumed by another element, page in background, …). We catch that
+   * rejection, revert `isPlaying` so the UI doesn't desync, and emit a
+   * `'error'` event so the integrator can surface the problem.
+   */
+  function safePlay(): void {
+    if (!audio) return
+    const result = audio.play()
+    if (result && typeof result.then === 'function') {
+      result.catch((err: unknown) => {
+        // Autoplay rejection or other media error — roll the UI back.
+        isPlaying.value = false
+        stopEqLoop()
+        emit('error', { track: track.value, reason: 'play-rejected', detail: err })
+      })
+    }
+  }
+
   function toggle() {
     initAudio()
     if (!audio) return
@@ -237,13 +300,13 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
       stopEqLoop() // stop the rAF — the spectrum is flat anyway
       emit('pause', { track: track.value, time: currentTime.value })
     } else {
-      audio.play()
       isPlaying.value = true
       hasBeenOpened.value = true
       isVisible.value = true
       playCount.value++
       startEqLoop() // start (or resume) the rAF
       emit('play', { track: track.value, time: currentTime.value })
+      safePlay() // may async-roll isPlaying back if autoplay is blocked
     }
   }
 
@@ -258,7 +321,7 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
       audio.load()
       currentTime.value = 0
       duration.value = 0
-      if (isPlaying.value) audio.play()
+      if (isPlaying.value) safePlay()
     }
     emit('trackchange', { from, to: i, track: _tracks[i] })
   }

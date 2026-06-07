@@ -37,20 +37,20 @@
 
 ### State
 
-| Field              | Type                   | Notes                                                                                         |
-| ------------------ | ---------------------- | --------------------------------------------------------------------------------------------- |
-| `currentTrack`     | `Ref<number>`          | Index in the active track list.                                                               |
-| `isPlaying`        | `Ref<boolean>`         |                                                                                               |
-| `currentTime`      | `Ref<number>`          | Seconds.                                                                                      |
-| `duration`         | `Ref<number>`          | Seconds.                                                                                      |
-| `eqBars`           | `ShallowRef<number[]>` | 4-bar FFT for NOW PLAYING / FAB chrome. Updated 60 fps.                                       |
+| Field              | Type                   | Notes                                                                                                                                                                    |
+| ------------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `currentTrack`     | `Ref<number>`          | Index in the active track list.                                                                                                                                          |
+| `isPlaying`        | `Ref<boolean>`         |                                                                                                                                                                          |
+| `currentTime`      | `Ref<number>`          | Seconds.                                                                                                                                                                 |
+| `duration`         | `Ref<number>`          | Seconds.                                                                                                                                                                 |
+| `eqBars`           | `ShallowRef<number[]>` | 4-bar FFT for NOW PLAYING / FAB chrome. Updated 60 fps.                                                                                                                  |
 | `eqAmbientBars`    | `ShallowRef<number[]>` | 32 zeros. Kept as a stable reference for custom visualisers; the built-in ambient EQ is now driven by a pure-CSS @keyframes animation, so this ref is no longer mutated. |
-| `isVisible`        | `Ref<boolean>`         | FAB visible.                                                                                  |
-| `hasBeenOpened`    | `Ref<boolean>`         | True after first play, persists in-memory.                                                    |
-| `ambientEq`        | `Ref<boolean>`         | **Global** ambient EQ toggle — every `<MusicPlayer />` without a local override follows this. |
-| `playCount`        | `Ref<number>`          | Local-only play counter. Privacy-friendly: no network, no third-party.                        |
-| `pauseCount`       | `Ref<number>`          | Same for pause events.                                                                        |
-| `trackChangeCount` | `Ref<number>`          | Increments on `next`, `prev`, `loadTrack` (only when the track actually changes).             |
+| `isVisible`        | `Ref<boolean>`         | FAB visible.                                                                                                                                                             |
+| `hasBeenOpened`    | `Ref<boolean>`         | True after first play, persists in-memory.                                                                                                                               |
+| `ambientEq`        | `Ref<boolean>`         | **Global** ambient EQ toggle — every `<MusicPlayer />` without a local override follows this.                                                                            |
+| `playCount`        | `Ref<number>`          | Local-only play counter. Privacy-friendly: no network, no third-party.                                                                                                   |
+| `pauseCount`       | `Ref<number>`          | Same for pause events.                                                                                                                                                   |
+| `trackChangeCount` | `Ref<number>`          | Increments on `next`, `prev`, `loadTrack` (only when the track actually changes).                                                                                        |
 
 ### Getters
 
@@ -62,17 +62,17 @@
 
 ### Actions
 
-| Action                 | Notes                                                                                                                  |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `toggle()`             | Play or pause. First call initialises the Web Audio graph (browser autoplay rules apply). Emits `'play'` or `'pause'`. |
-| `next()`               | Advance one track. Emits `'trackchange'`.                                                                              |
-| `prev()`               | Restart the current track if past 3 s, else step back one. May emit `'trackchange'`.                                   |
-| `loadTrack(i)`         | Jump to track index. No-op if same. Emits `'trackchange'` when index changes.                                          |
-| `seek(fraction)`       | Seek by ratio 0–1.                                                                                                     |
-| `open()`               | Show the FAB.                                                                                                          |
-| `close()`              | Pause + hide the FAB.                                                                                                  |
-| `fmt(seconds)`         | Formats seconds as `m:ss`.                                                                                             |
-| `subscribe(event, cb)` | See **Events** below. Returns an unsubscribe function.                                                                 |
+| Action                  | Notes                                                                                                                                                                                                                           |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `toggle()`              | Play or pause. First call initialises the Web Audio graph (browser autoplay rules apply). Emits `'play'` or `'pause'`.                                                                                                          |
+| `next()`                | Advance one track. Emits `'trackchange'`.                                                                                                                                                                                       |
+| `prev()`                | Restart the current track if past 3 s, else step back one. May emit `'trackchange'`.                                                                                                                                            |
+| `loadTrack(i)`          | Jump to track index. No-op if same. Emits `'trackchange'` when index changes.                                                                                                                                                   |
+| `seek(fraction)`        | Seek by ratio 0–1.                                                                                                                                                                                                              |
+| `open()`                | Show the FAB.                                                                                                                                                                                                                   |
+| `close()`               | Pause + hide the FAB.                                                                                                                                                                                                           |
+| `fmt(seconds)`          | Formats seconds as `m:ss`.                                                                                                                                                                                                      |
+| `subscribe(event, cb)`  | See **Events** below. Returns an unsubscribe function.                                                                                                                                                                          |
 | `registerAmbientView()` | Kept as a stable no-op since v1.0.2. The ambient EQ is now a pure-CSS animation with no per-frame JavaScript cost, so there's no visibility gating left to do. Returns a no-op unsubscribe; safe to call from old integrations. |
 
 ### Events

@@ -345,13 +345,7 @@ const demoSteps: DemoStep[] = [
         )
 
         // 1) Cinematic landing on the start framing.
-        await ctx.tween(
-          (y) => window.scrollTo(0, y),
-          window.scrollY,
-          startY,
-          1800,
-          'inOutCubic',
-        )
+        await ctx.tween((y) => window.scrollTo(0, y), window.scrollY, startY, 1800, 'inOutCubic')
 
         ctx.setMessage('Nine carefully tuned themes ship in — not just colour swatches.')
         await ctx.delay(2100)
@@ -362,13 +356,7 @@ const demoSteps: DemoStep[] = [
         //    perceptible jolt at the start or end of the descent.
         const descentDistance = Math.abs(endY - startY)
         const descentDuration = Math.max(7000, Math.min(13000, 5500 + descentDistance * 18))
-        await ctx.tween(
-          (y) => window.scrollTo(0, y),
-          startY,
-          endY,
-          descentDuration,
-          'inOutCubic',
-        )
+        await ctx.tween((y) => window.scrollTo(0, y), startY, endY, descentDuration, 'inOutCubic')
 
         ctx.setMessage('Auto, Midnight, Sunset, Aurora, Vinyl, Dark, Light, Transparent, Custom.')
         await ctx.delay(2300)
@@ -409,10 +397,7 @@ const demoSteps: DemoStep[] = [
         const offsetTop = window.innerHeight * 0.18
         const targetY = Math.max(0, paletteAbsoluteTop - offsetTop)
         const startY = window.scrollY
-        const fastDuration = Math.max(
-          700,
-          Math.min(1400, 350 + Math.abs(targetY - startY) * 0.4),
-        )
+        const fastDuration = Math.max(700, Math.min(1400, 350 + Math.abs(targetY - startY) * 0.4))
         await ctx.tween(
           (y) => window.scrollTo(0, y),
           startY,
@@ -870,7 +855,7 @@ const hero = computed(() => ({
               class="cta cta--ghost"
               href="https://github.com/YamadaBlog/pulse-player"
               target="_blank"
-              rel="noopener"
+              rel="noopener noreferrer"
             >
               View on GitHub
               <span class="cta__arrow">→</span>
@@ -1123,7 +1108,7 @@ const hero = computed(() => ({
             class="footer__link"
             href="https://github.com/YamadaBlog/pulse-player"
             target="_blank"
-            rel="noopener"
+            rel="noopener noreferrer"
             >github →</a
           >
         </div>
