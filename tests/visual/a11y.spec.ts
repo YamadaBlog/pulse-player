@@ -21,6 +21,10 @@ test.describe('Vue v2.3.4 demo — Axe-core a11y scan', () => {
   )
 
   test('home page — WCAG 2.1 AA', async ({ page }) => {
+    // Disable animations so the demo's auto-tour + ambient EQ + pulso
+    // heartbeat stop moving DOM nodes mid-scan. Without this,
+    // Playwright's "wait for element to be stable" times out on CI.
+    await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(600)
@@ -33,9 +37,19 @@ test.describe('Vue v2.3.4 demo — Axe-core a11y scan', () => {
   })
 
   test('variants gallery — WCAG 2.1 AA', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/')
     await page.waitForLoadState('networkidle')
-    await page.locator('section.variants, .variants').first().scrollIntoViewIfNeeded()
+
+    // Scroll via direct JS evaluation rather than
+    // `scrollIntoViewIfNeeded()`. The latter waits for the target to
+    // be "stable" (no incoming layout changes), which the demo's
+    // animations defeat on CI even with prefers-reduced-motion. The
+    // direct scroll lands us at the section instantly; the subsequent
+    // 600 ms timeout settles any post-scroll layout.
+    await page.evaluate(() => {
+      document.querySelector('section.variants, .variants')?.scrollIntoView()
+    })
     await page.waitForTimeout(600)
 
     const results = await new AxeBuilder({ page })
