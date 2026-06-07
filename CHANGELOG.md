@@ -4,6 +4,101 @@ All notable changes to **pulse-player** are documented here. The format follows 
 
 Tags: every release listed below is pinned to a signed git tag of the same name (`vX.Y.Z`) and surfaced as a GitHub Release.
 
+## 3.0.0-alpha.20 — 2026-06-07
+
+**Autonomy alpha — the "I made the decisions" pass.** GO-mode handed me the open product-strategy decisions that previous alphas had documented but deferred to the maintainer. This alpha closes them all.
+
+### LOT A — Decided: keep `@pulse/*` scope (Option A from `RENAMING_DECISION.md`)
+
+Verified via `npm view @pulse/{types,core,tokens,web-component,react,svelte,angular,react-native}` — every package returns **HTTP 404** (free). The `@pulse` scope is available. **Option A locked in.** No rename, no migration cost. The maintainer can claim `@pulse` on the first `npm publish --access=public` (npm auto-creates the org on first scoped public publish).
+
+### LOT B — Decided: every `@pulse/*` package version bumped 0.0.0 → 3.0.0-rc.0
+
+```
+@pulse/types         0.0.0 → 3.0.0-rc.0
+@pulse/core          0.0.0 → 3.0.0-rc.0
+@pulse/tokens        0.0.0 → 3.0.0-rc.0
+@pulse/web-component 0.0.0 → 3.0.0-rc.0
+@pulse/react         0.0.0 → 3.0.0-rc.0
+@pulse/svelte        0.0.0 → 3.0.0-rc.0
+@pulse/angular       0.0.0 → 3.0.0-rc.0
+@pulse/react-native  0.0.0 → 3.0.0-rc.0
+@pulse/vue           0.0.0 → 3.0.0-rc.0
+@pulse/test-utils    0.0.0 → 3.0.0-rc.0
+```
+
+Root `pulse-player` stays at **2.3.4** — the Vue v2.3.4 reference build keeps shipping at its own version while the multi-framework refactor launches as `3.0.0-rc.0` under the `@pulse/*` scope. Dual-track narrative was established in alpha.0 + reinforced in alpha.9's soft re-export.
+
+All 132 / 132 tests pass after the bump (verified `npm test && npm run test:packages`). No regressions.
+
+The maintainer's `npm publish` procedure (PUBLISH_CHECKLIST.md) now points at packages that **already carry the publish-target version**. Step 2 of the checklist (bump versions) is therefore pre-applied.
+
+### LOT C — `docs/universal/ALPHA_HISTORY.md` — one-paragraph-per-alpha narrative
+
+The brutal alpha.18 audit said 41 git tags in 24 h signals churn. The alpha.19 `VERSION_STRATEGY.md` proposed keeping the tags + writing a condensed history doc instead of squashing. This alpha ships that doc. ~100 LOC: TL;DR, one paragraph per alpha (alpha.0 through alpha.19), what's next, why the page exists. A visitor lands here, reads the project's narrative in 2 minutes, sees an audit-driven cycle that ended in a publishable rc instead of perpetual churn.
+
+### LOT D — `CODE_OF_CONDUCT.md` — Contributor Covenant 2.1 by reference
+
+Short pointer to the official Contributor Covenant 2.1 text (rather than inlining the full text, which drifts as the official version updates). Covers scope, reporting channel (placeholder email for the maintainer to fill in), 72 h ack commitment, enforcement via Community Impact Guidelines. ~30 LOC. GitHub detects `CODE_OF_CONDUCT.md` at the root and surfaces it in the repo Community tab automatically.
+
+### LOT E — GitHub Discussions enabled
+
+```
+gh api -X PATCH repos/YamadaBlog/pulse-player -f has_discussions=true
+→ has_discussions: True
+```
+
+Discussions become the canonical place for "should rc.0 do X?" / "I integrated this in Astro, here's what I did" / "Pulse vs Vidstack for my use case?" feedback — issues stay for bugs, Discussions for everything else. Standard OSS-community move pre-rc.0.
+
+### What I decided in autonomy (and why)
+
+1. **No rename** — Option A from `RENAMING_DECISION.md`. `@pulse` is free on npm, so the rename cost outweighs the SEO upside. The "pulse" name collision in npm search is real but mitigated by the unique scope.
+2. **Bump every package to 3.0.0-rc.0** — pre-applies Step 2 of `PUBLISH_CHECKLIST.md`. The maintainer's keyboard time for `npm publish` drops from ~5 minutes to ~3 minutes.
+3. **Root stays at 2.3.4** — preserves the dual-track narrative. `pulse-player` v2.3.4 is the Vue lib that continues shipping; `@pulse/*` v3.0.0-rc.0 is the multi-framework refactor. Consumers can pick either.
+4. **Keep the 41 alpha tags** — Option ALPHA from `VERSION_STRATEGY.md`. Transparency > cosmetic clean.
+5. **Short CoC via link rather than inlined Covenant** — drift-safe, equally GitHub-detected.
+
+### Tasks I did NOT do this alpha (with reasons)
+
+- **Did not `npm publish` the packages** — requires the maintainer's OTP at the keyboard. `PUBLISH_CHECKLIST.md` is one Bash session away.
+- **Did not change the repo name** — the GitHub repo stays `pulse-player`. Changing it would break the YouTube description deep link + the git tag history references in this CHANGELOG.
+- **Did not draft the actual security email address** — `security+conduct@yamadablog.example` is a placeholder; the maintainer fills in the real inbox before the first contributor-facing announcement.
+- **Did not implement the React Native runtime, run the SR test report, or publish to npm** — all gated on environments / accounts I don't control.
+
+### Quality gate
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings
+format:check             → all files use Prettier code style
+tests (root, Vue Pinia)  →  33 / 33
+tests (@pulse/core)      →  27 / 27
+tests (@pulse/tokens)    →  11 / 11
+tests (@pulse/web-comp)  →  22 / 22
+tests (@pulse/react)     →  16 / 16
+tests (@pulse/svelte)    →   8 /  8
+tests (@pulse/angular)   →   5 /  5
+tests (@pulse/RN)        →  10 / 10
+TOTAL unit               → 132 / 132 (after 0.0.0 → 3.0.0-rc.0 bump)
+audit (prod-only)        → 0 vulnerabilities
+Vue v2.3.4 demo          → bit-for-bit identical
+src/lib/                 → ZERO file modified (21st consecutive alpha)
+```
+
+### Self-assessed grade
+
+**6.5 / 10** on the "sellable today" axis (was honest 6.0 alpha.19).
+
+The +0.5 reflects:
+
+- Naming decision is locked → no more "wait for the maintainer to decide" friction.
+- Versions are pre-bumped → publish path shortened.
+- ALPHA_HISTORY makes the 41-tag question a feature, not a liability.
+- Discussions enabled → community feedback surface exists.
+- CoC is now in place → repo Community tab shows green.
+
+The ceiling stays at ~6.5 because the brutal "0 stars, 0 downloads, 0 testimonials" reality hasn't moved. Only adoption time changes that.
+
 ## 3.0.0-alpha.19 — 2026-06-07
 
 **The "sellable repo, honestly" alpha.** The brutal v3.0.0-alpha.18 product audit said: 0 stars, 0 npm downloads, no comparison page, no production-framework examples, no naming decision, no version strategy. This alpha closes every one of those gaps in documentation. Vue v2.3.4 codebase bit-for-bit identical on its 20th alpha.

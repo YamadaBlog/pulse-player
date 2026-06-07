@@ -1,6 +1,6 @@
 {
   "name": "@pulse/react",
-  "version": "0.0.0",
+  "version": "3.0.0-rc.0",
   "description": "React 18 / 19 wrapper for pulse-player — hooks + JSX components built on @pulse/web-component.",
   "license": "MIT",
   "type": "module",

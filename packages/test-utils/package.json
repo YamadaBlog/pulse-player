@@ -1,6 +1,6 @@
 {
   "name": "@pulse/test-utils",
-  "version": "0.0.0",
+  "version": "3.0.0-rc.0",
   "description": "Internal test utilities for the pulse-player monorepo. Shared jsdom + Web Audio + rAF stubs used by every @pulse/* package's vitest suite.",
   "license": "MIT",
   "type": "module",

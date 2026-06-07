@@ -1,6 +1,6 @@
 {
   "name": "@pulse/react-native",
-  "version": "0.0.0",
+  "version": "3.0.0-rc.0",
   "description": "React Native wrapper for pulse-player. INTERFACE TYPES + parity matrix (v3.0.0-alpha.8). Runtime renderer in v3.X.0 dedicated sprint. Sentinel exports throw a clear error message until then.",
   "license": "MIT",
   "type": "module",

@@ -1,6 +1,6 @@
 {
   "name": "@pulse/angular",
-  "version": "0.0.0",
+  "version": "3.0.0-rc.0",
   "description": "Angular 17+ wrapper for pulse-player. Thin module + Custom Elements registration on top of @pulse/web-component.",
   "license": "MIT",
   "type": "module",

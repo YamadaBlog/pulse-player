@@ -1,6 +1,6 @@
 {
   "name": "@pulse/web-component",
-  "version": "0.0.0",
+  "version": "3.0.0-rc.0",
   "description": "Universal Web Component renderer for pulse-player — Lit-based `<pulse-player>` and `<pulse-fab>`. Works in React, Vue, Angular, Svelte, Solid, vanilla JS, or plain HTML.",
   "license": "MIT",
   "type": "module",
