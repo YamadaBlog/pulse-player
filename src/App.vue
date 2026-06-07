@@ -18,8 +18,16 @@ const showcase = computed(() => showcaseParams()?.has('showcase') ?? false)
 const showcaseVariant = computed<MusicPlayerVariant>(() => {
   const v = showcaseParams()?.get('v') as MusicPlayerVariant | null
   const allowed: MusicPlayerVariant[] = [
-    'auto', 'transparent', 'solid', 'dark', 'light',
-    'sunset', 'midnight', 'aurora', 'vinyl', 'custom',
+    'auto',
+    'transparent',
+    'solid',
+    'dark',
+    'light',
+    'sunset',
+    'midnight',
+    'aurora',
+    'vinyl',
+    'custom',
   ]
   return v && allowed.includes(v) ? v : 'auto'
 })
@@ -30,8 +38,8 @@ const SHOWCASE_ACCENTS: Partial<Record<MusicPlayerVariant, string>> = {
   aurora: '#06B6D4',
   light: '#6750A4',
 }
-const showcaseAccent = computed(() =>
-  showcaseParams()?.get('a') ?? SHOWCASE_ACCENTS[showcaseVariant.value],
+const showcaseAccent = computed(
+  () => showcaseParams()?.get('a') ?? SHOWCASE_ACCENTS[showcaseVariant.value],
 )
 
 // Showcase mode starts on track 2 (white "a couple of good days" cover —
@@ -47,16 +55,18 @@ onMounted(() => {
 //   the same morph at the same widths.
 const SLIDER_MIN = 160
 const SLIDER_MAX = 720
-const sliderWidth = ref(440)  // mid-size default — comparable to the previous scale 1.0 visual
+const sliderWidth = ref(440) // mid-size default — comparable to the previous scale 1.0 visual
 const SIZE_PRESETS = [
   { label: 'XS', value: 160 },
-  { label: 'S',  value: 240 },
-  { label: 'M',  value: 360 },
-  { label: 'L',  value: 540 },
+  { label: 'S', value: 240 },
+  { label: 'M', value: 360 },
+  { label: 'L', value: 540 },
   { label: 'XL', value: 720 },
 ] as const
 
-function setPreset(v: number) { sliderWidth.value = v }
+function setPreset(v: number) {
+  sliderWidth.value = v
+}
 
 // ─── Variants gallery ──────────────────────────────────────────
 interface VariantSpec {
@@ -69,16 +79,57 @@ interface VariantSpec {
 }
 
 const variants: VariantSpec[] = [
-  { id: 'auto',         variant: 'auto',        label: 'Auto',         caption: 'Live cover art blur — signature look.' },
-  { id: 'vinyl',        variant: 'vinyl',       label: 'Vinyl',        caption: 'Warm analog · vinyl + leather.', accentColor: '#C8A97E' },
-  { id: 'sunset',       variant: 'sunset',      label: 'Sunset',       caption: 'Sepia · brown gradient.', accentColor: '#F59E0B' },
-  { id: 'midnight',     variant: 'midnight',    label: 'Midnight',     caption: 'Deep navy · violet.', accentColor: '#8B5CF6' },
-  { id: 'aurora',       variant: 'aurora',      label: 'Aurora',       caption: 'Teal · cyan night.', accentColor: '#06B6D4' },
-  { id: 'dark',         variant: 'dark',        label: 'Dark',         caption: 'Pure neutral dark.' },
-  { id: 'light',        variant: 'light',       label: 'Light',        caption: 'Light-mode inversion.', accentColor: '#6750A4' },
-  { id: 'transparent',  variant: 'transparent', label: 'Transparent',  caption: 'Frameless — over your bg.' },
-  { id: 'custom-brown', variant: 'custom',      label: 'Custom',       caption: 'Any CSS background.',
-    customBackground: 'linear-gradient(135deg, #2c1610 0%, #4a2c1f 45%, #6b4226 100%)', accentColor: '#E8A87C' },
+  { id: 'auto', variant: 'auto', label: 'Auto', caption: 'Live cover art blur — signature look.' },
+  {
+    id: 'vinyl',
+    variant: 'vinyl',
+    label: 'Vinyl',
+    caption: 'Warm analog · vinyl + leather.',
+    accentColor: '#C8A97E',
+  },
+  {
+    id: 'sunset',
+    variant: 'sunset',
+    label: 'Sunset',
+    caption: 'Sepia · brown gradient.',
+    accentColor: '#F59E0B',
+  },
+  {
+    id: 'midnight',
+    variant: 'midnight',
+    label: 'Midnight',
+    caption: 'Deep navy · violet.',
+    accentColor: '#8B5CF6',
+  },
+  {
+    id: 'aurora',
+    variant: 'aurora',
+    label: 'Aurora',
+    caption: 'Teal · cyan night.',
+    accentColor: '#06B6D4',
+  },
+  { id: 'dark', variant: 'dark', label: 'Dark', caption: 'Pure neutral dark.' },
+  {
+    id: 'light',
+    variant: 'light',
+    label: 'Light',
+    caption: 'Light-mode inversion.',
+    accentColor: '#6750A4',
+  },
+  {
+    id: 'transparent',
+    variant: 'transparent',
+    label: 'Transparent',
+    caption: 'Frameless — over your bg.',
+  },
+  {
+    id: 'custom-brown',
+    variant: 'custom',
+    label: 'Custom',
+    caption: 'Any CSS background.',
+    customBackground: 'linear-gradient(135deg, #2c1610 0%, #4a2c1f 45%, #6b4226 100%)',
+    accentColor: '#E8A87C',
+  },
 ]
 
 const responsiveWidths = [320, 480, 720] as const
@@ -91,13 +142,13 @@ const heroAccent = ref<string | undefined>(undefined)
 const activeFabVariant = ref<MusicPlayerVariant>('auto')
 const fabPulso = ref(false)
 const fabPalette: { id: MusicPlayerVariant; label: string; accent?: string }[] = [
-  { id: 'auto',     label: 'Auto' },
-  { id: 'vinyl',    label: 'Vinyl',    accent: '#C8A97E' },
-  { id: 'sunset',   label: 'Sunset',   accent: '#F59E0B' },
+  { id: 'auto', label: 'Auto' },
+  { id: 'vinyl', label: 'Vinyl', accent: '#C8A97E' },
+  { id: 'sunset', label: 'Sunset', accent: '#F59E0B' },
   { id: 'midnight', label: 'Midnight', accent: '#8B5CF6' },
-  { id: 'aurora',   label: 'Aurora',   accent: '#06B6D4' },
-  { id: 'dark',     label: 'Dark' },
-  { id: 'light',    label: 'Light' },
+  { id: 'aurora', label: 'Aurora', accent: '#06B6D4' },
+  { id: 'dark', label: 'Dark' },
+  { id: 'light', label: 'Light' },
 ]
 
 // ═══════════════════════════════════════════════════════════════
@@ -151,9 +202,25 @@ const demoSteps: DemoStep[] = [
       await ctx.scrollTo('.resize-stage')
       await ctx.delay(900)
       ctx.setMessage('Drop it at any container width — no media queries needed.')
-      await ctx.tween((v) => { sliderWidth.value = Math.round(v) }, sliderWidth.value, 280, 1400, 'outQuart')
+      await ctx.tween(
+        (v) => {
+          sliderWidth.value = Math.round(v)
+        },
+        sliderWidth.value,
+        280,
+        1400,
+        'outQuart',
+      )
       await ctx.delay(2200)
-      await ctx.tween((v) => { sliderWidth.value = Math.round(v) }, sliderWidth.value, 440, 1000, 'outQuart')
+      await ctx.tween(
+        (v) => {
+          sliderWidth.value = Math.round(v)
+        },
+        sliderWidth.value,
+        440,
+        1000,
+        'outQuart',
+      )
       await ctx.delay(700)
     },
   },
@@ -173,7 +240,9 @@ const demoSteps: DemoStep[] = [
       store.ambientEq = true
       await ctx.delay(2400)
 
-      const set = (v: number) => { tourDragWidth.value = Math.round(v) }
+      const set = (v: number) => {
+        tourDragWidth.value = Math.round(v)
+      }
 
       // Stage A — Start small (~280), grow up ONCE to hero width.
       // The growth is fast; the user has already seen the slider on
@@ -278,12 +347,18 @@ const demoSteps: DemoStep[] = [
       const targetX = -(window.innerWidth / 2 - anchorRight - fabSize / 2)
       const targetY = -(window.innerHeight / 2 - anchorBottom - fabSize / 2)
       const startPos = tourFabPos.value
-      await ctx.tween((t) => {
-        tourFabPos.value = {
-          x: startPos.x + (targetX - startPos.x) * t,
-          y: startPos.y + (targetY - startPos.y) * t,
-        }
-      }, 0, 1, 4600, 'inOutQuart')
+      await ctx.tween(
+        (t) => {
+          tourFabPos.value = {
+            x: startPos.x + (targetX - startPos.x) * t,
+            y: startPos.y + (targetY - startPos.y) * t,
+          }
+        },
+        0,
+        1,
+        4600,
+        'inOutQuart',
+      )
       await ctx.delay(2000)
     },
   },
@@ -348,9 +423,15 @@ const demoSteps: DemoStep[] = [
       // the FAB returns to its corner.
       fabFocused.value = false
       const start = tourFabPos.value ?? { x: 0, y: 0 }
-      await ctx.tween((t) => {
-        tourFabPos.value = { x: start.x * (1 - t), y: start.y * (1 - t) }
-      }, 0, 1, 1600, 'outQuart')
+      await ctx.tween(
+        (t) => {
+          tourFabPos.value = { x: start.x * (1 - t), y: start.y * (1 - t) }
+        },
+        0,
+        1,
+        1600,
+        'outQuart',
+      )
       tourFabPos.value = null
       await ctx.scrollTo('.hero', { speed: 'slow' })
       await ctx.delay(2400)
@@ -380,12 +461,20 @@ async function enterFullscreen() {
   if (typeof document === 'undefined') return
   if (document.fullscreenElement) return
   const el = document.documentElement
-  try { await el.requestFullscreen?.() } catch { /* refused — continue */ }
+  try {
+    await el.requestFullscreen?.()
+  } catch {
+    /* refused — continue */
+  }
 }
 async function exitFullscreen() {
   if (typeof document === 'undefined') return
   if (!document.fullscreenElement) return
-  try { await document.exitFullscreen?.() } catch { /* ignore */ }
+  try {
+    await document.exitFullscreen?.()
+  } catch {
+    /* ignore */
+  }
 }
 
 async function startDemo() {
@@ -440,9 +529,12 @@ function restoreFromDemo() {
 
 // Toggle a body class while the tour runs, so MusicPlayer transitions
 // can opt into a slower, more buttery curve via a global selector.
-watch(() => tour.isRunning.value, (running) => {
-  document.body.classList.toggle('tour-running', !!running)
-})
+watch(
+  () => tour.isRunning.value,
+  (running) => {
+    document.body.classList.toggle('tour-running', !!running)
+  },
+)
 
 onMounted(() => {
   document.addEventListener('fullscreenchange', onFullscreenChange)
@@ -478,363 +570,415 @@ const hero = computed(() => ({
     </section>
 
     <template v-if="!showcase">
-    <!-- ═══════════════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════════════
          DEMO OVERLAY — Netflix-style subtitle + Apple-style floating
          control pill. Discreet, premium, dismissible. Lives ONLY while
          the guided tour runs.
          ═══════════════════════════════════════════════════════════════ -->
-    <!-- FAB spotlight — dims the page when the demo brings the FAB into
+      <!-- FAB spotlight — dims the page when the demo brings the FAB into
          focus, isolating it visually so no text bleeds through behind. -->
-    <Transition name="fab-spotlight">
-      <div v-if="fabFocused" class="fab-spotlight" aria-hidden="true"></div>
-    </Transition>
+      <Transition name="fab-spotlight">
+        <div v-if="fabFocused" class="fab-spotlight" aria-hidden="true"></div>
+      </Transition>
 
-    <Transition name="demo-overlay">
-      <div v-if="tour.isRunning.value" class="demo-overlay" role="region" aria-label="Pulse demo controls">
-        <!-- Control pill at the TOP — dots + counter + prev / next / stop. -->
-        <div class="demo-pill" role="toolbar" aria-label="Demo controls">
-          <button
-            class="demo-pill__nav"
-            @click="tour.prev"
-            :disabled="tour.currentStep.value === 0"
-            aria-label="Previous step"
-          >
-            <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">
-              <path d="M9 2 L4 7 L9 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            </svg>
-          </button>
-
-          <div class="demo-pill__dots">
+      <Transition name="demo-overlay">
+        <div
+          v-if="tour.isRunning.value"
+          class="demo-overlay"
+          role="region"
+          aria-label="Pulse demo controls"
+        >
+          <!-- Control pill at the TOP — dots + counter + prev / next / stop. -->
+          <div class="demo-pill" role="toolbar" aria-label="Demo controls">
             <button
-              v-for="n in tour.totalSteps.value"
-              :key="n"
-              class="demo-pill__dot"
-              :class="{ 'demo-pill__dot--active': (n - 1) === tour.currentStep.value }"
-              @click="tour.goToStep(n - 1)"
-              :aria-label="`Go to step ${n}`"
-              :aria-current="(n - 1) === tour.currentStep.value ? 'step' : undefined"
-            ></button>
+              class="demo-pill__nav"
+              @click="tour.prev"
+              :disabled="tour.currentStep.value === 0"
+              aria-label="Previous step"
+            >
+              <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">
+                <path
+                  d="M9 2 L4 7 L9 12"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  fill="none"
+                />
+              </svg>
+            </button>
+
+            <div class="demo-pill__dots">
+              <button
+                v-for="n in tour.totalSteps.value"
+                :key="n"
+                class="demo-pill__dot"
+                :class="{ 'demo-pill__dot--active': n - 1 === tour.currentStep.value }"
+                @click="tour.goToStep(n - 1)"
+                :aria-label="`Go to step ${n}`"
+                :aria-current="n - 1 === tour.currentStep.value ? 'step' : undefined"
+              ></button>
+            </div>
+
+            <button class="demo-pill__nav" @click="tour.next" aria-label="Next step">
+              <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">
+                <path
+                  d="M5 2 L10 7 L5 12"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  fill="none"
+                />
+              </svg>
+            </button>
+
+            <div class="demo-pill__divider" aria-hidden="true"></div>
+
+            <span class="demo-pill__count" aria-live="polite">
+              {{ tour.currentStep.value + 1 }} / {{ tour.totalSteps.value }}
+            </span>
+
+            <button
+              class="demo-pill__pause"
+              :class="{ 'demo-pill__pause--paused': tour.isPaused.value }"
+              @click="tour.togglePause"
+              :aria-label="tour.isPaused.value ? 'Resume demo' : 'Pause demo'"
+            >
+              <svg
+                v-if="tour.isPaused.value"
+                viewBox="0 0 12 12"
+                width="10"
+                height="10"
+                aria-hidden="true"
+              >
+                <path d="M3.5 2 L9.5 6 L3.5 10 Z" fill="currentColor" />
+              </svg>
+              <svg v-else viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+                <rect x="3" y="2.5" width="2" height="7" rx="0.4" fill="currentColor" />
+                <rect x="7" y="2.5" width="2" height="7" rx="0.4" fill="currentColor" />
+              </svg>
+            </button>
+
+            <button class="demo-pill__stop" @click="stopDemo" aria-label="Stop demo">
+              <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+                <rect x="2.5" y="2.5" width="7" height="7" rx="1" fill="currentColor" />
+              </svg>
+              <span class="demo-pill__stop-label">Stop</span>
+            </button>
           </div>
 
-          <button
-            class="demo-pill__nav"
-            @click="tour.next"
-            aria-label="Next step"
-          >
-            <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">
-              <path d="M5 2 L10 7 L5 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            </svg>
-          </button>
-
-          <div class="demo-pill__divider" aria-hidden="true"></div>
-
-          <span class="demo-pill__count" aria-live="polite">
-            {{ tour.currentStep.value + 1 }} / {{ tour.totalSteps.value }}
-          </span>
-
-          <button
-            class="demo-pill__pause"
-            :class="{ 'demo-pill__pause--paused': tour.isPaused.value }"
-            @click="tour.togglePause"
-            :aria-label="tour.isPaused.value ? 'Resume demo' : 'Pause demo'"
-          >
-            <svg v-if="tour.isPaused.value" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
-              <path d="M3.5 2 L9.5 6 L3.5 10 Z" fill="currentColor"/>
-            </svg>
-            <svg v-else viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
-              <rect x="3" y="2.5" width="2" height="7" rx="0.4" fill="currentColor"/>
-              <rect x="7" y="2.5" width="2" height="7" rx="0.4" fill="currentColor"/>
-            </svg>
-          </button>
-
-          <button class="demo-pill__stop" @click="stopDemo" aria-label="Stop demo">
-            <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
-              <rect x="2.5" y="2.5" width="7" height="7" rx="1" fill="currentColor"/>
-            </svg>
-            <span class="demo-pill__stop-label">Stop</span>
-          </button>
-        </div>
-
-        <!-- Transient caption below the pill. No background — like a
+          <!-- Transient caption below the pill. No background — like a
              subtitle. Re-keyed so each new message fades in/out. -->
-        <Transition name="demo-caption" mode="out-in">
-          <p
-            v-if="tour.message.value"
-            :key="tour.message.value"
-            class="demo-overlay__caption"
-            aria-live="polite"
-          >{{ tour.message.value }}</p>
-        </Transition>
-      </div>
-    </Transition>
+          <Transition name="demo-caption" mode="out-in">
+            <p
+              v-if="tour.message.value"
+              :key="tour.message.value"
+              class="demo-overlay__caption"
+              aria-live="polite"
+            >
+              {{ tour.message.value }}
+            </p>
+          </Transition>
+        </div>
+      </Transition>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════════════
          HERO — Apple-grade showcase with blurred cover backdrop
          ═══════════════════════════════════════════════════════════════ -->
-    <section class="hero" :style="hero">
-      <div class="hero__backdrop" aria-hidden="true"></div>
-      <div class="hero__glow" aria-hidden="true"></div>
+      <section class="hero" :style="hero">
+        <div class="hero__backdrop" aria-hidden="true"></div>
+        <div class="hero__glow" aria-hidden="true"></div>
 
-      <div class="hero__inner">
-        <div class="hero__badge">v0.11 · Vue 3 · MIT · ~47 kB gzip</div>
-        <h1 class="hero__title">Premium drop-in music for Vue 3.</h1>
-        <p class="hero__lede">
-          An inline card and a floating FAB. One global audio session. FFT
-          visualiser, nine themes, container-aware sizing — and a guided
-          demo that walks you through the whole thing. Drop in. Ship.
-        </p>
+        <div class="hero__inner">
+          <div class="hero__badge">v0.11 · Vue 3 · MIT · ~47 kB gzip</div>
+          <h1 class="hero__title">Premium drop-in music for Vue 3.</h1>
+          <p class="hero__lede">
+            An inline card and a floating FAB. One global audio session. FFT visualiser, nine
+            themes, container-aware sizing — and a guided demo that walks you through the whole
+            thing. Drop in. Ship.
+          </p>
 
-        <div class="hero__player">
-          <MusicPlayer
-            :variant="heroVariant"
-            :accent-color="heroAccent"
-            github-url="https://github.com/YamadaBlog/pulse-player"
-            spotify-url="https://open.spotify.com/"
-          />
+          <div class="hero__player">
+            <MusicPlayer
+              :variant="heroVariant"
+              :accent-color="heroAccent"
+              github-url="https://github.com/YamadaBlog/pulse-player"
+              spotify-url="https://open.spotify.com/"
+            />
+          </div>
+
+          <div class="hero__cta">
+            <button class="cta cta--primary" @click="startDemo" :disabled="tour.isRunning.value">
+              <span class="cta__icon" aria-hidden="true">
+                <svg viewBox="0 0 14 14" width="13" height="13">
+                  <path d="M3 2 L11 7 L3 12 Z" fill="currentColor" />
+                </svg>
+              </span>
+              Watch demo
+            </button>
+            <a
+              class="cta cta--ghost"
+              href="https://github.com/YamadaBlog/pulse-player"
+              target="_blank"
+              rel="noopener"
+            >
+              View on GitHub
+              <span class="cta__arrow">→</span>
+            </a>
+            <button class="cta cta--text" @click="store.toggle">
+              {{ store.isPlaying ? 'Pause music' : 'Play music' }}
+            </button>
+          </div>
         </div>
+      </section>
 
-        <div class="hero__cta">
-          <button class="cta cta--primary" @click="startDemo" :disabled="tour.isRunning.value">
-            <span class="cta__icon" aria-hidden="true">
-              <svg viewBox="0 0 14 14" width="13" height="13"><path d="M3 2 L11 7 L3 12 Z" fill="currentColor"/></svg>
-            </span>
-            Watch demo
-          </button>
-          <a class="cta cta--ghost" href="https://github.com/YamadaBlog/pulse-player" target="_blank" rel="noopener">
-            View on GitHub
-            <span class="cta__arrow">→</span>
-          </a>
-          <button class="cta cta--text" @click="store.toggle">
-            {{ store.isPlaying ? 'Pause music' : 'Play music' }}
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══════════════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════════════
          INTERACTIVE — Resize the component live
          ═══════════════════════════════════════════════════════════════ -->
-    <section class="section section--narrow">
-      <p class="section__eyebrow">Live · Interactive</p>
-      <h2 class="section__h">Resize it. Everything follows.</h2>
-      <p class="section__sub">
-        One <code>--pulse-scale</code> variable drives the artwork, title,
-        icons, buttons, padding, radius, shadows, EQ bars, progress and gaps.
-        Move the slider — there is no breakpoint trick.
-      </p>
+      <section class="section section--narrow">
+        <p class="section__eyebrow">Live · Interactive</p>
+        <h2 class="section__h">Resize it. Everything follows.</h2>
+        <p class="section__sub">
+          One <code>--pulse-scale</code> variable drives the artwork, title, icons, buttons,
+          padding, radius, shadows, EQ bars, progress and gaps. Move the slider — there is no
+          breakpoint trick.
+        </p>
 
-      <div class="resize-stage">
-        <div class="resize-stage__player">
+        <div class="resize-stage">
+          <div class="resize-stage__player">
+            <MusicPlayer
+              :width="sliderWidth"
+              variant="midnight"
+              accent-color="#8B5CF6"
+              github-url="https://github.com/YamadaBlog/pulse-player"
+              spotify-url="https://open.spotify.com/"
+            />
+          </div>
+
+          <div class="resize-controls">
+            <div class="presets" role="group" aria-label="Size presets">
+              <button
+                v-for="p in SIZE_PRESETS"
+                :key="p.label"
+                class="presets__btn"
+                :class="{ 'presets__btn--active': sliderWidth === p.value }"
+                @click="setPreset(p.value)"
+              >
+                {{ p.label }}
+              </button>
+            </div>
+            <label class="slider">
+              <span class="slider__label">Width</span>
+              <input
+                type="range"
+                :min="SLIDER_MIN"
+                :max="SLIDER_MAX"
+                step="1"
+                v-model.number="sliderWidth"
+                aria-label="Component width in pixels"
+              />
+              <span class="slider__value">{{ sliderWidth }} px</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+         DRAG TO RESIZE — manual pointer-driven resize
+         ═══════════════════════════════════════════════════════════════ -->
+      <section class="section section--narrow">
+        <p class="section__eyebrow">Drag · Pointer events</p>
+        <h2 class="section__h">Grab the corner. Resize it yourself.</h2>
+        <p class="section__sub">
+          Pass <code>resizable</code> to the inline player and a diagonal handle appears in the
+          bottom-right corner. Mouse, finger or stylus — same code path (pointer events +
+          <code>setPointerCapture</code>). Pull it small enough and it collapses to compact mode
+          automatically.
+        </p>
+
+        <div class="drag-stage">
+          <div class="drag-stage__hint">
+            <span class="drag-stage__dot"></span>
+            Grab the
+            <span class="drag-stage__icon" aria-hidden="true">
+              <svg viewBox="0 0 14 14" width="14" height="14">
+                <path
+                  d="M1 13 L13 1 M5 13 L13 5 M9 13 L13 9"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  fill="none"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </span>
+            handle in the bottom-right corner
+          </div>
           <MusicPlayer
-            :width="sliderWidth"
             variant="midnight"
             accent-color="#8B5CF6"
+            resizable
+            :min-width="60"
+            :width="tourDragWidth"
             github-url="https://github.com/YamadaBlog/pulse-player"
             spotify-url="https://open.spotify.com/"
           />
-        </div>
-
-        <div class="resize-controls">
-          <div class="presets" role="group" aria-label="Size presets">
-            <button
-              v-for="p in SIZE_PRESETS"
-              :key="p.label"
-              class="presets__btn"
-              :class="{ 'presets__btn--active': sliderWidth === p.value }"
-              @click="setPreset(p.value)"
-            >{{ p.label }}</button>
-          </div>
-          <label class="slider">
-            <span class="slider__label">Width</span>
-            <input
-              type="range"
-              :min="SLIDER_MIN" :max="SLIDER_MAX" step="1"
-              v-model.number="sliderWidth"
-              aria-label="Component width in pixels"
-            />
-            <span class="slider__value">{{ sliderWidth }} px</span>
+          <label class="ambient-toggle" :class="{ 'ambient-toggle--on': store.ambientEq }">
+            <input type="checkbox" v-model="store.ambientEq" />
+            <span class="ambient-toggle__dot"></span>
+            <span class="ambient-toggle__label">Ambient EQ — global</span>
           </label>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         DRAG TO RESIZE — manual pointer-driven resize
-         ═══════════════════════════════════════════════════════════════ -->
-    <section class="section section--narrow">
-      <p class="section__eyebrow">Drag · Pointer events</p>
-      <h2 class="section__h">Grab the corner. Resize it yourself.</h2>
-      <p class="section__sub">
-        Pass <code>resizable</code> to the inline player and a diagonal handle
-        appears in the bottom-right corner. Mouse, finger or stylus — same
-        code path (pointer events + <code>setPointerCapture</code>). Pull it
-        small enough and it collapses to compact mode automatically.
-      </p>
-
-      <div class="drag-stage">
-        <div class="drag-stage__hint">
-          <span class="drag-stage__dot"></span>
-          Grab the
-          <span class="drag-stage__icon" aria-hidden="true">
-            <svg viewBox="0 0 14 14" width="14" height="14"><path d="M1 13 L13 1 M5 13 L13 5 M9 13 L13 9" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
-          </span>
-          handle in the bottom-right corner
-        </div>
-        <MusicPlayer
-          variant="midnight"
-          accent-color="#8B5CF6"
-          resizable
-          :min-width="60"
-          :width="tourDragWidth"
-          github-url="https://github.com/YamadaBlog/pulse-player"
-          spotify-url="https://open.spotify.com/"
-        />
-        <label class="ambient-toggle" :class="{ 'ambient-toggle--on': store.ambientEq }">
-          <input type="checkbox" v-model="store.ambientEq" />
-          <span class="ambient-toggle__dot"></span>
-          <span class="ambient-toggle__label">Ambient EQ — global</span>
-        </label>
-      </div>
-    </section>
-
-    <!-- ═══════════════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════════════
          FEATURES — Three-up
          ═══════════════════════════════════════════════════════════════ -->
-    <section class="section">
-      <div class="features">
-        <article class="feature">
-          <div class="feature__chip">01</div>
-          <h3 class="feature__h">Truly proportional</h3>
-          <p class="feature__p">
-            One CSS variable scales every dimension at once. Artwork, type,
-            chrome and shadows all breathe together.
-          </p>
-        </article>
-        <article class="feature">
-          <div class="feature__chip">02</div>
-          <h3 class="feature__h">Container-aware</h3>
-          <p class="feature__p">
-            Sizes itself off the container, not the viewport. Sidebar, hero,
-            modal — it always looks intentional.
-          </p>
-        </article>
-        <article class="feature">
-          <div class="feature__chip">03</div>
-          <h3 class="feature__h">Persistent session</h3>
-          <p class="feature__p">
-            One Pinia store, one audio element. Mount the FAB at the root
-            and playback survives every route change.
-          </p>
-        </article>
-      </div>
-    </section>
+      <section class="section">
+        <div class="features">
+          <article class="feature">
+            <div class="feature__chip">01</div>
+            <h3 class="feature__h">Truly proportional</h3>
+            <p class="feature__p">
+              One CSS variable scales every dimension at once. Artwork, type, chrome and shadows all
+              breathe together.
+            </p>
+          </article>
+          <article class="feature">
+            <div class="feature__chip">02</div>
+            <h3 class="feature__h">Container-aware</h3>
+            <p class="feature__p">
+              Sizes itself off the container, not the viewport. Sidebar, hero, modal — it always
+              looks intentional.
+            </p>
+          </article>
+          <article class="feature">
+            <div class="feature__chip">03</div>
+            <h3 class="feature__h">Persistent session</h3>
+            <p class="feature__p">
+              One Pinia store, one audio element. Mount the FAB at the root and playback survives
+              every route change.
+            </p>
+          </article>
+        </div>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════════════
          VARIANTS — gallery (Library · 9 presets / Pick a mood)
          ═══════════════════════════════════════════════════════════════ -->
-    <section class="section variants" id="variants">
-      <p class="section__eyebrow">Library · 9 presets</p>
-      <h2 class="section__h">Pick a mood.</h2>
-      <p class="section__sub">
-        Nine curated background presets, including the new <code>vinyl</code>
-        warm analog look. <code>accentColor</code> retunes the EQ + progress.
-      </p>
+      <section class="section variants" id="variants">
+        <p class="section__eyebrow">Library · 9 presets</p>
+        <h2 class="section__h">Pick a mood.</h2>
+        <p class="section__sub">
+          Nine curated background presets, including the new <code>vinyl</code> warm analog look.
+          <code>accentColor</code> retunes the EQ + progress.
+        </p>
 
-      <div class="grid">
-        <article v-for="v in variants" :key="v.id" class="grid__cell">
-          <div class="grid__label">
-            <span class="grid__label-name">{{ v.label }}</span>
-            <code class="grid__label-code">{{ v.variant }}</code>
-          </div>
-          <MusicPlayer
-            :variant="v.variant"
-            :custom-background="v.customBackground"
-            :accent-color="v.accentColor"
-          />
-          <p class="grid__caption">{{ v.caption }}</p>
-        </article>
-      </div>
-    </section>
+        <div class="grid">
+          <article v-for="v in variants" :key="v.id" class="grid__cell">
+            <div class="grid__label">
+              <span class="grid__label-name">{{ v.label }}</span>
+              <code class="grid__label-code">{{ v.variant }}</code>
+            </div>
+            <MusicPlayer
+              :variant="v.variant"
+              :custom-background="v.customBackground"
+              :accent-color="v.accentColor"
+            />
+            <p class="grid__caption">{{ v.caption }}</p>
+          </article>
+        </div>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════════════
          RESPONSIVE — Three sizes side by side
          ═══════════════════════════════════════════════════════════════ -->
-    <section class="section">
-      <p class="section__eyebrow">Responsive · Container queries</p>
-      <h2 class="section__h">Same component. Three widths.</h2>
-      <p class="section__sub">
-        At 320 px the artwork is compact, the title sits tight. At 720 px the
-        same component fills its space — bigger artwork, larger type, deeper
-        chrome — not because there is a media query, but because every
-        dimension is a function of <code>--pulse-scale</code>.
-      </p>
+      <section class="section">
+        <p class="section__eyebrow">Responsive · Container queries</p>
+        <h2 class="section__h">Same component. Three widths.</h2>
+        <p class="section__sub">
+          At 320 px the artwork is compact, the title sits tight. At 720 px the same component fills
+          its space — bigger artwork, larger type, deeper chrome — not because there is a media
+          query, but because every dimension is a function of <code>--pulse-scale</code>.
+        </p>
 
-      <div class="responsive">
-        <div v-for="w in responsiveWidths" :key="w" class="responsive__cell">
-          <div class="responsive__rule">{{ w }} px</div>
-          <div class="responsive__frame" :style="{ width: w + 'px' }">
-            <MusicPlayer variant="midnight" accent-color="#8B5CF6"
-              :github-url="'https://github.com/YamadaBlog/pulse-player'"
-              :spotify-url="'https://open.spotify.com/'"
-            />
+        <div class="responsive">
+          <div v-for="w in responsiveWidths" :key="w" class="responsive__cell">
+            <div class="responsive__rule">{{ w }} px</div>
+            <div class="responsive__frame" :style="{ width: w + 'px' }">
+              <MusicPlayer
+                variant="midnight"
+                accent-color="#8B5CF6"
+                :github-url="'https://github.com/YamadaBlog/pulse-player'"
+                :spotify-url="'https://open.spotify.com/'"
+              />
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════════════
          FAB
          ═══════════════════════════════════════════════════════════════ -->
-    <section class="section section--narrow">
-      <p class="section__eyebrow">Floating FAB</p>
-      <h2 class="section__h">Persistent, draggable, dismissible.</h2>
-      <p class="section__sub">
-        Mount once at the root. Drag to move, swipe down/right to dismiss,
-        long-press for the radial menu. The ring around it tracks progress.
-      </p>
+      <section class="section section--narrow">
+        <p class="section__eyebrow">Floating FAB</p>
+        <h2 class="section__h">Persistent, draggable, dismissible.</h2>
+        <p class="section__sub">
+          Mount once at the root. Drag to move, swipe down/right to dismiss, long-press for the
+          radial menu. The ring around it tracks progress.
+        </p>
 
-      <div class="palette" role="group" aria-label="Mini-player variant">
-        <button
-          v-for="opt in fabPalette"
-          :key="opt.id"
-          class="palette__chip"
-          :class="{ 'palette__chip--active': activeFabVariant === opt.id }"
-          @click="activeFabVariant = opt.id"
-        >{{ opt.label }}</button>
-      </div>
-      <div class="palette__hint">
-        <button class="cta cta--ghost cta--sm" @click="store.open" :disabled="store.isVisible">Show FAB</button>
-        <button class="cta cta--ghost cta--sm" @click="store.close">Hide FAB</button>
-        <label class="pulso-toggle" :class="{ 'pulso-toggle--on': fabPulso }">
-          <input type="checkbox" v-model="fabPulso" />
-          <span class="pulso-toggle__dot"></span>
-          <span class="pulso-toggle__label">Pulso</span>
-        </label>
-      </div>
-      <p class="palette__note">
-        <code>pulso</code> &nbsp;adds a subtle audio-wave ripple around the FAB.
-        Try it once the FAB is visible.
-      </p>
-    </section>
+        <div class="palette" role="group" aria-label="Mini-player variant">
+          <button
+            v-for="opt in fabPalette"
+            :key="opt.id"
+            class="palette__chip"
+            :class="{ 'palette__chip--active': activeFabVariant === opt.id }"
+            @click="activeFabVariant = opt.id"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+        <div class="palette__hint">
+          <button class="cta cta--ghost cta--sm" @click="store.open" :disabled="store.isVisible">
+            Show FAB
+          </button>
+          <button class="cta cta--ghost cta--sm" @click="store.close">Hide FAB</button>
+          <label class="pulso-toggle" :class="{ 'pulso-toggle--on': fabPulso }">
+            <input type="checkbox" v-model="fabPulso" />
+            <span class="pulso-toggle__dot"></span>
+            <span class="pulso-toggle__label">Pulso</span>
+          </label>
+        </div>
+        <p class="palette__note">
+          <code>pulso</code> &nbsp;adds a subtle audio-wave ripple around the FAB. Try it once the
+          FAB is visible.
+        </p>
+      </section>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+      <!-- ═══════════════════════════════════════════════════════════════
          FOOTER
          ═══════════════════════════════════════════════════════════════ -->
-    <footer class="footer">
-      <div class="footer__inner">
-        <div class="footer__brand">pulse-player</div>
-        <div class="footer__meta">Floating + inline music for Vue 3</div>
-        <a class="footer__link" href="https://github.com/YamadaBlog/pulse-player" target="_blank" rel="noopener">github →</a>
-      </div>
-    </footer>
-
+      <footer class="footer">
+        <div class="footer__inner">
+          <div class="footer__brand">pulse-player</div>
+          <div class="footer__meta">Floating + inline music for Vue 3</div>
+          <a
+            class="footer__link"
+            href="https://github.com/YamadaBlog/pulse-player"
+            target="_blank"
+            rel="noopener"
+            >github →</a
+          >
+        </div>
+      </footer>
     </template>
 
     <!-- Persistent FAB — global, survives navigation (hidden in showcase mode) -->
     <MiniPlayer
       v-if="!showcase"
       :variant="activeFabVariant"
-      :accent-color="fabPalette.find(p => p.id === activeFabVariant)?.accent"
+      :accent-color="fabPalette.find((p) => p.id === activeFabVariant)?.accent"
       :pulso="fabPulso"
       :position="tourFabPos"
     />
@@ -843,30 +987,45 @@ const hero = computed(() => ({
 
 <style>
 :root {
-  --pulse-accent: #3DBDA7;
+  --pulse-accent: #3dbda7;
   --pulse-bg: #14141a;
   /* page palette */
-  --pg-bg:        #05050a;
-  --pg-surface:   rgba(255, 255, 255, 0.04);
-  --pg-border:    rgba(255, 255, 255, 0.07);
-  --pg-text:      #ffffff;
-  --pg-text-mid:  rgba(255, 255, 255, 0.65);
-  --pg-text-low:  rgba(255, 255, 255, 0.45);
-  --pg-accent:    #3DBDA7;
+  --pg-bg: #05050a;
+  --pg-surface: rgba(255, 255, 255, 0.04);
+  --pg-border: rgba(255, 255, 255, 0.07);
+  --pg-text: #ffffff;
+  --pg-text-mid: rgba(255, 255, 255, 0.65);
+  --pg-text-low: rgba(255, 255, 255, 0.45);
+  --pg-accent: #3dbda7;
 }
 
-* { box-sizing: border-box; }
-html, body, #app {
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#app {
   margin: 0;
   background: var(--pg-bg);
   color: var(--pg-text);
-  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Inter, sans-serif;
+  font-family:
+    'SF Pro Display',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Inter,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
-body { min-height: 100vh; }
+body {
+  min-height: 100vh;
+}
 
-a { color: inherit; }
+a {
+  color: inherit;
+}
 code {
   background: rgba(255, 255, 255, 0.08);
   padding: 2px 6px;
@@ -875,7 +1034,9 @@ code {
   font-family: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
 }
 
-.app { width: 100%; }
+.app {
+  width: 100%;
+}
 
 /* ─── SHOWCASE — README hero capture ─────────────────────────
    Activate with ?showcase=1. Designed to be screenshotted at
@@ -908,7 +1069,11 @@ code {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, rgba(0, 0, 0, 0.35) 100%);
+  background: radial-gradient(
+    ellipse 70% 60% at 50% 50%,
+    transparent 30%,
+    rgba(0, 0, 0, 0.35) 100%
+  );
 }
 .showcase__player {
   width: min(720px, 100%);
@@ -933,7 +1098,9 @@ code {
   opacity: 0.55;
   z-index: -2;
   transform: scale(1.1);
-  transition: background-image 0.6s ease, opacity 0.6s ease;
+  transition:
+    background-image 0.6s ease,
+    opacity 0.6s ease;
 }
 .hero__glow {
   position: absolute;
@@ -990,7 +1157,13 @@ code {
   margin-top: 8px;
   filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.45));
 }
-.hero__cta { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 4px; }
+.hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 4px;
+}
 
 .cta {
   display: inline-flex;
@@ -1004,71 +1177,106 @@ code {
   border: 1px solid transparent;
   cursor: pointer;
   text-decoration: none;
-  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
   font-family: inherit;
 }
 .cta--primary {
-  background: linear-gradient(135deg, #1DB954 0%, #15a047 100%);
+  background: linear-gradient(135deg, #1db954 0%, #15a047 100%);
   color: #ffffff;
-  box-shadow: 0 8px 24px rgba(29, 185, 84, 0.30), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 8px 24px rgba(29, 185, 84, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
-.cta--primary:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(29, 185, 84, 0.40), inset 0 0 0 1px rgba(255, 255, 255, 0.20); }
-.cta--primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.cta--primary .cta__icon { display: inline-flex; align-items: center; justify-content: center; }
+.cta--primary:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 12px 28px rgba(29, 185, 84, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+.cta--primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+.cta--primary .cta__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 .cta--ghost {
   background: rgba(255, 255, 255, 0.06);
   color: var(--pg-text);
   border-color: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(8px);
 }
-.cta--ghost:hover { background: rgba(255, 255, 255, 0.12); }
-.cta--ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+.cta--ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.cta--ghost:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 .cta--text {
   background: transparent;
   color: var(--pg-text-mid);
   border-color: transparent;
   padding: 12px 14px;
 }
-.cta--text:hover { color: var(--pg-text); }
-.cta--sm { padding: 9px 16px; font-size: 13px; }
-.cta__arrow { transition: transform 0.15s ease; }
-.cta:hover .cta__arrow { transform: translateX(3px); }
+.cta--text:hover {
+  color: var(--pg-text);
+}
+.cta--sm {
+  padding: 9px 16px;
+  font-size: 13px;
+}
+.cta__arrow {
+  transition: transform 0.15s ease;
+}
+.cta:hover .cta__arrow {
+  transform: translateX(3px);
+}
 
 /* ─── FAB SPOTLIGHT ───────────────────────────────────────
    Dims the page so the floating FAB stands clear of any text. */
 .fab-spotlight {
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.80) 70%);
-  z-index: 800;            /* under the FAB (z-index 900) and pill (1000) */
+  background: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.8) 70%);
+  z-index: 800; /* under the FAB (z-index 900) and pill (1000) */
   pointer-events: none;
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
 }
 .fab-spotlight-enter-active,
 .fab-spotlight-leave-active {
-  transition: opacity 0.6s ease, backdrop-filter 0.6s ease;
+  transition:
+    opacity 0.6s ease,
+    backdrop-filter 0.6s ease;
 }
 .fab-spotlight-enter-from,
-.fab-spotlight-leave-to { opacity: 0; }
+.fab-spotlight-leave-to {
+  opacity: 0;
+}
 
 /* ─── MUSIC-PLAYER TRANSITIONS while the tour runs ─────────
    Buttery 0.55s curves replace the default 0.40s so the morph
    between every size feels continuous, not stepped. */
 body.tour-running .mp,
-body.tour-running .mp[data-fab="true"] {
+body.tour-running .mp[data-fab='true'] {
   transition-duration: 0.55s !important;
   transition-timing-function: cubic-bezier(0.65, 0, 0.35, 1) !important;
 }
 body.tour-running .mp .mp__body,
-body.tour-running .mp[data-fab="true"] .mp__body,
+body.tour-running .mp[data-fab='true'] .mp__body,
 body.tour-running .mp .mp__bar,
-body.tour-running .mp[data-fab="true"] .mp__bar,
+body.tour-running .mp[data-fab='true'] .mp__bar,
 body.tour-running .mp .mp__art,
-body.tour-running .mp[data-fab="true"] .mp__art,
+body.tour-running .mp[data-fab='true'] .mp__art,
 body.tour-running .mp .mp__fab-chrome,
-body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
+body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   transition-duration: 0.55s !important;
   transition-timing-function: cubic-bezier(0.65, 0, 0.35, 1) !important;
 }
@@ -1078,7 +1286,7 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  pointer-events: none;        /* page stays clickable; only pill is hit */
+  pointer-events: none; /* page stays clickable; only pill is hit */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1105,12 +1313,20 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
 }
 .demo-caption-enter-active,
 .demo-caption-leave-active {
-  transition: opacity 0.32s ease, transform 0.32s ease;
+  transition:
+    opacity 0.32s ease,
+    transform 0.32s ease;
 }
 /* Caption sits below the pill — fades in dropping a touch from above,
    leaves drifting upward to follow the pill. */
-.demo-caption-enter-from { opacity: 0; transform: translateY(-4px); }
-.demo-caption-leave-to   { opacity: 0; transform: translateY(4px); }
+.demo-caption-enter-from {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+.demo-caption-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
+}
 
 /* Control pill — small, tightly packed, glass background, premium feel. */
 .demo-pill {
@@ -1123,7 +1339,9 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   border-radius: 999px;
   backdrop-filter: blur(22px) saturate(140%);
   -webkit-backdrop-filter: blur(22px) saturate(140%);
-  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  box-shadow:
+    0 14px 38px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.04) inset;
   pointer-events: auto;
   font-family: inherit;
   color: rgba(255, 255, 255, 0.85);
@@ -1141,12 +1359,26 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   border-radius: 50%;
   color: rgba(255, 255, 255, 0.62);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
 }
-.demo-pill__nav:hover { background: rgba(255, 255, 255, 0.10); color: #fff; }
-.demo-pill__nav:active { transform: scale(0.92); }
-.demo-pill__nav:disabled { opacity: 0.30; cursor: not-allowed; }
-.demo-pill__nav:disabled:hover { background: transparent; color: rgba(255, 255, 255, 0.62); }
+.demo-pill__nav:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.demo-pill__nav:active {
+  transform: scale(0.92);
+}
+.demo-pill__nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.demo-pill__nav:disabled:hover {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.62);
+}
 
 /* Dot progress — current dot stretches into an accent pill. */
 .demo-pill__dots {
@@ -1163,22 +1395,29 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   border: 0;
   border-radius: 999px;
   cursor: pointer;
-  transition: width 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
-              background 0.20s ease,
-              transform 0.15s ease;
+  transition:
+    width 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
+    background 0.2s ease,
+    transform 0.15s ease;
 }
-.demo-pill__dot:hover { background: rgba(255, 255, 255, 0.45); transform: scale(1.15); }
+.demo-pill__dot:hover {
+  background: rgba(255, 255, 255, 0.45);
+  transform: scale(1.15);
+}
 .demo-pill__dot--active {
   width: 22px;
-  background: #1DB954;
+  background: #1db954;
   box-shadow: 0 0 12px rgba(29, 185, 84, 0.5);
 }
-.demo-pill__dot--active:hover { background: #1DB954; transform: none; }
+.demo-pill__dot--active:hover {
+  background: #1db954;
+  transform: none;
+}
 
 .demo-pill__divider {
   width: 1px;
   height: 18px;
-  background: rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.1);
   margin: 0 4px;
 }
 
@@ -1200,21 +1439,32 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
   color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.12s ease,
+    color 0.15s ease;
   font-family: inherit;
 }
-.demo-pill__pause:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
-.demo-pill__pause:active { transform: scale(0.92); }
+.demo-pill__pause:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.demo-pill__pause:active {
+  transform: scale(0.92);
+}
 .demo-pill__pause--paused {
   background: rgba(29, 185, 84, 0.18);
-  border-color: rgba(29, 185, 84, 0.40);
-  color: #1DB954;
+  border-color: rgba(29, 185, 84, 0.4);
+  color: #1db954;
 }
-.demo-pill__pause--paused:hover { background: rgba(29, 185, 84, 0.28); }
+.demo-pill__pause--paused:hover {
+  background: rgba(29, 185, 84, 0.28);
+}
 
 .demo-pill__stop {
   display: inline-flex;
@@ -1227,41 +1477,62 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   letter-spacing: 0.04em;
   color: rgba(255, 255, 255, 0.92);
   background: rgba(255, 78, 78, 0.18);
-  border: 1px solid rgba(255, 78, 78, 0.30);
+  border: 1px solid rgba(255, 78, 78, 0.3);
   border-radius: 999px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
 }
 .demo-pill__stop:hover {
   background: rgba(255, 78, 78, 0.28);
-  border-color: rgba(255, 78, 78, 0.50);
+  border-color: rgba(255, 78, 78, 0.5);
   transform: translateY(-1px);
 }
 
 /* Overlay enter / leave. */
 .demo-overlay-enter-active,
 .demo-overlay-leave-active {
-  transition: opacity 0.30s ease;
+  transition: opacity 0.3s ease;
 }
 .demo-overlay-enter-from,
-.demo-overlay-leave-to { opacity: 0; }
+.demo-overlay-leave-to {
+  opacity: 0;
+}
 .demo-overlay-enter-active .demo-pill,
 .demo-overlay-leave-active .demo-pill {
-  transition: transform 0.40s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.30s ease;
+  transition:
+    transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 0.3s ease;
 }
 .demo-overlay-enter-from .demo-pill,
-.demo-overlay-leave-to   .demo-pill {
-  transform: translateY(-24px);   /* slides in from above now that the pill is anchored top */
+.demo-overlay-leave-to .demo-pill {
+  transform: translateY(-24px); /* slides in from above now that the pill is anchored top */
   opacity: 0;
 }
 
 @media (max-width: 640px) {
-  .demo-overlay { padding: 16px 12px 0; gap: 12px; }
-  .demo-overlay__caption { font-size: 14px; max-width: 90vw; }
-  .demo-pill__divider { display: none; }
-  .demo-pill__count { display: none; }
-  .demo-pill__stop-label { display: none; }
-  .demo-pill__stop { padding: 6px 10px; }
+  .demo-overlay {
+    padding: 16px 12px 0;
+    gap: 12px;
+  }
+  .demo-overlay__caption {
+    font-size: 14px;
+    max-width: 90vw;
+  }
+  .demo-pill__divider {
+    display: none;
+  }
+  .demo-pill__count {
+    display: none;
+  }
+  .demo-pill__stop-label {
+    display: none;
+  }
+  .demo-pill__stop {
+    padding: 6px 10px;
+  }
 }
 
 /* ─── SECTIONS ─────────────────────────────────────────────── */
@@ -1270,7 +1541,9 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   margin: 0 auto;
   padding: clamp(60px, 8vw, 100px) 24px;
 }
-.section--narrow { max-width: 760px; }
+.section--narrow {
+  max-width: 760px;
+}
 
 .section__eyebrow {
   font-size: 11px;
@@ -1299,7 +1572,7 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
 .resize-stage {
   display: flex;
   flex-direction: column;
-  align-items: center;       /* keep every child centred */
+  align-items: center; /* keep every child centred */
   gap: 32px;
   padding: 28px;
   background: var(--pg-surface);
@@ -1315,7 +1588,7 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
 }
 .resize-stage__player {
   display: flex;
-  justify-content: center;   /* center the inline player horizontally */
+  justify-content: center; /* center the inline player horizontally */
   width: 100%;
   transition: max-width 0.2s ease;
 }
@@ -1326,9 +1599,17 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   gap: 14px;
 }
 
-.presets { display: flex; gap: 6px; padding: 4px; background: rgba(0, 0, 0, 0.35); border-radius: 999px; align-self: center; }
+.presets {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 999px;
+  align-self: center;
+}
 .presets__btn {
-  width: 44px; height: 32px;
+  width: 44px;
+  height: 32px;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -1337,10 +1618,14 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   border: none;
   border-radius: 999px;
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
   font-family: inherit;
 }
-.presets__btn:hover { color: var(--pg-text); }
+.presets__btn:hover {
+  color: var(--pg-text);
+}
 .presets__btn--active {
   color: #0a0a0f;
   background: #ffffff;
@@ -1355,7 +1640,8 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   max-width: 520px;
   margin: 0 auto;
 }
-.slider__label, .slider__value {
+.slider__label,
+.slider__value {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -1363,30 +1649,37 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   color: var(--pg-text-low);
   font-variant-numeric: tabular-nums;
 }
-.slider__value { color: var(--pg-text); text-transform: none; }
+.slider__value {
+  color: var(--pg-text);
+  text-transform: none;
+}
 
-.slider input[type="range"] {
+.slider input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
   height: 4px;
-  background: rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   outline: none;
 }
-.slider input[type="range"]::-webkit-slider-thumb {
+.slider input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 18px; height: 18px;
+  width: 18px;
+  height: 18px;
   background: var(--pg-accent);
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 0 0 4px rgba(61, 189, 167, 0.18);
   transition: transform 0.1s ease;
 }
-.slider input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
-.slider input[type="range"]::-moz-range-thumb {
-  width: 18px; height: 18px;
+.slider input[type='range']::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+.slider input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
   background: var(--pg-accent);
   border: none;
   border-radius: 50%;
@@ -1400,7 +1693,7 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;       /* keep the hint pill, player and toggle centred */
+  align-items: center; /* keep the hint pill, player and toggle centred */
   gap: 22px;
   padding: 28px;
   background: var(--pg-surface);
@@ -1439,8 +1732,13 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   animation: hint-pulse 2.2s ease-in-out infinite;
 }
 @keyframes hint-pulse {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(61, 189, 167, 0.18); }
-  50% { box-shadow: 0 0 0 8px rgba(61, 189, 167, 0.06); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgba(61, 189, 167, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(61, 189, 167, 0.06);
+  }
 }
 .drag-stage__icon {
   display: inline-flex;
@@ -1492,9 +1790,22 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 28px;
 }
-.grid__cell { display: flex; flex-direction: column; gap: 10px; }
-.grid__label { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.grid__label-name { font-size: 13px; font-weight: 700; letter-spacing: -0.005em; }
+.grid__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.grid__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.grid__label-name {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+}
 .grid__label-code {
   font-size: 11px;
   color: var(--pg-text-low);
@@ -1502,11 +1813,26 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   padding: 3px 8px;
   border-radius: 4px;
 }
-.grid__caption { color: var(--pg-text-low); font-size: 12.5px; line-height: 1.5; margin: 6px 0 0; }
+.grid__caption {
+  color: var(--pg-text-low);
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin: 6px 0 0;
+}
 
 /* ─── RESPONSIVE PROOF ─────────────────────────────────────── */
-.responsive { display: flex; flex-direction: column; gap: 26px; align-items: flex-start; max-width: 100%; overflow-x: auto; padding-bottom: 4px; }
-.responsive__cell { max-width: 100%; }
+.responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  align-items: flex-start;
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.responsive__cell {
+  max-width: 100%;
+}
 .responsive__rule {
   font-size: 11px;
   color: var(--pg-text-low);
@@ -1521,7 +1847,12 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
 }
 
 /* ─── FAB PALETTE ──────────────────────────────────────────── */
-.palette { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
 .palette__chip {
   padding: 9px 16px;
   font-size: 12.5px;
@@ -1529,19 +1860,27 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   letter-spacing: 0.02em;
   color: var(--pg-text-mid);
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.15s ease;
   font-family: inherit;
 }
-.palette__chip:hover { color: var(--pg-text); background: rgba(255, 255, 255, 0.10); }
+.palette__chip:hover {
+  color: var(--pg-text);
+  background: rgba(255, 255, 255, 0.1);
+}
 .palette__chip--active {
   color: var(--pg-accent);
   background: rgba(61, 189, 167, 0.12);
-  border-color: rgba(61, 189, 167, 0.40);
+  border-color: rgba(61, 189, 167, 0.4);
 }
-.palette__hint { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.palette__hint {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
 .palette__note {
   margin: 12px 0 0;
   font-size: 12.5px;
@@ -1565,25 +1904,34 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   letter-spacing: 0.02em;
   color: var(--pg-text-mid);
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
 }
-.pulso-toggle:hover { color: var(--pg-text); background: rgba(255, 255, 255, 0.08); }
-.pulso-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.pulso-toggle:hover {
+  color: var(--pg-text);
+  background: rgba(255, 255, 255, 0.08);
+}
+.pulso-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
 .pulso-toggle__dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.18);
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .pulso-toggle--on {
   color: var(--pg-accent);
   background: rgba(61, 189, 167, 0.12);
-  border-color: rgba(61, 189, 167, 0.40);
+  border-color: rgba(61, 189, 167, 0.4);
 }
 .pulso-toggle--on .pulso-toggle__dot {
   background: var(--pg-accent);
@@ -1591,8 +1939,13 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   animation: pulso-toggle-pulse 1.6s ease-in-out infinite;
 }
 @keyframes pulso-toggle-pulse {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(61, 189, 167, 0.25); }
-  50% { box-shadow: 0 0 0 6px rgba(61, 189, 167, 0.10); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(61, 189, 167, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(61, 189, 167, 0.1);
+  }
 }
 
 /* ─── Ambient EQ toggle (Spotify green accent) ──────────────── */
@@ -1608,28 +1961,37 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   letter-spacing: 0.02em;
   color: var(--pg-text-mid);
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
 }
-.ambient-toggle:hover { color: var(--pg-text); background: rgba(255, 255, 255, 0.08); }
-.ambient-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.ambient-toggle:hover {
+  color: var(--pg-text);
+  background: rgba(255, 255, 255, 0.08);
+}
+.ambient-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
 .ambient-toggle__dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.18);
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .ambient-toggle--on {
-  color: #1DB954;
-  background: rgba(29, 185, 84, 0.10);
-  border-color: rgba(29, 185, 84, 0.40);
+  color: #1db954;
+  background: rgba(29, 185, 84, 0.1);
+  border-color: rgba(29, 185, 84, 0.4);
 }
 .ambient-toggle--on .ambient-toggle__dot {
-  background: #1DB954;
+  background: #1db954;
   box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.22);
 }
 
@@ -1647,12 +2009,26 @@ body.tour-running .mp[data-fab="true"] .mp__fab-chrome {
   align-items: center;
   gap: 14px;
 }
-.footer__brand { font-weight: 700; letter-spacing: -0.01em; }
-.footer__meta { color: var(--pg-text-low); flex: 1; }
-.footer__link { color: var(--pg-accent); text-decoration: none; font-weight: 600; }
-.footer__link:hover { text-decoration: underline; }
+.footer__brand {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.footer__meta {
+  color: var(--pg-text-low);
+  flex: 1;
+}
+.footer__link {
+  color: var(--pg-accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+.footer__link:hover {
+  text-decoration: underline;
+}
 
 @media (max-width: 640px) {
-  .grid { grid-template-columns: 1fr; }
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

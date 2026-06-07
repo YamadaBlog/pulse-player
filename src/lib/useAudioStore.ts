@@ -15,8 +15,19 @@ export interface Track {
 }
 
 const DEFAULT_TRACKS: Track[] = [
-  { title: 'MIDNIGHT RUN', src: '/audio/track1.webm', cover: '/audio/cover.webp', coverPos: '20% center' },
-  { title: 'DEEP FOCUS', src: '/audio/track2.webm', cover: '/audio/cover2.webp', coverPos: '50% 60%', coverScale: 1.25 },
+  {
+    title: 'MIDNIGHT RUN',
+    src: '/audio/track1.webm',
+    cover: '/audio/cover.webp',
+    coverPos: '20% center',
+  },
+  {
+    title: 'DEEP FOCUS',
+    src: '/audio/track2.webm',
+    cover: '/audio/cover2.webp',
+    coverPos: '50% 60%',
+    coverScale: 1.25,
+  },
 ]
 
 let _tracks: Track[] = DEFAULT_TRACKS
@@ -59,8 +70,8 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
    *  and applies a frequency-dependent gain so the high-frequency
    *  bars don't go quiet just because high-end bins have less energy. */
   const eqAmbientBars = shallowRef<number[]>(new Array(64).fill(0))
-  const isVisible = ref(false)       // mini-player visible
-  const hasBeenOpened = ref(false)    // user started playback at least once
+  const isVisible = ref(false) // mini-player visible
+  const hasBeenOpened = ref(false) // user started playback at least once
   // Lightweight, privacy-friendly counters. Incremented locally only —
   // no network, no third-party. Useful for "how often did the user
   // press play" analytics that the integrator can hook up to their
@@ -93,9 +104,14 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
 
   function subscribe(event: AudioEvent, cb: Listener): () => void {
     let set = _listeners.get(event)
-    if (!set) { set = new Set(); _listeners.set(event, set) }
+    if (!set) {
+      set = new Set()
+      _listeners.set(event, set)
+    }
     set.add(cb)
-    return () => { set!.delete(cb) }
+    return () => {
+      set!.delete(cb)
+    }
   }
 
   function emit(event: AudioEvent, payload: EventPayload): void {
@@ -103,7 +119,14 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     if (!set) return
     set.forEach((cb) => {
       // One listener throwing must NEVER take the store down.
-      try { cb(payload) } catch (e) { /* eslint-disable-next-line no-console */ console.error(`[useAudioStore] listener for "${event}" threw:`, e) }
+      try {
+        cb(payload)
+      } catch (e) {
+        /* eslint-disable-next-line no-console */ console.error(
+          `[useAudioStore] listener for "${event}" threw:`,
+          e,
+        )
+      }
     })
   }
 
@@ -121,30 +144,41 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     if (audio) return
     const a = new Audio(_tracks[currentTrack.value].src)
     a.volume = 0.7
-    a.addEventListener('timeupdate', () => { currentTime.value = a.currentTime })
-    a.addEventListener('loadedmetadata', () => { duration.value = a.duration })
-    a.addEventListener('ended', () => { next() })
+    a.addEventListener('timeupdate', () => {
+      currentTime.value = a.currentTime
+    })
+    a.addEventListener('loadedmetadata', () => {
+      duration.value = a.duration
+    })
+    a.addEventListener('ended', () => {
+      next()
+    })
     audio = a
 
     try {
       // Safari < 14.1 still needs the webkit prefix.
       const AudioCtor: typeof AudioContext =
-        (window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext })
-          .AudioContext ??
-        (window as unknown as { webkitAudioContext?: typeof AudioContext })
-          .webkitAudioContext!
+        (
+          window as unknown as {
+            AudioContext?: typeof AudioContext
+            webkitAudioContext?: typeof AudioContext
+          }
+        ).AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext!
       audioCtx = new AudioCtor()
       analyser = audioCtx.createAnalyser()
-      analyser.fftSize = 256                 // 128 bins — enough headroom for log mapping
-      analyser.smoothingTimeConstant = 0.5   // snappier so adjacent bars stop syncing
+      analyser.fftSize = 256 // 128 bins — enough headroom for log mapping
+      analyser.smoothingTimeConstant = 0.5 // snappier so adjacent bars stop syncing
       sourceNode = audioCtx.createMediaElementSource(a)
       sourceNode.connect(analyser)
       analyser.connect(audioCtx.destination)
-    } catch { /* fallback: bars stay at 0 — AudioContext unavailable */ }
+    } catch {
+      /* fallback: bars stay at 0 — AudioContext unavailable */
+    }
   }
 
   function startEqLoop() {
-    if (!analyser || eqRaf !== null) return    // already running
+    if (!analyser || eqRaf !== null) return // already running
     const data = new Uint8Array(analyser.frequencyBinCount)
     const N = 64
     // Log-frequency map of bar index → FFT bin. minBin = 2 skips the
@@ -165,7 +199,10 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     const ambient = eqAmbientBars.value
     let frame = 0
     function tick() {
-      if (!analyser) { eqRaf = null; return }
+      if (!analyser) {
+        eqRaf = null
+        return
+      }
       analyser.getByteFrequencyData(data)
       // 4-bar condensed visualiser (NOW PLAYING / FAB chrome) — full 60 fps.
       focal[0] = data[3] / 255
@@ -178,7 +215,7 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
         for (let i = 0; i < N; i++) {
           const r = i / (N - 1)
           const raw = data[binMap[i]] / 255
-          const gain = 0.65 + r * 0.50
+          const gain = 0.65 + r * 0.5
           ambient[i] = Math.min(1, Math.pow(raw, 0.55) * gain)
         }
         triggerRef(eqAmbientBars)
@@ -202,7 +239,7 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
       audio.pause()
       isPlaying.value = false
       pauseCount.value++
-      stopEqLoop()                 // stop the rAF — the spectrum is flat anyway
+      stopEqLoop() // stop the rAF — the spectrum is flat anyway
       emit('pause', { track: track.value, time: currentTime.value })
     } else {
       audio.play()
@@ -210,7 +247,7 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
       hasBeenOpened.value = true
       isVisible.value = true
       playCount.value++
-      startEqLoop()                // start (or resume) the rAF
+      startEqLoop() // start (or resume) the rAF
       emit('play', { track: track.value, time: currentTime.value })
     }
   }
@@ -218,7 +255,7 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
   function loadTrack(i: number) {
     if (i < 0 || i >= _tracks.length) return
     const from = currentTrack.value
-    if (from === i) return                  // no-op
+    if (from === i) return // no-op
     currentTrack.value = i
     trackChangeCount.value++
     if (audio) {
@@ -231,10 +268,15 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
     emit('trackchange', { from, to: i, track: _tracks[i] })
   }
 
-  function next() { loadTrack((currentTrack.value + 1) % _tracks.length) }
+  function next() {
+    loadTrack((currentTrack.value + 1) % _tracks.length)
+  }
 
   function prev() {
-    if (currentTime.value > 3 && audio) { audio.currentTime = 0; return }
+    if (currentTime.value > 3 && audio) {
+      audio.currentTime = 0
+      return
+    }
     loadTrack((currentTrack.value - 1 + _tracks.length) % _tracks.length)
   }
 
@@ -248,7 +290,9 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
   }
 
   function close() {
-    if (audio) { audio.pause() }
+    if (audio) {
+      audio.pause()
+    }
     isPlaying.value = false
     isVisible.value = false
     stopEqLoop()
@@ -256,19 +300,40 @@ export const useAudioStore = defineStore('pulsePlayerAudio', () => {
 
   function fmt(s: number): string {
     if (!s || isNaN(s)) return '0:00'
-    return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`
+    return `${Math.floor(s / 60)}:${Math.floor(s % 60)
+      .toString()
+      .padStart(2, '0')}`
   }
 
   return {
     // State
-    currentTrack, isPlaying, currentTime, duration, eqBars, eqAmbientBars, ambientEq,
-    isVisible, hasBeenOpened,
+    currentTrack,
+    isPlaying,
+    currentTime,
+    duration,
+    eqBars,
+    eqAmbientBars,
+    ambientEq,
+    isVisible,
+    hasBeenOpened,
     // Privacy-friendly local counters (no network)
-    playCount, pauseCount, trackChangeCount,
+    playCount,
+    pauseCount,
+    trackChangeCount,
     // Getters
-    progress, track, tracks,
+    progress,
+    track,
+    tracks,
     // Actions
-    toggle, next, prev, seek, open, close, fmt, initAudio, loadTrack,
+    toggle,
+    next,
+    prev,
+    seek,
+    open,
+    close,
+    fmt,
+    initAudio,
+    loadTrack,
     // Opt-in event subscription (returns unsubscribe)
     subscribe,
   }

@@ -37,13 +37,13 @@ flowchart LR
 
 ## What lives where
 
-| Layer | Owns | Type |
-|---|---|---|
-| `useAudioStore` | the `<audio>` element, the `AudioContext` + `AnalyserNode`, reactive state, the `ambientEq` global flag, all actions, the opt-in event bus, per-session counters | Pinia store (singleton) |
-| `MusicPlayer.vue` | the inline card layout, the four responsive states (narrow/compact/FAB), the drag-resize handle, all CSS variables tied to `--pulse-scale` | Vue 3 SFC |
-| `MiniPlayer.vue` | the floating FAB, drag/swipe gestures, radial menu, progress ring, optional pulso heartbeat | Vue 3 SFC (Teleport to body) |
-| `useDemoTour` | the guided product tour — scripted timeline, two-tier abort, pause/resume, step jump, scroll/tween helpers, `prefers-reduced-motion` gate | Composable |
-| `setAudioTracks(tracks)` | replace the playlist before mount | function |
+| Layer                    | Owns                                                                                                                                                             | Type                         |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `useAudioStore`          | the `<audio>` element, the `AudioContext` + `AnalyserNode`, reactive state, the `ambientEq` global flag, all actions, the opt-in event bus, per-session counters | Pinia store (singleton)      |
+| `MusicPlayer.vue`        | the inline card layout, the four responsive states (narrow/compact/FAB), the drag-resize handle, all CSS variables tied to `--pulse-scale`                       | Vue 3 SFC                    |
+| `MiniPlayer.vue`         | the floating FAB, drag/swipe gestures, radial menu, progress ring, optional pulso heartbeat                                                                      | Vue 3 SFC (Teleport to body) |
+| `useDemoTour`            | the guided product tour — scripted timeline, two-tier abort, pause/resume, step jump, scroll/tween helpers, `prefers-reduced-motion` gate                        | Composable                   |
+| `setAudioTracks(tracks)` | replace the playlist before mount                                                                                                                                | function                     |
 
 ## Why one store
 
@@ -77,9 +77,9 @@ The analyser is wrapped in a `try / catch` — if the browser refuses the connec
 
 ## Browser support
 
-| API | Notes |
-|---|---|
-| `HTMLAudioElement` | universal |
-| Web Audio (`AudioContext`, `AnalyserNode`, `MediaElementAudioSourceNode`) | needed only for the EQ bars; degrades silently |
-| `ResizeObserver` | drives the auto-scale (Safari 13.1+, all evergreen browsers) |
-| Vue 3 `<Teleport>` | drives the FAB mount-to-body |
+| API                                                                       | Notes                                                        |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `HTMLAudioElement`                                                        | universal                                                    |
+| Web Audio (`AudioContext`, `AnalyserNode`, `MediaElementAudioSourceNode`) | needed only for the EQ bars; degrades silently               |
+| `ResizeObserver`                                                          | drives the auto-scale (Safari 13.1+, all evergreen browsers) |
+| Vue 3 `<Teleport>`                                                        | drives the FAB mount-to-body                                 |

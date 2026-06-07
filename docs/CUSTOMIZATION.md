@@ -47,8 +47,8 @@ Pass the `variant` prop to switch the visual preset. Pass `accentColor` to retun
 
 ```css
 :root {
-  --pulse-accent: #ff3da8;   /* EQ bars, progress ring, scrub hover, focus */
-  --pulse-bg:     #0e0e14;   /* `solid` variant background */
+  --pulse-accent: #ff3da8; /* EQ bars, progress ring, scrub hover, focus */
+  --pulse-bg: #0e0e14; /* `solid` variant background */
 }
 ```
 
@@ -106,7 +106,7 @@ Both components fall back to teal (`#3DBDA7`) when the variables are absent, so 
 import { useAudioStore } from 'pulse-player'
 
 const store = useAudioStore()
-store.ambientEq = true     // every <MusicPlayer /> without a local override lights up
+store.ambientEq = true // every <MusicPlayer /> without a local override lights up
 ```
 
 A local `:ambient-eq="false"` prop on a specific instance opts that instance out, even when the global flag is on.

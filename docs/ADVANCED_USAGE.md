@@ -9,8 +9,14 @@
 import { setAudioTracks } from './lib'
 
 setAudioTracks([
-  { title: 'YOUR TRACK',  src: '/music/01.mp3', cover: '/img/01.jpg', coverPos: '50% 40%' },
-  { title: 'ANOTHER ONE', src: '/music/02.mp3', cover: '/img/02.jpg', coverPos: 'center', coverScale: 1.1 },
+  { title: 'YOUR TRACK', src: '/music/01.mp3', cover: '/img/01.jpg', coverPos: '50% 40%' },
+  {
+    title: 'ANOTHER ONE',
+    src: '/music/02.mp3',
+    cover: '/img/02.jpg',
+    coverPos: 'center',
+    coverScale: 1.1,
+  },
 ])
 
 createApp(App).use(createPinia()).mount('#app')
@@ -32,9 +38,11 @@ const store = useAudioStore()
   </button>
 
   <input
-    type="range" min="0" max="100"
+    type="range"
+    min="0"
+    max="100"
     :value="store.progress"
-    @input="e => store.seek(+(e.target as HTMLInputElement).value / 100)"
+    @input="(e) => store.seek(+(e.target as HTMLInputElement).value / 100)"
   />
 
   <span>{{ store.fmt(store.currentTime) }} / {{ store.fmt(store.duration) }}</span>
@@ -51,9 +59,12 @@ import { useAudioStore } from './lib'
 
 const store = useAudioStore()
 
-watch(() => store.currentTrack, (i) => {
-  console.log('now playing', store.tracks[i].title)
-})
+watch(
+  () => store.currentTrack,
+  (i) => {
+    console.log('now playing', store.tracks[i].title)
+  },
+)
 ```
 
 ## Mount several players
@@ -102,7 +113,10 @@ The audio element follows standard browser rules. If the source needs cookies, h
 The analyser is wrapped in a `try / catch`. Nothing to disable — if you don't want the EQ bars, hide them in CSS:
 
 ```css
-.mp__eq, .fab__eq { display: none; }
+.mp__eq,
+.fab__eq {
+  display: none;
+}
 ```
 
 ## Limitations

@@ -136,34 +136,34 @@ That's it. Pinia is the only setup step. → [Detailed install + usage](./docs/A
 
 ## 📚 &nbsp;Documentation
 
-| | |
-|---|---|
-| 📖 &nbsp; [**API reference**](./docs/API.md) | Props for `MusicPlayer`, `MiniPlayer`, the `useAudioStore` state + actions |
-| 🏗️ &nbsp; [**Architecture**](./docs/ARCHITECTURE.md) | How the store, audio element and FFT analyser fit together (with diagram) |
-| 🎨 &nbsp; [**Customization**](./docs/CUSTOMIZATION.md) | Variants, accent colors, CSS variables, custom backgrounds |
-| 📐 &nbsp; [**Responsive**](./docs/RESPONSIVE.md) | The auto-scale curve, the four responsive states, drag-to-resize |
-| 🛠️ &nbsp; [**Advanced usage**](./docs/ADVANCED_USAGE.md) | Replace playlist, custom controls, multiple players, hide on routes |
-| ▶️ &nbsp; [**Guided demo tour**](./docs/DEMO.md) | The "Watch demo" feature — scenario, controls, fullscreen, custom steps |
-| 🔔 &nbsp; [**Events & telemetry**](./docs/EVENTS.md) | Opt-in `subscribe()` API + per-session counters (no third-party tracking) |
+|                                                          |                                                                            |
+| -------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 📖 &nbsp; [**API reference**](./docs/API.md)             | Props for `MusicPlayer`, `MiniPlayer`, the `useAudioStore` state + actions |
+| 🏗️ &nbsp; [**Architecture**](./docs/ARCHITECTURE.md)     | How the store, audio element and FFT analyser fit together (with diagram)  |
+| 🎨 &nbsp; [**Customization**](./docs/CUSTOMIZATION.md)   | Variants, accent colors, CSS variables, custom backgrounds                 |
+| 📐 &nbsp; [**Responsive**](./docs/RESPONSIVE.md)         | The auto-scale curve, the four responsive states, drag-to-resize           |
+| 🛠️ &nbsp; [**Advanced usage**](./docs/ADVANCED_USAGE.md) | Replace playlist, custom controls, multiple players, hide on routes        |
+| ▶️ &nbsp; [**Guided demo tour**](./docs/DEMO.md)         | The "Watch demo" feature — scenario, controls, fullscreen, custom steps    |
+| 🔔 &nbsp; [**Events & telemetry**](./docs/EVENTS.md)     | Opt-in `subscribe()` API + per-session counters (no third-party tracking)  |
 
 <br>
 
 ## 💎 &nbsp;Highlights
 
-| | |
-|---|---|
-| **Truly proportional** | One CSS variable scales artwork, type, chrome and shadows together. |
-| **Container-aware** | Sizes itself off its container, not the viewport. |
-| **Three responsive states** | Narrow (≤ 220 px) → compact (≤ 130 px) → FAB (≤ 110 px). All driven by ResizeObserver, no media queries. |
-| **Drag-to-resize** | Optional handle in the bottom-right corner. Pointer events. Mouse, touch, stylus. |
-| **Persistent session** | One Pinia store. Survives every route change. |
-| **9 themes + custom** | Includes a true transparent variant with gradient + noise. |
-| **Ambient EQ** | 64-bar GPU-composited spectrum across the player. Globally toggleable. |
-| **Pulso ripple** | Optional heartbeat ring around the FAB — only while music is playing. |
-| **Guided demo tour** | ~50 s scripted walkthrough with pause / resume / step jump and fullscreen. |
-| **Opt-in events** | `store.subscribe('play', …)` returns an unsubscribe. Plus play / pause / track-change counters. No third-party tracking. |
-| **a11y** | `prefers-reduced-motion` honoured everywhere — tweens snap, scrolls jump, transitions disabled. |
-| **Tiny** | ~49 kB gzipped (JS + CSS combined). Three deps (Vue, Pinia, lucide-vue-next). Zero domain code. |
+|                             |                                                                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Truly proportional**      | One CSS variable scales artwork, type, chrome and shadows together.                                                      |
+| **Container-aware**         | Sizes itself off its container, not the viewport.                                                                        |
+| **Three responsive states** | Narrow (≤ 220 px) → compact (≤ 130 px) → FAB (≤ 110 px). All driven by ResizeObserver, no media queries.                 |
+| **Drag-to-resize**          | Optional handle in the bottom-right corner. Pointer events. Mouse, touch, stylus.                                        |
+| **Persistent session**      | One Pinia store. Survives every route change.                                                                            |
+| **9 themes + custom**       | Includes a true transparent variant with gradient + noise.                                                               |
+| **Ambient EQ**              | 64-bar GPU-composited spectrum across the player. Globally toggleable.                                                   |
+| **Pulso ripple**            | Optional heartbeat ring around the FAB — only while music is playing.                                                    |
+| **Guided demo tour**        | ~50 s scripted walkthrough with pause / resume / step jump and fullscreen.                                               |
+| **Opt-in events**           | `store.subscribe('play', …)` returns an unsubscribe. Plus play / pause / track-change counters. No third-party tracking. |
+| **a11y**                    | `prefers-reduced-motion` honoured everywhere — tweens snap, scrolls jump, transitions disabled.                          |
+| **Tiny**                    | ~49 kB gzipped (JS + CSS combined). Three deps (Vue, Pinia, lucide-vue-next). Zero domain code.                          |
 
 <br>
 
@@ -182,21 +182,21 @@ That's it. Pinia is the only setup step. → [Detailed install + usage](./docs/A
 
 ## 📝 &nbsp;Changelog
 
-| Version | Highlights |
-|---|---|
+| Version    | Highlights                                                                                                                                                                                                                                                                                                  |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **0.13.0** | Audit-driven hardening: cancellable rAF EQ loop tied to play state, `prefers-reduced-motion` honoured across CSS + demo tour, `webkitAudioContext` Safari fallback, `ResizeObserver` feature-test, zero-allocation EQ (`shallowRef` + `triggerRef`), opt-in `subscribe()` event API + per-session counters. |
-| 0.12.x | EQ bars GPU-composited (`transform: scaleY()` + `contain: layout style paint`). Demo tour gets Pause / Resume + per-step jump + true centred FAB drag + fit-content stages. |
-| 0.11.x | Guided demo tour ("Watch demo") with sticky pill controls and fullscreen. Pick-a-mood section + Vinyl/Aurora FAB showcase. |
-| 0.10.x | `ambientEq` global toggle (`store.ambientEq`). 64-bar Spotify-style ambient visualiser. EQ bars locked to Spotify green for brand consistency. |
-| 0.9.x | Resize handle (mouse + touch + stylus) on `MusicPlayer`. Drag-to-resize. FAB transformation at 110 px. Three threshold morph (narrow / compact / FAB). |
-| 0.8.x | Pulso heartbeat ripple around the FAB (only while audio is playing). Subtle radial waves with reduced-motion gate. |
-| 0.7.x | Noise grain overlay across every variant. `auto` cover-blur backdrop. Resize handle pointer-events. FAB drag persistence to localStorage. |
-| 0.6.0 | Transparent variant restored with original dashboard gradient + noise. Clean element-level screenshots (no browser chrome). |
-| 0.5.0 | Compact mode. Slim product README. Docs split. |
-| 0.4.0 | Mermaid architecture diagram. Premium product README. |
-| 0.3.x | `--pulse-scale` system. ResizeObserver auto-scale. Interactive size slider. |
-| 0.2.x | Variant system. ResizeObserver-driven responsive. Screenshots. |
-| 0.1.0 | Initial release. |
+| 0.12.x     | EQ bars GPU-composited (`transform: scaleY()` + `contain: layout style paint`). Demo tour gets Pause / Resume + per-step jump + true centred FAB drag + fit-content stages.                                                                                                                                 |
+| 0.11.x     | Guided demo tour ("Watch demo") with sticky pill controls and fullscreen. Pick-a-mood section + Vinyl/Aurora FAB showcase.                                                                                                                                                                                  |
+| 0.10.x     | `ambientEq` global toggle (`store.ambientEq`). 64-bar Spotify-style ambient visualiser. EQ bars locked to Spotify green for brand consistency.                                                                                                                                                              |
+| 0.9.x      | Resize handle (mouse + touch + stylus) on `MusicPlayer`. Drag-to-resize. FAB transformation at 110 px. Three threshold morph (narrow / compact / FAB).                                                                                                                                                      |
+| 0.8.x      | Pulso heartbeat ripple around the FAB (only while audio is playing). Subtle radial waves with reduced-motion gate.                                                                                                                                                                                          |
+| 0.7.x      | Noise grain overlay across every variant. `auto` cover-blur backdrop. Resize handle pointer-events. FAB drag persistence to localStorage.                                                                                                                                                                   |
+| 0.6.0      | Transparent variant restored with original dashboard gradient + noise. Clean element-level screenshots (no browser chrome).                                                                                                                                                                                 |
+| 0.5.0      | Compact mode. Slim product README. Docs split.                                                                                                                                                                                                                                                              |
+| 0.4.0      | Mermaid architecture diagram. Premium product README.                                                                                                                                                                                                                                                       |
+| 0.3.x      | `--pulse-scale` system. ResizeObserver auto-scale. Interactive size slider.                                                                                                                                                                                                                                 |
+| 0.2.x      | Variant system. ResizeObserver-driven responsive. Screenshots.                                                                                                                                                                                                                                              |
+| 0.1.0      | Initial release.                                                                                                                                                                                                                                                                                            |
 
 <br>
 

@@ -13,10 +13,10 @@
 
 ## The events
 
-| Event | When it fires | Payload |
-|---|---|---|
-| `'play'` | After `audio.play()` is called (so just after the user gesture or after `toggle()` resumes from pause). | `{ track: Track, time: number }` |
-| `'pause'` | After `audio.pause()` is called. | `{ track: Track, time: number }` |
+| Event           | When it fires                                                                                                       | Payload                                      |
+| --------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `'play'`        | After `audio.play()` is called (so just after the user gesture or after `toggle()` resumes from pause).             | `{ track: Track, time: number }`             |
+| `'pause'`       | After `audio.pause()` is called.                                                                                    | `{ track: Track, time: number }`             |
 | `'trackchange'` | After `loadTrack(i)` changes the index (or `next()` / `prev()` lands on a different track). No-op moves don't fire. | `{ from: number, to: number, track: Track }` |
 
 ## Subscribing
@@ -31,7 +31,7 @@ const off = store.subscribe('play', ({ track, time }) => {
 })
 
 // later
-off()   // unsubscribe — the listener stops firing
+off() // unsubscribe — the listener stops firing
 ```
 
 `subscribe` returns an unsubscribe function. Wire it into `onScopeDispose` / `onBeforeUnmount` if you're calling from inside a Vue component:
@@ -52,11 +52,11 @@ onBeforeUnmount(off)
 ```ts
 const store = useAudioStore()
 
-console.log(store.playCount.value)   // → 0 on first read
+console.log(store.playCount.value) // → 0 on first read
 
 // later, after the user plays a few tracks:
-console.log(store.playCount.value)        // → 3
-console.log(store.pauseCount.value)       // → 2
+console.log(store.playCount.value) // → 3
+console.log(store.pauseCount.value) // → 2
 console.log(store.trackChangeCount.value) // → 4
 ```
 
@@ -98,7 +98,12 @@ import { watch } from 'vue'
 
 const KEY = 'pulse-listens'
 store.playCount.value = Number(localStorage.getItem(KEY) || 0)
-watch(() => store.playCount.value, (n) => { localStorage.setItem(KEY, String(n)) })
+watch(
+  () => store.playCount.value,
+  (n) => {
+    localStorage.setItem(KEY, String(n))
+  },
+)
 ```
 
 ## What's NOT shipped

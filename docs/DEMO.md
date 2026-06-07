@@ -20,13 +20,13 @@ The whole overlay is on `pointer-events: none` so the page stays clickable throu
 
 ## Anatomy
 
-| Piece | Where |
-|---|---|
+| Piece      | Where                                                                                                                                                                                                                                                                                       |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Composable | [`src/composables/useDemoTour.ts`](../src/composables/useDemoTour.ts) — async/await timeline controller with a two-tier `AbortController` (tour-wide + per-step), `tween`, `scrollTo`, `delay`, `setMessage` helpers, plus `goToStep` / `next` / `prev` jump primitives. Zero dependencies. |
-| Scenario | [`src/App.vue`](../src/App.vue) → `demoSteps` — ten declarative steps. |
-| Overlay | `.demo-overlay` block in `src/App.vue` — subtitle caption + glass control pill. |
-| Hero CTA | `cta--primary` "Watch demo" button in the hero. Disabled while the tour runs. |
-| Fullscreen | `requestFullscreen()` is called on the document element when the tour starts and `exitFullscreen()` runs from the `onStop` cleanup. Both are best-effort: if the browser refuses (mobile Safari, embedded frames, some kiosks), the tour still runs without it. |
+| Scenario   | [`src/App.vue`](../src/App.vue) → `demoSteps` — ten declarative steps.                                                                                                                                                                                                                      |
+| Overlay    | `.demo-overlay` block in `src/App.vue` — subtitle caption + glass control pill.                                                                                                                                                                                                             |
+| Hero CTA   | `cta--primary` "Watch demo" button in the hero. Disabled while the tour runs.                                                                                                                                                                                                               |
+| Fullscreen | `requestFullscreen()` is called on the document element when the tour starts and `exitFullscreen()` runs from the `onStop` cleanup. Both are best-effort: if the browser refuses (mobile Safari, embedded frames, some kiosks), the tour still runs without it.                             |
 
 ## Run it
 
@@ -40,28 +40,28 @@ Open the page. Click **Watch demo** in the hero. The browser asks (or silently g
 
 ## Scenario (10 steps, ~75 s)
 
-| # | Title | What it shows |
-|---|---|---|
-| 1 | Welcome | Slow scroll-in on the hero, intro caption. |
-| 2 | Press play | Starts audio so the FFT bars come alive. |
-| 3 | Container-aware | **Short.** One tap on the `S` size preset on "Resize it. Everything follows.", then back to `M`. ~5 s. |
-| 4 | Drag-to-resize | **The real resize show.** Scrolls slow to "Grab the corner. Resize it yourself.", flips ambient EQ on, then tweens the drag-stage player width 90 → 700 → 320 px with `outQuart` / `inOutQuart`. ~15 s. |
-| 5 | Pick a mood | Slow scroll to the variants grid, two captions, ~7 s. |
-| 6 | Floating FAB | A **boost** scroll (`speed: 'fast'`) down to the FAB section. |
-| 7 | Drag anywhere | Tweens the FAB position from its corner to the centre of the viewport. |
-| 8 | Vinyl & Aurora | Cycles `activeFabVariant` through `vinyl` → `aurora` (3.2 s each). |
-| 9 | Pulso | Turns the heartbeat ripple on for ~5 s. |
-| 10 | You're in | Glides the FAB back to its corner, slow scroll back to the hero, exits fullscreen. |
+| #   | Title           | What it shows                                                                                                                                                                                           |
+| --- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Welcome         | Slow scroll-in on the hero, intro caption.                                                                                                                                                              |
+| 2   | Press play      | Starts audio so the FFT bars come alive.                                                                                                                                                                |
+| 3   | Container-aware | **Short.** One tap on the `S` size preset on "Resize it. Everything follows.", then back to `M`. ~5 s.                                                                                                  |
+| 4   | Drag-to-resize  | **The real resize show.** Scrolls slow to "Grab the corner. Resize it yourself.", flips ambient EQ on, then tweens the drag-stage player width 90 → 700 → 320 px with `outQuart` / `inOutQuart`. ~15 s. |
+| 5   | Pick a mood     | Slow scroll to the variants grid, two captions, ~7 s.                                                                                                                                                   |
+| 6   | Floating FAB    | A **boost** scroll (`speed: 'fast'`) down to the FAB section.                                                                                                                                           |
+| 7   | Drag anywhere   | Tweens the FAB position from its corner to the centre of the viewport.                                                                                                                                  |
+| 8   | Vinyl & Aurora  | Cycles `activeFabVariant` through `vinyl` → `aurora` (3.2 s each).                                                                                                                                      |
+| 9   | Pulso           | Turns the heartbeat ripple on for ~5 s.                                                                                                                                                                 |
+| 10  | You're in       | Glides the FAB back to its corner, slow scroll back to the hero, exits fullscreen.                                                                                                                      |
 
 ## Controls — `useDemoTour` API
 
 ```ts
 const tour = useDemoTour()
-tour.start(steps, { onStop: cleanupFn })   // run the timeline
-tour.stop()                                 // abort cleanly, fire cleanup
-tour.next()                                 // jump forward 1 step
-tour.prev()                                 // jump back 1 step
-tour.goToStep(4)                            // jump to step index 4
+tour.start(steps, { onStop: cleanupFn }) // run the timeline
+tour.stop() // abort cleanly, fire cleanup
+tour.next() // jump forward 1 step
+tour.prev() // jump back 1 step
+tour.goToStep(4) // jump to step index 4
 ```
 
 Reactive state: `isRunning`, `currentStep`, `totalSteps`, `title`, `message`, `progress`.
@@ -95,7 +95,15 @@ const demoSteps: DemoStep[] = [
     run: async (ctx) => {
       ctx.setMessage('What this step shows.')
       await ctx.scrollTo('.my-section', { speed: 'slow' })
-      await ctx.tween((v) => { mySliderRef.value = v }, 0, 100, 1200, 'outQuart')
+      await ctx.tween(
+        (v) => {
+          mySliderRef.value = v
+        },
+        0,
+        100,
+        1200,
+        'outQuart',
+      )
       await ctx.delay(800)
     },
   },

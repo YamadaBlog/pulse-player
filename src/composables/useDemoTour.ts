@@ -43,12 +43,7 @@
  */
 import { ref, computed, type Ref } from 'vue'
 
-export type EasingName =
-  | 'inOutCubic'
-  | 'outQuart'
-  | 'outQuint'
-  | 'inOutQuart'
-  | 'outExpo'
+export type EasingName = 'inOutCubic' | 'outQuart' | 'outQuint' | 'inOutQuart' | 'outExpo'
 
 export interface ScrollToOptions {
   /** How urgently to move. Most steps should stay on `gentle`.
@@ -141,7 +136,9 @@ export function useDemoTour() {
           tween: (setter, from, to, ms, easing = 'outQuart') =>
             abortableTween(setter, from, to, ms, EASINGS[easing], stepSignal, checkPaused),
           scrollTo: (target, opts) => abortableScrollTo(target, stepSignal, checkPaused, opts),
-          setMessage: (m) => { message.value = m },
+          setMessage: (m) => {
+            message.value = m
+          },
         }
 
         try {
@@ -180,7 +177,11 @@ export function useDemoTour() {
       title.value = ''
       message.value = ''
       progress.value = 0
-      try { cleanup?.() } catch { /* ignore cleanup errors */ }
+      try {
+        cleanup?.()
+      } catch {
+        /* ignore cleanup errors */
+      }
     }
   }
 
@@ -257,16 +258,18 @@ export function useDemoTour() {
 /** Returns a signal that aborts when *any* of the inputs aborts.
  *  Prefers the native `AbortSignal.any` when available. */
 function combinedAbort(...signals: AbortSignal[]): AbortSignal {
-  const SAny = (AbortSignal as unknown as {
-    any?: (s: AbortSignal[]) => AbortSignal
-  }).any
+  const SAny = (
+    AbortSignal as unknown as {
+      any?: (s: AbortSignal[]) => AbortSignal
+    }
+  ).any
   if (typeof SAny === 'function') return SAny(signals)
   const c = new AbortController()
-  if (signals.some(s => s.aborted)) {
+  if (signals.some((s) => s.aborted)) {
     c.abort()
   } else {
     const onAbort = () => c.abort()
-    signals.forEach(s => s.addEventListener('abort', onAbort, { once: true }))
+    signals.forEach((s) => s.addEventListener('abort', onAbort, { once: true }))
   }
   return c.signal
 }
@@ -284,18 +287,19 @@ function abortError(): Error {
  *  scrolls, no tweens, no slow caption fades. We still walk through
  *  every step but each one snaps into its final state. */
 function prefersReducedMotion(): boolean {
-  return typeof window !== 'undefined' &&
+  return (
+    typeof window !== 'undefined' &&
     typeof window.matchMedia === 'function' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
 }
 
-function abortableDelay(
-  ms: number,
-  signal: AbortSignal,
-  isPaused: () => boolean,
-): Promise<void> {
+function abortableDelay(ms: number, signal: AbortSignal, isPaused: () => boolean): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (signal.aborted) { reject(abortError()); return }
+    if (signal.aborted) {
+      reject(abortError())
+      return
+    }
     let remaining = ms
     let lastNow = performance.now()
     let raf = 0
@@ -331,7 +335,10 @@ function abortableTween(
   isPaused: () => boolean,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (signal.aborted) { reject(abortError()); return }
+    if (signal.aborted) {
+      reject(abortError())
+      return
+    }
     // Reduced motion → snap straight to the end value, skip the rAF loop.
     if (prefersReducedMotion()) {
       setter(to)
@@ -370,16 +377,24 @@ function abortableScrollTo(
   opts: ScrollToOptions = {},
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (signal.aborted) { reject(abortError()); return }
-    const el =
-      typeof target === 'string' ? document.querySelector(target) : target
-    if (!el) { resolve(); return }
+    if (signal.aborted) {
+      reject(abortError())
+      return
+    }
+    const el = typeof target === 'string' ? document.querySelector(target) : target
+    if (!el) {
+      resolve()
+      return
+    }
     const offsetTop = opts.offset ?? window.innerHeight * 0.18
     const rect = (el as Element).getBoundingClientRect()
     const targetY = Math.max(0, rect.top + window.scrollY - offsetTop)
     const startY = window.scrollY
     const distance = targetY - startY
-    if (Math.abs(distance) < 4) { resolve(); return }
+    if (Math.abs(distance) < 4) {
+      resolve()
+      return
+    }
     // Reduced motion → jump directly to the target Y, no smooth scroll.
     if (prefersReducedMotion()) {
       window.scrollTo(0, targetY)
@@ -422,23 +437,26 @@ function abortableScrollTo(
 // ─── Easings ────────────────────────────────────────────────────
 const EASINGS: Record<EasingName, (t: number) => number> = {
   inOutCubic: (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
-  outQuart:   (t) => 1 - Math.pow(1 - t, 4),
-  outQuint:   (t) => 1 - Math.pow(1 - t, 5),
+  outQuart: (t) => 1 - Math.pow(1 - t, 4),
+  outQuint: (t) => 1 - Math.pow(1 - t, 5),
   inOutQuart: (t) => (t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2),
-  outExpo:    (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t)),
+  outExpo: (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t)),
 }
 
-const SCROLL_SPEED: Record<'gentle' | 'fast' | 'slow', {
-  min: number
-  max: number
-  base: number
-  perPx: number
-  easing: EasingName
-}> = {
+const SCROLL_SPEED: Record<
+  'gentle' | 'fast' | 'slow',
+  {
+    min: number
+    max: number
+    base: number
+    perPx: number
+    easing: EasingName
+  }
+> = {
   // Default — luxurious decelerate over an honest distance.
   gentle: { min: 900, max: 2200, base: 600, perPx: 0.85, easing: 'outQuart' },
   // Used for the "boost" scroll to the bottom of the page.
-  fast:   { min: 700, max: 1400, base: 350, perPx: 0.40, easing: 'outQuint' },
+  fast: { min: 700, max: 1400, base: 350, perPx: 0.4, easing: 'outQuint' },
   // For very tiny focus shifts between adjacent sections.
-  slow:   { min: 1400, max: 2800, base: 900, perPx: 1.20, easing: 'inOutQuart' },
+  slow: { min: 1400, max: 2800, base: 900, perPx: 1.2, easing: 'inOutQuart' },
 }
