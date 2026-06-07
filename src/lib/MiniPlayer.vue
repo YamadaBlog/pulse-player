@@ -683,35 +683,19 @@ onUnmounted(() => {
     0 4px 20px rgba(0, 0, 0, 0.18),
     0 0 0 1px rgba(0, 0, 0, 0.08);
 }
-.fab[data-variant='sunset'] .fab__btn {
-  background: linear-gradient(135deg, #1a1410 0%, #2d241c 50%, #4a3527 100%);
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(245, 158, 11, 0.25),
-    0 0 28px rgba(245, 158, 11, 0.2);
-}
-.fab[data-variant='midnight'] .fab__btn {
-  background: linear-gradient(135deg, #0a0a18 0%, #14142a 50%, #1a1a3a 100%);
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(139, 92, 246, 0.22),
-    0 0 28px rgba(139, 92, 246, 0.18);
-}
-.fab[data-variant='aurora'] .fab__btn {
-  background: linear-gradient(135deg, #061a1a 0%, #0a2e2e 40%, #103040 100%);
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(6, 182, 212, 0.22),
-    0 0 28px rgba(6, 182, 212, 0.18);
-}
+/* The four "mood" variants below read their gradient + accent identity
+   from `shared/variants.css` via inheriting CSS variables — same
+   single source of truth used by MusicPlayer. The depth shadow + accent
+   glow stack stays here because it's the FAB's own chrome signature. */
+.fab[data-variant='sunset'] .fab__btn,
+.fab[data-variant='midnight'] .fab__btn,
+.fab[data-variant='aurora'] .fab__btn,
 .fab[data-variant='vinyl'] .fab__btn {
-  background:
-    radial-gradient(ellipse at 30% 20%, rgba(200, 169, 126, 0.1) 0%, transparent 60%),
-    linear-gradient(135deg, #030302 0%, #0a0907 50%, #1a1712 100%);
+  background: var(--variant-bg-gradient);
   box-shadow:
     0 4px 20px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(200, 169, 126, 0.28),
-    0 0 28px rgba(200, 169, 126, 0.18);
+    0 0 0 1px rgb(var(--variant-accent-rgb) / 0.25),
+    0 0 28px rgb(var(--variant-accent-rgb) / 0.2);
 }
 .fab[data-variant='custom'] .fab__btn {
   background: var(--pulse-custom-bg, transparent);

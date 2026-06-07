@@ -10,6 +10,12 @@
  * grow without reason. The composable is still available inside the
  * repo under `src/composables/useDemoTour.ts` for the bundled demo.
  */
+
+// Side-effect import: registers the shared variant tokens
+// (--variant-bg-gradient, --variant-accent-rgb) at the [data-variant]
+// attribute level. Both MusicPlayer and MiniPlayer read these via CSS
+// inheritance, so the four mood gradients live in exactly one place.
+import './shared/variants.css'
 export { default as MiniPlayer } from './MiniPlayer.vue'
 export { default as MusicPlayer } from './MusicPlayer.vue'
 export { useAudioStore, setAudioTracks, type Track } from './useAudioStore'

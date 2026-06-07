@@ -2,6 +2,13 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { MusicPlayer, MiniPlayer, useAudioStore, type MusicPlayerVariant } from './lib'
 import { useDemoTour, type DemoStep } from './composables/useDemoTour'
+import { useDemoSpotlight } from './composables/useDemoSpotlight'
+
+// Multi-step spotlight controller (replaces the v1.x single-boolean
+// `fabFocused`). Lifecycle: every demo step can call
+// `spotlight.focus('.selector')` to aim it at any element; `spotlight.clear()`
+// at the outro releases it. Scroll + resize re-aim automatically.
+const spotlight = useDemoSpotlight()
 
 const store = useAudioStore()
 
@@ -166,9 +173,20 @@ const tour = useDemoTour()
 // the floating FAB. `null` = release control.
 const tourDragWidth = ref<number | null>(null)
 const tourFabPos = ref<{ x: number; y: number } | null>(null)
-// When true, a dim spotlight overlay dims the page so the FAB stands
-// alone — used during the FAB-centric steps (7, 8, 9).
-const fabFocused = ref(false)
+// Backward-compatibility alias — kept so the FAB-focused steps still
+// read naturally. Mapped to `spotlight.active` so the old name keeps
+// working while the underlying overlay is now the multi-step system.
+const fabFocused = computed({
+  get: () => spotlight.active.value,
+  set: (v: boolean) => {
+    if (v) {
+      // Re-aim to FAB when toggled on without an explicit target.
+      spotlight.focus('.fab', { padding: 80, soft: 96 })
+    } else {
+      spotlight.clear()
+    }
+  },
+})
 
 const demoSteps: DemoStep[] = [
   // ─── 1. Welcome — calm intro, breathing room ─────────────────
@@ -179,9 +197,10 @@ const demoSteps: DemoStep[] = [
       // step restores a clean starting state.
       tourDragWidth.value = null
       tourFabPos.value = null
-      fabFocused.value = false
+      spotlight.clear()
       ctx.setMessage('A premium drop-in music player for Vue 3. Sit back.')
       await ctx.scrollTo('.hero', { speed: 'slow' })
+      spotlight.focus('.hero', { padding: 120, soft: 140 })
       await ctx.delay(3200)
     },
   },
@@ -190,6 +209,9 @@ const demoSteps: DemoStep[] = [
   {
     title: 'Press play',
     run: async (ctx) => {
+      // Aim the spotlight at the hero player so the eye lands on the
+      // exact element that's about to come alive.
+      spotlight.focus('.hero .mp', { padding: 80, soft: 100 })
       ctx.setMessage('Real audio · real FFT. The bars react to the track itself.')
       if (!store.isPlaying) store.toggle()
       await ctx.delay(3800)
@@ -205,6 +227,10 @@ const demoSteps: DemoStep[] = [
     run: async (ctx) => {
       await ctx.scrollTo('.resize-stage')
       await ctx.delay(900)
+      // Spotlight follows the resize stage so the user sees that the
+      // change is happening INSIDE a defined container, not on the
+      // whole page.
+      spotlight.focus('.resize-stage', { padding: 70, soft: 110 })
       ctx.setMessage('Drop it at any container width — no media queries needed.')
       await ctx.tween(
         (v) => {
@@ -240,6 +266,9 @@ const demoSteps: DemoStep[] = [
     run: async (ctx) => {
       await ctx.scrollTo('.drag-stage', { speed: 'slow' })
       await ctx.delay(1100)
+      // Bring focus on the drag stage — the morph between classic,
+      // compact and FAB modes plays out inside this surface.
+      spotlight.focus('.drag-stage', { padding: 70, soft: 120 })
       ctx.setMessage('Ambient EQ on — let the wave settle in under the music.')
       store.ambientEq = true
       await ctx.delay(2400)
@@ -302,6 +331,11 @@ const demoSteps: DemoStep[] = [
   {
     title: 'Pick a mood',
     run: async (ctx) => {
+      // Spotlight on the first row of cards — keeps the focus tight
+      // on the gallery and dims the chrome around it. We re-aim as
+      // the descent scrolls because the spotlight composable observes
+      // `scroll` events.
+      spotlight.focus('.variants', { padding: 40, soft: 160 })
       const variantsEl = document.querySelector('.variants') as HTMLElement | null
       const firstCell = document.querySelector('.variants .grid__cell') as HTMLElement | null
 
@@ -409,6 +443,10 @@ const demoSteps: DemoStep[] = [
         // Fallback — palette not in the DOM yet.
         await ctx.scrollTo('.palette', { speed: 'fast' })
       }
+
+      // Bring focus on the palette so the colour chips + the
+      // "Show FAB / Hide FAB / Pulso" options stand out.
+      spotlight.focus('.palette', { padding: 60, soft: 140 })
 
       await ctx.delay(1400)
       if (!store.isVisible) store.open()
@@ -567,7 +605,13 @@ const demoSteps: DemoStep[] = [
       )
       tourFabPos.value = null
       await ctx.scrollTo('.hero', { speed: 'slow' })
+      // Re-aim the spotlight one last time on the hero so the closing
+      // caption lands on a real focal point instead of an empty fade.
+      spotlight.focus('.hero', { padding: 140, soft: 180 })
       await ctx.delay(2400)
+      // Final release — the overlay fades out so the demo finishes
+      // cleanly with the page fully visible.
+      spotlight.clear()
     },
   },
 ]
@@ -709,10 +753,25 @@ const hero = computed(() => ({
          control pill. Discreet, premium, dismissible. Lives ONLY while
          the guided tour runs.
          ═══════════════════════════════════════════════════════════════ -->
-      <!-- FAB spotlight — dims the page when the demo brings the FAB into
-         focus, isolating it visually so no text bleeds through behind. -->
-      <Transition name="fab-spotlight">
-        <div v-if="fabFocused" class="fab-spotlight" aria-hidden="true"></div>
+      <!-- Multi-step demo spotlight — a single overlay whose radial
+           gradient centre + radius follow whichever element the
+           current demo step has focused. CSS variables drive the
+           geometry, so smoothing between two targets is the
+           browser's compositor work (no JS tween, no main-thread
+           cost per frame). See `useDemoSpotlight.ts` for the
+           controller. -->
+      <Transition name="demo-spotlight">
+        <div
+          v-if="spotlight.active.value"
+          class="demo-spotlight"
+          :style="{
+            '--spotlight-x': spotlight.x.value + 'px',
+            '--spotlight-y': spotlight.y.value + 'px',
+            '--spotlight-radius': spotlight.radius.value + 'px',
+            '--spotlight-soft': spotlight.soft.value + 'px',
+          }"
+          aria-hidden="true"
+        ></div>
       </Transition>
 
       <Transition name="demo-overlay">
@@ -1380,26 +1439,79 @@ code {
   transform: translateX(3px);
 }
 
-/* ─── FAB SPOTLIGHT ───────────────────────────────────────
-   Dims the page so the floating FAB stands clear of any text. */
-.fab-spotlight {
+/* ─── DEMO SPOTLIGHT — multi-step ──────────────────────────
+   A single radial-gradient overlay whose centre + radius track
+   whatever element the current demo step has focused. The four
+   CSS variables it consumes (`--spotlight-x`, `-y`, `-radius`,
+   `-soft`) are registered as `<length>` via `@property` so the
+   browser interpolates them smoothly when they change — every
+   transition between two demo targets is GPU compositor work,
+   no JS tweening required. */
+@property --spotlight-x {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 50vw;
+}
+@property --spotlight-y {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 50vh;
+}
+@property --spotlight-radius {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 220px;
+}
+@property --spotlight-soft {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 80px;
+}
+.demo-spotlight {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.8) 70%);
+  /* The clear region (the spotlight itself) is fully transparent.
+     A soft feather (`--spotlight-soft`) tapers the dim, then the
+     dim layer sits at 0.72 alpha out to the screen edges. The
+     gradient stops are expressed in CSS variables so the browser
+     can interpolate the gradient as we re-aim. */
+  background: radial-gradient(
+    circle at var(--spotlight-x) var(--spotlight-y),
+    transparent calc(var(--spotlight-radius) - var(--spotlight-soft) / 2),
+    rgba(0, 0, 0, 0.45) var(--spotlight-radius),
+    rgba(0, 0, 0, 0.72) calc(var(--spotlight-radius) + var(--spotlight-soft) * 2)
+  );
   z-index: 800; /* under the FAB (z-index 900) and pill (1000) */
   pointer-events: none;
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
-}
-.fab-spotlight-enter-active,
-.fab-spotlight-leave-active {
+  /* GPU-side interpolation of the spotlight position + size. The
+     transition on the four registered properties drives the
+     gradient repaint at composite time. */
   transition:
-    opacity 0.6s ease,
-    backdrop-filter 0.6s ease;
+    --spotlight-x 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    --spotlight-y 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    --spotlight-radius 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    --spotlight-soft 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.55s ease,
+    backdrop-filter 0.55s ease;
 }
-.fab-spotlight-enter-from,
-.fab-spotlight-leave-to {
+.demo-spotlight-enter-active,
+.demo-spotlight-leave-active {
+  transition:
+    opacity 0.55s ease,
+    backdrop-filter 0.55s ease;
+}
+.demo-spotlight-enter-from,
+.demo-spotlight-leave-to {
   opacity: 0;
+}
+/* `prefers-reduced-motion`: drop the interpolation. The spotlight
+   still appears / disappears instantly per step. */
+@media (prefers-reduced-motion: reduce) {
+  .demo-spotlight {
+    transition: opacity 0.2s ease;
+  }
 }
 
 /* ─── MUSIC-PLAYER TRANSITIONS while the tour runs ─────────

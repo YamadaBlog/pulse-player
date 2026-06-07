@@ -662,23 +662,19 @@ onUnmounted(() => {
   color: #14141a;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
-.mp[data-variant='sunset'] {
-  background: linear-gradient(135deg, #1a1410 0%, #2d241c 50%, #4a3527 100%);
-  box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.18);
-}
-.mp[data-variant='midnight'] {
-  background: linear-gradient(135deg, #0a0a18 0%, #14142a 50%, #1a1a3a 100%);
-  box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.18);
-}
-.mp[data-variant='aurora'] {
-  background: linear-gradient(135deg, #061a1a 0%, #0a2e2e 40%, #103040 100%);
-  box-shadow: inset 0 0 0 1px rgba(6, 182, 212, 0.18);
+/* The four "mood" variants below read their gradient + accent identity
+   from `shared/variants.css` via inheriting CSS variables — single
+   source of truth shared with MiniPlayer. The per-variant chrome
+   (vinyl text color, etc.) stays here because it's specific to this
+   surface. */
+.mp[data-variant='sunset'],
+.mp[data-variant='midnight'],
+.mp[data-variant='aurora'],
+.mp[data-variant='vinyl'] {
+  background: var(--variant-bg-gradient);
+  box-shadow: inset 0 0 0 1px rgb(var(--variant-accent-rgb) / 0.18);
 }
 .mp[data-variant='vinyl'] {
-  background:
-    radial-gradient(ellipse at 30% 20%, rgba(200, 169, 126, 0.06) 0%, transparent 60%),
-    linear-gradient(135deg, #030302 0%, #0a0907 50%, #1a1712 100%);
-  box-shadow: inset 0 0 0 1px rgba(200, 169, 126, 0.2);
   color: #f5f0e8;
 }
 .mp[data-variant='custom'] {
