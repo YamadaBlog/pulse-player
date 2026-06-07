@@ -396,8 +396,35 @@ const demoSteps: DemoStep[] = [
       // Make sure we leave the resize section in a clean state if the
       // user jumped straight here.
       tourDragWidth.value = null
-      // The "boost" scroll — quick, decelerating.
-      await ctx.scrollTo('.palette', { speed: 'fast' })
+
+      // Boost scroll to the palette section, but slowed by a factor of
+      // 1.5 vs the default `fast` profile so the transition between
+      // "Pick a mood" and the FAB section reads cleanly. We replicate
+      // the `fast` profile's duration curve (350 ms base + 0.4 ms/px,
+      // clamped 700–1400 ms) then multiply by 1.5 for a deliberate,
+      // premium boost that's still snappier than `gentle`.
+      const paletteEl = document.querySelector('.palette') as HTMLElement | null
+      if (paletteEl) {
+        const paletteAbsoluteTop = paletteEl.getBoundingClientRect().top + window.scrollY
+        const offsetTop = window.innerHeight * 0.18
+        const targetY = Math.max(0, paletteAbsoluteTop - offsetTop)
+        const startY = window.scrollY
+        const fastDuration = Math.max(
+          700,
+          Math.min(1400, 350 + Math.abs(targetY - startY) * 0.4),
+        )
+        await ctx.tween(
+          (y) => window.scrollTo(0, y),
+          startY,
+          targetY,
+          fastDuration * 1.5,
+          'outQuint',
+        )
+      } else {
+        // Fallback — palette not in the DOM yet.
+        await ctx.scrollTo('.palette', { speed: 'fast' })
+      }
+
       await ctx.delay(1400)
       if (!store.isVisible) store.open()
       await ctx.delay(900)
@@ -479,11 +506,12 @@ const demoSteps: DemoStep[] = [
   // ─── 9. Pulso — heartbeat ripple
   //        The point of this step is the cause / effect link: the user
   //        flips the Pulso toggle in the palette, and the FAB starts
-  //        beating. Previous version only animated the FAB, so the
-  //        viewer never saw the source. Here we drop the spotlight,
-  //        bring the toggle into view, highlight it, fire a one-shot
-  //        green wave indicator on it, THEN flip the prop — so the
-  //        user actually understands what's happening.
+  //        beating. The spotlight stays ON for the whole step so the
+  //        FAB stays the centre of attention; the pulso-toggle is
+  //        elevated ABOVE the spotlight via z-index in CSS (the same
+  //        way the FAB itself does, at z-index 900). Both the toggle
+  //        and the FAB poke through the dim layer; everything else
+  //        stays blurred.
   {
     title: 'Pulso',
     run: async (ctx) => {
@@ -498,15 +526,16 @@ const demoSteps: DemoStep[] = [
         await ctx.delay(300)
       }
 
-      // Drop the spotlight so the page (and the Pulso toggle in the
-      // palette) is visible again. The FAB stays where it is — it's
-      // `position: fixed`, so it doesn't move with the scroll.
-      fabFocused.value = false
-      await ctx.delay(300)
+      // Spotlight stays ON. The pulso-toggle--highlight class will lift
+      // the toggle above the spotlight overlay (z-index 1000 > 800)
+      // when the highlight kicks in — that reveal effect IS the visual
+      // cue, with the rest of the page still dimmed.
+      fabFocused.value = true
 
       // Bring the Pulso toggle into the lower half of the viewport.
       // The FAB stays anchored in the upper half (fixed positioning),
-      // so the user can see both at once.
+      // so once the toggle is highlighted both punch through the
+      // spotlight in the same frame.
       await ctx.scrollTo('.pulso-toggle', { speed: 'gentle', offset: window.innerHeight * 0.45 })
       await ctx.delay(400)
 
@@ -514,12 +543,14 @@ const demoSteps: DemoStep[] = [
       await ctx.delay(1200)
 
       // Highlight the toggle BEFORE flipping it so the viewer's eye
-      // catches the source of the change.
+      // catches the source of the change. The class lifts the toggle
+      // above the spotlight, then the green wave ripples outward.
       tourPulsoHighlight.value = true
       await ctx.delay(700)
 
       // Flip the prop — the FAB starts beating, and the green wave
-      // pulse on the toggle visualises the activation.
+      // pulse on the toggle visualises the activation. Both elements
+      // are above the spotlight; the rest of the page stays blurred.
       fabPulso.value = true
       ctx.setMessage('Activated — watch the heartbeat ripple around the FAB.')
       await ctx.delay(4500)
@@ -2096,8 +2127,16 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
 /* Demo-only highlight: bright green frame + one-shot wave ripple
    around the toggle. Fires once when the demo flips it on, so the
    viewer sees exactly which control caused the FAB to start
-   beating. The ::after pseudo-element carries the wave. */
+   beating. The ::after pseudo-element carries the wave.
+
+   The z-index lifts the toggle ABOVE the spotlight overlay
+   (`.fab-spotlight` at z-index 800), the same way the FAB does
+   (z-index 900). Both poke through the dim layer in the same frame
+   — the page stays blurred, but the cause (this toggle) and the
+   effect (the FAB) read clearly. */
 .pulso-toggle--highlight {
+  position: relative;
+  z-index: 1000;
   border-color: rgba(61, 189, 167, 0.7);
   background: rgba(61, 189, 167, 0.16);
   color: var(--pg-accent);
