@@ -29,10 +29,14 @@ ISC and MIT are functionally identical for distribution purposes
 license texts are reproduced in the respective `node_modules/<pkg>/LICENSE`
 files of an installed checkout.
 
-## 3. Demo assets — replace before public deployment
+## 3. Demo assets — REMOVED from the repository (alpha.26, 2026-06-08)
 
-The files below ship under `public/audio/` for local-demo purposes only.
-They are **not** part of the MIT-licensed source code.
+> **Status update — alpha.26:** the four placeholder files referenced below were **deleted from the repository tree** and added to `.gitignore`. The live GH Pages deployment now serves an empty `public/audio/` folder with a [`README.md`](./public/audio/README.md) inside that documents the local-setup path. The chrome UI renders correctly without source audio (the play button stays in the silent state). To run the demo locally with sound, follow the procedure in [`public/audio/README.md`](./public/audio/README.md) or run `npm run setup:demo-audio`.
+>
+> The historical table below is kept for traceability — it documents what was previously distributed (and shouldn't have been). The brutal alpha.25 product audit caught that the placeholders had been served publicly via GH Pages since alpha.16 despite this `NOTICE.md` explicitly saying they were "NOT licensed for redistribution". This `NOTICE.md` and the alpha.26 file removal together close that legal exposure.
+
+The files below WERE shipped under `public/audio/` for local-demo purposes only.
+They were **not** part of the MIT-licensed source code.
 
 | File                       | Type           | Source / status                         | Action you must take                                                       |
 | -------------------------- | -------------- | --------------------------------------- | -------------------------------------------------------------------------- |

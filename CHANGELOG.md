@@ -4,6 +4,89 @@ All notable changes to **pulse-player** are documented here. The format follows 
 
 Tags: every release listed below is pinned to a signed git tag of the same name (`vX.Y.Z`) and surfaced as a GitHub Release.
 
+## 3.0.0-alpha.26 — 2026-06-08
+
+**Closes the 4 P0 + 1 P1 + 1 P2 gaps the BRUTAL alpha.25 product audit named (5.8/10).** Vue v2.3.4 byte-identical on 27th alpha.
+
+### P0 #1 — `npm install pulse-player` 404 fixed
+
+The brutal audit caught that the README told Vue consumers `npm install pulse-player` while `npm view pulse-player` returns 404. Most embarrassing kind of doc bug.
+
+- Removed the `npm install pulse-player` line from the install block
+- Added an honest "Vue 3 install path" block — vendor `src/lib/` via git OR use `@pulse-music/web-component` from any Vue template
+- Updated parity table: Vue row = `pulse-player v2.3.4 (source-available, not on npm)`
+- Updated version table with `Source` column showing npm vs source-available
+
+### P0 #2 — `CVE-2026-47429` vitest CVSS 9.8 documented + mitigated where possible
+
+The audit caught `npm audit` reports 1 critical CVE (vitest UI server RCE, fix in 4.x). Earlier audits ran `--omit=dev` only and missed it.
+
+- Tried `vitest@4.x` — requires Node 22.6+ (`styleText` from `node:util`). Maintainer baseline = 20.11 → vitest 4 startup error
+- Settled on `vitest@3.x` + `@vitest/coverage-v8@3.x` (was 1.6.1)
+- Documented in `SECURITY.md` why this is NOT runtime-exploitable (no `--ui`/`--api` flags used; dev server never binds a port; consumers never receive vitest)
+- Path to full fix: maintainer upgrades Node to 22.6+/24.x LTS → `npm install -D vitest@latest` lands `vitest@4.x`
+
+### P0 #3 — Demo audio assets REMOVED from public deployment
+
+The audit caught the most dangerous legal exposure: `public/audio/{track1,track2,cover,cover2}.{webm,webp}` were served from GH Pages + the public repo since alpha.16, while `NOTICE.md` explicitly says they are NOT licensed for redistribution + provenance not documented. DMCA / rights-holder claim risk.
+
+- `git rm --cached` + filesystem delete the 4 files (8.4 MB)
+- Added to `.gitignore`: `public/audio/*.{webm,mp3,webp}`
+- `public/audio/README.md` NEW — explains empty state + points at `npm run setup:demo-audio`
+- `NOTICE.md` §3 updated: "REMOVED from the repository (alpha.26)" + historical table kept for traceability
+- GH Pages behaviour: chrome renders correctly, play button silent state until consumer adds tracks
+
+### P0 #4 — `@pulse-music/angular` private status clarified everywhere
+
+Parity table now reads `~95% (code) / 0% (distribution)` with explicit "private — not on npm yet (peer floor decision deferred to rc.1)". Version table adds dedicated row. FEATURE_MATRIX.md test count row labelled `(private, not on npm)`.
+
+### P1 — Custom OG image PNG generated + deployed
+
+The audit caught `usesCustomOpenGraphImage: false` — GitHub social preview was auto-generated default.
+
+- Generated via `sharp` (no external binary):
+  - `docs/brand/og-banner.png` 1200×630 30.8 kB
+  - `docs/brand/logo-{256,512}.png` for npm + social profile
+  - `public/favicon.png` 32×32 fallback
+- `public/og-banner.png` deployed → live at `https://yamadablog.github.io/pulse-player/og-banner.png`
+- `index.html` Open Graph + Twitter Card meta updated to point at branded banner (was YouTube thumbnail)
+- `docs/brand/README.md` regen one-liner + Settings → Social preview upload instructions
+
+### P2 — Doc sprawl consolidation (36 → 31 active + 5 archived)
+
+5 docs moved to `docs/_archive/`:
+
+- `RENAMING_DECISION.md` — decision locked
+- `REACT_NATIVE_RUNTIME_SETUP.md` — sprint shipped alpha.22
+- `PROTECTION_NOTES.md` — folded into PRICING + LICENSING
+- `PUBLISH_CHECKLIST.md` — recurring cadence in VERSION_STRATEGY
+- `GIF_GUIDE.md` — YouTube covers the need
+
+`docs/_archive/README.md` table indexes the moves + successor docs.
+
+### Quality gate
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings
+format:check             → all files use Prettier code style
+tests (root, Vue Pinia)  →  33 / 33
+tests (@pulse-music/*)   → 106 / 106
+TOTAL unit               → 139 / 139
+audit (prod-only)        → 0 vulnerabilities  ← shipping artefact clean
+audit (full, dev incl.)  → 12 mod + 1 crit    ← dev-only, NOT runtime-exploitable, SECURITY.md documents
+Vue v2.3.4 demo          → bit-for-bit identical
+src/lib/                 → ZERO file modified (27th consecutive alpha)
+```
+
+### Self-assessed grade
+
+**6.6 / 10** brutal axis (was 5.8 brutal alpha.25).
+
++0.8 reflects: no more lying README install claim, no more legal exposure from undocumented assets, CRITICAL CVE documented + scoped, Angular distribution status honest, branded OG asset deployed, doc surface reduced.
+
+Ceiling stays ~6.6 because "0 stars / 0 dl / 0 users" unchanged. Next ceiling raise needs maintainer to post launch threads + measure Day 7.
+
 ## 3.0.0-alpha.25 — 2026-06-08
 
 **Brand identity + business model + adoption discipline.** Closes the gaps the brutal alpha.24 product audit named — except items that need maintainer keyboard (post Reddit threads) or local install (ffmpeg). Vue v2.3.4 byte-identical on its 26th alpha.

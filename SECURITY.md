@@ -10,6 +10,27 @@
 
 Patch releases land within 7 days for high-severity reports, 14 days for moderate, 30 days for low.
 
+## Known dev-dependency CVE (residual, NOT runtime-exploitable)
+
+### `CVE-2026-47429` — vitest UI server arbitrary file read / RCE (CVSS 9.8)
+
+- **Source:** [GitHub Advisory GHSA-5xrq-8626-4rwp](https://github.com/advisories/GHSA-5xrq-8626-4rwp)
+- **Affected:** `vitest <= 3.x`. Fix shipped in `vitest@4.x`.
+- **Why we're still on `vitest@3.x`:** vitest 4 imports `node:util.styleText`, available only from Node 22.6+. The maintainer's current Node baseline is 20.11. Upgrading the Node baseline is a separate decision; downgrading vitest below 1.x is not viable (test API breakage). The middle ground keeps vitest 3.x and documents the residual.
+- **Why this is NOT runtime-exploitable:**
+  - The CVE requires the vitest API server to be bound (`--ui` or `--api` flag). Pulse's test scripts in `package.json` invoke `vitest run` only — no `--ui`, no `--api`, no port binding.
+  - The vitest dev server never runs in production (it's a dev-only dependency). Consumers installing `@pulse-music/*` from npm never receive vitest.
+  - CI runners (`.github/workflows/ci.yml`) invoke `npm test` which is `vitest run` — same shape, no server.
+- **What we do anyway:**
+  - `npm run audit` (the script consumers and CI use) runs `npm audit --omit=dev` and returns 0 vulnerabilities — the CVE only surfaces in the broader `npm audit` view.
+  - This entry documents the residual so a security reviewer sees we know, not so we hide it.
+  - The `package.json` `overrides` field pins the vitest tree to a unified version to avoid duplicate-installation amplification.
+- **When this gets fixed:** the next time the maintainer upgrades Node to 22.6+ baseline (or 24.x LTS), `npm install -D vitest@latest @vitest/coverage-v8@latest` lands `vitest@4.x` automatically.
+
+### Other moderate-severity dev-dependency CVEs
+
+`npm audit` lists ~12 moderate-severity CVEs in the dev tree (esbuild < 0.24.2 dev-server XSS; vite ranges depending on transient resolution; @expo/_ tooling under apps/demo-react-native). None affect the runtime artefacts shipped to npm — every published `@pulse-music/_`package's tarball contains only its own`src/` + type declarations + README, never the dev tree. Tracked via Dependabot weekly.
+
 ## Reporting a vulnerability
 
 **Do not open a public GitHub issue for security reports.** They are publicly indexed and visible to anyone monitoring the repo.

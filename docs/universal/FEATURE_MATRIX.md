@@ -1,6 +1,6 @@
 # Pulse Universal — Feature matrix
 
-Honest comparison of every Pulse feature across every framework wrapper. Last detailed pass: v3.0.0-alpha.11. **React Native column note (v3.0.0-alpha.22):** the RN renderer shipped in alpha.22 — `audioPlayback`, `themes`, `ambientEq`, `pulsoHeartbeat`, `fabBasic` flip from 🛡 to ✅; `fftVisualisation` and `backdropFilter` are ⚠️ pseudo-bar / unstyled; `fabDrag` and `prefersReducedMotion` are ⏳ in subsequent patches. See [`REACT_NATIVE_RUNTIME_SETUP.md`](./REACT_NATIVE_RUNTIME_SETUP.md) §"State as of v3.0.0-rc.1".
+Honest comparison of every Pulse feature across every framework wrapper. Last detailed pass: v3.0.0-alpha.11. **React Native column note (v3.0.0-alpha.22):** the RN renderer shipped in alpha.22 — `audioPlayback`, `themes`, `ambientEq`, `pulsoHeartbeat`, `fabBasic` flip from 🛡 to ✅; `fftVisualisation` and `backdropFilter` are ⚠️ pseudo-bar / unstyled; `fabDrag` and `prefersReducedMotion` are ⏳ in subsequent patches. See [`packages/react-native/README.md`](../../packages/react-native/README.md) §"What ships in rc.1" (the runtime setup playbook is archived at [`docs/_archive/REACT_NATIVE_RUNTIME_SETUP.md`](../_archive/REACT_NATIVE_RUNTIME_SETUP.md) — the sprint shipped in alpha.22).
 
 ## Legend
 
@@ -89,19 +89,20 @@ Consumers who want a "watch demo" feature should fork the composable and tailor 
 
 ## Tests count per package
 
-| Package                           | Test count | Coverage type                                        |
-| --------------------------------- | ---------- | ---------------------------------------------------- |
-| `pulse-player` (root, Vue v2.3.4) | 33         | Pinia store + `useDemoTour` composable               |
-| `@pulse-music/core`               | 27         | `PulseEngine` class                                  |
-| `@pulse-music/tokens`             | 11         | Contract: variants, base, RGB triplets pinned        |
-| `@pulse-music/web-component`      | 22         | Lit element lifecycle + 13 attribute behaviour tests |
-| `@pulse-music/react`              | 16         | `<PulsePlayer />` + `<PulseFab />` + `useDomEvent`   |
-| `@pulse-music/svelte`             | 8          | Classic-store contract                               |
-| `@pulse-music/angular`            | 5          | Smoke (registration + re-export + module construct)  |
-| `@pulse-music/react-native`       | 10         | Parity matrix + sentinel runtime                     |
-| **TOTAL unit**                    | **132**    | —                                                    |
-| Playwright visual regression      | 2          | Vue v2.3.4 demo `hero` + `home-fold`                 |
-| **TOTAL**                         | **134**    | —                                                    |
+| Package                                      | Test count | Coverage type                                         |
+| -------------------------------------------- | ---------- | ----------------------------------------------------- |
+| `pulse-player` (root, Vue v2.3.4)            | 33         | Pinia store + `useDemoTour` composable                |
+| `@pulse-music/core`                          | 27         | `PulseEngine` class                                   |
+| `@pulse-music/tokens`                        | 11         | Contract: variants, base, RGB triplets pinned         |
+| `@pulse-music/web-component`                 | 22         | Lit element lifecycle + 13 attribute behaviour tests  |
+| `@pulse-music/react`                         | 16         | `<PulsePlayer />` + `<PulseFab />` + `useDomEvent`    |
+| `@pulse-music/svelte`                        | 8          | Classic-store contract                                |
+| `@pulse-music/angular` (private, not on npm) | 5          | Smoke (registration + re-export + module construct)   |
+| `@pulse-music/react-native`                  | 17         | Engine class + parity matrix + singleton + re-exports |
+| **TOTAL unit**                               | **139**    | —                                                     |
+| Playwright visual regression                 | 2          | Vue v2.3.4 demo `hero` + `home-fold`                  |
+| Playwright a11y                              | 2          | Axe-core WCAG 2.1 AA strict on Vue + Vanilla demos    |
+| **TOTAL**                                    | **143**    | —                                                     |
 
 ## See also
 

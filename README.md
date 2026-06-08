@@ -12,22 +12,22 @@
 
 <sub>▶ [Watch the 3-minute demo on YouTube](https://youtu.be/q_FJ1GWaCc8) — 9 themes, ambient EQ, pulso heartbeat, drag-to-resize, FAB radial menu, keyboard shortcuts, multi-framework architecture.</sub>
 
-> **`v3.0.0-rc.0` is LIVE on npm (2026-06-08).** The six core `@pulse-music/*` packages just shipped after a 21-tag audit-driven alpha cycle. The Vue 3 reference (`pulse-player` v2.3.4) keeps shipping bit-for-bit identical alongside the new scope. **Try it now:** `npm install @pulse-music/react @pulse-music/core` — see the install block below.
+> **`v3.0.0-rc.0` is LIVE on npm (2026-06-08).** The **7 `@pulse-music/*` packages** shipped after a 21-tag audit-driven alpha cycle (types, core, tokens, web-component, react, svelte, react-native). The Vue 3 reference (`src/lib/`) stays source-available — vendor it directly or use the Web Component from any Vue template. The Angular wrapper stays source-available (`packages/angular/`) until the peer floor decision is made for rc.1. **Try it now:** `npm install @pulse-music/react @pulse-music/core` — see the install block below.
 > Architecture map: [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md). Cadence to v3.0.0 stable: [`docs/universal/VERSION_STRATEGY.md`](./docs/universal/VERSION_STRATEGY.md). Roadmap: [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md).
 
 ### Originally a Vue 3 music player that grows with the page.
 
 ### Now an audio component you can drop into any framework.
 
-| Framework                               | Package                                             | Status today                                                                | Chrome parity vs Vue v2.3.4 |
-| --------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------- |
-| **Vue 3**                               | `pulse-player` (v2.3.4) / `@pulse-music/vue` (rc.0) | ✅ **Production-ready** (v2.3.4 validated, 22 alphas + rc.0 byte-identical) | **100 %**                   |
-| **React 18 / 19**                       | `@pulse-music/react`                                | ✅ wrapper + 16 RTL tests + apps/demo-react runnable                        | **~95 %**                   |
-| **Svelte 5**                            | `@pulse-music/svelte`                               | ✅ plain TS hook + 8 store tests + apps/demo-svelte runnable                | **~95 %**                   |
-| **Web Components**                      | `@pulse-music/web-component`                        | ✅ `<pulse-player>` + `<pulse-fab>` (Lit) + 22 element tests                | **~95 %**                   |
-| **Vanilla HTML / Solid / Astro / Qwik** | `@pulse-music/web-component`                        | ✅ apps/demo-vanilla runnable, inherits web-component chrome                | **~95 %**                   |
-| **Angular 17+**                         | `@pulse-music/angular`                              | ⚠️ PulseModule + 5 smoke tests, `private: true` (CVE peer floor)            | **~95 %**                   |
-| **React Native**                        | `@pulse-music/react-native`                         | ✅ **rc.1 LIVE on npm** (expo-av + Reanimated) + Expo demo Android-tested   | **~60 %**                   |
+| Framework                               | Package                                              | Status today                                                                                                      | Chrome parity vs Vue v2.3.4              |
+| --------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| **Vue 3**                               | `pulse-player` v2.3.4 (source-available, not on npm) | ✅ **Reference implementation** (validated, 26 alphas byte-identical) — vendor via git or use Web Component       | **100 %**                                |
+| **React 18 / 19**                       | `@pulse-music/react`                                 | ✅ wrapper + 16 RTL tests + apps/demo-react runnable                                                              | **~95 %**                                |
+| **Svelte 5**                            | `@pulse-music/svelte`                                | ✅ plain TS hook + 8 store tests + apps/demo-svelte runnable                                                      | **~95 %**                                |
+| **Web Components**                      | `@pulse-music/web-component`                         | ✅ `<pulse-player>` + `<pulse-fab>` (Lit) + 22 element tests                                                      | **~95 %**                                |
+| **Vanilla HTML / Solid / Astro / Qwik** | `@pulse-music/web-component`                         | ✅ apps/demo-vanilla runnable, inherits web-component chrome                                                      | **~95 %**                                |
+| **Angular 17+**                         | `@pulse-music/angular` (private)                     | ⚠️ PulseModule + 5 smoke tests, **source-available only** — not on npm yet (peer floor decision deferred to rc.1) | **~95 %** (code), **0 %** (distribution) |
+| **React Native**                        | `@pulse-music/react-native`                          | ✅ **rc.1 LIVE on npm** (expo-av + Reanimated) + Expo demo Android-tested                                         | **~60 %**                                |
 
 **Need the full premium chrome today (resize handle, three responsive states, social icons, prev / next, FAB drag, palette / menu, fullscreen)?** → use the Vue version.
 **Just need the audio engine + minimum card chrome (play / pause / variants / ambient EQ / pulso)?** → any framework wrapper works.
@@ -55,20 +55,25 @@ npm install @pulse-music/react-native @pulse-music/core
 # then from your app dir:
 npx expo install expo-av react-native-reanimated react-native-gesture-handler react-native-svg @react-native-async-storage/async-storage
 
-# Vue 3 (reference build v2.3.4 — stays at its own version)
-npm install pulse-player
+# Vue 3 (reference build v2.3.4 — source-available, see Vue setup below)
+# Until the Vue rc.1 package ships at @pulse-music/vue, the Vue reference
+# is consumed directly from this repository (git clone or git submodule).
+# Tracking issue: https://github.com/YamadaBlog/pulse-player/issues
 ```
 
-| Package                      | Version    | Bundle gzip |
-| ---------------------------- | ---------- | ----------- |
-| `@pulse-music/types`         | 3.0.0-rc.0 | 0.1 kB      |
-| `@pulse-music/core`          | 3.0.0-rc.0 | 2 kB        |
-| `@pulse-music/tokens`        | 3.0.0-rc.0 | 0.6 kB      |
-| `@pulse-music/web-component` | 3.0.0-rc.1 | 8.5 kB      |
-| `@pulse-music/react`         | 3.0.0-rc.0 | 1 kB        |
-| `@pulse-music/svelte`        | 3.0.0-rc.0 | 0.4 kB      |
-| `@pulse-music/react-native`  | 3.0.0-rc.1 | 12 kB       |
-| `pulse-player` (Vue v2.3.4)  | 2.3.4      | 14 kB       |
+> **Vue 3 install path (honest):** the Vue v2.3.4 reference build at [`src/lib/`](./src/lib/) is **not yet published to npm** — it ships as the source-of-truth + visual regression baseline for the multi-framework wrappers. Vue consumers today either (a) use the Custom Element via `@pulse-music/web-component` from any Vue 3 template, or (b) vendor `src/lib/` into their app via git submodule. A published `@pulse-music/vue` package ships at v3.0.0 stable cut — see [`docs/universal/VERSION_STRATEGY.md`](./docs/universal/VERSION_STRATEGY.md) §"Vue publishing decision".
+
+| Package                      | Version    | Bundle gzip | Source                                                                             |
+| ---------------------------- | ---------- | ----------- | ---------------------------------------------------------------------------------- |
+| `@pulse-music/types`         | 3.0.0-rc.0 | 0.1 kB      | [npm](https://www.npmjs.com/package/@pulse-music/types)                            |
+| `@pulse-music/core`          | 3.0.0-rc.0 | 2 kB        | [npm](https://www.npmjs.com/package/@pulse-music/core)                             |
+| `@pulse-music/tokens`        | 3.0.0-rc.0 | 0.6 kB      | [npm](https://www.npmjs.com/package/@pulse-music/tokens)                           |
+| `@pulse-music/web-component` | 3.0.0-rc.1 | 8.5 kB      | [npm](https://www.npmjs.com/package/@pulse-music/web-component)                    |
+| `@pulse-music/react`         | 3.0.0-rc.0 | 1 kB        | [npm](https://www.npmjs.com/package/@pulse-music/react)                            |
+| `@pulse-music/svelte`        | 3.0.0-rc.0 | 0.4 kB      | [npm](https://www.npmjs.com/package/@pulse-music/svelte)                           |
+| `@pulse-music/react-native`  | 3.0.0-rc.1 | 12 kB       | [npm](https://www.npmjs.com/package/@pulse-music/react-native)                     |
+| `pulse-player` (Vue v2.3.4)  | 2.3.4      | 14 kB       | source-available at [`src/lib/`](./src/lib/), npm publish at v3.0.0 stable         |
+| `@pulse-music/angular`       | rc.0       | 1 kB        | source-available at [`packages/angular/`](./packages/angular/), private until rc.1 |
 
 ### Production-framework integration snippets
 
@@ -94,7 +99,7 @@ Honest, datapoint-by-datapoint comparison with [Plyr](https://github.com/sampott
 
 ### Architecture & process docs
 
-[`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md) — dependency graph · [`docs/universal/FEATURE_MATRIX.md`](./docs/universal/FEATURE_MATRIX.md) — what works in each framework · [`docs/universal/API.md`](./docs/universal/API.md) — canonical API reference · [`docs/universal/LICENSING.md`](./docs/universal/LICENSING.md) — the MIT-and-why strategy · [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md) — per-alpha plan · [`docs/universal/COMPARISON.md`](./docs/universal/COMPARISON.md) — vs Plyr / Vidstack / Howler · [`docs/universal/PUBLISH_CHECKLIST.md`](./docs/universal/PUBLISH_CHECKLIST.md) — npm publish procedure · [`docs/universal/PROTECTION_NOTES.md`](./docs/universal/PROTECTION_NOTES.md) — MIT realism · [`docs/universal/SCREEN_READER_TEST_PLAN.md`](./docs/universal/SCREEN_READER_TEST_PLAN.md) — manual SR test plan · [`docs/universal/REACT_NATIVE_RUNTIME_SETUP.md`](./docs/universal/REACT_NATIVE_RUNTIME_SETUP.md) — RN playbook · [`docs/universal/VERSION_STRATEGY.md`](./docs/universal/VERSION_STRATEGY.md) — alpha → rc → stable cadence · [`docs/universal/RENAMING_DECISION.md`](./docs/universal/RENAMING_DECISION.md) — naming options before publish.
+[`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md) — dependency graph · [`docs/universal/FEATURE_MATRIX.md`](./docs/universal/FEATURE_MATRIX.md) — what works in each framework · [`docs/universal/API.md`](./docs/universal/API.md) — canonical API reference · [`docs/universal/LICENSING.md`](./docs/universal/LICENSING.md) — the MIT-and-why strategy · [`docs/universal/PRICING.md`](./docs/universal/PRICING.md) — business model locked · [`docs/universal/METRICS_TRACKING.md`](./docs/universal/METRICS_TRACKING.md) — adoption discipline · [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md) — per-alpha plan · [`docs/universal/COMPARISON.md`](./docs/universal/COMPARISON.md) — vs Plyr / Vidstack / Howler · [`docs/universal/SCREEN_READER_TEST_PLAN.md`](./docs/universal/SCREEN_READER_TEST_PLAN.md) — manual SR test plan · [`docs/universal/VERSION_STRATEGY.md`](./docs/universal/VERSION_STRATEGY.md) — alpha → rc → stable cadence · [`docs/_archive/`](./docs/_archive/) — superseded docs (RENAMING_DECISION, RN_RUNTIME_SETUP, PROTECTION_NOTES, PUBLISH_CHECKLIST, GIF_GUIDE).
 
 <br>
 

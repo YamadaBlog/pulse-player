@@ -38,3 +38,12 @@ test-results/
 # Coverage
 coverage/
 *.lcov
+
+
+# Demo audio + cover assets — provenance NOT documented, NOT licensed for
+# redistribution per NOTICE.md. The maintainer runs `npm run setup:demo-audio`
+# locally to generate CC0 alternatives. The repo + GH Pages deployment never
+# carry these files.
+public/audio/*.webm
+public/audio/*.mp3
+public/audio/*.webp
