@@ -17,15 +17,15 @@
 
 ### Now an audio component you can drop into any framework.
 
-| Framework                               | Package                                             | Status today                                                                                           | Chrome parity vs Vue v2.3.4 |
-| --------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------- |
-| **Vue 3**                               | `pulse-player` (v2.3.4) / `@pulse-music/vue` (rc.0) | ✅ **Production-ready** (v2.3.4 validated, 22 alphas + rc.0 byte-identical)                            | **100 %**                   |
-| **React 18 / 19**                       | `@pulse-music/react`                                | ✅ wrapper + 16 RTL tests + apps/demo-react runnable                                                   | **~95 %**                   |
-| **Svelte 5**                            | `@pulse-music/svelte`                               | ✅ plain TS hook + 8 store tests + apps/demo-svelte runnable                                           | **~95 %**                   |
-| **Web Components**                      | `@pulse-music/web-component`                        | ✅ `<pulse-player>` + `<pulse-fab>` (Lit) + 22 element tests                                           | **~95 %**                   |
-| **Vanilla HTML / Solid / Astro / Qwik** | `@pulse-music/web-component`                        | ✅ apps/demo-vanilla runnable, inherits web-component chrome                                           | **~95 %**                   |
-| **Angular 17+**                         | `@pulse-music/angular`                              | ⚠️ PulseModule + 5 smoke tests, `private: true` (CVE peer floor)                                       | **~95 %**                   |
-| **React Native**                        | `@pulse-music/react-native`                         | ✅ rc.1 real renderer (expo-av + Reanimated) + Expo demo at `apps/demo-react-native/` (Android-tested) | **~60 %**                   |
+| Framework                               | Package                                             | Status today                                                                | Chrome parity vs Vue v2.3.4 |
+| --------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------- |
+| **Vue 3**                               | `pulse-player` (v2.3.4) / `@pulse-music/vue` (rc.0) | ✅ **Production-ready** (v2.3.4 validated, 22 alphas + rc.0 byte-identical) | **100 %**                   |
+| **React 18 / 19**                       | `@pulse-music/react`                                | ✅ wrapper + 16 RTL tests + apps/demo-react runnable                        | **~95 %**                   |
+| **Svelte 5**                            | `@pulse-music/svelte`                               | ✅ plain TS hook + 8 store tests + apps/demo-svelte runnable                | **~95 %**                   |
+| **Web Components**                      | `@pulse-music/web-component`                        | ✅ `<pulse-player>` + `<pulse-fab>` (Lit) + 22 element tests                | **~95 %**                   |
+| **Vanilla HTML / Solid / Astro / Qwik** | `@pulse-music/web-component`                        | ✅ apps/demo-vanilla runnable, inherits web-component chrome                | **~95 %**                   |
+| **Angular 17+**                         | `@pulse-music/angular`                              | ⚠️ PulseModule + 5 smoke tests, `private: true` (CVE peer floor)            | **~95 %**                   |
+| **React Native**                        | `@pulse-music/react-native`                         | ✅ **rc.1 LIVE on npm** (expo-av + Reanimated) + Expo demo Android-tested   | **~60 %**                   |
 
 **Need the full premium chrome today (resize handle, three responsive states, social icons, prev / next, FAB drag, palette / menu, fullscreen)?** → use the Vue version.
 **Just need the audio engine + minimum card chrome (play / pause / variants / ambient EQ / pulso)?** → any framework wrapper works.
@@ -48,6 +48,11 @@ npm install @pulse-music/svelte @pulse-music/core
 # Vanilla / Solid / Astro / Qwik (Web Component)
 npm install @pulse-music/web-component
 
+# React Native (Expo SDK 56+)
+npm install @pulse-music/react-native @pulse-music/core
+# then from your app dir:
+npx expo install expo-av react-native-reanimated react-native-gesture-handler react-native-svg @react-native-async-storage/async-storage
+
 # Vue 3 (reference build v2.3.4 — stays at its own version)
 npm install pulse-player
 ```
@@ -60,6 +65,7 @@ npm install pulse-player
 | `@pulse-music/web-component` | 3.0.0-rc.1 | 8.5 kB      |
 | `@pulse-music/react`         | 3.0.0-rc.0 | 1 kB        |
 | `@pulse-music/svelte`        | 3.0.0-rc.0 | 0.4 kB      |
+| `@pulse-music/react-native`  | 3.0.0-rc.1 | 12 kB       |
 | `pulse-player` (Vue v2.3.4)  | 2.3.4      | 14 kB       |
 
 ### Production-framework integration snippets
@@ -93,6 +99,7 @@ Honest, datapoint-by-datapoint comparison with [Plyr](https://github.com/sampott
 [![npm @pulse-music/react](https://img.shields.io/npm/v/@pulse-music/react?label=%40pulse-music%2Freact&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@pulse-music/react)
 [![npm @pulse-music/svelte](https://img.shields.io/npm/v/@pulse-music/svelte?label=%40pulse-music%2Fsvelte&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@pulse-music/svelte)
 [![npm @pulse-music/web-component](https://img.shields.io/npm/v/@pulse-music/web-component?label=%40pulse-music%2Fweb-component&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@pulse-music/web-component)
+[![npm @pulse-music/react-native](https://img.shields.io/npm/v/@pulse-music/react-native?label=%40pulse-music%2Freact-native&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@pulse-music/react-native)
 [![npm @pulse-music/core](https://img.shields.io/npm/v/@pulse-music/core?label=%40pulse-music%2Fcore&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@pulse-music/core)
 [![Vue 3](https://img.shields.io/badge/Vue-3.4+-42b883?logo=vue.js&logoColor=white)](https://vuejs.org/)
 [![React 18 / 19](https://img.shields.io/badge/React-18%20%2F%2019-61dafb?logo=react&logoColor=white)](https://react.dev/)

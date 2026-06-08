@@ -4,6 +4,75 @@ All notable changes to **pulse-player** are documented here. The format follows 
 
 Tags: every release listed below is pinned to a signed git tag of the same name (`vX.Y.Z`) and surfaced as a GitHub Release.
 
+## 3.0.0-alpha.24 — 2026-06-08
+
+**The "all 7 @pulse-music/\* packages LIVE on npm" alpha.** Closes the last npm-side gap from the alpha.22 RN sprint. Vue v2.3.4 byte-identical on its 25th alpha.
+
+### `@pulse-music/react-native@3.0.0-rc.1` PUBLISHED
+
+```
+$ cd packages/react-native && npm publish --otp=…
++ @pulse-music/react-native@3.0.0-rc.1
+  package size: 12.0 kB
+  unpacked size: 42.2 kB
+  total files: 12
+  integrity: sha512-X8BCHVyT2JikS…FGWI0elhNWYKw==
+```
+
+The version was bumped in alpha.22 (was rc.0 with the sentinel-throw stubs, now rc.1 with the real expo-av + Reanimated renderer). The publish overrides the previous `latest` tag — anyone who runs `npm install @pulse-music/react-native` now gets the real renderer.
+
+Verified live via `npm view @pulse-music/react-native version` → `3.0.0-rc.1`.
+
+### The full @pulse-music/\* registry state
+
+| Package                      | Version        | npm                                                      |
+| ---------------------------- | -------------- | -------------------------------------------------------- |
+| `@pulse-music/types`         | 3.0.0-rc.0     | https://www.npmjs.com/package/@pulse-music/types         |
+| `@pulse-music/core`          | 3.0.0-rc.0     | https://www.npmjs.com/package/@pulse-music/core          |
+| `@pulse-music/tokens`        | 3.0.0-rc.0     | https://www.npmjs.com/package/@pulse-music/tokens        |
+| `@pulse-music/web-component` | 3.0.0-rc.1     | https://www.npmjs.com/package/@pulse-music/web-component |
+| `@pulse-music/react`         | 3.0.0-rc.0     | https://www.npmjs.com/package/@pulse-music/react         |
+| `@pulse-music/svelte`        | 3.0.0-rc.0     | https://www.npmjs.com/package/@pulse-music/svelte        |
+| `@pulse-music/react-native`  | **3.0.0-rc.1** | https://www.npmjs.com/package/@pulse-music/react-native  |
+
+**7/7 publishable packages LIVE.** Plus the historical `pulse-player` (Vue v2.3.4 reference) at its own version `2.3.4`. That's the complete public-distribution surface for v3.0.0-rc.
+
+### README sweep
+
+- Install section + version table now include `@pulse-music/react-native` with the `npx expo install` post-install command for peer deps.
+- Parity row for React Native: `✅ rc.1 LIVE on npm` (was `rc.1 pending publish`).
+- Badge row: new shields.io live npm version badge for `@pulse-music/react-native`. Now **5 live npm version badges** (react / svelte / web-component / core / react-native) — each auto-updates on subsequent patches.
+
+### Discussion #24 follow-up
+
+Added a comment to [Discussion #24](https://github.com/YamadaBlog/pulse-player/discussions/24) (the "rc.0 is LIVE" thread) announcing the RN rc.1 publish. Includes the install command, the smallest possible API snippet, the known limitations + intentionally-absent list, and a specific call for feedback from Expo SDK 56+ consumers.
+
+### GitHub Release for v3.0.0-alpha.23
+
+Created at [https://github.com/YamadaBlog/pulse-player/releases/tag/v3.0.0-alpha.23](https://github.com/YamadaBlog/pulse-player/releases/tag/v3.0.0-alpha.23) — pre-release, documents the alpha.23 "post-publish professional polish" pass (CodeQL + OG meta + CITATION + Discussion + 0 vuln restored).
+
+### Quality gate
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings
+format:check             → all files use Prettier code style
+tests (root, Vue Pinia)  →  33 / 33
+tests (@pulse-music/*)   → 106 / 106
+TOTAL unit               → 139 / 139
+audit (prod-only)        → 0 vulnerabilities
+Vue v2.3.4 demo          → bit-for-bit identical
+src/lib/                 → ZERO file modified (25th consecutive alpha)
+```
+
+### Self-assessed grade
+
+**8.1 / 10** on the "sellable today" axis (was 7.9 alpha.23).
+
+The +0.2 reflects the final npm gap closing: every framework wrapper Pulse claims now actually `npm install`s. The brutal alpha.18 audit's "0 of 7 packages on npm" line is now formally "7 of 7". The only remaining `is-it-real?` gates for v3.0.0 stable are external (adoption signal + iOS validation + manual SR test).
+
+Ceiling stays ~8 because the "0 stars / 0 downloads / 0 testimonials" reality still needs adoption time. The next ceiling raise needs external signal.
+
 ## 3.0.0-alpha.23 — 2026-06-08
 
 **The "post-publish professional polish" alpha.** GO-mode pass. Closes the surface-area gaps that a credible OSS product carries once it's actually on npm. Vue v2.3.4 byte-identical on its 24th alpha.
