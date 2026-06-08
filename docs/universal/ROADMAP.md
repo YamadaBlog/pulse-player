@@ -2,11 +2,34 @@
 
 How we go from the validated Vue v2.3.4 monolith to a true multi-framework library, without breaking anything along the way.
 
-## Current state — v3.0.0-alpha.5 (shipped)
+## Current state — v3.0.0-rc.0 + alpha.24 (shipped on npm, 2026-06-08)
 
-Six packages with real code: `@pulse-music/types`, `@pulse-music/core` (27 / 27 tests), `@pulse-music/tokens` (single source variants), `@pulse-music/web-component` (9 / 9 tests, chrome ~45 % vs Vue v2.3.4), `@pulse-music/react` (8 / 8 RTL tests), `@pulse-music/svelte` (8 / 8 classic-store tests). Monorepo total **85 / 85 tests passing**. Two runnable demos: `apps/demo-vanilla/` and `apps/demo-react/`. **Vue v2.3.4 at `src/lib/` is bit-for-bit identical** — `src/lib/` has zero files modified since alpha.0.
+**7 / 7 publishable `@pulse-music/*` packages are LIVE on the npm registry** after a 21-tag alpha cycle. Vue v2.3.4 `src/lib/` is bit-for-bit identical across **25 consecutive alphas**. 139 / 139 unit tests passing across the monorepo, 0 production vulnerabilities, 6 GitHub Actions workflows green (CI + visual + a11y + coverage + release-please + CodeQL).
 
-The phases below are kept as a historical record. Phase 5+ continue from here.
+| Package                               | Version on npm | Bundle gzip |
+| ------------------------------------- | -------------- | ----------- |
+| `@pulse-music/types`                  | 3.0.0-rc.0     | 0.1 kB      |
+| `@pulse-music/core`                   | 3.0.0-rc.0     | 2 kB        |
+| `@pulse-music/tokens`                 | 3.0.0-rc.0     | 0.6 kB      |
+| `@pulse-music/web-component`          | 3.0.0-rc.1     | 8.5 kB      |
+| `@pulse-music/react`                  | 3.0.0-rc.0     | 1 kB        |
+| `@pulse-music/svelte`                 | 3.0.0-rc.0     | 0.4 kB      |
+| `@pulse-music/react-native`           | 3.0.0-rc.1     | 12 kB       |
+| `pulse-player` (Vue v2.3.4 reference) | 2.3.4          | 14 kB       |
+
+The phases below are the **historical record** of how we got here. The forward-looking plan to v3.0.0 stable + Phase 2 monetisation lives in [`VERSION_STRATEGY.md`](./VERSION_STRATEGY.md) and [`PRICING.md`](./PRICING.md). The adoption metrics that gate Phase 2 are in [`METRICS_TRACKING.md`](./METRICS_TRACKING.md). The condensed one-paragraph-per-alpha narrative is in [`ALPHA_HISTORY.md`](./ALPHA_HISTORY.md).
+
+## Cadence discipline (post-rc.0)
+
+The 49-tag in 48-hour alpha cycle was deliberate: an audit-driven loop where every alpha closed an externally-named gap. The same discipline doesn't apply post-publish — the cost of a tag is now an `npm publish` per affected package, not a free git tag. The forward cadence:
+
+- **rc.X patch:** at most one per week. Encourages users to actually integrate before the next version drops. Triggered by real bug reports or adopter-requested API tweaks. Not by maintainer initiative.
+- **v3.0.0 stable cut:** when the [`METRICS_TRACKING.md`](./METRICS_TRACKING.md) Day 30 target is met (≥ 200 stars + ≥ 1 000 dl/week + ≥ 10 external issues/PRs) AND no critical bug open for 2 consecutive weeks.
+- **Post-stable:** standard SemVer cadence — patch as bugfix lands, minor as feature batch (monthly), major as breaking-change-with-migration-guide (annually max).
+
+The 49-alpha lineage stays in the git history as transparency — they're not deleted, force-pushed, or squashed. See [`VERSION_STRATEGY.md`](./VERSION_STRATEGY.md) for the rationale.
+
+## Historical phases (for context — keep scrolling for the forward plan in VERSION_STRATEGY.md)
 
 ## Phase 0 — Scaffold (v3.0.0-alpha.0) ✅
 

@@ -2,7 +2,9 @@
 
 <br>
 
-# 🎵 &nbsp;pulse-player
+<img src="./docs/brand/logo.svg" alt="Pulse logo — heartbeat waveform with violet-to-teal gradient" width="96" height="96" />
+
+# pulse-player
 
 ### A premium drop-in music player — now on npm for Vue, React, Svelte, Angular, Web Components, and React Native.
 
@@ -126,6 +128,12 @@ Honest, datapoint-by-datapoint comparison with [Plyr](https://github.com/sampott
 <br>
 
 ---
+
+## 👥 &nbsp;Used by
+
+> **You're early.** Pulse v3.0.0-rc.0 went live on npm on 2026-06-08. We track real production users here as they come on board — see [`docs/universal/METRICS_TRACKING.md`](./docs/universal/METRICS_TRACKING.md) for the public adoption metrics.
+>
+> Shipping Pulse in production? Open a PR adding your project + logo to this section. We honour requests to stay anonymous.
 
 ## ✨ &nbsp;What it is
 

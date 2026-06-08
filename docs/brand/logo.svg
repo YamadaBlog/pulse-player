@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Pulse logo">
+  <defs>
+    <linearGradient id="pulseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#3DBDA7"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#05050A"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#pulseGrad)" opacity="0.12"/>
+  <!-- Heartbeat pulse waveform -->
+  <path
+    d="M 10 32 L 18 32 L 22 22 L 28 42 L 32 12 L 36 42 L 42 22 L 46 32 L 54 32"
+    stroke="url(#pulseGrad)"
+    stroke-width="3.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+  <!-- Right-edge dot (heartbeat trail) -->
+  <circle cx="54" cy="32" r="2.5" fill="url(#pulseGrad)"/>
+</svg>

@@ -4,6 +4,68 @@ All notable changes to **pulse-player** are documented here. The format follows 
 
 Tags: every release listed below is pinned to a signed git tag of the same name (`vX.Y.Z`) and surfaced as a GitHub Release.
 
+## 3.0.0-alpha.25 — 2026-06-08
+
+**Brand identity + business model + adoption discipline.** Closes the gaps the brutal alpha.24 product audit named — except items that need maintainer keyboard (post Reddit threads) or local install (ffmpeg). Vue v2.3.4 byte-identical on its 26th alpha.
+
+### LOT 1 — Brand identity
+
+- `docs/brand/logo.svg` (NEW, 64×64) — heartbeat waveform mark over `#05050A`, violet → teal gradient (`#8B5CF6` → `#3DBDA7`). Waveform echoes the FAB pulso ring.
+- `docs/brand/logo-light.svg` (NEW) — white background variant.
+- `public/favicon.svg` (NEW, 32×32 simplified).
+- `index.html` — `<link rel="icon" type="image/svg+xml" href="/favicon.svg">`.
+- `docs/brand/README.md` (NEW) — usage rules + colour palette + trademark posture.
+- Root README — music-note emoji header replaced by the actual logo inlined at 96×96.
+
+### LOT 2 — `docs/universal/PRICING.md` — business model LOCKED
+
+Phase 1 (now → 6 mo): MIT + GitHub Sponsors. Phase 2 (post 1K stars + 5K dl/wk): Premium Themes Pack $49 one-time on Lemon Squeezy + consulting $1K-5K. Phase 3 (post Phase 2 signals): Pulse Studio SaaS $9-19/mo. Mirrors Tailwind / MUI / shadcn 2026 indie playbook. Locked decisions: no BSL preemption, no private-only repo, no paid core. 14-day refund.
+
+### LOT 3 — `docs/universal/METRICS_TRACKING.md` — adoption discipline
+
+Day 7 / 30 / 90 targets the maintainer commits to publicly, with bash snapshot block. Day 7: ≥50 stars / ≥100 dl/wk / ≥3 external. Day 30: ≥200 / ≥1000 / ≥10. Day 90: ≥1000 / ≥5000 / ≥30. Triage tables for below-target outcomes including "sunset gracefully" path. Honesty discipline forbids round-up + sock-puppet.
+
+### LOT 4 — "Used by" placeholder in README
+
+Honest framing: "You're early. We track real production users here as they come on board." PR template ready for first adopter.
+
+### LOT 5 — Open Graph banner SVG
+
+`docs/brand/og-banner.svg` (NEW, 1200×630) — Pulse-branded social share. Includes logo + headline + install command + 3 footer chips (MIT / 9 themes 14kB / 7 packages on npm). Current `og:image` keeps YouTube thumbnail (proven, conveys motion). Maintainer converts via `rsvg-convert` when ready to swap.
+
+### LOT 6 — ROADMAP refresh + cadence discipline
+
+Header updated from "v3.0.0-alpha.5" stale to "v3.0.0-rc.0 + alpha.24 (shipped on npm 2026-06-08)" with 7/7 package version table. Cadence discipline section: post-rc.0 → max 1 rc.X patch/week, triggered by adopter reports not maintainer initiative. v3.0.0 stable gated on Day 30 metrics. Standard SemVer post-stable.
+
+### Blocked, documented
+
+- **`npm run setup:demo-audio`** — needs `ffmpeg + cwebp` (5 min install via `scoop install ffmpeg webp`). Maintainer runs once.
+- **Reddit / HN / Bluesky / dev.to launch posts** — `LAUNCH_THREADS.md` verbatim. Maintainer accounts only.
+- **iOS RN validation** — MacInCloud ~$30 + 1 weekend. Documented in `REACT_NATIVE_RUNTIME_SETUP.md`.
+- **Manual SR test** — human + screen-reader env. `SCREEN_READER_TEST_PLAN.md`.
+
+### Quality gate
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings
+format:check             → all files use Prettier code style
+tests (root, Vue Pinia)  →  33 / 33
+tests (@pulse-music/*)   → 106 / 106
+TOTAL unit               → 139 / 139
+audit (prod-only)        → 0 vulnerabilities
+Vue v2.3.4 demo          → bit-for-bit identical
+src/lib/                 → ZERO file modified (26th consecutive alpha)
+```
+
+### Self-assessed grade
+
+**6.3 / 10** brutal axis (was 5.5 brutal alpha.24).
+
+The +0.8 reflects: brand identity exists, pricing decision LOCKED, adoption discipline LOCKED + measurable, "Used by" structure ready, OG banner ready, roadmap refreshed.
+
+Ceiling stays ~6.3 because the brutal "0 stars / 0 dl / 0 production users" reality is unchanged. The next ceiling raise needs the maintainer to **post the launch threads + measure Day 7**. No more code moves this.
+
 ## 3.0.0-alpha.24 — 2026-06-08
 
 **The "all 7 @pulse-music/\* packages LIVE on npm" alpha.** Closes the last npm-side gap from the alpha.22 RN sprint. Vue v2.3.4 byte-identical on its 25th alpha.

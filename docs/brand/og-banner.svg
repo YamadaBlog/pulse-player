@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Pulse — open-graph banner">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A0B23"/>
+      <stop offset="100%" stop-color="#05050A"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#3DBDA7"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+
+  <!-- Soft accent glow behind the mark -->
+  <circle cx="200" cy="220" r="80" fill="url(#accent)" opacity="0.18" filter="url(#glow)"/>
+
+  <!-- Mark (scaled-up version of logo.svg) -->
+  <g transform="translate(120, 140) scale(2.5)">
+    <rect width="64" height="64" rx="14" fill="#05050A"/>
+    <rect width="64" height="64" rx="14" fill="url(#accent)" opacity="0.12"/>
+    <path
+      d="M 10 32 L 18 32 L 22 22 L 28 42 L 32 12 L 36 42 L 42 22 L 46 32 L 54 32"
+      stroke="url(#accent)"
+      stroke-width="3.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+    <circle cx="54" cy="32" r="2.5" fill="url(#accent)"/>
+  </g>
+
+  <!-- Title block (right of the mark) -->
+  <text x="360" y="232"
+        fill="#FFFFFF"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="88"
+        font-weight="700">Pulse</text>
+
+  <text x="360" y="286"
+        fill="rgba(255, 255, 255, 0.7)"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="30"
+        font-weight="400">A premium drop-in music player —</text>
+
+  <text x="360" y="324"
+        fill="rgba(255, 255, 255, 0.7)"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="30"
+        font-weight="400">now on npm for Vue, React, Svelte, Angular,</text>
+
+  <text x="360" y="362"
+        fill="rgba(255, 255, 255, 0.7)"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="30"
+        font-weight="400">Web Components, and React Native.</text>
+
+  <!-- Bottom row: install + chrome accents -->
+  <rect x="120" y="478" width="960" height="68" rx="14"
+        fill="rgba(255, 255, 255, 0.05)"
+        stroke="rgba(255, 255, 255, 0.12)"
+        stroke-width="1.5"/>
+
+  <text x="148" y="522"
+        fill="#FFFFFF"
+        font-family="ui-monospace, 'SF Mono', Consolas, monospace"
+        font-size="28"
+        font-weight="500">$ npm install @pulse-music/react @pulse-music/core</text>
+
+  <!-- Footer chips -->
+  <g transform="translate(120, 580)">
+    <rect width="120" height="32" rx="16" fill="rgba(139, 92, 246, 0.18)" stroke="rgba(139, 92, 246, 0.55)" stroke-width="1"/>
+    <text x="60" y="22" text-anchor="middle"
+          fill="#B19CFE"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          font-size="14" font-weight="500">MIT</text>
+
+    <rect x="136" width="160" height="32" rx="16" fill="rgba(61, 189, 167, 0.18)" stroke="rgba(61, 189, 167, 0.55)" stroke-width="1"/>
+    <text x="216" y="22" text-anchor="middle"
+          fill="#7FE0CD"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          font-size="14" font-weight="500">9 themes · 14 kB gzip</text>
+
+    <rect x="312" width="180" height="32" rx="16" fill="rgba(255, 255, 255, 0.08)" stroke="rgba(255, 255, 255, 0.18)" stroke-width="1"/>
+    <text x="402" y="22" text-anchor="middle"
+          fill="rgba(255, 255, 255, 0.85)"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          font-size="14" font-weight="500">7 packages on npm</text>
+  </g>
+</svg>
