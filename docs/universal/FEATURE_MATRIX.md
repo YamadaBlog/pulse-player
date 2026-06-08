@@ -1,6 +1,6 @@
 # Pulse Universal — Feature matrix
 
-Honest comparison of every Pulse feature across every framework wrapper. Updated through v3.0.0-alpha.11.
+Honest comparison of every Pulse feature across every framework wrapper. Last detailed pass: v3.0.0-alpha.11. **React Native column note (v3.0.0-alpha.22):** the RN renderer shipped in alpha.22 — `audioPlayback`, `themes`, `ambientEq`, `pulsoHeartbeat`, `fabBasic` flip from 🛡 to ✅; `fftVisualisation` and `backdropFilter` are ⚠️ pseudo-bar / unstyled; `fabDrag` and `prefersReducedMotion` are ⏳ in subsequent patches. See [`REACT_NATIVE_RUNTIME_SETUP.md`](./REACT_NATIVE_RUNTIME_SETUP.md) §"State as of v3.0.0-rc.1".
 
 ## Legend
 

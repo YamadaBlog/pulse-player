@@ -88,16 +88,24 @@ export interface UsePulseAudioRNReturn extends PulseState {
  * The eventual implementation reads this constant and the type
  * checks below as the spec.
  */
+/**
+ * State as of v3.0.0-rc.1 (first real renderer shipped):
+ *   ✅ = shipped in rc.1
+ *   ⚠️ = shipped with caveat (substitute or pseudo implementation)
+ *   ⏳ = planned for a subsequent rc patch
+ *   ❌ = intentionally absent (platform constraint or web-only concept)
+ */
 export const RN_PARITY_MATRIX = {
-  audioPlayback: '✅',
-  fftVisualisation: '✅', // react-native-audio-api AnalyserNode
-  themes: '✅', // StyleSheet equivalents of CSS gradients
-  ambientEq: '✅', // Reanimated keyframes
-  pulsoHeartbeat: '✅', // Reanimated keyframes
-  fabDrag: '✅', // react-native-gesture-handler
-  prefersReducedMotion: '✅', // AccessibilityInfo.isReduceMotionEnabled()
-  backdropFilter: '⚠️', // react-native-blur substitute
+  audioPlayback: '✅', // expo-av Audio.Sound
+  fftVisualisation: '⚠️', // pseudo-bar synth; real FFT via react-native-audio-api in next patch
+  themes: '✅', // variant table mirrored from @pulse-music/tokens
+  ambientEq: '✅', // Reanimated withRepeat off-thread
+  pulsoHeartbeat: '✅', // Reanimated withSequence + withDelay
+  fabBasic: '✅', // tap-to-toggle + pulso ring shipped in rc.1
+  fabDrag: '⏳', // PanGestureHandler integration in next patch
+  prefersReducedMotion: '⏳', // AccessibilityInfo wiring next patch
+  backdropFilter: '⏳', // expo-blur next patch
   dragToResize: '❌', // No DOM resize concept on mobile native
   teleportFab: '❌', // Use absolute positioning at nav root
-  guidedDemoTour: '❌', // Web-specific (not part of library API)
+  guidedDemoTour: '❌', // App.vue consumer concern, not library API
 } as const

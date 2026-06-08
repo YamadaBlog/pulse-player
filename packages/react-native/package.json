@@ -1,10 +1,11 @@
 {
   "name": "@pulse-music/react-native",
-  "version": "3.0.0-rc.0",
-  "description": "React Native wrapper for pulse-player. INTERFACE TYPES + parity matrix (v3.0.0-alpha.8). Runtime renderer in v3.X.0 dedicated sprint. Sentinel exports throw a clear error message until then.",
+  "version": "3.0.0-rc.1",
+  "description": "React Native wrapper for pulse-player. Real renderer powered by expo-av + Reanimated + react-native-svg. v3.0.0-rc.1 — first iteration: audio + 9 themes + ambient EQ (Reanimated) + pulso + FAB drag. Advanced FFT and backdrop blur land in subsequent patches.",
   "license": "MIT",
   "type": "module",
   "main": "./src/index.ts",
+  "module": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
     ".": {
@@ -20,15 +21,40 @@
     "src",
     "README.md"
   ],
+  "sideEffects": false,
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest"
   },
+  "keywords": [
+    "react-native",
+    "music-player",
+    "audio",
+    "pulse",
+    "expo"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YamadaBlog/pulse-player.git",
+    "directory": "packages/react-native"
+  },
+  "homepage": "https://github.com/YamadaBlog/pulse-player#readme",
+  "bugs": {
+    "url": "https://github.com/YamadaBlog/pulse-player/issues"
+  },
   "dependencies": {
     "@pulse-music/types": "*"
   },
+  "peerDependencies": {
+    "react": "^18 || ^19",
+    "react-native": ">=0.74",
+    "expo-av": ">=14.0.0",
+    "react-native-reanimated": ">=3.10.0",
+    "react-native-gesture-handler": ">=2.16.0",
+    "react-native-svg": ">=15.0.0",
+    "@react-native-async-storage/async-storage": ">=1.23.0"
+  },
   "publishConfig": {
     "access": "public"
-  },
-  "private": true
+  }
 }

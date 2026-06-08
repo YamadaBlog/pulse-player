@@ -1,29 +1,55 @@
 /**
  * @pulse-music/react-native — React Native wrapper for pulse-player.
  *
- * Status: interface-only (v3.0.0-alpha.8). The runtime renderer is
- * deferred to a v3.X.0 dedicated sprint because it requires the
- * CocoaPods / Gradle / `react-native-audio-api` native pipeline that
- * the npm-only monorepo session cannot bootstrap. See
- * `docs/universal/BLOCKERS.md` #1 for details.
+ * v3.0.0-rc.1 — first iteration of the real renderer. Audio via expo-av,
+ * animation via react-native-reanimated, theming via the variant table
+ * mirrored from @pulse-music/tokens.
  *
- * This file exposes:
+ * Public API:
  *
- *   - **Types** (`PulsePlayerRNProps`, `PulseFabRNProps`,
- *     `UsePulseAudioRNReturn`, `RN_PARITY_MATRIX`) — usable today by
- *     RN consumers prototyping against the planned API, and by the
- *     eventual renderer as a build-time contract.
+ *   - **Components** — `<PulsePlayerRN />` (inline card) and
+ *     `<PulseFabRN />` (floating action button) drop into any Expo /
+ *     bare React Native app.
  *
- *   - **Re-exports from `@pulse-music/types`** — every shared shape
- *     (`Track`, `PulseVariant`, `EventMap`, `PulseState`).
+ *   - **Hook** — `usePulseAudioRN()` returns the same shape as the web
+ *     `usePulseAudio` so framework-portable apps work over the React
+ *     tree (web vs RN).
  *
- *   - **Sentinel runtime exports** (`PulsePlayerRN`, `PulseFabRN`,
- *     `usePulseAudioRN`) that throw a clear error message if a
- *     consumer tries to use them before the renderer lands. This is
- *     better than `export {}` because it surfaces the gap with a
- *     copy-paste path forward instead of an opaque "named export
- *     not found" error.
+ *   - **Engine** — `PulseEngineRN`, `getSharedEngineRN`,
+ *     `setSharedEngineRN` for advanced use cases that need direct
+ *     engine control.
+ *
+ *   - **Types + parity matrix** — re-exported from `./types`.
+ *
+ * Known limitations in rc.1 (documented in
+ * `docs/universal/REACT_NATIVE_RUNTIME_SETUP.md`):
+ *
+ *   - FFT visualisation uses a pseudo-bar synth, not real audio FFT.
+ *     `react-native-audio-api` integration ships in a subsequent patch
+ *     once Swansion's iOS implementation reaches GA.
+ *   - Backdrop blur not yet ported (uses solid background colour).
+ *   - FAB drag-to-reposition deferred — basic FAB renders + plays
+ *     but does not yet pan. Pulso heartbeat ring works.
+ *   - Drag-to-resize is intentionally absent (no DOM resize concept
+ *     on mobile native).
+ *   - Fullscreen API is intentionally absent.
  */
+
+// Real renderer
+export { PulsePlayerRN } from './components/PulsePlayer'
+export { PulseFabRN } from './components/PulseFab'
+
+// Engine surface
+export {
+  PulseEngineRN,
+  getSharedEngineRN,
+  setSharedEngineRN,
+} from './utils/audioEngine'
+
+// Hook
+export { usePulseAudioRN } from './hooks/usePulseAudio'
+
+// Interface types
 export type {
   PulsePlayerRNProps,
   PulseFabRNProps,
@@ -32,6 +58,7 @@ export type {
 
 export { RN_PARITY_MATRIX } from './types'
 
+// Re-exports from @pulse-music/types
 export type {
   AudioEvent,
   ErrorReason,
@@ -44,34 +71,3 @@ export type {
 } from '@pulse-music/types'
 
 export { ALL_VARIANTS } from '@pulse-music/types'
-
-const NOT_IMPLEMENTED_MSG = `[@pulse-music/react-native] The runtime renderer is not implemented yet.
-This package currently ships INTERFACE TYPES only (so RN consumers
-can write against the planned API today and the eventual renderer
-is type-driven from day one).
-
-The real implementation requires CocoaPods / Gradle / the native
-pipeline of react-native-audio-api — see docs/universal/BLOCKERS.md
-in the monorepo root for the deferral rationale and the path forward.
-
-For the WEB (any framework: React, Vue, Svelte, Angular, vanilla
-HTML), use one of:
-  - @pulse-music/react        — React 18 / 19
-  - @pulse-music/vue          — Vue 3 (currently pulse-player v2.3.4)
-  - @pulse-music/svelte       — Svelte 5
-  - @pulse-music/angular      — Angular 17+
-  - @pulse-music/web-component — Lit Custom Elements, works in any framework`
-
-import type { PulsePlayerRNProps, PulseFabRNProps } from './types'
-
-export const PulsePlayerRN = (_props: PulsePlayerRNProps): never => {
-  throw new Error(NOT_IMPLEMENTED_MSG)
-}
-
-export const PulseFabRN = (_props: PulseFabRNProps): never => {
-  throw new Error(NOT_IMPLEMENTED_MSG)
-}
-
-export const usePulseAudioRN = (): never => {
-  throw new Error(NOT_IMPLEMENTED_MSG)
-}

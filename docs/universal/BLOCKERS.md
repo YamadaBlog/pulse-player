@@ -15,33 +15,30 @@ Live demo URL: **https://yamadablog.github.io/pulse-player/**. The `.github/work
 
 ---
 
-## 1. `@pulse-music/react-native` real implementation
+## 1. ~~`@pulse-music/react-native` real implementation~~ ✅ FIRST ITERATION SHIPPED (v3.0.0-alpha.22)
 
-**Status:** scaffold only (`private: true`, no peer deps, no source code).
+The real renderer is no longer a scaffold. v3.0.0-alpha.22 (preparing for `@pulse-music/react-native@3.0.0-rc.1` on npm) ships:
 
-**What's needed:**
+- **Audio playback** via `expo-av` `Audio.Sound`.
+- **9 theme variants** mirroring `@pulse-music/tokens` via a `variants.ts` table.
+- **Ambient EQ** — 12 bars animated via `react-native-reanimated` `withRepeat`, off the UI thread.
+- **Pulso heartbeat** — concentric rings with `withSequence` + `withDelay`.
+- **Basic FAB** — tap-to-toggle + cover art + pulso overlay.
+- **`usePulseAudioRN()` hook** with the same shape as the web `usePulseAudio`.
+- **`PulseEngineRN` class** + singleton helpers (`getSharedEngineRN`, `setSharedEngineRN`).
 
-- Expo SDK 51+ project setup (or a bare React Native 0.74+ template)
-- `react-native-audio-api` (Swansion) install + iOS / Android native module linking
-- New renderer using RN primitives (`View`, `Animated`, `react-native-svg`, `react-native-gesture-handler`)
-- Feature-parity decisions documented up front (no `<Teleport>`, no `backdrop-filter`, no DOM resize handle — alternatives needed)
-- iOS simulator + Android emulator to validate
-- Separate test setup (jest + `@testing-library/react-native`)
+**Demo app:** `apps/demo-react-native/` is an Expo SDK 56 scaffold. Boot with `npm run dev --workspace=@pulse-music/demo-react-native` (then `a` for Android, `w` for Web). Tested boot path: Android emulator (Pixel_8a AVD) via Expo CLI; iOS deferred until macOS / Xcode access.
 
-**Why blocked here:**
+**Known limitations in rc.1** (deliberately deferred to subsequent patches):
 
-- Out-of-scope for a Node monorepo session — needs a CocoaPods / Gradle build environment
-- Estimated effort: 2-4 days of focused work, not a single-alpha increment
-- The wrapper needs its OWN apps/demo-react-native/ which requires Expo Go on a device or simulator
-- Adding `react-native` as a peer dep at the monorepo level pulls in Metro / Hermes transitively, which may conflict with the Web-side tooling
+- FFT visualisation uses a pseudo-bar synth, not real audio FFT. Real FFT lands when `react-native-audio-api` (Swansion) reaches stable iOS support.
+- Backdrop blur not yet ported. `expo-blur` integration in the next patch.
+- FAB drag-to-reposition deferred. `PanGestureHandler` integration in the next patch.
+- `prefers-reduced-motion` wiring deferred. `AccessibilityInfo` listener next patch.
 
-**Mitigation in place:**
+**Intentionally absent (platform constraints):** drag-to-resize, fullscreen API, guided demo tour.
 
-- `@pulse-music/types` already shared, so when the RN renderer lands it consumes the same shapes
-- `docs/frameworks/react-native.md` ships the feature parity matrix (web-only features marked ❌, RN-substituted features marked ⚠️)
-- The roadmap pushes this to a dedicated alpha (not the v3.0.0 stable critical path)
-
-**Path forward:** dedicated RN sprint in v3.X.0 (after v3.0.0 stable) with a separate worktree to keep the iOS / Android tooling isolated.
+**Path forward:** the next 2-3 RN patches (rc.2, rc.3) close the deferred items in order of impact (FFT first, blur second, FAB drag third).
 
 ---
 
