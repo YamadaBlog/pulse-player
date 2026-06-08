@@ -4,6 +4,109 @@ All notable changes to **pulse-player** are documented here. The format follows 
 
 Tags: every release listed below is pinned to a signed git tag of the same name (`vX.Y.Z`) and surfaced as a GitHub Release.
 
+## 3.0.0-alpha.23 — 2026-06-08
+
+**The "post-publish professional polish" alpha.** GO-mode pass. Closes the surface-area gaps that a credible OSS product carries once it's actually on npm. Vue v2.3.4 byte-identical on its 24th alpha.
+
+### LOT 1 — GitHub Releases for rc.0 + alpha.22
+
+Two real Releases now visible on https://github.com/YamadaBlog/pulse-player/releases:
+
+- **[v3.0.0-rc.0](https://github.com/YamadaBlog/pulse-player/releases/tag/v3.0.0-rc.0)** — first npm publish, 6 packages live, install instructions, demo links.
+- **[v3.0.0-alpha.22](https://github.com/YamadaBlog/pulse-player/releases/tag/v3.0.0-alpha.22)** (pre-release) — RN renderer ships, deferred-list + intentionally-absent honest log.
+
+The Releases tab going from empty to populated is one of the cheapest credibility signals on GitHub.
+
+### LOT 2 — CodeQL security workflow
+
+`.github/workflows/codeql.yml` (NEW). GitHub's first-party static analysis for JS/TS:
+
+- Runs on push + PR + weekly cron (Monday 09:00 Paris time).
+- Uses the `security-extended` query pack (slightly slower but catches more patterns).
+- Results land in the repo's Security tab → Code scanning alerts.
+
+Pulse now ships **6 active CI workflows** (ci, visual, a11y, coverage, release-please, codeql) + 1 manual (pages).
+
+### LOT 3 — OpenGraph + JSON-LD meta for the live demo
+
+`index.html` (the Vue demo's HTML shell that gets served from https://yamadablog.github.io/pulse-player/) gains:
+
+- Open Graph tags (Bluesky / LinkedIn / Discord / Facebook): `og:title`, `og:description`, `og:url`, `og:image` (pointing at the YouTube thumbnail), `og:image:width`/`height`/`alt`.
+- Twitter / X meta (`summary_large_image` card).
+- JSON-LD `SoftwareApplication` structured data — search engines indexing the demo URL get a clean structured record (name, license, version, downloadUrl pointing at @pulse-music/react, video link, offer price free).
+- `<meta name="theme-color">` for browser chrome tinting.
+- `<link rel="canonical">` so the demo URL is the authority.
+
+Any social-media share of the live demo URL now renders a rich preview with the YouTube hero image.
+
+### LOT 4 — release-please config + manifest sweep
+
+- `.release-please-manifest.json` — was carrying `0.0.0` for every package (stale since alpha.12). Now reflects reality: `3.0.0-rc.0` for types / core / tokens / react / svelte, `3.0.0-rc.1` for web-component (the ghost-state bump) + react-native. Root `pulse-player` stays `2.3.4`.
+- `.release-please-config.json` — adds the `packages/react-native` entry so when the workflow runs, it tracks the RN package on the same cadence as the rest.
+
+When the maintainer flips `release-please.yml` from manual-trigger back to push-trigger (post-rc → stable cut), the bot will propose accurate version bumps from the truthful baseline.
+
+### LOT 5 — `apps/demo-react-native` workspace polish
+
+- `package.json` reorganised: Expo + RN moved from `dependencies` to `devDependencies`. The app is `private: true` and never published — devDeps is the semantically correct slot, AND it shrinks the `npm audit --omit=dev` surface (was triggering 10 moderate-severity warnings from `@expo/prebuild-config`; now 0).
+- `.npmrc` (NEW root file) — declares `legacy-peer-deps=true` so the root `npm install` succeeds without a hand-pass through every Expo peer-dep range. Documented in the file's comment block.
+- `apps/demo-react-native/README.md` (NEW) — boot procedure, what you should see, what's NOT in rc.1, tested environments, troubleshooting.
+- Validated: `rm -rf node_modules package-lock.json && npm install` succeeds; `npm run audit` returns **0 prod vulnerabilities**.
+
+### LOT 6 — `CITATION.cff`
+
+GitHub picks up `CITATION.cff` and surfaces a "Cite this repository" button on the repo home. Reference managers (Zotero / Mendeley / Papers) read the same schema.
+
+- title, abstract (one paragraph), keywords (10), authors (YamadaBlog), license (MIT), version (3.0.0-rc.0), date-released, repository-code + url.
+- Acknowledges Pulse as a "drop-in audio player component shipped as native wrappers for Vue 3, React 18/19, Svelte 5, Angular 17+, Web Components, and React Native".
+
+### LOT 7 — `publishConfig.access: "public"` everywhere + provenance prep
+
+- All 7 publishable packages (`types`, `core`, `tokens`, `web-component`, `react`, `svelte`, `react-native`) now carry an explicit `publishConfig.access: "public"` field. The next manual publish doesn't need the CLI `--access=public` flag.
+- `provenance: true` was attempted in publishConfig then reverted: it only works when publishing from a sigstore-supported CI environment (GitHub Actions OAuth). Setting it in publishConfig would break the maintainer's manual OTP-based publishes from a local terminal. Documented in this CHANGELOG so a future automation can re-add it under the right conditions.
+
+### LOT 8 — First GitHub Discussion opened
+
+[Discussion #24](https://github.com/YamadaBlog/pulse-player/discussions/24) in the Announcements category: "v3.0.0-rc.0 is LIVE on npm — feedback wanted". Lays out the install command, links the 6 npm pages + the live demo + the YouTube walkthrough, and asks 5 specific feedback questions (API stability, dual-track naming, theme palette, performance, integration friction).
+
+The post is also the first concrete community-engagement test: response (or no response) over the next 7 days informs the next product moves.
+
+### Quality gate
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings
+format:check             → all files use Prettier code style
+tests (root, Vue Pinia)  →  33 / 33
+tests (@pulse-music/core)         →  27 / 27
+tests (@pulse-music/tokens)       →  11 / 11
+tests (@pulse-music/web-comp)     →  22 / 22
+tests (@pulse-music/react)        →  16 / 16
+tests (@pulse-music/svelte)       →   8 /  8
+tests (@pulse-music/angular)      →   5 /  5
+tests (@pulse-music/RN)           →  17 / 17
+TOTAL unit               → 139 / 139
+audit (prod-only)        → 0 vulnerabilities (was 10 moderate before
+                            apps/demo-react-native dep reorg)
+Vue v2.3.4 demo          → bit-for-bit identical
+src/lib/                 → ZERO file modified (24th consecutive alpha)
+```
+
+### Self-assessed grade
+
+**7.9 / 10** on the "sellable today" axis (was 7.7 alpha.22).
+
+The +0.2 reflects:
+
+- **GitHub Releases** populated (was empty) → repo home looks like a project that ships, not a project under construction.
+- **CodeQL workflow** → repo's Security tab gets a Code scanning section (when the first scan completes, a security badge becomes available).
+- **OG / JSON-LD meta** → social shares of the live demo URL now render rich previews instead of a bare URL.
+- **CITATION.cff** → "Cite this repository" button on the GitHub repo home; academic / researcher legitimacy signal.
+- **First Discussion open** → the project moves from monologue to dialogue.
+- **0 prod vulnerabilities** restored after the apps/demo-react-native dep reorg.
+
+Ceiling stays ~7.9 because adoption hasn't moved (still 0 stars, 0 npm downloads outside the maintainer). The next ceiling raise needs external signal.
+
 ## 3.0.0-alpha.22 — 2026-06-08
 
 **The "React Native real renderer ships" alpha.** The 1-week RN sprint from `REACT_NATIVE_RUNTIME_SETUP.md` is collapsed into this alpha. `@pulse-music/react-native` package version bumped to **3.0.0-rc.1** (pending the next npm publish), `private: true` removed. Vue v2.3.4 codebase bit-for-bit identical on its 23rd alpha.

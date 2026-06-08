@@ -1,0 +1,56 @@
+name: CodeQL
+
+# GitHub's first-party static analysis for security vulnerabilities in
+# the JavaScript / TypeScript source. Runs:
+#   - On every push to main
+#   - On every pull request to main
+#   - Weekly cron (catches newly-discovered CVE patterns even when the
+#     codebase is otherwise quiet)
+#
+# Results land in the repo's Security tab → Code scanning alerts.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Every Monday at 09:00 Paris time (07:00 UTC).
+    - cron: '0 7 * * 1'
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript-typescript']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # `security-extended` adds queries that catch more issues
+          # at the cost of slightly longer scan time. For a small
+          # monorepo like this one, the extra ~30 s is worth it.
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{ matrix.language }}'

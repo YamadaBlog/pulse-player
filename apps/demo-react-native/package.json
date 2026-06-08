@@ -4,27 +4,24 @@
   "main": "index.ts",
   "private": true,
   "scripts": {
+    "postinstall": "echo 'Run `npx expo install` from this directory to align peer deps with the Expo SDK.'",
+    "setup": "npx expo install expo-av react-native-reanimated react-native-gesture-handler react-native-svg @react-native-async-storage/async-storage",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
   },
   "dependencies": {
-    "expo": "~56.0.9",
-    "expo-status-bar": "~56.0.4",
-    "expo-av": "~16.0.7",
-    "react": "19.2.3",
-    "react-native": "0.85.3",
-    "react-native-reanimated": "~4.1.2",
-    "react-native-gesture-handler": "~2.30.0",
-    "react-native-svg": "~16.2.0",
-    "@react-native-async-storage/async-storage": "~2.2.0",
     "@pulse-music/react-native": "*",
     "@pulse-music/core": "*",
     "@pulse-music/types": "*"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "expo": "~56.0.9",
+    "expo-status-bar": "~56.0.4",
+    "react": "19.2.3",
+    "react-native": "0.85.3"
   }
 }

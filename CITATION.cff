@@ -1,0 +1,37 @@
+# Citation File Format (CFF) — academic + tooling-friendly metadata.
+# GitHub picks this up automatically and surfaces a "Cite this repository"
+# button on the repo home. Reference managers (Zotero / Mendeley /
+# Papers) read it via the same schema.
+
+cff-version: 1.2.0
+title: Pulse — a multi-framework music player component
+message: 'If you use Pulse in research or commercial work, please cite as below.'
+type: software
+authors:
+  - family-names: YamadaBlog
+    affiliation: 'Independent maintainer'
+repository-code: 'https://github.com/YamadaBlog/pulse-player'
+url: 'https://yamadablog.github.io/pulse-player/'
+abstract: >-
+  Pulse is a drop-in audio player component shipped as native wrappers
+  for Vue 3, React 18/19, Svelte 5, Angular 17+, Web Components, and
+  React Native. The architecture centres on a framework-agnostic
+  TypeScript audio engine and a shared variant token system; framework
+  wrappers are thin adapters (~1–8 kB gzip each). The chrome includes
+  nine curated mood themes, an ambient EQ visualiser, a pulso
+  heartbeat ring, drag-to-resize, a FAB radial menu, fullscreen, and
+  keyboard shortcuts.
+keywords:
+  - music-player
+  - audio
+  - vue
+  - react
+  - svelte
+  - angular
+  - web-components
+  - react-native
+  - typescript
+  - component-library
+license: MIT
+version: 3.0.0-rc.0
+date-released: '2026-06-08'

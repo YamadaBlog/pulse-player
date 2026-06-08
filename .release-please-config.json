@@ -43,6 +43,11 @@
       "release-type": "node",
       "package-name": "@pulse-music/svelte",
       "changelog-path": "CHANGELOG.md"
+    },
+    "packages/react-native": {
+      "release-type": "node",
+      "package-name": "@pulse-music/react-native",
+      "changelog-path": "CHANGELOG.md"
     }
   },
   "plugins": [
