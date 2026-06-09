@@ -214,3 +214,354 @@ export function useSmoothScroll(): Ref<Lenis | null> {
 
   return instance
 }
+
+// ─── 4. Kinetic typography — split title into chars ──────────────────
+
+/**
+ * Splits the element's text into `<span class="char">` per character
+ * (whitespace preserved as a non-breaking space), then plays a staged
+ * reveal per char. Apple's "Hello." style entrance — each glyph
+ * cascades in at ~25 ms intervals.
+ *
+ * Idempotent: runs once on mount. Re-rendering the element re-runs
+ * the split.
+ *
+ * `prefers-reduced-motion` skips the animation but still splits — the
+ * span wrapping is harmless for accessibility (screen readers read
+ * the original text via the parent).
+ */
+export function useKineticType(target: Ref<HTMLElement | null>): void {
+  onMounted(() => {
+    const el = target.value
+    if (!el) return
+
+    const text = el.textContent ?? ''
+    const fragment = document.createDocumentFragment()
+    const chars: HTMLSpanElement[] = []
+
+    for (const ch of text) {
+      const span = document.createElement('span')
+      span.className = 'kinetic-char'
+      span.textContent = ch === ' ' ? ' ' : ch
+      span.style.display = 'inline-block'
+      // Preserve word-wrap by leaving the parent's white-space alone.
+      fragment.appendChild(span)
+      chars.push(span)
+    }
+
+    el.textContent = ''
+    el.appendChild(fragment)
+    // Mark the parent so a screen reader still reads the whole title
+    // as one phrase rather than the per-char structure.
+    el.setAttribute('aria-label', text)
+
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return
+    }
+
+    for (const c of chars) {
+      c.style.opacity = '0'
+      c.style.transform = 'translate3d(0, 28px, 0) rotate(2deg)'
+      c.style.willChange = 'opacity, transform'
+    }
+
+    animate(
+      chars,
+      {
+        opacity: [0, 1],
+        y: [28, 0],
+        rotate: [2, 0],
+      },
+      {
+        duration: 0.55,
+        delay: stagger(0.025, { startDelay: 0.18 }),
+        ease: [0.22, 1, 0.36, 1],
+      },
+    ).then(() => {
+      for (const c of chars) c.style.willChange = ''
+    })
+  })
+}
+
+// ─── 5. Cursor-tracking glow (Apple interactive light) ───────────────
+
+interface CursorGlowOptions {
+  /** Glow radius in pixels (default 360). */
+  radius?: number
+  /** Maximum opacity 0..1 (default 0.35). */
+  intensity?: number
+}
+
+/**
+ * Tracks the pointer position relative to the target and updates two
+ * CSS custom properties on it:
+ *   --cursor-x: <0..100>%
+ *   --cursor-y: <0..100>%
+ *   --cursor-inside: <0|1>
+ *
+ * The CSS consumer paints a radial-gradient glow at (var(--cursor-x),
+ * var(--cursor-y)) — see App.vue style block. Decays back to centre
+ * on mouseleave with a small momentum so the glow doesn't snap away.
+ *
+ * Mobile / no-pointer / reduced-motion: stays disabled.
+ */
+export function useCursorGlow(target: Ref<HTMLElement | null>, opts: CursorGlowOptions = {}): void {
+  let raf = 0
+  let mouseX = 0.5
+  let mouseY = 0.5
+  let renderedX = 0.5
+  let renderedY = 0.5
+  let inside = 0
+
+  const onMove = (e: PointerEvent) => {
+    const el = target.value
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    mouseX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+    mouseY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height))
+    inside = 1
+  }
+  const onEnter = () => {
+    inside = 1
+  }
+  const onLeave = () => {
+    inside = 0
+  }
+
+  const tick = () => {
+    raf = requestAnimationFrame(tick)
+    const el = target.value
+    if (!el) return
+    // Smooth toward mouse — 0.15/frame factor.
+    renderedX += (mouseX - renderedX) * 0.15
+    renderedY += (mouseY - renderedY) * 0.15
+    el.style.setProperty('--cursor-x', `${(renderedX * 100).toFixed(1)}%`)
+    el.style.setProperty('--cursor-y', `${(renderedY * 100).toFixed(1)}%`)
+    el.style.setProperty('--cursor-inside', String(inside))
+  }
+
+  onMounted(() => {
+    if (typeof window === 'undefined') return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    // No-pointer devices (phones / TVs) don't get the effect.
+    if (!window.matchMedia('(pointer: fine)').matches) return
+
+    const el = target.value
+    if (!el) return
+    el.style.setProperty('--cursor-radius', `${opts.radius ?? 360}px`)
+    el.style.setProperty('--cursor-intensity', String(opts.intensity ?? 0.35))
+
+    el.addEventListener('pointermove', onMove)
+    el.addEventListener('pointerenter', onEnter)
+    el.addEventListener('pointerleave', onLeave)
+    raf = requestAnimationFrame(tick)
+  })
+
+  onBeforeUnmount(() => {
+    const el = target.value
+    if (el) {
+      el.removeEventListener('pointermove', onMove)
+      el.removeEventListener('pointerenter', onEnter)
+      el.removeEventListener('pointerleave', onLeave)
+    }
+    if (raf) cancelAnimationFrame(raf)
+  })
+}
+
+// ─── 6. Scroll parallax (uses Lenis if available) ────────────────────
+
+interface ParallaxOptions {
+  /** Parallax depth in pixels. Positive = slower than scroll. */
+  depth?: number
+}
+
+/**
+ * Attaches a transform: translate3d(0, calc(scrollY * factor), 0) to
+ * the target element. Driven by Lenis if booted, otherwise by the
+ * native scroll listener with passive: true.
+ *
+ * The depth is small by default (60 px max) — premium parallax is
+ * subtle. Apple's product pages parallax their hero backdrops at
+ * ~10-20% of scroll velocity.
+ */
+export function useScrollParallax(
+  target: Ref<HTMLElement | null>,
+  opts: ParallaxOptions = {},
+): void {
+  let raf = 0
+  let lastY = 0
+  const depth = opts.depth ?? 60
+
+  const onScroll = () => {
+    lastY = window.scrollY
+  }
+  const tick = () => {
+    raf = requestAnimationFrame(tick)
+    const el = target.value
+    if (!el) return
+    const factor = -(lastY / Math.max(1, window.innerHeight)) * depth
+    el.style.transform = `translate3d(0, ${factor.toFixed(2)}px, 0)`
+  }
+
+  onMounted(() => {
+    if (typeof window === 'undefined') return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    window.addEventListener('scroll', onScroll, { passive: true })
+    raf = requestAnimationFrame(tick)
+  })
+
+  onBeforeUnmount(() => {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('scroll', onScroll)
+    }
+    if (raf) cancelAnimationFrame(raf)
+  })
+}
+
+// ─── 7. View Transitions wrapper ─────────────────────────────────────
+
+interface ViewTransitionApiDocument {
+  startViewTransition?: (cb: () => void | Promise<void>) => {
+    finished: Promise<void>
+    ready: Promise<void>
+    updateCallbackDone: Promise<void>
+  }
+}
+
+/**
+ * Wraps a state update in `document.startViewTransition` when
+ * supported (Chromium 111+). Falls back to plain invocation in
+ * Safari < 18 + Firefox until VT API ships GA. Use for variant
+ * swaps, theme toggles, route-like UI changes where a cross-fade
+ * polish is worth it.
+ *
+ * Example:
+ *   onClick: () => withViewTransition(() => (variant.value = 'vinyl'))
+ */
+export function withViewTransition(update: () => void): void {
+  const doc = document as Document & ViewTransitionApiDocument
+  if (typeof doc.startViewTransition === 'function') {
+    doc.startViewTransition(update)
+  } else {
+    update()
+  }
+}
+
+// ─── 8. Canvas2D audio particle field ────────────────────────────────
+
+interface AudioParticleOptions {
+  /** Particle count (default 60). */
+  count?: number
+  /** Base colour (rgba string). */
+  colour?: string
+}
+
+/**
+ * Renders a subtle particle field on a canvas, modulated by the
+ * engine's eqBars amplitude. Each particle drifts slowly upward;
+ * the FFT mean increases speed + opacity briefly. Pure Canvas 2D —
+ * no WebGL, no Three.js — to keep the bundle cost negligible (the
+ * canvas API is built into every browser).
+ *
+ * Mounted on a `<canvas>` element ref. Resizes to match its parent
+ * via ResizeObserver. Cleans up RAF + listeners on unmount.
+ *
+ * Reduced-motion: doesn't initialise.
+ */
+export function useAudioParticles(
+  canvas: Ref<HTMLCanvasElement | null>,
+  engine: Ref<AudioReactiveEngine>,
+  opts: AudioParticleOptions = {},
+): void {
+  let raf = 0
+  let ro: ResizeObserver | null = null
+  type P = { x: number; y: number; vy: number; r: number; phase: number }
+  const particles: P[] = []
+  const count = opts.count ?? 60
+  const baseColour = opts.colour ?? 'rgba(139, 92, 246, 0.55)'
+
+  const seed = (w: number, h: number) => {
+    particles.length = 0
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vy: 0.15 + Math.random() * 0.25,
+        r: 0.6 + Math.random() * 1.4,
+        phase: Math.random() * Math.PI * 2,
+      })
+    }
+  }
+
+  const tick = () => {
+    raf = requestAnimationFrame(tick)
+    const c = canvas.value
+    if (!c) return
+    const ctx = c.getContext('2d')
+    if (!ctx) return
+    const w = c.width
+    const h = c.height
+
+    // Audio amplitude — same source as the ambient backdrop.
+    const e = engine.value
+    let amp = 0
+    if (e.isPlaying) {
+      const bars = e.eqBars
+      let sum = 0
+      for (let i = 0; i < bars.length; i++) sum += bars[i] || 0
+      amp = bars.length ? sum / bars.length : 0
+    }
+    const boost = 1 + amp * 2
+
+    ctx.clearRect(0, 0, w, h)
+    ctx.fillStyle = baseColour
+    for (const p of particles) {
+      p.y -= p.vy * boost
+      p.phase += 0.02
+      const wobble = Math.sin(p.phase) * 0.6
+      if (p.y < -10) {
+        p.y = h + 10
+        p.x = Math.random() * w
+      }
+      const opacity = 0.25 + amp * 0.5
+      ctx.globalAlpha = opacity
+      ctx.beginPath()
+      ctx.arc(p.x + wobble, p.y, p.r * boost, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.globalAlpha = 1
+  }
+
+  onMounted(() => {
+    if (typeof window === 'undefined') return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const c = canvas.value
+    if (!c) return
+
+    const dpr = Math.min(2, window.devicePixelRatio || 1)
+    const sync = () => {
+      const parent = c.parentElement
+      if (!parent) return
+      const rect = parent.getBoundingClientRect()
+      c.width = Math.max(1, Math.floor(rect.width * dpr))
+      c.height = Math.max(1, Math.floor(rect.height * dpr))
+      c.style.width = `${rect.width}px`
+      c.style.height = `${rect.height}px`
+      const ctx = c.getContext('2d')
+      ctx?.scale(dpr, dpr)
+      seed(rect.width, rect.height)
+    }
+    sync()
+    ro = new ResizeObserver(sync)
+    if (c.parentElement) ro.observe(c.parentElement)
+    raf = requestAnimationFrame(tick)
+  })
+
+  onBeforeUnmount(() => {
+    if (raf) cancelAnimationFrame(raf)
+    ro?.disconnect()
+  })
+}

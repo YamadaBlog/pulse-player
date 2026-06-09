@@ -4,6 +4,142 @@ All notable changes to **pulse-player** are documented here. The format follows 
 
 Tags: every release listed below is pinned to a signed git tag of the same name (`vX.Y.Z`) and surfaced as a GitHub Release.
 
+## 3.0.0-alpha.28 — 2026-06-09
+
+**Premium motion layer — next-gen pieces.** Adds 5 new composables on top of alpha.27's foundation. Apple-style kinetic typography + cursor-tracking glow + scroll parallax + view transitions + audio-reactive Canvas2D particles. Vue v2.3.4 byte-identical on **29th alpha**.
+
+### What ships (all demo-page only — no impact on `@pulse-music/*` tarballs)
+
+**`src/composables/usePremiumMotion.ts`** — extended from 3 → 8 exports (+342 LOC). The 5 newcomers:
+
+| Composable                                             | Effect                                                                                                                                                                                                                                                                    |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useKineticType(target)`                               | Splits the hero title into per-char `<span class="kinetic-char">`, cascades each glyph in with 25 ms stagger + rotation + 28 px Y offset + Apple easeOutQuint. The Apple "Hello." entrance.                                                                               |
+| `useCursorGlow(target, { radius, intensity })`         | Tracks the pointer relative to the target, smoothed at 0.15/frame. Writes `--cursor-x`, `--cursor-y`, `--cursor-inside` as CSS custom properties. The CSS consumer paints a radial-gradient that follows the pointer. Mobile / no-pointer / reduced-motion stay disabled. |
+| `useScrollParallax(target, { depth })`                 | Cheap scroll-driven parallax via `transform: translate3d(0, scrollY * factor, 0)`. Passive scroll listener + RAF. Subtle by default (50 px max depth on the hero backdrop).                                                                                               |
+| `withViewTransition(update)`                           | Thin wrapper around `document.startViewTransition()`. Falls back to plain invocation on Safari < 18 / Firefox. Used on the variant picker chips for a 320 ms cross-fade on theme swap.                                                                                    |
+| `useAudioParticles(canvas, engine, { count, colour })` | Canvas2D (NOT WebGL — keeps bundle cost negligible) particle field. 48 dots drift upward, each modulated by the engine's `eqBars` mean amplitude — speed × (1 + amp × 2), opacity 0.25 + amp × 0.5. ResizeObserver-aware. Pure compositor work, no Vue rerender.          |
+
+**`src/App.vue`**
+
+- `<script setup>` wires the 5 new composables with refs to `.hero`, `.hero__title`, `.hero__backdrop`, and a new `<canvas class="hero__particles">` overlay
+- `@click="withViewTransition(() => (activeFabVariant = opt.id))"` on the palette chip buttons
+- `<style>` adds:
+  - `.kinetic-char` baseline transform-origin (50% 80% — rotates around the glyph centre, not the bounding box top)
+  - `.hero__cursor-glow` radial-gradient consumer with `mix-blend-mode: screen` (the glow blends into the existing hero gradient rather than overlaying it)
+  - `.hero__particles` canvas overlay (mix-blend-mode: screen, opacity 0.85)
+  - `::view-transition-old/new(root)` 320 ms cubic-bezier(0.22, 1, 0.36, 1)
+  - `.palette__chip` hover scale-1.03 + active scale-1.06 micro-interaction
+  - `@media (prefers-reduced-motion: reduce)` hides cursor-glow, particles, freezes chip transforms
+
+### Accessibility — guards intact
+
+Every new layer respects `prefers-reduced-motion`:
+
+- `useKineticType` — still splits into chars (harmless for screen readers because `aria-label` is set on the parent so SR read the full phrase), but skips the animate() call
+- `useCursorGlow` — skipped on `pointer: coarse` or `prefers-reduced-motion`
+- `useScrollParallax` — skipped on `prefers-reduced-motion`
+- `useAudioParticles` — never initialises on `prefers-reduced-motion`
+- CSS `@media (prefers-reduced-motion: reduce)` hides cursor-glow + particles + freezes chip transforms
+
+### Bundle measurement
+
+|                           | alpha.27  | alpha.28  | Δ        |
+| ------------------------- | --------- | --------- | -------- |
+| `npm run build` JS gzip   | 76.33 kB  | 77.66 kB  | +1.33 kB |
+| `npm run build` CSS gzip  | 8.39 kB   | 8.67 kB   | +0.28 kB |
+| `@pulse-music/*` tarballs | unchanged | unchanged | 0        |
+
+The 5 new composables add ~1.6 kB total. The bundle stays tiny because we leveraged the existing Motion One + Lenis dependencies (alpha.27) and added zero new runtime libraries — Canvas2D is built into every browser, View Transitions API is browser-native, the kinetic split is vanilla DOM.
+
+### Quality gate
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings
+format:check             → all files use Prettier code style
+tests (root, Vue Pinia)  →  33 / 33
+tests (@pulse-music/*)   → 106 / 106
+TOTAL unit               → 139 / 139
+audit (prod-only)        → 0 vulnerabilities
+Vue v2.3.4 demo          → bit-for-bit identical (verified via git ls-tree diff)
+src/lib/                 → ZERO file modified (29th consecutive alpha)
+```
+
+## 3.0.0-alpha.27 — 2026-06-08
+
+**Premium demo motion layer (Apple-style).** The brutal alpha.25-alpha.26 audits called out the demo as "static YouTube embed + Vue page" (6/10 demo quality). This alpha introduces a curated motion layer demo-page only: Apple-style staged reveal + audio-reactive ambient amplification + light sweep CTA. Vue v2.3.4 byte-identical on **28th alpha**.
+
+### Libraries added (demo-page only — NOT shipped in any `@pulse-music/*` tarball)
+
+| Package                                                                                    | Why                                                                    | Bundle cost   |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- | ------------- |
+| `motion@12.40.0` ([motion.dev](https://motion.dev/))                                       | 8 kB core, 18M dl/wk, 2.5× faster than GSAP on unknown DOM values      | Demo SPA only |
+| `lenis@1.3.23` ([darkroomengineering/lenis](https://github.com/darkroomengineering/lenis)) | Smooth scroll that respects `position: sticky` + Intersection Observer | Demo SPA only |
+| `ffmpeg-static` (dev)                                                                      | Portable ffmpeg binary — no system `scoop install` needed              | — (devDep)    |
+| `cwebp-bin` (dev)                                                                          | Portable cwebp binary — no system `scoop install` needed               | — (devDep)    |
+
+### `src/composables/usePremiumMotion.ts` (NEW, 3 exports, ~140 LOC)
+
+- **`useStagedReveal({ selectors, duration, yFrom, stagger, startDelay })`** — Apple-style choreographed entrance: badge → title → lede → player → CTA cascade with 60 ms stagger + 450 ms each + `cubic-bezier(0.22, 1, 0.36, 1)` (easeOutQuint). Respects `prefers-reduced-motion`.
+- **`useAudioReactiveBackdrop(engine, root)`** — subscribes to `PulseEngine.eqBars` (4-bar FFT focal, no allocations per frame). Computes smoothed mean (0.18/frame ≈ 150 ms decay). Writes CSS custom property `--pulse-ambient: 0..1` on root. Zero Vue rerender, pure compositor work.
+- **`useSmoothScroll()`** — boots Lenis once. Reduced-motion-aware. easeOutExpo curve.
+
+### `src/App.vue` updates
+
+- `<script setup>` wires the three composables on mount + `ambientRoot` template ref
+- `<style>` adds:
+  - `--pulse-ambient` CSS custom property consumer on `.hero__glow` (`scale(1 + var(--pulse-ambient) * 0.06)` + `brightness(1 + var(--pulse-ambient) * 0.15)`) and `.hero__backdrop` (`saturate(1 + var(--pulse-ambient) * 0.25)`)
+  - `.cta--primary::after` light sweep — pseudo-element with 115° gradient slides `translateX(-110%) → 110%` over 750 ms `cubic-bezier(0.22, 1, 0.36, 1)` on hover/focus-visible
+  - `@supports (view-transition-name: pulse-player)` block for the future variant cross-fade
+  - `@media (prefers-reduced-motion: reduce)` guard that freezes the pumping + hides the sweep
+
+### Portable demo audio setup
+
+- **`scripts/setup-demo-audio.mjs`** (NEW, Node ESM cross-platform) replaces the bash `scripts/setup-demo-audio.sh` (renamed `.legacy.sh` for reference).
+- Uses **`ffmpeg-static` + `cwebp-bin`** (npm-installed portable binaries) instead of system-installed tools. No more `scoop install ffmpeg webp` precondition.
+- Tries the Pixabay CC0 download URLs first ; falls back to **mathematically-CC0 synthesis** via `ffmpeg lavfi sine + tremolo + lowpass` when the anti-hotlinking returns 403.
+- Generates 2 tracks (5 minutes total): A minor triad (220 + 261.63 + 329.63 + sub 110 Hz) + F major triad (174.61 + 220 + 261.63 + sub 87.31 Hz) ambient pads with slow tremolo (0.4 + 0.6 Hz). Plus 2 gradient covers via cwebp q=85.
+- Audio files **gitignored** (alpha.26) — they stay local, never commit.
+
+### Documentation
+
+- **`docs/setup/PREMIUM_DEMO.md`** (NEW) — design rationale: Apple-like direction, 3 patterns retained, a11y guards table, audio-reactive design, light sweep design, what did NOT change (`src/lib/`, `@pulse-music/*` tarballs, visual regression baseline)
+- **`docs/setup/NODE_UPGRADE.md`** (NEW) — procedure to kill `CVE-2026-47429` (vitest CVSS 9.8): bump Node 20.11 → 22.6+ baseline. Four options documented: Volta (recommended), nvm-windows, nvm, fnm. Vitest 4.x requires `node:util.styleText` exposed only from Node 22.6+. Procedure **not executed in alpha.27** — bumping the maintainer's Node baseline without explicit ask is outside the agent's mandate.
+
+### Research sources
+
+The brutal alpha.25-alpha.26 audits flagged the demo as the lowest-scoring product axis (6.0/10 vs 8+ on code quality). Direction set by:
+
+- [motion.dev](https://motion.dev/) — 8 kB / 18M dl/wk / 2.5× GSAP
+- [darkroomengineering/lenis](https://github.com/darkroomengineering/lenis) — sticky-safe smooth scroll
+- [Codrops 3D Audio Visualiser June 2025](https://tympanus.net/codrops/2025/06/18/coding-a-3d-audio-visualizer-with-three-js-gsap-web-audio-api/)
+- [Codrops Joffrey Spitzer Astro+GSAP minimalist portfolio (Feb 2026)](https://tympanus.net/codrops/2026/02/18/joffrey-spitzer-portfolio-a-minimalist-astro-gsap-build-with-reveals-flip-transitions-and-subtle-motion/)
+- [WebGPU AUDIOLAB R3F showcase](https://www.webgpu.com/showcase/audiolab-react-three-fiber-audio-visualizer/)
+- [Primotech 2026 micro-interaction guidance](https://primotech.com/ui-ux-evolution-2026-why-micro-interactions-and-motion-matter-more-than-ever/) — motion is functional, not decorative ; 200-500 ms ideal ; no gratuitous parallax
+
+### What did NOT change
+
+- `src/lib/*` — Vue v2.3.4 reference, byte-identical
+- `packages/*/` — no `@pulse-music/*` package references `motion`, `lenis`, or `usePremiumMotion`
+- Visual regression baseline — `tests/visual/vue-demo.spec.ts` captures the paused state ; the audio-reactive amplification needs `isPlaying === true` to fire
+
+### Quality gate
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings
+format:check             → all files use Prettier code style
+tests (root, Vue Pinia)  →  33 / 33
+tests (@pulse-music/*)   → 106 / 106
+TOTAL unit               → 139 / 139
+audit (prod-only)        → 0 vulnerabilities
+Vue build production     → 76.33 kB gzip JS + 8.39 kB gzip CSS
+                            (+8 kB Motion One + 2 kB Lenis, as estimated)
+Vue v2.3.4 demo          → bit-for-bit identical
+src/lib/                 → ZERO file modified (28th consecutive alpha)
+```
+
 ## 3.0.0-alpha.26 — 2026-06-08
 
 **Closes the 4 P0 + 1 P1 + 1 P2 gaps the BRUTAL alpha.25 product audit named (5.8/10).** Vue v2.3.4 byte-identical on 27th alpha.

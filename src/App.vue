@@ -7,6 +7,11 @@ import {
   useStagedReveal,
   useAudioReactiveBackdrop,
   useSmoothScroll,
+  useKineticType,
+  useCursorGlow,
+  useScrollParallax,
+  useAudioParticles,
+  withViewTransition,
 } from './composables/usePremiumMotion'
 
 // Multi-step spotlight controller (replaces the v1.x single-boolean
@@ -37,6 +42,23 @@ const audioReactiveSnapshot = computed(() => ({
 }))
 useAudioReactiveBackdrop(audioReactiveSnapshot, ambientRoot)
 useSmoothScroll()
+
+// alpha.28 — next-gen premium motion
+// Kinetic title: split per-char + cascade
+const heroTitleEl = ref<HTMLElement | null>(null)
+useKineticType(heroTitleEl)
+// Cursor-tracking glow on hero (Apple interactive light)
+const heroEl = ref<HTMLElement | null>(null)
+useCursorGlow(heroEl, { radius: 420, intensity: 0.32 })
+// Scroll parallax on hero backdrop (subtle depth)
+const heroBackdropEl = ref<HTMLElement | null>(null)
+useScrollParallax(heroBackdropEl, { depth: 50 })
+// Audio-reactive particle field overlay
+const particleCanvasEl = ref<HTMLCanvasElement | null>(null)
+useAudioParticles(particleCanvasEl, audioReactiveSnapshot, {
+  count: 48,
+  colour: 'rgba(139, 92, 246, 0.62)',
+})
 
 // ─── Showcase mode (?showcase=1 — used for README hero capture) ────────
 // Optional query params:
@@ -924,13 +946,15 @@ const hero = computed(() => ({
       <!-- ═══════════════════════════════════════════════════════════════
          HERO — Apple-grade showcase with blurred cover backdrop
          ═══════════════════════════════════════════════════════════════ -->
-      <section class="hero" :style="hero">
-        <div class="hero__backdrop" aria-hidden="true"></div>
+      <section class="hero" :style="hero" ref="heroEl">
+        <div class="hero__backdrop" aria-hidden="true" ref="heroBackdropEl"></div>
         <div class="hero__glow" aria-hidden="true"></div>
+        <div class="hero__cursor-glow" aria-hidden="true"></div>
+        <canvas class="hero__particles" ref="particleCanvasEl" aria-hidden="true"></canvas>
 
         <div class="hero__inner">
           <div class="hero__badge">v0.11 · Vue 3 · MIT · ~47 kB gzip</div>
-          <h1 class="hero__title">Premium drop-in music for Vue 3.</h1>
+          <h1 class="hero__title" ref="heroTitleEl">Premium drop-in music for Vue 3.</h1>
           <p class="hero__lede">
             An inline card and a floating FAB. One global audio session. FFT visualiser, nine
             themes, container-aware sizing — and a guided demo that walks you through the whole
@@ -1172,7 +1196,7 @@ const hero = computed(() => ({
             :key="opt.id"
             class="palette__chip"
             :class="{ 'palette__chip--active': activeFabVariant === opt.id }"
-            @click="activeFabVariant = opt.id"
+            @click="withViewTransition(() => (activeFabVariant = opt.id))"
           >
             {{ opt.label }}
           </button>
@@ -2514,6 +2538,114 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   }
   .cta--primary::after {
     display: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Premium motion layer (alpha.28) — next-gen pieces
+   - Kinetic title chars
+   - Cursor-tracking glow (Apple interactive light)
+   - Audio-reactive particle canvas overlay
+   - Active view-transitions on variant picker chips
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Kinetic title chars — per-glyph cascade. The composable splits the
+   title into <span class="kinetic-char"> elements and animates each
+   one in with stagger. CSS keeps the glyph behaviour clean. */
+.kinetic-char {
+  display: inline-block;
+  /* Smooth the rotation around the centre of the glyph baseline. */
+  transform-origin: 50% 80%;
+  will-change: opacity, transform;
+}
+
+/* Cursor-tracking glow — Apple interactive light. The composable sets:
+     --cursor-x / --cursor-y: position in percent
+     --cursor-inside:        0 (out) or 1 (in)
+     --cursor-radius:        glow radius in px
+     --cursor-intensity:     opacity 0..1
+   The radial-gradient renders a soft accent-coloured light that
+   follows the pointer + fades on leave. Demo-page only, pointer:fine
+   only, reduced-motion-safe. */
+.hero {
+  --cursor-x: 50%;
+  --cursor-y: 50%;
+  --cursor-inside: 0;
+  --cursor-radius: 360px;
+  --cursor-intensity: 0.35;
+  position: relative;
+  isolation: isolate;
+}
+.hero__cursor-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    var(--cursor-radius) circle at var(--cursor-x) var(--cursor-y),
+    rgba(139, 92, 246, calc(var(--cursor-intensity) * var(--cursor-inside))) 0%,
+    rgba(139, 92, 246, calc(var(--cursor-intensity) * 0.45 * var(--cursor-inside))) 22%,
+    transparent 60%
+  );
+  /* Blend the glow into the existing hero gradient rather than sitting
+     on top of it — looks like the hero "lights up" under the pointer. */
+  mix-blend-mode: screen;
+  opacity: calc(0.4 + 0.6 * var(--cursor-inside));
+  transition: opacity 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 0;
+}
+
+/* Canvas particle field — sits behind the hero content. */
+.hero__particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.85;
+  mix-blend-mode: screen;
+  z-index: 0;
+}
+
+/* Lift the inner content above the new background layers. */
+.hero__inner {
+  position: relative;
+  z-index: 1;
+}
+
+/* View transitions — active on variant picker chips. When a chip is
+   clicked, `withViewTransition()` wraps the state mutation so the
+   browser cross-fades the changed regions instead of flashing.
+   No view-transition-name tagging needed for the default cross-fade
+   behaviour ; the browser snapshots both states and animates between
+   them. We just override the default 250 ms with our Apple easing. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Picker chip micro-interaction — scale-in on active. */
+.palette__chip {
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 220ms ease-out;
+}
+.palette__chip:hover {
+  transform: translateY(-1px) scale(1.03);
+}
+.palette__chip--active {
+  transform: scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__cursor-glow,
+  .hero__particles {
+    display: none;
+  }
+  .palette__chip {
+    transition: none;
+  }
+  .palette__chip:hover,
+  .palette__chip--active {
+    transform: none;
   }
 }
 </style>
