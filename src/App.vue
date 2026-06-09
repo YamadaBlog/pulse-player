@@ -3,6 +3,11 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { MusicPlayer, MiniPlayer, useAudioStore, type MusicPlayerVariant } from './lib'
 import { useDemoTour, type DemoStep } from './composables/useDemoTour'
 import { useDemoSpotlight } from './composables/useDemoSpotlight'
+import {
+  useStagedReveal,
+  useAudioReactiveBackdrop,
+  useSmoothScroll,
+} from './composables/usePremiumMotion'
 
 // Multi-step spotlight controller (replaces the v1.x single-boolean
 // `fabFocused`). Lifecycle: every demo step can call
@@ -11,6 +16,27 @@ import { useDemoSpotlight } from './composables/useDemoSpotlight'
 const spotlight = useDemoSpotlight()
 
 const store = useAudioStore()
+
+// ─── Premium motion layer (alpha.27) ────────────────────────────
+// Apple-style staged reveal on the hero block + audio-reactive
+// ambient backdrop driven by the engine's FFT bars + Lenis smooth
+// scroll. All three respect prefers-reduced-motion and ship in the
+// DEMO PAGE only (never in @pulse-music/* tarballs). See
+// docs/setup/PREMIUM_DEMO.md for the design rationale.
+useStagedReveal({
+  selectors: ['.hero__badge', '.hero__title', '.hero__lede', '.hero__player', '.hero__cta'],
+  duration: 0.45,
+  yFrom: 18,
+  stagger: 0.06,
+  startDelay: 0.1,
+})
+const ambientRoot = ref<HTMLElement | null>(null)
+const audioReactiveSnapshot = computed(() => ({
+  eqBars: store.eqBars,
+  isPlaying: store.isPlaying,
+}))
+useAudioReactiveBackdrop(audioReactiveSnapshot, ambientRoot)
+useSmoothScroll()
 
 // ─── Showcase mode (?showcase=1 — used for README hero capture) ────────
 // Optional query params:
@@ -748,7 +774,7 @@ const hero = computed(() => ({
 </script>
 
 <template>
-  <div class="app">
+  <div class="app" ref="ambientRoot">
     <!-- ═══════════════════════════════════════════════════════════════
          SHOWCASE — clean hero capture for the README. Activate with
          `?showcase=1`. Renders the player centered over a blurred
@@ -2401,6 +2427,93 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
 @media (max-width: 640px) {
   .grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Premium motion layer (alpha.27)
+   Apple-style staged reveal + audio-reactive ambient + light sweep.
+   Demo-page only. Does not ship in @pulse-music/* tarballs.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Audio-reactive ambient — `--pulse-ambient` is set to a smoothed
+   0..1 value by useAudioReactiveBackdrop. The hero glow + backdrop
+   amplify subtly during playback, decaying back when paused. */
+.app {
+  --pulse-ambient: 0;
+}
+
+.hero__glow {
+  /* Existing glow now scales + brightens with the music. The scale
+     delta is intentionally small (1.0 → 1.06) so it reads as ambient
+     breathing rather than a strobe. */
+  transform: scale(calc(1 + var(--pulse-ambient) * 0.06));
+  filter: brightness(calc(1 + var(--pulse-ambient) * 0.15));
+  transition:
+    transform 80ms linear,
+    filter 80ms linear;
+}
+
+.hero__backdrop {
+  /* Slight saturation pump on the cover-derived backdrop. */
+  filter: saturate(calc(1 + var(--pulse-ambient) * 0.25))
+    brightness(calc(1 + var(--pulse-ambient) * 0.08));
+  transition: filter 80ms linear;
+}
+
+/* Apple-style "light sweep" on the primary CTA hover.
+   A pseudo-element with a 45° gradient slides across once on hover.
+   Keeps the original button colour intact — just adds gloss. */
+.cta--primary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.cta--primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 65%,
+    transparent 100%
+  );
+  transform: translateX(-110%);
+  transition: transform 750ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+.cta--primary:hover::after,
+.cta--primary:focus-visible::after {
+  transform: translateX(110%);
+}
+
+/* View Transitions API (Chromium 111+) — silky variant swaps.
+   Wraps the theme-switch interaction so changing variant cross-fades
+   the player chrome instead of flashing. Older browsers ignore the
+   ::view-transition-* selectors and get the default behaviour. */
+@supports (view-transition-name: pulse-player) {
+  ::view-transition-old(pulse-player),
+  ::view-transition-new(pulse-player) {
+    animation-duration: 320ms;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+/* prefers-reduced-motion guard — composables already skip the JS RAF
+   loop, but freeze the CSS pumping too. */
+@media (prefers-reduced-motion: reduce) {
+  .hero__glow,
+  .hero__backdrop {
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+  .cta--primary::after {
+    display: none;
   }
 }
 </style>
