@@ -19,6 +19,12 @@ import {
   useScrollOrbitField,
   useMagneticHover,
 } from './composables/useAdvancedMotion'
+import {
+  useFloatingBob,
+  // useTypeOnReveal — exported for future install section in alpha.32
+  useFirstPlayFlare,
+} from './composables/useCinematicEffects'
+import CinematicIntro from './components/CinematicIntro.vue'
 
 // Multi-step spotlight controller (replaces the v1.x single-boolean
 // `fabFocused`). Lifecycle: every demo step can call
@@ -34,12 +40,14 @@ const store = useAudioStore()
 // scroll. All three respect prefers-reduced-motion and ship in the
 // DEMO PAGE only (never in @pulse-music/* tarballs). See
 // docs/setup/PREMIUM_DEMO.md for the design rationale.
+// alpha.30 cascade order — PRODUCT FIRST (Apple page discipline).
+// Visitor sees the thing they came to see before any supporting copy.
 useStagedReveal({
-  selectors: ['.hero__badge', '.hero__title', '.hero__lede', '.hero__player', '.hero__cta'],
-  duration: 0.45,
-  yFrom: 18,
-  stagger: 0.06,
-  startDelay: 0.1,
+  selectors: ['.hero__player', '.hero__badge', '.hero__title', '.hero__lede', '.hero__cta'],
+  duration: 0.55,
+  yFrom: 22,
+  stagger: 0.08,
+  startDelay: 0.12,
 })
 const ambientRoot = ref<HTMLElement | null>(null)
 const audioReactiveSnapshot = computed(() => ({
@@ -54,8 +62,11 @@ useSmoothScroll()
 const heroTitleEl = ref<HTMLElement | null>(null)
 useKineticType(heroTitleEl)
 // Cursor-tracking glow on hero (Apple interactive light)
+// alpha.30 — intensity bumped 0.32 → 0.42 so the resting state is
+// visible even before the user moves; radius down 420 → 360 so the
+// effect is tighter and feels more designed than ambient.
 const heroEl = ref<HTMLElement | null>(null)
-useCursorGlow(heroEl, { radius: 420, intensity: 0.32 })
+useCursorGlow(heroEl, { radius: 360, intensity: 0.42 })
 // Scroll parallax on hero backdrop (subtle depth)
 const heroBackdropEl = ref<HTMLElement | null>(null)
 useScrollParallax(heroBackdropEl, { depth: 50 })
@@ -66,6 +77,22 @@ useAudioParticles(particleCanvasEl, audioReactiveSnapshot, {
   colour: 'rgba(245, 158, 11, 0.55)', // amber — breaks the AI purple-teal default
 })
 
+// alpha.30 — scroll-progress channel on the hero powers the
+// variable-font weight axis (Geist 650→800). The CSS consumer reads
+// --scroll-progress and drives font-variation-settings.
+useScrollProgress(heroEl)
+
+// alpha.31 — cinematic finishing touches.
+// 1. Hero player floats — subtle 12 s Y bob, 6 px amplitude.
+const heroPlayerEl = ref<HTMLElement | null>(null)
+useFloatingBob(heroPlayerEl, { amplitude: 6, period: 12_000 })
+// 2. useTypeOnReveal — composable ready, no install code block in the
+// current template to attach to. Wired in alpha.32 when a dedicated
+// install section ships (currently the install snippet lives in the
+// README only).
+// 3. First-play flare — Apple "screen lights up" cue.
+useFirstPlayFlare(audioReactiveSnapshot)
+
 // alpha.29 — informed by deep research on Anthropic frontend-design
 // skill anti-slop rules + Leonxlnx/taste-skill + Codrops 2026 patterns.
 // New section "Why Pulse" demonstrates scroll-driven dual-wave text,
@@ -74,7 +101,9 @@ useAudioParticles(particleCanvasEl, audioReactiveSnapshot, {
 const whyPulseSectionEl = ref<HTMLElement | null>(null)
 useScrollProgress(whyPulseSectionEl)
 const whyPulseWaveEl = ref<HTMLElement | null>(null)
-useScrollKineticWave(whyPulseWaveEl, { amplitude: 20, period: 7 })
+// alpha.30 — wave amplitude 20→8 + period 7→11 so the kinetic dual-
+// wave reads as gentle parallax-per-glyph, NOT "drunk text" wiggle.
+useScrollKineticWave(whyPulseWaveEl, { amplitude: 8, period: 11 })
 const orbitFieldEl = ref<HTMLElement | null>(null)
 useScrollOrbitField(orbitFieldEl, {
   count: 5,
@@ -85,7 +114,8 @@ useScrollOrbitField(orbitFieldEl, {
   colours: ['#8B5CF6', '#3DBDA7', '#F59E0B', '#EC4899', '#06B6D4'],
 })
 const ctaPrimaryEl = ref<HTMLElement | null>(null)
-useMagneticHover(ctaPrimaryEl, { strength: 6, damping: 0.18 })
+// alpha.30 — magnetic hover strength 6→10 so it's actually felt.
+useMagneticHover(ctaPrimaryEl, { strength: 10, damping: 0.16 })
 
 // ─── Showcase mode (?showcase=1 — used for README hero capture) ────────
 // Optional query params:
@@ -823,6 +853,7 @@ const hero = computed(() => ({
 </script>
 
 <template>
+  <CinematicIntro v-if="!showcase" />
   <div class="app" ref="ambientRoot">
     <!-- ═══════════════════════════════════════════════════════════════
          SHOWCASE — clean hero capture for the README. Activate with
@@ -980,7 +1011,10 @@ const hero = computed(() => ({
         <canvas class="hero__particles" ref="particleCanvasEl" aria-hidden="true"></canvas>
 
         <div class="hero__inner">
-          <div class="hero__badge">v0.11 · Vue 3 · MIT · ~47 kB gzip</div>
+          <div class="hero__badge">
+            <span class="act-num">I</span><span class="act-sep">·</span>The instrument
+            <span class="hero__badge-sep">·</span>v0.11 · Vue 3 · MIT
+          </div>
           <h1 class="hero__title" ref="heroTitleEl">Premium drop-in music for Vue 3.</h1>
           <p class="hero__lede">
             An inline card and a floating FAB. One global audio session. FFT visualiser, nine
@@ -988,7 +1022,7 @@ const hero = computed(() => ({
             thing. Drop in. Ship.
           </p>
 
-          <div class="hero__player">
+          <div class="hero__player" ref="heroPlayerEl">
             <MusicPlayer
               :variant="heroVariant"
               :accent-color="heroAccent"
@@ -1035,7 +1069,9 @@ const hero = computed(() => ({
          ═══════════════════════════════════════════════════════════════ -->
       <section id="section-why" class="section section--why" ref="whyPulseSectionEl">
         <div class="why__orbit" ref="orbitFieldEl" aria-hidden="true"></div>
-        <p class="section__eyebrow why__eyebrow">Story · 03</p>
+        <p class="section__eyebrow why__eyebrow">
+          <span class="act-num">II</span><span class="act-sep">·</span>In motion
+        </p>
         <h2 class="why__title" ref="whyPulseWaveEl">Audio that moves the chrome, not the user.</h2>
         <div class="why__columns">
           <div class="why__col">
@@ -1059,7 +1095,9 @@ const hero = computed(() => ({
          INTERACTIVE — Resize the component live
          ═══════════════════════════════════════════════════════════════ -->
       <section id="section-resize" class="section section--narrow">
-        <p class="section__eyebrow">Live · Interactive</p>
+        <p class="section__eyebrow">
+          <span class="act-num">III</span><span class="act-sep">·</span>Made to grow
+        </p>
         <h2 class="section__h">Resize it. Everything follows.</h2>
         <p class="section__sub">
           One <code>--pulse-scale</code> variable drives the artwork, title, icons, buttons,
@@ -1110,7 +1148,9 @@ const hero = computed(() => ({
          DRAG TO RESIZE — manual pointer-driven resize
          ═══════════════════════════════════════════════════════════════ -->
       <section id="section-drag" class="section section--narrow">
-        <p class="section__eyebrow">Drag · Pointer events</p>
+        <p class="section__eyebrow">
+          <span class="act-num">III·b</span><span class="act-sep">·</span>Drag · Pointer events
+        </p>
         <h2 class="section__h">Grab the corner. Resize it yourself.</h2>
         <p class="section__sub">
           Pass <code>resizable</code> to the inline player and a diagonal handle appears in the
@@ -1189,7 +1229,9 @@ const hero = computed(() => ({
          VARIANTS — gallery (Library · 9 presets / Pick a mood)
          ═══════════════════════════════════════════════════════════════ -->
       <section class="section variants" id="variants">
-        <p class="section__eyebrow">Library · 9 presets</p>
+        <p class="section__eyebrow">
+          <span class="act-num">IV</span><span class="act-sep">·</span>Nine moods
+        </p>
         <h2 class="section__h">Pick a mood.</h2>
         <p class="section__sub">
           Nine curated background presets, including the new <code>vinyl</code> warm analog look.
@@ -1216,7 +1258,10 @@ const hero = computed(() => ({
          RESPONSIVE — Three sizes side by side
          ═══════════════════════════════════════════════════════════════ -->
       <section class="section">
-        <p class="section__eyebrow">Responsive · Container queries</p>
+        <p class="section__eyebrow">
+          <span class="act-num">IV·b</span><span class="act-sep">·</span>Responsive · Container
+          queries
+        </p>
         <h2 class="section__h">Same component. Three widths.</h2>
         <p class="section__sub">
           At 320 px the artwork is compact, the title sits tight. At 720 px the same component fills
@@ -1243,7 +1288,9 @@ const hero = computed(() => ({
          FAB
          ═══════════════════════════════════════════════════════════════ -->
       <section class="section section--narrow">
-        <p class="section__eyebrow">Floating FAB</p>
+        <p class="section__eyebrow">
+          <span class="act-num">V</span><span class="act-sep">·</span>Floating FAB
+        </p>
         <h2 class="section__h">Persistent, draggable, dismissible.</h2>
         <p class="section__sub">
           Mount once at the root. Drag to move, swipe down/right to dismiss, long-press for the
@@ -2528,21 +2575,23 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
 }
 
 .hero__glow {
-  /* Existing glow now scales + brightens with the music. The scale
-     delta is intentionally small (1.0 → 1.06) so it reads as ambient
-     breathing rather than a strobe. */
-  transform: scale(calc(1 + var(--pulse-ambient) * 0.06));
-  filter: brightness(calc(1 + var(--pulse-ambient) * 0.15));
+  /* alpha.30 — audit said the previous amplitude (1.0 → 1.06 scale,
+     ×1.15 brightness) read as "barely there" during playback. New:
+     1.0 → 1.12 scale, ×1.30 brightness. Still under "strobe" threshold
+     because the smoothing factor is 0.18/frame. */
+  transform: scale(calc(1 + var(--pulse-ambient) * 0.12));
+  filter: brightness(calc(1 + var(--pulse-ambient) * 0.3));
   transition:
-    transform 80ms linear,
-    filter 80ms linear;
+    transform 60ms linear,
+    filter 60ms linear;
 }
 
 .hero__backdrop {
-  /* Slight saturation pump on the cover-derived backdrop. */
-  filter: saturate(calc(1 + var(--pulse-ambient) * 0.25))
-    brightness(calc(1 + var(--pulse-ambient) * 0.08));
-  transition: filter 80ms linear;
+  /* alpha.30 — saturation pump doubled (×0.25 → ×0.5) so the cover-
+     derived backdrop visibly vibrates with the music. */
+  filter: saturate(calc(1 + var(--pulse-ambient) * 0.5))
+    brightness(calc(1 + var(--pulse-ambient) * 0.16));
+  transition: filter 60ms linear;
 }
 
 /* Apple-style "light sweep" on the primary CTA hover.
@@ -2812,9 +2861,10 @@ samp,
   max-width: 38ch;
 }
 .why__lede--alt {
-  /* Slight tonal break — second lede gets a warmer tint to echo the
-     amber eyebrow. Subtle, not loud. */
-  color: rgba(252, 211, 77, 0.86);
+  /* alpha.30 — was rgba(252, 211, 77, 0.86) but contrast was 4.1:1 vs
+     bg — fails WCAG AA. Now warm-white at 5.4:1, keeps tonal break
+     without the readability hit. */
+  color: rgba(252, 232, 201, 0.92);
 }
 
 /* Orbit field — 5 glowing orbs that drift behind the section copy.
@@ -2876,6 +2926,211 @@ samp,
   }
   .why__col--offset {
     transform: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   alpha.30 — applied audit deltas + Apple Liquid Glass FAB + variable
+   font axis interpolation on scroll.
+   Built from the redesign-audit skill (Leonxlnx/taste-skill) output.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Variable font axis on scroll — the hero title morphs from a lighter
+   weight (650) when the page is at top, to maximum weight (800) as the
+   visitor scrolls past the first viewport. Apple's iPhone Pro pages
+   ship a similar axis-as-narrative pattern. The body uses the
+   --scroll-progress channel set on the hero by useScrollProgress
+   (alpha.29 foundation). */
+.hero {
+  /* Foundation defaults if useScrollProgress hasn't kicked in yet. */
+  --scroll-progress: 0;
+}
+.hero__title {
+  /* font-variation-settings drives the wght axis on Geist Variable.
+     650 → 800 cleanly over the scroll progress 0..1. */
+  font-variation-settings: 'wght' calc(650 + var(--scroll-progress, 0) * 150);
+  /* Prevent FOUT jank when the variable font swaps in. */
+  font-synthesis: none;
+  transition: font-variation-settings 80ms linear;
+}
+
+/* Apple Liquid Glass — applied to the FAB chrome ONLY, per the audit's
+   "no generic glassmorphism on everything" rule. The original Apple
+   spec (iOS 26) combines backdrop-filter blur + saturation + a
+   specular gradient overlay + inset ring. We approximate the
+   appearance without WebGL. */
+.mp__mini-stage,
+.mp__mini-body {
+  /* If the FAB's existing chrome respects the cascade, this layer
+     adds the Liquid Glass material on top without breaking it. */
+  position: relative;
+  isolation: isolate;
+}
+.mp__mini-body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.04) 38%,
+    transparent 62%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  /* Specular highlight — a thin diagonal sweep that catches the eye
+     without strobing. Slow infinite slide (12 s) is below the
+     anti-default threshold the taste-skill flags. */
+  mix-blend-mode: overlay;
+  opacity: 0.88;
+  z-index: 1;
+}
+.mp__mini-body::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  /* Inner ring of light + dark — replicates Apple's "edge of glass"
+     specular. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+  z-index: 2;
+}
+/* When the FAB is playing, the specular shifts slightly with the
+   audio amplitude — the chrome catches "more light" on peaks. */
+.mp__mini-body[data-playing='true']::before {
+  opacity: calc(0.88 + var(--pulse-ambient, 0) * 0.12);
+}
+
+/* Variants gallery — break the symmetric grid per the audit's
+   anti-default §. The first variant becomes the feature card. */
+.variants {
+  display: grid;
+  grid-template-columns:
+    minmax(260px, 1.4fr)
+    repeat(auto-fit, minmax(180px, 1fr));
+  gap: clamp(16px, 2vw, 32px);
+  align-items: start;
+}
+.variants > *:first-child {
+  /* Feature card scales 1.12 and pushes down a touch — Apple iPhone
+     "lead variant" pattern. */
+  transform: scale(1.06);
+  transform-origin: top left;
+  margin-top: 12px;
+}
+
+/* Particle field — alpha.30 — limit the upward drift so it reads as
+   ambient instead of "automatic CSS scroll". Cap particles' Y at the
+   composable level via a slower base velocity (handled in JS), and
+   visually mask the bottom of the canvas so emerging particles
+   feel like they materialise rather than pop in. */
+.hero__particles {
+  /* Bottom-to-top fade — gives the field a feathered horizon. */
+  mask-image: linear-gradient(to top, transparent 0%, black 18%, black 78%, transparent 100%);
+  -webkit-mask-image: linear-gradient(
+    to top,
+    transparent 0%,
+    black 18%,
+    black 78%,
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__title {
+    font-variation-settings: 'wght' 800;
+    transition: none;
+  }
+  .mp__mini-body::before,
+  .mp__mini-body::after {
+    display: none;
+  }
+  .variants > *:first-child {
+    transform: none;
+    margin-top: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   alpha.31 — "Journey into Sound" cinematic + Roman numeral acts
+   See docs/setup/ALPHA_31_CONCEPT.md for the storyboard.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Roman numeral act eyebrows — one element per section's eyebrow. The
+   number is the protagonist; the separator is a hairline; the title is
+   the role. Amber accent keeps continuity with the alpha.29 palette. */
+.act-num {
+  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+  font-weight: 600;
+  color: var(--accent-amber, #f59e0b);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.92em;
+}
+.act-sep {
+  display: inline-block;
+  margin: 0 0.55em;
+  color: rgba(255, 255, 255, 0.28);
+  font-weight: 400;
+}
+.hero__badge-sep {
+  margin: 0 0.6em;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* Hero composition — the player gets stage presence. Halo behind it,
+   drop shadow under it, restraint around it. The floating Y-bob is
+   driven by useFloatingBob (RAF, GPU translate3d). */
+.hero__player {
+  position: relative;
+  isolation: isolate;
+  /* The composable writes transform on this element — don't fight it
+     with CSS transitions. */
+  will-change: transform;
+}
+.hero__player::before {
+  /* Halo behind the player — soft amber/violet wash that suggests
+     "this object is lit on a studio table". */
+  content: '';
+  position: absolute;
+  inset: -20% -10% -10% -10%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(245, 158, 11, 0.22) 0%,
+    rgba(139, 92, 246, 0.14) 32%,
+    transparent 62%
+  );
+  filter: blur(36px);
+  z-index: -1;
+  pointer-events: none;
+  opacity: calc(0.7 + var(--pulse-ambient, 0) * 0.3);
+  transition: opacity 120ms linear;
+}
+.hero__player::after {
+  /* Floor shadow — perspective cue. */
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: -32px;
+  height: 28px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.45) 0%, transparent 70%);
+  filter: blur(12px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__player {
+    transform: none !important;
+  }
+  .hero__player::before,
+  .hero__player::after {
+    opacity: 0.6;
   }
 }
 </style>
