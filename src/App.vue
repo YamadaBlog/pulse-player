@@ -13,6 +13,12 @@ import {
   useAudioParticles,
   withViewTransition,
 } from './composables/usePremiumMotion'
+import {
+  useScrollProgress,
+  useScrollKineticWave,
+  useScrollOrbitField,
+  useMagneticHover,
+} from './composables/useAdvancedMotion'
 
 // Multi-step spotlight controller (replaces the v1.x single-boolean
 // `fabFocused`). Lifecycle: every demo step can call
@@ -57,8 +63,29 @@ useScrollParallax(heroBackdropEl, { depth: 50 })
 const particleCanvasEl = ref<HTMLCanvasElement | null>(null)
 useAudioParticles(particleCanvasEl, audioReactiveSnapshot, {
   count: 48,
-  colour: 'rgba(139, 92, 246, 0.62)',
+  colour: 'rgba(245, 158, 11, 0.55)', // amber — breaks the AI purple-teal default
 })
+
+// alpha.29 — informed by deep research on Anthropic frontend-design
+// skill anti-slop rules + Leonxlnx/taste-skill + Codrops 2026 patterns.
+// New section "Why Pulse" demonstrates scroll-driven dual-wave text,
+// orbit field with amber tertiary accent, and primary-CTA magnetic
+// hover. See docs/setup/ALPHA_29_RESEARCH.md for the source map.
+const whyPulseSectionEl = ref<HTMLElement | null>(null)
+useScrollProgress(whyPulseSectionEl)
+const whyPulseWaveEl = ref<HTMLElement | null>(null)
+useScrollKineticWave(whyPulseWaveEl, { amplitude: 20, period: 7 })
+const orbitFieldEl = ref<HTMLElement | null>(null)
+useScrollOrbitField(orbitFieldEl, {
+  count: 5,
+  maxRadius: 22,
+  // Palette deliberately includes amber + pink + cyan to break the
+  // generic AI violet-teal default Anthropic's frontend-design skill
+  // flags as "slop".
+  colours: ['#8B5CF6', '#3DBDA7', '#F59E0B', '#EC4899', '#06B6D4'],
+})
+const ctaPrimaryEl = ref<HTMLElement | null>(null)
+useMagneticHover(ctaPrimaryEl, { strength: 6, damping: 0.18 })
 
 // ─── Showcase mode (?showcase=1 — used for README hero capture) ────────
 // Optional query params:
@@ -971,7 +998,12 @@ const hero = computed(() => ({
           </div>
 
           <div class="hero__cta">
-            <button class="cta cta--primary" @click="startDemo" :disabled="tour.isRunning.value">
+            <button
+              class="cta cta--primary"
+              ref="ctaPrimaryEl"
+              @click="startDemo"
+              :disabled="tour.isRunning.value"
+            >
               <span class="cta__icon" aria-hidden="true">
                 <svg viewBox="0 0 14 14" width="13" height="13">
                   <path d="M3 2 L11 7 L3 12 Z" fill="currentColor" />
@@ -991,6 +1023,34 @@ const hero = computed(() => ({
             <button class="cta cta--text" @click="store.toggle">
               {{ store.isPlaying ? 'Pause music' : 'Play music' }}
             </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+         WHY PULSE — alpha.29 scrollytelling moment
+         Dual-wave kinetic text + orbit field with warm tertiary accents.
+         Built from the research synthesis: Codrops Jan 2026 dual-wave
+         pattern + Anthropic frontend-design anti-slop palette discipline.
+         ═══════════════════════════════════════════════════════════════ -->
+      <section id="section-why" class="section section--why" ref="whyPulseSectionEl">
+        <div class="why__orbit" ref="orbitFieldEl" aria-hidden="true"></div>
+        <p class="section__eyebrow why__eyebrow">Story · 03</p>
+        <h2 class="why__title" ref="whyPulseWaveEl">Audio that moves the chrome, not the user.</h2>
+        <div class="why__columns">
+          <div class="why__col">
+            <p class="why__lede">
+              The FFT loop runs at 60 fps. The hero glow respires with it. The backdrop saturates
+              with it. The particle field drifts faster with it. Three reactions, one signal, zero
+              re-renders — the consumer never pays the cost.
+            </p>
+          </div>
+          <div class="why__col why__col--offset">
+            <p class="why__lede why__lede--alt">
+              Scroll moves the page; the page moves with the scroll. Lenis momentum +
+              scroll-progress channels keep the impression of control — not the toy-car overshoot of
+              cheap parallax.
+            </p>
           </div>
         </div>
       </section>
@@ -2645,6 +2705,176 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   }
   .palette__chip:hover,
   .palette__chip--active {
+    transform: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   alpha.29 — anti-slop polish, informed by Anthropic frontend-design
+   skill + Leonxlnx/taste-skill + Codrops 2026 patterns.
+   - Geist Variable display + Geist Mono code stacks
+   - Warm tertiary palette tokens
+   - Asymmetric "Why Pulse" section with scroll-driven kinetic wave
+   - Orbit field with amber accent breaking the violet-teal AI default
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Typography stack — Geist family takes priority, then system fall-back.
+     The system stack stays as a graceful fallback for the < 200 ms before
+     Geist resolves over the network. */
+  --font-display: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+  /* Warm tertiary tokens — break the violet-teal default. Used on amber
+     CTA glow, orbit accent, and ambient EQ secondary channel. */
+  --accent-amber: #f59e0b;
+  --accent-pink: #ec4899;
+}
+.app,
+body {
+  font-family: var(--font-display);
+}
+code,
+pre,
+kbd,
+samp,
+.code,
+[class*='code'] {
+  font-family: var(--font-mono);
+}
+
+/* Hero title — Geist Bold 800 + tighter letter-spacing for the display
+   feel. Anti-slop: NO purple text gradient. */
+.hero__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+}
+
+/* Why Pulse section — asymmetric two-column with offset second column.
+   Apple-style alignment: heading flush-left, second column down +120 px
+   relative to the first. Breaks the symmetric centered layout that
+   Anthropic's frontend-design skill flags as slop. */
+.section--why {
+  position: relative;
+  overflow: visible;
+  padding: clamp(96px, 18vh, 200px) clamp(24px, 6vw, 80px);
+  text-align: left;
+  isolation: isolate;
+}
+
+.why__eyebrow {
+  color: var(--accent-amber);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.why__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(36px, 5.6vw, 80px);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  margin: 0 0 64px;
+  max-width: 18ch;
+  /* Default fill while the per-char wave runs. */
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.wave-char {
+  display: inline-block;
+  /* will-change set by the composable; we keep the layout stable. */
+  vertical-align: baseline;
+}
+
+.why__columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(40px, 6vw, 96px);
+  max-width: 1100px;
+}
+.why__col--offset {
+  /* Asymmetric — second column drops by 120 px so the two reads form
+     a staircase rather than a balanced pair. Apple ships this on the
+     iPhone product pages. */
+  transform: translateY(120px);
+}
+.why__lede {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(16px, 1.25vw, 19px);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.74);
+  max-width: 38ch;
+}
+.why__lede--alt {
+  /* Slight tonal break — second lede gets a warmer tint to echo the
+     amber eyebrow. Subtle, not loud. */
+  color: rgba(252, 211, 77, 0.86);
+}
+
+/* Orbit field — 5 glowing orbs that drift behind the section copy.
+   Driven by useScrollOrbitField; each orb gets its own colour applied
+   inline by the composable. CSS sets the size + blur + blend. */
+.why__orbit {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+.orbit-orb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(220px, 30vw, 380px);
+  height: clamp(220px, 30vw, 380px);
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  /* The composable writes transform in vh units relative to the centre. */
+  margin-left: calc(clamp(220px, 30vw, 380px) / -2);
+  margin-top: calc(clamp(220px, 30vw, 380px) / -2);
+}
+
+/* Magnetic hover — the JS handler writes transform on the element
+   directly, so we just neutralise the existing transition so the
+   composable's RAF loop owns the animation. */
+.cta--primary {
+  transition:
+    background-color 220ms ease-out,
+    box-shadow 220ms ease-out;
+  /* Add a warm amber inner glow for the alpha.29 polish.
+     Subtle — not a candy-coated WebGL distraction. */
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 12px 32px -12px rgba(245, 158, 11, 0.18);
+}
+.cta--primary:hover {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 18px 44px -10px rgba(245, 158, 11, 0.32);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .why__col--offset {
+    transform: none;
+  }
+  .why__orbit {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .why__columns {
+    grid-template-columns: 1fr;
+  }
+  .why__col--offset {
     transform: none;
   }
 }

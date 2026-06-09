@@ -4,6 +4,85 @@ All notable changes to **pulse-player** are documented here. The format follows 
 
 Tags: every release listed below is pinned to a signed git tag of the same name (`vX.Y.Z`) and surfaced as a GitHub Release.
 
+## 3.0.0-alpha.29 — 2026-06-09
+
+**Anti-slop sweep + 4 next-tier composables, informed by REAL AI tools / skills / agents research.** Previous alphas focused on libraries (Motion.dev, Lenis); user correctly called that out. This alpha closes the gap with research on Anthropic's frontend-design skill, Leonxlnx/taste-skill, Codrops 2026 patterns, Apple AirPods Pro. Vue v2.3.4 byte-identical on 30th alpha.
+
+### Research consulted (traceability `docs/setup/ALPHA_29_RESEARCH.md`)
+
+- [`anthropic/skills/frontend-design`](https://github.com/anthropics/skills/tree/main/frontend-design) — official anti-slop skill: no generic purple gradients, no system-stack fonts only, no symmetric centered layouts
+- [`Leonxlnx/taste-skill`](https://github.com/leonxlnx/taste-skill) v2 — "stops AI generating boring slop"
+- [`travisvn/awesome-claude-skills`](https://github.com/travisvn/awesome-claude-skills) 7.5K stars
+- [Codrops Jan 2026 dual-wave scroll text](https://tympanus.net/codrops/2026/01/15/...) — ported vanilla (no GSAP added)
+- [Apple AirPods Pro scroll-sequence](https://www.awwwards.com/inspiration/product-scroll-triggered-animation-apple-airpods-pro)
+- [`basementstudio/scrollytelling`](https://github.com/basementstudio/scrollytelling)
+- v0.dev / Lovable / Bolt / Stitch / Magic Patterns — positioned + discounted (none target Vue 3)
+
+### Anti-slop self-audit alpha.28 → fixed alpha.29
+
+| Rule                         | Found                           | Fixed                                                                                                       |
+| ---------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Generic AI purple gradients  | 8x `#8B5CF6` + variants         | `--accent-amber: #f59e0b` + `--accent-pink: #ec4899` palette tokens. Particles amber. Orbit field 5-colour. |
+| System stack fonts only      | All `-apple-system / system-ui` | **Geist Variable + Geist Mono** Google Fonts. Hero title Geist 800 negative letter-spacing.                 |
+| Symmetric centered layouts   | 9x `text-align/justify center`  | `.section--why` left-aligned + **asymmetric two-column staircase** (col 2 drops 120 px)                     |
+| Decorative motion no purpose | Particle field                  | Every composable carries `@anti-slop note` JSDoc with stated purpose                                        |
+
+### `src/composables/useAdvancedMotion.ts` NEW (~310 LOC, 4 exports)
+
+| Composable                                                   | Effect                                                                      | Source                                  |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------- | --------------------------------------- |
+| `useScrollProgress(target)`                                  | Writes `--scroll-progress: 0..1` CSS custom property                        | Apple AirPods Pro pattern simplified    |
+| `useScrollKineticWave(target, { amplitude, period })`        | Per-char dual-wave translateY driven by scroll                              | Codrops Jan 2026 pattern, vanilla port  |
+| `useScrollOrbitField(target, { count, maxRadius, colours })` | N orbiting glowing orbs scroll-driven decoration with warm tertiary palette | Codrops Solar Storm inspired            |
+| `useMagneticHover(target, { strength, damping })`            | Element leans toward cursor, max 8 px (anti-toy)                            | Apple microinteraction (basementstudio) |
+
+### `src/App.vue` updates
+
+- Imports 4 new composables, wires them to ref'd elements
+- Particle field: `rgba(139, 92, 246, 0.62)` (AI violet) → `rgba(245, 158, 11, 0.55)` (amber)
+- New section `.section--why` between hero + resize: eyebrow amber Geist Mono "Story · 03", kinetic dual-wave heading, asymmetric two-column
+- Background orbit field with 5-colour palette including warm tertiaries
+- CTA primary: magnetic hover (6 px strength) + amber inner glow
+- Hero title: Geist 800 with `letter-spacing: -0.025em`
+- New CSS block ~150 LOC for Geist stack + warm palette + asymmetric layout
+
+### `index.html`
+
+- Geist + Geist Mono via Google Fonts CDN with preconnect + display=swap
+
+### Bundle delta
+
+|                           | alpha.28  | alpha.29  | Δ        |
+| ------------------------- | --------- | --------- | -------- |
+| JS gzip                   | 77.66 kB  | 78.96 kB  | +1.30 kB |
+| CSS gzip                  | 8.67 kB   | 9.18 kB   | +0.51 kB |
+| HTML gzip                 | 1.22 kB   | 1.44 kB   | +0.22 kB |
+| `@pulse-music/*` tarballs | unchanged | unchanged | 0        |
+
+Webfonts loaded from CDN, not bundled.
+
+### Quality gate
+
+```
+type-check               → clean
+lint                     → 0 errors, 0 warnings
+format:check             → all files use Prettier code style
+tests (root)             →  33 / 33
+tests (@pulse-music/*)   → 106 / 106
+TOTAL unit               → 139 / 139
+audit (prod-only)        → 0 vulnerabilities
+Vue v2.3.4 demo          → bit-for-bit identical
+src/lib/                 → ZERO file modified (30th consecutive alpha)
+```
+
+### Deferred to alpha.30+
+
+- Apple AirPods full 60-frame canvas sequence (needs frame .zip; deferred to dedicated landing page where bundle cost is fine)
+- Rive logo animation with FFT-wired pulse (needs .riv from Rive editor)
+- basementstudio scrollytelling pin/unpin (would justify GSAP; not yet)
+- Theatre.js studio (same reason)
+- Geist self-hosted vs Google CDN (optimisation pass)
+
 ## 3.0.0-alpha.28 — 2026-06-09
 
 **Premium motion layer — next-gen pieces.** Adds 5 new composables on top of alpha.27's foundation. Apple-style kinetic typography + cursor-tracking glow + scroll parallax + view transitions + audio-reactive Canvas2D particles. Vue v2.3.4 byte-identical on **29th alpha**.
