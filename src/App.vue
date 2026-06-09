@@ -21,10 +21,17 @@ import {
 } from './composables/useAdvancedMotion'
 import {
   useFloatingBob,
-  // useTypeOnReveal — exported for future install section in alpha.32
+  // useTypeOnReveal — exported for future install section in alpha.33
   useFirstPlayFlare,
 } from './composables/useCinematicEffects'
 import CinematicIntro from './components/CinematicIntro.vue'
+// alpha.32 — scrollytelling components informed by Codrops Maxima
+// case study + Olivier Larose tutorials + LottieFiles motion-design
+// skill. The flagship is ProductReveal (6-act pin/scrub GSAP). The
+// others are supporting acts.
+import ProductReveal from './components/ProductReveal.vue'
+import DisplayHeadline from './components/DisplayHeadline.vue'
+import AudioBars from './components/AudioBars.vue'
 
 // Multi-step spotlight controller (replaces the v1.x single-boolean
 // `fabFocused`). Lifecycle: every demo step can call
@@ -1060,6 +1067,30 @@ const hero = computed(() => ({
           </div>
         </div>
       </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+         alpha.32 — Full-width FFT visualiser bars below the hero.
+         Sits between the hero and the Why section as an audio receipt:
+         "the engine is running, look".
+         ═══════════════════════════════════════════════════════════════ -->
+      <AudioBars :engine="audioReactiveSnapshot" />
+
+      <!-- ═══════════════════════════════════════════════════════════════
+         alpha.32 — Display headline as the page's first breath.
+         Apple-page rhythm: between two busy scenes, sit one huge phrase.
+         ═══════════════════════════════════════════════════════════════ -->
+      <DisplayHeadline
+        eyebrow="The instrument · in four facets"
+        text="Audio. Mood. Touch. Anywhere."
+      />
+
+      <!-- ═══════════════════════════════════════════════════════════════
+         alpha.32 — Sticky-pinned scrollytelling: the player stays in
+         place while four facets reveal in sequence (AirPods Pro pattern).
+         ═══════════════════════════════════════════════════════════════ -->
+      <!-- alpha.32 — six-act pinned scrub: the production-grade
+           cinematic. ProductReveal owns its GSAP timeline + pin. -->
+      <ProductReveal />
 
       <!-- ═══════════════════════════════════════════════════════════════
          WHY PULSE — alpha.29 scrollytelling moment
@@ -3005,22 +3036,25 @@ samp,
   opacity: calc(0.88 + var(--pulse-ambient, 0) * 0.12);
 }
 
-/* Variants gallery — break the symmetric grid per the audit's
-   anti-default §. The first variant becomes the feature card. */
-.variants {
-  display: grid;
-  grid-template-columns:
-    minmax(260px, 1.4fr)
-    repeat(auto-fit, minmax(180px, 1fr));
-  gap: clamp(16px, 2vw, 32px);
-  align-items: start;
-}
-.variants > *:first-child {
-  /* Feature card scales 1.12 and pushes down a touch — Apple iPhone
-     "lead variant" pattern. */
-  transform: scale(1.06);
+/* alpha.31 FIX — the alpha.30 "feature card grid break" was wrong.
+   `.variants` is the SECTION class (not the inner grid), so the rules
+   below were turning the entire section into a 2-column grid, which
+   collapsed "Pick a mood." to a single column visually.
+   The inner grid is `.grid` (above, line ~2260). It already does
+   `repeat(auto-fit, minmax(320px, 1fr))` correctly.
+   The "feature card" idea now lives inside the inner grid via
+   `.variants .grid > .grid__cell:first-child`. */
+.variants .grid > .grid__cell:first-child {
+  /* Subtle visual lift on the first variant card — Apple "lead colour"
+     pattern, applied as a small scale only. Stays inside the same
+     grid track so the gallery layout is untouched. */
+  transform: scale(1.025);
   transform-origin: top left;
-  margin-top: 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .variants .grid > .grid__cell:first-child {
+    transform: none;
+  }
 }
 
 /* Particle field — alpha.30 — limit the upward drift so it reads as
@@ -3048,10 +3082,6 @@ samp,
   .mp__mini-body::before,
   .mp__mini-body::after {
     display: none;
-  }
-  .variants > *:first-child {
-    transform: none;
-    margin-top: 0;
   }
 }
 
