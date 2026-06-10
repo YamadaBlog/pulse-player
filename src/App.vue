@@ -410,6 +410,15 @@ const demoSteps: DemoStep[] = [
       // Stage D — Slow shrink past the FAB threshold (110).
       // The rectangle morphs into the circular FAB disc with chrome,
       // cover, ring and EQ overlay all fading in together.
+      //
+      // NOTE (audit round-4) : the tween target 95 only needs to be
+      // BELOW the 110 threshold to flip `data-fab` — once flipped, the
+      // RENDERED disc size is owned by the responsive FAB matrix in
+      // responsive-fix.css §K (56/64/72/88/104 px by viewport,
+      // !important), not by this width prop. The MusicPlayer's
+      // ResizeObserver reads the CSS-forced size, so the ring + cover
+      // geometry stay coherent. 95 is an input trigger, not the visual
+      // output.
       ctx.setMessage('And finally the FAB form — circular, autonomous, ready to drag.')
       await ctx.tween(set, 145, 95, 4400, 'inOutQuart')
       await ctx.delay(2800)

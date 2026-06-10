@@ -24,9 +24,9 @@ name: Accessibility (Axe-core)
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'feat/**']
   pull_request:
-    branches: [main]
+    branches: [main, 'feat/**']
 
 concurrency:
   group: a11y-${{ github.workflow }}-${{ github.ref }}

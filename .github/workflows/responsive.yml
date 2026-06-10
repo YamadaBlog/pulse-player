@@ -20,9 +20,9 @@ name: Responsive smoke (multi-viewport)
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'feat/**']
   pull_request:
-    branches: [main]
+    branches: [main, 'feat/**']
 
 concurrency:
   group: responsive-${{ github.workflow }}-${{ github.ref }}
