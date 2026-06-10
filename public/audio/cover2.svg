@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- "DEEP FOCUS" demo cover — ORIGINAL artwork created for this
+       repository (plain SVG authored in-tree, 2026-06-10). Licensed MIT
+       per NOTICE.md §1 ; safe for GitHub Pages and forks, unlike the
+       gitignored local .webp covers. -->
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#431407"/>
+      <stop offset="0.4" stop-color="#7c2d12"/>
+      <stop offset="0.75" stop-color="#b45309"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.42" r="0.45">
+      <stop offset="0" stop-color="#fde68a"/>
+      <stop offset="0.55" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="haze" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0.55" stop-color="#451a03" stop-opacity="0"/>
+      <stop offset="1" stop-color="#1c0a02" stop-opacity="0.85"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg2)"/>
+
+  <!-- Sun disc with horizontal blinds (synthwave nod, kept subtle) -->
+  <circle cx="256" cy="215" r="118" fill="url(#sun)"/>
+  <g fill="#7c2d12" opacity="0.55">
+    <rect x="120" y="238" width="272" height="7"/>
+    <rect x="128" y="258" width="256" height="9"/>
+    <rect x="138" y="280" width="236" height="11"/>
+    <rect x="150" y="304" width="212" height="13"/>
+  </g>
+
+  <!-- Sound-wave ridge line -->
+  <path d="M0 352 Q40 332 64 352 T128 352 Q150 312 176 352 T240 352 Q268 282 296 352 T360 352 Q382 326 408 352 T472 352 Q492 340 512 352 L512 512 L0 512 Z"
+        fill="#27090a" opacity="0.9"/>
+  <rect width="512" height="512" fill="url(#haze)"/>
+
+  <text x="256" y="64" text-anchor="middle" font-family="Arial, Helvetica, sans-serif"
+        font-size="22" font-weight="700" letter-spacing="10" fill="#fef3c7" opacity="0.92">DEEP FOCUS</text>
+  <text x="256" y="92" text-anchor="middle" font-family="Arial, Helvetica, sans-serif"
+        font-size="13" letter-spacing="6" fill="#fde68a" opacity="0.6">PULSE · DEMO 02</text>
+</svg>
