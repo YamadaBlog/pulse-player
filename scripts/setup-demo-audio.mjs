@@ -231,6 +231,12 @@ async function setupCover(key, spec) {
 
 const args = process.argv.slice(2)
 const coverOnly = args.includes('--cover-only')
+// --audio-only (audit round-6) : generate ONLY the .webm tracks, leave
+// covers untouched. Used by the Pages deploy workflow — the demo build
+// references the committed SVG covers (main.ts env split), so the
+// script's gradient .webp covers would be dead weight there, and on a
+// dev machine this flag protects the maintainer's local cover art.
+const audioOnly = args.includes('--audio-only')
 
 console.log(`\nPulse demo audio setup`)
 console.log(`  ffmpeg: ${ffmpegPath}`)
@@ -241,8 +247,10 @@ if (!coverOnly) {
   await setupTrack('track1', SOURCES.track1)
   await setupTrack('track2', SOURCES.track2)
 }
-await setupCover('cover1', SOURCES.cover1)
-await setupCover('cover2', SOURCES.cover2)
+if (!audioOnly) {
+  await setupCover('cover1', SOURCES.cover1)
+  await setupCover('cover2', SOURCES.cover2)
+}
 
 console.log(`\n✅ Done. Reload the dev server to hear the demo.`)
 console.log(`   The files are gitignored — they stay local, never commit.\n`)

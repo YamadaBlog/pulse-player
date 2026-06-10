@@ -58,4 +58,25 @@ test.describe('GitHub Pages — deployed demo smoke', () => {
     expect(consoleErrors, `Console errors:\n${consoleErrors.join('\n')}`).toEqual([])
     expect(brokenImages, `Broken <img> (naturalWidth=0):\n${brokenImages.join('\n')}`).toEqual([])
   })
+
+  test('play actually plays — audio survives the click (round-6)', async ({ page }) => {
+    await page.goto(`${PAGES_URL}?intro=skip`, { waitUntil: 'networkidle' })
+    await page.waitForTimeout(1200)
+
+    // The hero idle animations (floating bob) keep the player moving,
+    // which trips Playwright's stability heuristic — force the click.
+    const art = page.locator('.hero .mp__art').first()
+    await art.click({ force: true })
+
+    // Behavioural proxy for "sound is coming out" : the store's
+    // safePlay() ROLLS BACK isPlaying (and the button flips back to
+    // "Play") if HTMLMediaElement.play() rejects — which is exactly
+    // what happens when the .webm is missing (the pre-round-6 state
+    // of the deployed demo). If after 2.5 s the surface still shows
+    // "Pause", the play() Promise resolved : the track loaded and is
+    // genuinely progressing.
+    await page.waitForTimeout(2500)
+    await expect(art).toHaveAttribute('aria-label', 'Pause')
+    await expect(art).toHaveAttribute('aria-pressed', 'true')
+  })
 })

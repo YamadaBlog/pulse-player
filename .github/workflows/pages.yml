@@ -41,6 +41,21 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --prefer-offline
 
+      # Audit round-6 — give the public demo REAL audio. The tracks are
+      # CC0 by construction : the script tries the documented Pixabay
+      # CC0 sources first, and on any network failure (their CDN
+      # anti-hotlinks with 403) falls back to ffmpeg-synthesised
+      # ambient pads — pure sine triads + tremolo, no third-party
+      # rights chain at all (see scripts/setup-demo-audio.mjs).
+      # --audio-only : covers stay the committed SVGs (main.ts env
+      # split) ; the script's gradient .webp covers aren't needed.
+      # continue-on-error : if ffmpeg itself fails, deploy without
+      # audio rather than not deploying — the store's safePlay()
+      # handles the missing-file rejection gracefully.
+      - name: Generate CC0 demo audio (synthesis fallback)
+        run: npm run setup:demo-audio -- --audio-only
+        continue-on-error: true
+
       - name: Build demo
         run: npm run build
         env:
