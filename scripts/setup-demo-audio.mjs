@@ -74,27 +74,24 @@ mkdirSync(AUDIO_DIR, { recursive: true })
  * + a solid-colour placeholder cover so the demo still boots.
  */
 const SOURCES = {
+  // Round-8 : default sources switched from Pixabay (CDN anti-hotlinks
+  // → 403, licence redistribution grey) to Kevin MacLeod's incompetech
+  // catalogue — REAL professionally-produced music under CC BY 4.0
+  // (commercial use OK, attribution required). URLs verified
+  // hotlinkable 2026-06-10 (HTTP 206 range support, 320/256 kbps).
+  // ATTRIBUTION LIVES IN : NOTICE.md §2bis + the demo footer credit.
+  // If you swap these via PULSE_TRACK*_URL, keep the credit accurate.
   track1: {
-    // First-choice: Pixabay CC0. If anti-hotlink 403s, fall back to
-    // mathematically-CC0 ambient synthesis (no third-party rights chain).
-    url: 'https://cdn.pixabay.com/download/audio/2023/05/16/audio_166b9c4c0d.mp3?filename=ambient-piano-amp-strings-10711.mp3',
+    // "RetroFuture Dirty" — driving retro-synth electro, 3:25.
+    // Kevin MacLeod (incompetech.com) · CC BY 4.0.
+    url: 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/RetroFuture%20Dirty.mp3',
     out: 'track1.webm',
-    fallbackSilence: 150, // 2.5 min synthesised
-    synth: {
-      freqs: [220, 261.63, 329.63], // A3, C4, E4 — A minor triad
-      sub: 110, // A2 sub
-      tremoloHz: 0.4,
-    },
   },
   track2: {
-    url: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_1b1c8c93a3.mp3?filename=lofi-chill-medium-version-159456.mp3',
+    // "Lobby Time" — jazzy lounge, 3:13.
+    // Kevin MacLeod (incompetech.com) · CC BY 4.0.
+    url: 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lobby%20Time.mp3',
     out: 'track2.webm',
-    fallbackSilence: 150,
-    synth: {
-      freqs: [174.61, 220, 261.63], // F3, A3, C4 — F major triad
-      sub: 87.31, // F2 sub
-      tremoloHz: 0.6,
-    },
   },
   cover1: {
     // Pulse-aligned colour: midnight gradient. Drawn programmatically

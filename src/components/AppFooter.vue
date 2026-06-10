@@ -8,7 +8,23 @@
   <footer class="footer">
     <div class="footer__inner">
       <div class="footer__brand">pulse-player</div>
-      <div class="footer__meta">Floating + inline music for Vue 3</div>
+      <div class="footer__meta">
+        Floating + inline music for Vue 3
+        <!-- CC BY 4.0 attribution for the deployed demo tracks
+             (NOTICE.md §3bis). Required by the licence — keep accurate
+             if PULSE_TRACK*_URL overrides change the music. -->
+        <span class="footer__credit"
+          >· Music:
+          <a
+            href="https://incompetech.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="footer__credit-link"
+            >Kevin MacLeod — incompetech.com</a
+          >
+          (CC BY 4.0)</span
+        >
+      </div>
       <a
         class="footer__link"
         href="https://github.com/YamadaBlog/pulse-player"
@@ -49,5 +65,17 @@
 }
 .footer__link:hover {
   text-decoration: underline;
+}
+.footer__credit {
+  font-size: 12px;
+  color: var(--pg-text-low);
+}
+.footer__credit-link {
+  color: var(--pg-text-low);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.footer__credit-link:hover {
+  color: var(--pg-text-mid);
 }
 </style>

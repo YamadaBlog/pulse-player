@@ -58,6 +58,19 @@ They were **not** part of the MIT-licensed source code.
 
 The maintainer's stance: this repo's `public/audio/` placeholders are documented as **unknown provenance, do-not-ship**, and the recommended path is a 5-minute trip to Pixabay before any commercial deployment.
 
+### 3bis. Demo audio shipped on GitHub Pages (round-8, 2026-06-10)
+
+The **deployed demo** (https://yamadablog.github.io/pulse-player/) now ships real music, generated at deploy time by `scripts/setup-demo-audio.mjs` (never committed to the repo — `public/audio/*.webm` stays gitignored) :
+
+| Demo slot                  | Work                | Author / source                                                                                            | Licence                                                                          |
+| -------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| track1 ("MIDNIGHT RUN" UI) | _RetroFuture Dirty_ | [Kevin MacLeod — incompetech.com](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100501) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — attribution required |
+| track2 ("DEEP FOCUS" UI)   | _Lobby Time_        | [Kevin MacLeod — incompetech.com](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100302) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — attribution required |
+
+Attribution is displayed in the demo footer ("Music: Kevin MacLeod — incompetech.com · CC BY 4.0") and recorded here. The UI track _titles_ ("MIDNIGHT RUN", "DEEP FOCUS") are Pulse demo labels, not the works' titles.
+
+If the incompetech download fails at deploy time, the pipeline falls back to the in-repo composed tracks (`scripts/synth-demo-tracks.mjs` — original works of this repository, MIT). Maintainer overrides via the `PULSE_TRACK1_URL` / `PULSE_TRACK2_URL` repository variables must keep this section + the footer credit accurate for whatever they point at.
+
 ## 4. Trademarks and brand names
 
 pulse-player references the following brand names purely for descriptive
