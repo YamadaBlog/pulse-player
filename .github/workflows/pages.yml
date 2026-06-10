@@ -52,9 +52,20 @@ jobs:
       # continue-on-error : if ffmpeg itself fails, deploy without
       # audio rather than not deploying — the store's safePlay()
       # handles the missing-file rejection gracefully.
-      - name: Generate CC0 demo audio (synthesis fallback)
+      - name: Generate demo audio (override → catalogue → composed fallback)
         run: npm run setup:demo-audio -- --audio-only
         continue-on-error: true
+        env:
+          # Maintainer hook (round-7) : to ship a REAL SONG of your
+          # choosing on the public demo, set repository variables
+          # (Settings → Secrets and variables → Actions → Variables)
+          #   PULSE_TRACK1_URL / PULSE_TRACK2_URL
+          # to direct MP3/OGG links whose licence you verified
+          # (CC-BY ⇒ add the credit to NOTICE.md + demo footer), then
+          # re-run this workflow. No commit needed. If unset or the
+          # download fails, the in-repo composed tracks ship instead.
+          PULSE_TRACK1_URL: ${{ vars.PULSE_TRACK1_URL }}
+          PULSE_TRACK2_URL: ${{ vars.PULSE_TRACK2_URL }}
 
       - name: Build demo
         run: npm run build

@@ -60,6 +60,20 @@ const render = () => {
   // Upsample the 4 focal bars into N bands via cosine interpolation,
   // plus a small symmetry curve so the visualiser feels balanced.
   const fft = engine?.eqBars ?? [0, 0, 0, 0]
+  // Round-7 (user feedback : "au repos elles sont très bien" mais en
+  // lecture "ça ne donne pas l'effet attendu") — the active branch used
+  // to REPLACE the idle silhouette with `base × bell`, which collapsed
+  // 64 bars onto 4 interpolated FFT values : everything rose and fell
+  // together, mushy and uniform. New model : the bars DANCE AROUND the
+  // resting silhouette instead of discarding it —
+  //   target = idle-anchor + audio energy × bell × per-bar character
+  // with per-bar character = a stable pseudo-random gain (breaks the
+  // 4-band uniformity : neighbours respond differently to the same
+  // energy) + a travelling phase so peaks ripple across the row.
+  // Asymmetric smoothing (fast attack / slow release) makes kicks SNAP
+  // and decay like a real analyser instead of the old single-constant
+  // mush.
+  const tNow = performance.now() / 1000
   for (let i = 0; i < N; i++) {
     const t = i / (N - 1)
     // Bell curve around centre — louder at the middle bands, quieter
@@ -70,15 +84,23 @@ const render = () => {
     const f1 = fft[Math.min(fft.length - 1, Math.floor(t * (fft.length - 1)) + 1)] ?? 0
     const blend = (Math.floor(t * (fft.length - 1)) + t) % 1
     const base = f0 * (1 - blend) + f1 * blend
-    // alpha.37 — IDLE silhouette : when paused, render a STATIC
-    // "spectrum at rest" rather than a dead baseline. The shape is a
-    // bell curve modulated by a slow sinusoid + a per-bar offset so
-    // the visualiser reads as "EQ ready, awaiting audio" instead of
-    // "broken / off". No animation in this branch — purely positional.
+    // IDLE silhouette : static "spectrum at rest" (unchanged — the
+    // user signed off on this shape).
     const idle = bell * 0.46 + Math.sin(i * 0.55) * 0.07 + Math.cos(i * 0.31) * 0.05
-    const target = playing ? Math.min(1, base * bell * 1.3) : Math.max(0.18, idle)
-    // Frame smoothing — 0.22/frame → ~120 ms decay at 60 fps.
-    smoothed[i] += (target - smoothed[i]) * 0.22
+    let target
+    if (playing) {
+      // Stable per-bar gain (deterministic from the index) so adjacent
+      // bars have personality ; travelling phase so energy ripples.
+      const character = 0.65 + 0.7 * Math.abs((Math.sin(i * 12.9898) * 43758.5453) % 1)
+      const ripple = 0.85 + 0.3 * Math.sin(i * 0.45 - tNow * 7)
+      const anchor = Math.max(0.14, idle * 0.55)
+      target = Math.min(1, anchor + base * bell * 1.5 * character * ripple)
+    } else {
+      target = Math.max(0.18, idle)
+    }
+    // Asymmetric smoothing : ~35 ms attack, ~260 ms release at 60 fps.
+    const k = target > smoothed[i] ? 0.45 : 0.1
+    smoothed[i] += (target - smoothed[i]) * k
   }
 
   ctx.clearRect(0, 0, w, h)

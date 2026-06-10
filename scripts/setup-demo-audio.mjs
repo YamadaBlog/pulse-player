@@ -149,12 +149,24 @@ async function downloadFile(url, outPath, maxBytes = 20 * 1024 * 1024) {
 async function setupTrack(key, spec) {
   console.log(`▶ ${key} → ${spec.out}`)
   const outWebm = join(AUDIO_DIR, spec.out)
-  const duration = spec.fallbackSilence // already 150s each → 5 min total
 
-  // Optional: try the network source first. If 403 / network-down, fall
-  // back to synthesis. Comment the next 7 lines if you only want synthesis.
+  // ── Maintainer override (audit round-7) ──────────────────────────
+  // PULSE_TRACK1_URL / PULSE_TRACK2_URL replace the source URL without
+  // touching code. Designed for the Pages workflow : set a GitHub
+  // *repository variable* with a direct MP3/OGG link to a track YOU
+  // chose (and whose licence YOU verified — CC-BY needs a credit in
+  // NOTICE.md + the demo footer), re-run the deploy, and the public
+  // demo plays your song. Selection of an actual SONG is a human-ears
+  // decision the maintainer makes ; this hook is the 30-second plumbing
+  // for it. If the URL fails, the composed fallback below still ships.
+  const overrideUrl = process.env[`PULSE_${key.toUpperCase()}_URL`]
+  const sourceUrl = overrideUrl || spec.url
+  if (overrideUrl) console.log(`  ↳ using ${key} override URL from env`)
+
+  // Try the network source first. If 403 / network-down, fall back to
+  // the in-repo composer.
   const tmpMp3 = join(AUDIO_DIR, `_tmp_${key}.mp3`)
-  const downloaded = await downloadFile(spec.url, tmpMp3)
+  const downloaded = await downloadFile(sourceUrl, tmpMp3)
   if (downloaded) {
     execFileSync(
       ffmpegPath,
