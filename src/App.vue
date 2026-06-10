@@ -11,7 +11,8 @@ import {
   useCursorGlow,
   useScrollParallax,
   useAudioParticles,
-  withViewTransition,
+  // withViewTransition — now consumed inside FloatingFabSection.vue,
+  // no longer needed at the App.vue top level after the P1.1 extraction.
 } from './composables/usePremiumMotion'
 import {
   useScrollProgress,
@@ -39,6 +40,12 @@ import AudioBars from './components/AudioBars.vue'
 // 3300-LOC App.vue monolith. No reactive deps, no logic. Reduces the
 // surface area integrators have to scroll through.
 import AppFooter from './components/AppFooter.vue'
+import FeaturesGrid from './components/FeaturesGrid.vue'
+import FloatingFabSection from './components/FloatingFabSection.vue'
+import ResizeStageSection from './components/ResizeStageSection.vue'
+import DragStageSection from './components/DragStageSection.vue'
+import PickAMoodSection from './components/PickAMoodSection.vue'
+import ThreeWidthsSection from './components/ThreeWidthsSection.vue'
 
 // Multi-step spotlight controller (replaces the v1.x single-boolean
 // `fabFocused`). Lifecycle: every demo step can call
@@ -226,86 +233,16 @@ onMounted(() => {
 //   and the corner-drag handle now share the exact same responsive
 //   logic — the player crosses the same thresholds and goes through
 //   the same morph at the same widths.
-const SLIDER_MIN = 160
-const SLIDER_MAX = 720
+//   The ref stays HERE (not in ResizeStageSection) because the demo
+//   tour tweens it directly from steps 3/4 — App.vue is the owner,
+//   the section edits it via v-model:width. SIZE_PRESETS + SLIDER_MIN/
+//   MAX moved into ResizeStageSection.vue (no other consumer).
 const sliderWidth = ref(440) // mid-size default — comparable to the previous scale 1.0 visual
-const SIZE_PRESETS = [
-  { label: 'XS', value: 160 },
-  { label: 'S', value: 240 },
-  { label: 'M', value: 360 },
-  { label: 'L', value: 540 },
-  { label: 'XL', value: 720 },
-] as const
-
-function setPreset(v: number) {
-  sliderWidth.value = v
-}
 
 // ─── Variants gallery ──────────────────────────────────────────
-interface VariantSpec {
-  id: string
-  variant: MusicPlayerVariant
-  label: string
-  caption: string
-  customBackground?: string
-  accentColor?: string
-}
-
-const variants: VariantSpec[] = [
-  { id: 'auto', variant: 'auto', label: 'Auto', caption: 'Live cover art blur — signature look.' },
-  {
-    id: 'vinyl',
-    variant: 'vinyl',
-    label: 'Vinyl',
-    caption: 'Warm analog · vinyl + leather.',
-    accentColor: '#C8A97E',
-  },
-  {
-    id: 'sunset',
-    variant: 'sunset',
-    label: 'Sunset',
-    caption: 'Sepia · brown gradient.',
-    accentColor: '#F59E0B',
-  },
-  {
-    id: 'midnight',
-    variant: 'midnight',
-    label: 'Midnight',
-    caption: 'Deep navy · violet.',
-    accentColor: '#8B5CF6',
-  },
-  {
-    id: 'aurora',
-    variant: 'aurora',
-    label: 'Aurora',
-    caption: 'Teal · cyan night.',
-    accentColor: '#06B6D4',
-  },
-  { id: 'dark', variant: 'dark', label: 'Dark', caption: 'Pure neutral dark.' },
-  {
-    id: 'light',
-    variant: 'light',
-    label: 'Light',
-    caption: 'Light-mode inversion.',
-    accentColor: '#6750A4',
-  },
-  {
-    id: 'transparent',
-    variant: 'transparent',
-    label: 'Transparent',
-    caption: 'Frameless — over your bg.',
-  },
-  {
-    id: 'custom-brown',
-    variant: 'custom',
-    label: 'Custom',
-    caption: 'Any CSS background.',
-    customBackground: 'linear-gradient(135deg, #2c1610 0%, #4a2c1f 45%, #6b4226 100%)',
-    accentColor: '#E8A87C',
-  },
-]
-
-const responsiveWidths = [320, 480, 720] as const
+// ─── Variants gallery + Three Widths data ─────────────────────
+// Moved into PickAMoodSection.vue / ThreeWidthsSection.vue (P1.1
+// round-3) — no other consumer existed in App.vue.
 
 // ─── Hero variant — reactive so the demo tour can cycle it ─────
 const heroVariant = ref<MusicPlayerVariant>('auto')
@@ -1177,105 +1114,11 @@ const hero = computed(() => ({
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════
-         INTERACTIVE — Resize the component live
-         ═══════════════════════════════════════════════════════════════ -->
-      <section id="section-resize" class="section section--narrow">
-        <p class="section__eyebrow">
-          <span class="act-num">III</span><span class="act-sep">·</span>Made to grow
-        </p>
-        <h2 class="section__h">Resize it. Everything follows.</h2>
-        <p class="section__sub">
-          One <code>--pulse-scale</code> variable drives the artwork, title, icons, buttons,
-          padding, radius, shadows, EQ bars, progress and gaps. Move the slider — there is no
-          breakpoint trick.
-        </p>
-
-        <div class="resize-stage">
-          <div class="resize-stage__player">
-            <MusicPlayer
-              :width="sliderWidth"
-              variant="auto"
-              github-url="https://github.com/YamadaBlog/pulse-player"
-              spotify-url="https://open.spotify.com/"
-            />
-          </div>
-
-          <div class="resize-controls">
-            <div class="presets" role="group" aria-label="Size presets">
-              <button
-                v-for="p in SIZE_PRESETS"
-                :key="p.label"
-                class="presets__btn"
-                :class="{ 'presets__btn--active': sliderWidth === p.value }"
-                @click="setPreset(p.value)"
-              >
-                {{ p.label }}
-              </button>
-            </div>
-            <label class="slider">
-              <span class="slider__label">Width</span>
-              <input
-                type="range"
-                :min="SLIDER_MIN"
-                :max="SLIDER_MAX"
-                step="1"
-                v-model.number="sliderWidth"
-                aria-label="Component width in pixels"
-              />
-              <span class="slider__value">{{ sliderWidth }} px</span>
-            </label>
-          </div>
-        </div>
-      </section>
-
-      <!-- ═══════════════════════════════════════════════════════════════
-         DRAG TO RESIZE — manual pointer-driven resize
-         ═══════════════════════════════════════════════════════════════ -->
-      <section id="section-drag" class="section section--narrow">
-        <p class="section__eyebrow">
-          <span class="act-num">III·b</span><span class="act-sep">·</span>Drag · Pointer events
-        </p>
-        <h2 class="section__h">Grab the corner. Resize it yourself.</h2>
-        <p class="section__sub">
-          Pass <code>resizable</code> to the inline player and a diagonal handle appears in the
-          bottom-right corner. Mouse, finger or stylus — same code path (pointer events +
-          <code>setPointerCapture</code>). Pull it small enough and it collapses to compact mode
-          automatically.
-        </p>
-
-        <div class="drag-stage">
-          <div class="drag-stage__hint">
-            <span class="drag-stage__dot"></span>
-            Grab the
-            <span class="drag-stage__icon" aria-hidden="true">
-              <svg viewBox="0 0 14 14" width="14" height="14">
-                <path
-                  d="M1 13 L13 1 M5 13 L13 5 M9 13 L13 9"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  fill="none"
-                  stroke-linecap="round"
-                />
-              </svg>
-            </span>
-            handle in the bottom-right corner
-          </div>
-          <MusicPlayer
-            variant="auto"
-            resizable
-            :min-width="60"
-            :width="tourDragWidth"
-            github-url="https://github.com/YamadaBlog/pulse-player"
-            spotify-url="https://open.spotify.com/"
-          />
-          <label class="ambient-toggle" :class="{ 'ambient-toggle--on': store.ambientEq }">
-            <input type="checkbox" v-model="store.ambientEq" />
-            <span class="ambient-toggle__dot"></span>
-            <span class="ambient-toggle__label">Ambient EQ — global</span>
-          </label>
-        </div>
-      </section>
+      <!-- INTERACTIVE sections III + III·b — extracted to dedicated SFCs.
+           The demo tour still owns the `sliderWidth` / `tourDragWidth`
+           refs ; the sections render + edit them through v-model/props. -->
+      <ResizeStageSection v-model:width="sliderWidth" />
+      <DragStageSection :tour-width="tourDragWidth" />
 
       <!-- ═══════════════════════════════════════════════════════════════
          ROTATE 3D — alpha.35 scroll-driven product-reveal rotation
@@ -1288,149 +1131,22 @@ const hero = computed(() => ({
          ═══════════════════════════════════════════════════════════════ -->
       <PhoneShowcase />
 
-      <!-- ═══════════════════════════════════════════════════════════════
-         FEATURES — Three-up
-         ═══════════════════════════════════════════════════════════════ -->
-      <section class="section">
-        <div class="features">
-          <article class="feature">
-            <div class="feature__chip">01</div>
-            <h3 class="feature__h">Truly proportional</h3>
-            <p class="feature__p">
-              One CSS variable scales every dimension at once. Artwork, type, chrome and shadows all
-              breathe together.
-            </p>
-          </article>
-          <article class="feature">
-            <div class="feature__chip">02</div>
-            <h3 class="feature__h">Container-aware</h3>
-            <p class="feature__p">
-              Sizes itself off the container, not the viewport. Sidebar, hero, modal — it always
-              looks intentional.
-            </p>
-          </article>
-          <article class="feature">
-            <div class="feature__chip">03</div>
-            <h3 class="feature__h">Persistent session</h3>
-            <p class="feature__p">
-              One Pinia store, one audio element. Mount the FAB at the root and playback survives
-              every route change.
-            </p>
-          </article>
-        </div>
-      </section>
+      <!-- FEATURES — Three-up cards (extracted to FeaturesGrid.vue) -->
+      <FeaturesGrid />
 
-      <!-- ═══════════════════════════════════════════════════════════════
-         VARIANTS — gallery (Library · 9 presets / Pick a mood)
-         ═══════════════════════════════════════════════════════════════ -->
-      <section class="section variants" id="variants">
-        <p class="section__eyebrow">
-          <span class="act-num">IV</span><span class="act-sep">·</span>Nine moods
-        </p>
-        <h2 class="section__h">Pick a mood.</h2>
-        <p class="section__sub">
-          Nine curated background presets, including the new <code>vinyl</code> warm analog look.
-          <code>accentColor</code> retunes the EQ + progress.
-        </p>
+      <!-- VARIANTS gallery IV + Three Widths IV·b — extracted SFCs.
+           Both are self-contained (their data arrays had no other
+           consumer in App.vue). -->
+      <PickAMoodSection />
+      <ThreeWidthsSection />
 
-        <div class="grid">
-          <article v-for="v in variants" :key="v.id" class="grid__cell">
-            <div class="grid__label">
-              <span class="grid__label-name">{{ v.label }}</span>
-              <code class="grid__label-code">{{ v.variant }}</code>
-            </div>
-            <MusicPlayer
-              :variant="v.variant"
-              :custom-background="v.customBackground"
-              :accent-color="v.accentColor"
-            />
-            <p class="grid__caption">{{ v.caption }}</p>
-          </article>
-        </div>
-      </section>
-
-      <!-- ═══════════════════════════════════════════════════════════════
-         RESPONSIVE — Three sizes side by side.
-         alpha.37 : added class `section--three-widths` so we can hide
-         the whole block on mobile/small tablet (≤ 720 px). On a 390 px
-         viewport the demo is incoherent — the 720 px frame can't render
-         at 720 px, and stacking 3 nearly-identical clamped players just
-         repeats the same message three times. The container-aware story
-         is already told by section III (slider XS→XL).
-         ═══════════════════════════════════════════════════════════════ -->
-      <section class="section section--three-widths">
-        <p class="section__eyebrow">
-          <span class="act-num">IV·b</span><span class="act-sep">·</span>Responsive · Container
-          queries
-        </p>
-        <h2 class="section__h">Same component. Three widths.</h2>
-        <p class="section__sub">
-          At 320 px the artwork is compact, the title sits tight. At 720 px the same component fills
-          its space — bigger artwork, larger type, deeper chrome — not because there is a media
-          query, but because every dimension is a function of <code>--pulse-scale</code>.
-        </p>
-
-        <div class="responsive">
-          <div v-for="w in responsiveWidths" :key="w" class="responsive__cell">
-            <div class="responsive__rule">{{ w }} px</div>
-            <div class="responsive__frame" :style="{ width: w + 'px' }">
-              <MusicPlayer
-                variant="auto"
-                :github-url="'https://github.com/YamadaBlog/pulse-player'"
-                :spotify-url="'https://open.spotify.com/'"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ═══════════════════════════════════════════════════════════════
-         FAB
-         ═══════════════════════════════════════════════════════════════ -->
-      <section class="section section--narrow">
-        <p class="section__eyebrow">
-          <span class="act-num">V</span><span class="act-sep">·</span>Floating FAB
-        </p>
-        <h2 class="section__h">Persistent, draggable, dismissible.</h2>
-        <p class="section__sub">
-          Mount once at the root. Drag to move, swipe down/right to dismiss, long-press for the
-          radial menu. The ring around it tracks progress.
-        </p>
-
-        <div class="palette" role="group" aria-label="Mini-player variant">
-          <button
-            v-for="opt in fabPalette"
-            :key="opt.id"
-            class="palette__chip"
-            :class="{ 'palette__chip--active': activeFabVariant === opt.id }"
-            @click="withViewTransition(() => (activeFabVariant = opt.id))"
-          >
-            {{ opt.label }}
-          </button>
-        </div>
-        <p class="palette__group-label">Options</p>
-        <div class="palette__hint">
-          <button class="cta cta--ghost cta--sm" @click="store.open" :disabled="store.isVisible">
-            Show FAB
-          </button>
-          <button class="cta cta--ghost cta--sm" @click="store.close">Hide FAB</button>
-          <label
-            class="pulso-toggle"
-            :class="{
-              'pulso-toggle--on': fabPulso,
-              'pulso-toggle--highlight': tourPulsoHighlight,
-            }"
-          >
-            <input type="checkbox" v-model="fabPulso" />
-            <span class="pulso-toggle__dot"></span>
-            <span class="pulso-toggle__label">Pulso</span>
-          </label>
-        </div>
-        <p class="palette__note">
-          <code>pulso</code> &nbsp;adds a subtle audio-wave ripple around the FAB. Try it once the
-          FAB is visible.
-        </p>
-      </section>
+      <!-- FAB section V — markup extracted to FloatingFabSection.vue -->
+      <FloatingFabSection
+        :fab-palette="fabPalette"
+        v-model:active-variant="activeFabVariant"
+        v-model:pulso="fabPulso"
+        :pulso-highlight="tourPulsoHighlight"
+      />
 
       <!-- ═══════════════════════════════════════════════════════════════
          FOOTER
@@ -2363,43 +2079,7 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   color: var(--pg-accent);
 }
 
-.features {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-}
-.feature {
-  padding: 28px;
-  background: var(--pg-surface);
-  border: 1px solid var(--pg-border);
-  border-radius: 20px;
-}
-.feature__chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--pg-accent);
-  background: rgba(61, 189, 167, 0.12);
-  border: 1px solid rgba(61, 189, 167, 0.3);
-  border-radius: 50%;
-  margin-bottom: 16px;
-}
-.feature__h {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  margin: 0 0 8px;
-}
-.feature__p {
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--pg-text-mid);
-  margin: 0;
-}
+/* Features grid styles moved to FeaturesGrid.vue (P1.1 ext 2026-06-10). */
 
 /* ─── GRID (variants) ──────────────────────────────────────── */
 .grid {

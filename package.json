@@ -86,7 +86,8 @@
     "publish:dry-run": "node scripts/publish-dry-run.mjs",
     "build:packages": "npm run build --workspace=@pulse-music/types --workspace=@pulse-music/core --workspace=@pulse-music/tokens --workspace=@pulse-music/web-component --workspace=@pulse-music/react --workspace=@pulse-music/svelte",
     "audit": "npm audit --omit=dev --audit-level=moderate",
-    "ci": "npm run type-check && npm run lint && npm run test && npm run test:packages && npm run build && npm run audit",
+    "check:lib-identical": "node scripts/check-lib-byte-identical.mjs",
+    "ci": "npm run type-check && npm run lint && npm run test && npm run test:packages && npm run build && npm run audit && npm run check:lib-identical",
     "prepublishOnly": "npm run ci && npm run build:lib",
     "prepare": "husky 2>/dev/null || true"
   },
