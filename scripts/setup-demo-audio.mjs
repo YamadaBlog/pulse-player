@@ -166,39 +166,23 @@ async function setupTrack(key, spec) {
     return
   }
 
-  // Synthesis fallback — mathematically CC0
-  const { freqs, sub, tremoloHz } = spec.synth
-  // ffmpeg filter_complex: 4 sine oscillators mixed + tremolo LFO + lowpass
-  const inputs = [
-    ...freqs.map((f) => ['-f', 'lavfi', '-i', `sine=frequency=${f}:duration=${duration}`]).flat(),
-    '-f', 'lavfi', '-i', `sine=frequency=${sub}:duration=${duration}`,
-  ]
-  // Mix the 4 voices, apply tremolo via amix volume modulation, lowpass for warmth
-  const filter = [
-    `[0:a]volume=0.18[v1]`,
-    `[1:a]volume=0.16[v2]`,
-    `[2:a]volume=0.13[v3]`,
-    `[3:a]volume=0.22[sub]`,
-    `[v1][v2][v3][sub]amix=inputs=4:duration=longest:normalize=0[mixed]`,
-    // Slow tremolo for ambient pad feel + lowpass + soft fade in/out
-    `[mixed]tremolo=f=${tremoloHz}:d=0.35,lowpass=f=3500,afade=t=in:st=0:d=4,afade=t=out:st=${duration - 4}:d=4[out]`,
-  ].join(';')
-
+  // Composed fallback (audit round-7) — the previous lavfi sine-triad
+  // drone was legally perfect but musically void. The sequencer in
+  // synth-demo-tracks.mjs composes a REAL piece (drums, bass,
+  // arpeggio/keys, chords) sample-by-sample in pure Node : an original
+  // work of this repo, MIT, deterministic (seeded PRNG → identical
+  // bytes on every CI build), zero third-party rights chain.
+  const { composeTrack1, composeTrack2 } = await import('./synth-demo-tracks.mjs')
+  const wav = key === 'track1' ? composeTrack1() : composeTrack2()
+  const tmpWav = join(AUDIO_DIR, `_tmp_${key}.wav`)
+  writeFileSync(tmpWav, wav)
   execFileSync(
     ffmpegPath,
-    [
-      '-y',
-      ...inputs,
-      '-filter_complex', filter,
-      '-map', '[out]',
-      '-c:a', 'libopus',
-      '-b:a', '96k',
-      '-ac', '2',
-      outWebm,
-    ],
+    ['-y', '-i', tmpWav, '-c:a', 'libopus', '-b:a', '112k', outWebm],
     { stdio: 'pipe' },
   )
-  console.log(`  ✔ ${spec.out} (synthesised ambient pad, ${duration}s)`)
+  try { execFileSync(process.platform === 'win32' ? 'cmd' : 'sh', process.platform === 'win32' ? ['/c', 'del', tmpWav] : ['-c', `rm -f "${tmpWav}"`], { stdio: 'pipe' }) } catch {}
+  console.log(`  ✔ ${spec.out} (composed in-repo — ${key === 'track1' ? '104 BPM synthwave' : '76 BPM lofi'})`)
 }
 
 // ─── Cover generation (FFmpeg → PNG → cwebp) ─────────────────────────────
