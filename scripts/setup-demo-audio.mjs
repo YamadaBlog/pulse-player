@@ -82,9 +82,21 @@ const SOURCES = {
   // ATTRIBUTION LIVES IN : NOTICE.md §2bis + the demo footer credit.
   // If you swap these via PULSE_TRACK*_URL, keep the credit accurate.
   track1: {
-    // "RetroFuture Dirty" — driving retro-synth electro, 3:25.
+    // "Protofunk" — electric funk groove (closest MacLeod gets to the
+    // acid-jazz/Persona vibe the maintainer is after).
     // Kevin MacLeod (incompetech.com) · CC BY 4.0.
-    url: 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/RetroFuture%20Dirty.mp3',
+    //
+    // Verified-hotlinkable alternates in the same catalogue, for quick
+    // taste iteration (swap the URL or set PULSE_TRACK1_URL — keep
+    // NOTICE.md §3bis + the footer credit in sync) :
+    //   Electro%20Cabello      — latin-tinged electro funk
+    //   Deuces                 — laid-back hip-hop swagger
+    //   Severe%20Tire%20Damage — fast breakbeat drum'n'bass
+    //   Cut%20and%20Run        — upbeat breakbeat funk
+    //   Stringed%20Disco       — disco strings groove
+    //   RetroFuture%20Dirty    — gritty retro-synth (round-8 default,
+    //                            demoted : "toujours pas incroyable")
+    url: 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Protofunk.mp3',
     out: 'track1.webm',
   },
   track2: {

@@ -62,10 +62,10 @@ The maintainer's stance: this repo's `public/audio/` placeholders are documented
 
 The **deployed demo** (https://yamadablog.github.io/pulse-player/) now ships real music, generated at deploy time by `scripts/setup-demo-audio.mjs` (never committed to the repo — `public/audio/*.webm` stays gitignored) :
 
-| Demo slot                  | Work                | Author / source                                                                                            | Licence                                                                          |
-| -------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| track1 ("MIDNIGHT RUN" UI) | _RetroFuture Dirty_ | [Kevin MacLeod — incompetech.com](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100501) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — attribution required |
-| track2 ("DEEP FOCUS" UI)   | _Lobby Time_        | [Kevin MacLeod — incompetech.com](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100302) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — attribution required |
+| Demo slot                  | Work         | Author / source                                                                                            | Licence                                                                          |
+| -------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| track1 ("MIDNIGHT RUN" UI) | _Protofunk_  | [Kevin MacLeod — incompetech.com](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100222) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — attribution required |
+| track2 ("DEEP FOCUS" UI)   | _Lobby Time_ | [Kevin MacLeod — incompetech.com](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100302) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — attribution required |
 
 Attribution is displayed in the demo footer ("Music: Kevin MacLeod — incompetech.com · CC BY 4.0") and recorded here. The UI track _titles_ ("MIDNIGHT RUN", "DEEP FOCUS") are Pulse demo labels, not the works' titles.
 
