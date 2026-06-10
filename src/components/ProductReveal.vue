@@ -26,6 +26,18 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { MusicPlayer, type MusicPlayerVariant } from '../lib'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useResponsiveWidth } from '../composables/useResponsiveWidth'
+
+// alpha.33 — responsive width for the stage player so it doesn't
+// vanish on 2K/4K. multiplier 1.15 = the showcase player is slightly
+// larger than the hero so the visitor feels they're "inside" the
+// scene.
+const revealPlayerWidth = useResponsiveWidth({
+  multiplier: 1.05,
+  min: 320,
+  max: 1180,
+  fractionOfViewport: 0.5,
+})
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -201,6 +213,8 @@ onBeforeUnmount(() => {
 
 <template>
   <section ref="wrapper" class="reveal" aria-label="Pulse — six-act product presentation">
+    <!-- DESKTOP/TABLET stage : sticky-pin scrub (≥ 720 px).
+         On mobile it collapses to the horizontal swipe slider below. -->
     <div ref="stage" class="reveal__stage">
       <!-- Decorative layers -->
       <div ref="bars" class="reveal__bars" aria-hidden="true"></div>
@@ -218,7 +232,7 @@ onBeforeUnmount(() => {
 
       <!-- Centered product object -->
       <div ref="product" class="reveal__product">
-        <MusicPlayer :variant="currentVariant" />
+        <MusicPlayer :variant="currentVariant" :width="revealPlayerWidth" />
       </div>
 
       <!-- Copy block (right column) -->
@@ -227,6 +241,29 @@ onBeforeUnmount(() => {
         <h2 class="reveal__title" :key="currentAct">{{ currentTitle }}</h2>
         <p class="reveal__sub" :key="`s-${currentAct}`">{{ currentSub }}</p>
       </div>
+    </div>
+
+    <!-- MOBILE swipe carousel (≤ 720 px).
+         alpha.37 — user feedback : the pin-on-vertical-scroll feels
+         heavy on mobile. Replace with a native horizontal scroll-snap
+         carousel : one slide per act, swipe left/right to advance.
+         All 6 acts render simultaneously ; no GSAP, no pin, no scroll
+         hijack. Hidden on ≥ 721 px (desktop keeps the pin scrub). -->
+    <div class="reveal__mobile-track" aria-label="Pulse — swipe through the six acts">
+      <article v-for="(act, i) in ACTS" :key="i" class="reveal__mobile-slide">
+        <div class="reveal__mobile-copy">
+          <p class="reveal__eyebrow">{{ act.eyebrow }}</p>
+          <h2 class="reveal__title">{{ act.title }}</h2>
+          <p class="reveal__sub">{{ act.sub }}</p>
+        </div>
+        <div class="reveal__mobile-product">
+          <MusicPlayer :variant="act.variant" :width="revealPlayerWidth" />
+        </div>
+      </article>
+    </div>
+    <!-- Swipe hint dot row mirrors the desktop rail. -->
+    <div class="reveal__mobile-dots" aria-hidden="true">
+      <span v-for="(act, i) in ACTS" :key="`d-${i}`" class="reveal__mobile-dot"></span>
     </div>
   </section>
 </template>
@@ -244,14 +281,75 @@ onBeforeUnmount(() => {
   top: 0;
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 1fr minmax(420px, 0.95fr);
+  /* alpha.32 VISUAL-QA fix — was 1fr minmax(420, 0.95fr) which gave
+     the product cell roughly 50/50 ratio with the copy block ; on a
+     1920 viewport the player stayed visually small. New ratio
+     1.5fr / 1fr puts the player at ~60 % of the row width, giving
+     it stage presence Apple-style. */
+  grid-template-columns: minmax(0, 1.5fr) minmax(360px, 1fr);
   align-items: center;
-  gap: clamp(40px, 6vw, 96px);
-  padding: clamp(40px, 8vh, 96px) clamp(24px, 6vw, 88px);
+  gap: clamp(40px, 6vw, 120px);
+  /* alpha.37 FULL-BLEED fix — was `max-width: 1760px; margin: 0 auto;
+     padding-inline: clamp(32px, 6vw, 120px)` which capped the stage at
+     1760 px so on a 2K (2560) viewport the background gradients stopped
+     before the bezel, exposing the page bg as a hard vertical seam left
+     and right. New approach :
+       - stage spans 100 % of the viewport (no max-width)
+       - inline padding uses `max(clamp(...), calc((100% - 1760px) / 2))`
+         which auto-grows on >1760 viewports so the inner CONTENT still
+         centres in a 1760 px column — the background fills viewport,
+         the grid stays readable.
+     Vertical padding stays as before. */
+  padding-block: clamp(40px, 8vh, 96px);
+  padding-inline: max(clamp(32px, 6vw, 120px), calc((100% - 1760px) / 2));
   overflow: hidden;
+  width: 100%;
   background:
-    radial-gradient(circle at 30% 50%, rgba(245, 158, 11, 0.06) 0%, transparent 45%),
-    radial-gradient(circle at 75% 60%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+    /* alpha.37 halo feathering fix — was `transparent 45%/50%` which
+       drew a visible hard ring on wide screens once the gradient ran
+       out. Pushed to 100 % so the wash bleeds all the way to the bezel,
+       and added a 3rd centred amber pool for vertical balance. */
+    radial-gradient(ellipse 80% 60% at 30% 45%, rgba(245, 158, 11, 0.08) 0%, transparent 100%),
+    radial-gradient(ellipse 70% 55% at 75% 60%, rgba(139, 92, 246, 0.1) 0%, transparent 100%),
+    radial-gradient(ellipse 100% 70% at 50% 50%, rgba(245, 158, 11, 0.04) 0%, transparent 100%);
+}
+
+/* ── alpha.37 EDGE FADE — top + bottom of the pinned stage fade into
+   the page background instead of stopping in a hard horizontal seam.
+
+   We tried pseudo-elements (::before / ::after) first but they sit
+   ABOVE the content layer and would have required `position: relative;
+   z-index: N` on every focal element (product/copy/rail) to keep them
+   visible. mask-image solves the same problem with one declaration :
+   it acts as an alpha channel on the WHOLE rendered stage (background
+   gradients + content + halos), so the fade is uniform and the
+   content's natural stacking is preserved.
+
+   Compatibility : modern syntax `mask` + `-webkit-mask` covers Safari
+   14+, Chrome 120+, Firefox 53+. The pinned sticky behaviour is fully
+   compatible — mask travels with the element through scroll.
+
+   The gradient cuts a 6 % alpha-zero region at top and bottom so the
+   stage edges literally fade to transparency, revealing the #05050a
+   page bg behind. The middle 88 % stays fully opaque so the content is
+   never washed out. On wide viewports the fade region grows with vh
+   thanks to the unitless percentage stops. */
+.reveal__stage {
+  --reveal-edge-fade: 6%;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    black var(--reveal-edge-fade),
+    black calc(100% - var(--reveal-edge-fade)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    black var(--reveal-edge-fade),
+    black calc(100% - var(--reveal-edge-fade)),
+    transparent 100%
+  );
 }
 
 /* Audio-bars decoration — full-width gradient bars rising from below
@@ -272,18 +370,24 @@ onBeforeUnmount(() => {
   z-index: -1;
 }
 
-/* Flare highlight — soft amber + violet wash mid-scene. */
+/* Flare highlight — soft amber + violet wash mid-scene.
+   alpha.37 — was `inset -10%` + `transparent 60%` which traced a hard
+   ring on wide screens. Pushed to `inset -30%` + `transparent 100%`
+   so the wash extends well past the section and fades smoothly into
+   the page background instead of drawing a circular edge. */
 .reveal__flare {
   position: absolute;
-  inset: -10% -10%;
+  inset: -30%;
   background: radial-gradient(
-    circle at 50% 45%,
+    ellipse 65% 55% at 50% 45%,
     rgba(245, 158, 11, 0.22) 0%,
-    rgba(139, 92, 246, 0.14) 30%,
-    transparent 60%
+    rgba(139, 92, 246, 0.14) 28%,
+    rgba(139, 92, 246, 0.04) 55%,
+    transparent 100%
   );
   mix-blend-mode: screen;
   pointer-events: none;
+  filter: blur(20px);
   z-index: -1;
 }
 
@@ -320,18 +424,34 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   filter: drop-shadow(0 26px 60px rgba(245, 158, 11, 0.18));
+  /* alpha.32 VISUAL-QA fix — scale the INNER MusicPlayer (not this
+     wrapper, which GSAP also transforms) so the player has real stage
+     presence on wide screens. Natural width ~440 px; at 1920 we want
+     ~720-820 px visually. */
 }
+/* --pulse-scale was tried to make the player larger on wide screens
+   but any value > 1.0 breaks the MusicPlayer's internal icon ratio.
+   Keep natural size; rely on the halo + drop-shadow + grid balance
+   to give it stage presence instead. */
 .reveal__product::before {
   content: '';
   position: absolute;
-  inset: -8% -18% -22% -18%;
+  /* alpha.37 halo "hard ring" fix — was `inset -8% -18% -22% -18%`
+     + `transparent 62%` which produced the most visible "halo cuts
+     in a straight line" bug the user reported. Pushed both the inset
+     and the gradient stops so the wash fades all the way out without
+     leaving a circular edge — the chrome now sits in a soft, organic
+     glow instead of inside a ring. */
+  inset: -60% -50% -70% -50%;
   background: radial-gradient(
-    ellipse at center,
-    rgba(245, 158, 11, 0.22) 0%,
-    rgba(139, 92, 246, 0.12) 32%,
-    transparent 62%
+    ellipse 70% 60% at center,
+    rgba(245, 158, 11, 0.26) 0%,
+    rgba(245, 158, 11, 0.14) 22%,
+    rgba(139, 92, 246, 0.12) 45%,
+    rgba(139, 92, 246, 0.04) 70%,
+    transparent 100%
   );
-  filter: blur(40px);
+  filter: blur(60px);
   z-index: -1;
   pointer-events: none;
 }
@@ -400,11 +520,10 @@ onBeforeUnmount(() => {
   .reveal {
     height: auto;
   }
+  /* alpha.37 — DESKTOP pinned stage is hidden on mobile. The horizontal
+     swipe carousel below takes over the six-act story. */
   .reveal__stage {
-    position: relative;
-    grid-template-columns: 1fr;
-    min-height: auto;
-    padding: clamp(40px, 8vh, 80px) clamp(20px, 5vw, 40px);
+    display: none;
   }
   .reveal__rail {
     position: relative;
@@ -414,9 +533,36 @@ onBeforeUnmount(() => {
     flex-direction: row;
     margin-bottom: 18px;
   }
-  .reveal__bars,
+  /* alpha.37 — was `display: none` which removed every glow on mobile
+     and made the section read as a flat dark slab. We now KEEP the
+     halos but soften their intensity (mix-blend stays screen, opacity
+     ramps down) and extend them to the full viewport width via
+     negative inset so they bleed bezel-to-bezel like on desktop. */
+  .reveal__bars {
+    /* full-width amber/pink rise from the bottom, intensity halved */
+    inset: auto -10vw 0 -10vw;
+    height: 28vh;
+    opacity: 0.6;
+    filter: blur(36px);
+  }
   .reveal__flare {
-    display: none;
+    /* extend past the viewport so the wash never shows a circular cut */
+    inset: -40vw -30vw -30vw -30vw;
+    filter: blur(40px);
+    opacity: 0.7;
+  }
+  .reveal__product::before {
+    /* Halo behind the centred player — extend full-bleed for the same
+       no-hard-ring reason as desktop, just at mobile proportions. */
+    inset: -40% -40% -50% -40%;
+    filter: blur(48px);
+  }
+  .reveal__stage {
+    /* Spread the stage background gradients out so they cover the
+       narrow viewport without bunching toward the centre. */
+    background:
+      radial-gradient(ellipse 120% 80% at 50% 30%, rgba(245, 158, 11, 0.08) 0%, transparent 100%),
+      radial-gradient(ellipse 120% 80% at 50% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 100%);
   }
 }
 
@@ -424,6 +570,101 @@ onBeforeUnmount(() => {
   .reveal__title,
   .reveal__sub {
     animation: none;
+  }
+}
+
+/* ── alpha.37 mobile horizontal swipe carousel ──────────────────
+   Hidden on desktop (the `.reveal__stage` pin owns the story there) ;
+   revealed on mobile only as a swipe-left/right native scroll-snap
+   track. Each slide is a full-viewport-width card so swipes feel
+   discrete (one act at a time). */
+
+.reveal__mobile-track,
+.reveal__mobile-dots {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .reveal__mobile-track {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    /* Subtle scrollbar — Apple-style hidden by default. */
+    scrollbar-width: none;
+    padding: clamp(28px, 6vw, 48px) 0;
+    gap: 0;
+  }
+  .reveal__mobile-track::-webkit-scrollbar {
+    display: none;
+  }
+  .reveal__mobile-slide {
+    flex: 0 0 100%;
+    width: 100%;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(20px, 4vw, 36px);
+    padding: 0 clamp(20px, 5vw, 40px);
+    box-sizing: border-box;
+  }
+  .reveal__mobile-copy {
+    text-align: center;
+    max-width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .reveal__mobile-copy .reveal__title {
+    font-size: clamp(28px, 8vw, 44px);
+    line-height: 1.06;
+  }
+  .reveal__mobile-copy .reveal__sub {
+    font-size: clamp(14px, 3.8vw, 17px);
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.72);
+  }
+  .reveal__mobile-product {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    /* Per-slide halo so the swipe feels premium — soft amber+violet
+       wash behind the chrome, no hard ring at any size. */
+    position: relative;
+    isolation: isolate;
+  }
+  .reveal__mobile-product::before {
+    content: '';
+    position: absolute;
+    inset: -30% -10% -40% -10%;
+    background: radial-gradient(
+      ellipse 80% 60% at center,
+      rgba(245, 158, 11, 0.18) 0%,
+      rgba(139, 92, 246, 0.12) 40%,
+      transparent 100%
+    );
+    filter: blur(40px);
+    z-index: -1;
+    pointer-events: none;
+  }
+  /* Visual dots under the track — non-interactive, hint that there
+     are six acts. The scroll-snap drives the actual navigation. */
+  .reveal__mobile-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 4px 0 28px;
+  }
+  .reveal__mobile-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
   }
 }
 </style>

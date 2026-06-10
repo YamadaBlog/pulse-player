@@ -70,7 +70,13 @@ const render = () => {
     const f1 = fft[Math.min(fft.length - 1, Math.floor(t * (fft.length - 1)) + 1)] ?? 0
     const blend = (Math.floor(t * (fft.length - 1)) + t) % 1
     const base = f0 * (1 - blend) + f1 * blend
-    const target = playing ? Math.min(1, base * bell * 1.3) : 0
+    // alpha.37 — IDLE silhouette : when paused, render a STATIC
+    // "spectrum at rest" rather than a dead baseline. The shape is a
+    // bell curve modulated by a slow sinusoid + a per-bar offset so
+    // the visualiser reads as "EQ ready, awaiting audio" instead of
+    // "broken / off". No animation in this branch — purely positional.
+    const idle = bell * 0.46 + Math.sin(i * 0.55) * 0.07 + Math.cos(i * 0.31) * 0.05
+    const target = playing ? Math.min(1, base * bell * 1.3) : Math.max(0.18, idle)
     // Frame smoothing — 0.22/frame → ~120 ms decay at 60 fps.
     smoothed[i] += (target - smoothed[i]) * 0.22
   }
@@ -126,12 +132,45 @@ onMounted(() => {
   if (c.parentElement) ro.observe(c.parentElement)
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    // Single static frame: a baseline line, no animation.
+    // alpha.37 — paint a STATIC spectrum silhouette (same formula as
+    // the idle branch of render()) so reduced-motion users still see
+    // the visualiser concept clearly instead of a baseline bar. No
+    // animation : single frame, then exit.
     const ctx = c.getContext('2d')
     if (!ctx) return
-    ctx.clearRect(0, 0, c.width, c.height)
-    ctx.fillStyle = 'rgba(245, 158, 11, 0.45)'
-    ctx.fillRect(0, c.height * 0.88, c.width, c.height * 0.06)
+    const w = c.width
+    const h = c.height
+    const N = props.bars
+    ctx.clearRect(0, 0, w, h)
+    const localDpr = Math.min(2, window.devicePixelRatio || 1)
+    const gap = props.gap * localDpr
+    const barW = Math.max(1, (w - gap * (N - 1)) / N)
+    const baseH = h * 0.08
+    const maxH = h * 0.78
+    for (let i = 0; i < N; i++) {
+      const t = i / (N - 1)
+      const bell = Math.sin(t * Math.PI) ** 1.6
+      const idle = bell * 0.46 + Math.sin(i * 0.55) * 0.07 + Math.cos(i * 0.31) * 0.05
+      const v = Math.max(0.18, idle)
+      const x = i * (barW + gap)
+      const bh = baseH + maxH * v
+      const y = h - bh
+      const grad = ctx.createLinearGradient(0, y, 0, h)
+      grad.addColorStop(0, `rgba(245, 158, 11, ${0.5 + v * 0.25})`)
+      grad.addColorStop(0.6, `rgba(236, 72, 153, ${0.32 + v * 0.18})`)
+      grad.addColorStop(1, `rgba(139, 92, 246, ${0.18 + v * 0.12})`)
+      ctx.fillStyle = grad
+      const r = Math.min(barW / 2, 4 * localDpr)
+      ctx.beginPath()
+      ctx.moveTo(x, h)
+      ctx.lineTo(x, y + r)
+      ctx.quadraticCurveTo(x, y, x + r, y)
+      ctx.lineTo(x + barW - r, y)
+      ctx.quadraticCurveTo(x + barW, y, x + barW, y + r)
+      ctx.lineTo(x + barW, h)
+      ctx.closePath()
+      ctx.fill()
+    }
     return
   }
   raf = requestAnimationFrame(render)
@@ -153,15 +192,58 @@ onBeforeUnmount(() => {
   width: 100%;
   height: clamp(80px, 14vh, 160px);
   position: relative;
-  margin: clamp(-32px, -4vh, -64px) auto clamp(48px, 8vh, 96px);
-  max-width: 1320px;
-  padding: 0 clamp(16px, 4vw, 48px);
+  /* alpha.37 FULL-BLEED fix — was `max-width: 1320px; margin: ... auto`
+     which capped the EQ visualiser at 1320 px so on a 2K (2560) viewport
+     ~600 px of empty page was visible left + right of the canvas. The
+     bar block is a hardware-EQ style visual signal — it should span the
+     whole stage like an Apple Music now-playing strip. Removing the
+     cap + zeroing horizontal padding makes it span 100 vw. The atmospheric
+     wash glow follows. */
+  margin-block: clamp(-32px, -4vh, -64px) clamp(48px, 8vh, 96px);
+  margin-inline: 0;
+  padding: 0;
   pointer-events: none;
+  /* alpha.37 — explicit horizontal centring + small atmospheric wash
+     underneath so the EQ block reads as "lit" / energised even when
+     the audio is paused (idle silhouette above does the rest). */
+  display: flex;
+  justify-content: center;
+  isolation: isolate;
+}
+.bars::before {
+  content: '';
+  position: absolute;
+  inset: -10% 6% 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 70% 100% at 50% 100%,
+    rgba(245, 158, 11, 0.18) 0%,
+    rgba(236, 72, 153, 0.1) 40%,
+    transparent 100%
+  );
+  filter: blur(40px);
+  mix-blend-mode: screen;
 }
 .bars__canvas {
   display: block;
   width: 100%;
   height: 100%;
   mix-blend-mode: screen;
+  /* Centre the canvas within its padded host so it doesn't drift on
+     wide viewports where the parent .bars caps at 1320 px. */
+  margin: 0 auto;
+}
+
+/* Mobile : tighten margin so the EQ block sits flush below the hero
+   CTAs without a black gap, and slightly reduce horizontal padding so
+   the bars stretch full-bleed. The wash glow remains. */
+@media (max-width: 720px) {
+  .bars {
+    height: clamp(72px, 12vh, 110px);
+    margin-top: clamp(-16px, -2vh, -32px);
+    margin-bottom: clamp(28px, 5vh, 48px);
+    padding: 0;
+  }
 }
 </style>

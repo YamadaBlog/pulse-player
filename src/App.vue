@@ -24,14 +24,21 @@ import {
   // useTypeOnReveal — exported for future install section in alpha.33
   useFirstPlayFlare,
 } from './composables/useCinematicEffects'
+import { useResponsiveWidth } from './composables/useResponsiveWidth'
 import CinematicIntro from './components/CinematicIntro.vue'
 // alpha.32 — scrollytelling components informed by Codrops Maxima
 // case study + Olivier Larose tutorials + LottieFiles motion-design
 // skill. The flagship is ProductReveal (6-act pin/scrub GSAP). The
 // others are supporting acts.
 import ProductReveal from './components/ProductReveal.vue'
+import ProductRotate3D from './components/ProductRotate3D.vue'
+import PhoneShowcase from './components/PhoneShowcase.vue'
 import DisplayHeadline from './components/DisplayHeadline.vue'
 import AudioBars from './components/AudioBars.vue'
+// alpha.37 (P1.1 extraction) — pure-markup footer split out of the
+// 3300-LOC App.vue monolith. No reactive deps, no logic. Reduces the
+// surface area integrators have to scroll through.
+import AppFooter from './components/AppFooter.vue'
 
 // Multi-step spotlight controller (replaces the v1.x single-boolean
 // `fabFocused`). Lifecycle: every demo step can call
@@ -48,9 +55,13 @@ const store = useAudioStore()
 // DEMO PAGE only (never in @pulse-music/* tarballs). See
 // docs/setup/PREMIUM_DEMO.md for the design rationale.
 // alpha.30 cascade order — PRODUCT FIRST (Apple page discipline).
-// Visitor sees the thing they came to see before any supporting copy.
+// alpha.32 VISUAL-QA fix: `.hero__title` removed from this cascade
+// because `useKineticType` (below) splits it into per-char spans and
+// drives its own opacity animation — running both engines against the
+// same element left chars stuck at opacity 0 on wide viewports. The
+// title now relies solely on the kinetic char cascade.
 useStagedReveal({
-  selectors: ['.hero__player', '.hero__badge', '.hero__title', '.hero__lede', '.hero__cta'],
+  selectors: ['.hero__player', '.hero__badge', '.hero__lede', '.hero__cta'],
   duration: 0.55,
   yFrom: 22,
   stagger: 0.08,
@@ -93,6 +104,49 @@ useScrollProgress(heroEl)
 // 1. Hero player floats — subtle 12 s Y bob, 6 px amplitude.
 const heroPlayerEl = ref<HTMLElement | null>(null)
 useFloatingBob(heroPlayerEl, { amplitude: 6, period: 12_000 })
+// alpha.33 — fluid hero player width responsive from mobile to 4K.
+// Drives the MusicPlayer :width prop so the chrome stays balanced
+// across the full viewport range. See ./composables/useResponsiveWidth.ts.
+const heroPlayerWidth = useResponsiveWidth({
+  multiplier: 1,
+  min: 280,
+  max: 1080,
+  fractionOfViewport: 0.78,
+})
+
+// alpha.37 — responsive MiniPlayer (persistent FAB) size.
+// Previous attempt overrode `--fab-size` via CSS `!important` to scale
+// the FAB on wide screens — that broke the internal SVG progress ring
+// because MiniPlayer computes the ring radius from `props.size` (default
+// 56), not from the CSS variable. The CSS override grew the box without
+// recomputing the ring geometry → ring sat off-centred in the corner.
+//
+// The correct path is to drive `props.size` reactively from the
+// viewport, so Vue re-runs the ring computed and re-renders the SVG
+// with matching coordinates.
+//
+//   Mobile  (≤ 720)         → 56 px  (Material default)
+//   Tablet  (721 → 1279)    → 64 px
+//   Laptop  (1280 → 1919)   → 72 px
+//   Desktop (1920 → 2559)   → 88 px
+//   2K + 4K (≥ 2560)        → 104 px
+const fabResponsiveSize = ref(56)
+const _updateFabSize = () => {
+  if (typeof window === 'undefined') return
+  const w = window.innerWidth
+  if (w >= 2560) fabResponsiveSize.value = 104
+  else if (w >= 1920) fabResponsiveSize.value = 88
+  else if (w >= 1280) fabResponsiveSize.value = 72
+  else if (w >= 721) fabResponsiveSize.value = 64
+  else fabResponsiveSize.value = 56
+}
+onMounted(() => {
+  _updateFabSize()
+  window.addEventListener('resize', _updateFabSize, { passive: true })
+})
+onUnmounted(() => {
+  if (typeof window !== 'undefined') window.removeEventListener('resize', _updateFabSize)
+})
 // 2. useTypeOnReveal — composable ready, no install code block in the
 // current template to attach to. Wired in alpha.32 when a dedicated
 // install section ships (currently the install snippet lives in the
@@ -1033,6 +1087,7 @@ const hero = computed(() => ({
             <MusicPlayer
               :variant="heroVariant"
               :accent-color="heroAccent"
+              :width="heroPlayerWidth"
               github-url="https://github.com/YamadaBlog/pulse-player"
               spotify-url="https://open.spotify.com/"
             />
@@ -1140,8 +1195,7 @@ const hero = computed(() => ({
           <div class="resize-stage__player">
             <MusicPlayer
               :width="sliderWidth"
-              variant="midnight"
-              accent-color="#8B5CF6"
+              variant="auto"
               github-url="https://github.com/YamadaBlog/pulse-player"
               spotify-url="https://open.spotify.com/"
             />
@@ -1208,8 +1262,7 @@ const hero = computed(() => ({
             handle in the bottom-right corner
           </div>
           <MusicPlayer
-            variant="midnight"
-            accent-color="#8B5CF6"
+            variant="auto"
             resizable
             :min-width="60"
             :width="tourDragWidth"
@@ -1223,6 +1276,17 @@ const hero = computed(() => ({
           </label>
         </div>
       </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+         ROTATE 3D — alpha.35 scroll-driven product-reveal rotation
+         ═══════════════════════════════════════════════════════════════ -->
+      <ProductRotate3D />
+
+      <!-- ═══════════════════════════════════════════════════════════════
+         PHONE SHOWCASE — alpha.37 CSS phone frame + Pulse Player inside
+         Desktop/tablet only. Hidden on mobile (user IS holding a phone).
+         ═══════════════════════════════════════════════════════════════ -->
+      <PhoneShowcase />
 
       <!-- ═══════════════════════════════════════════════════════════════
          FEATURES — Three-up
@@ -1286,9 +1350,15 @@ const hero = computed(() => ({
       </section>
 
       <!-- ═══════════════════════════════════════════════════════════════
-         RESPONSIVE — Three sizes side by side
+         RESPONSIVE — Three sizes side by side.
+         alpha.37 : added class `section--three-widths` so we can hide
+         the whole block on mobile/small tablet (≤ 720 px). On a 390 px
+         viewport the demo is incoherent — the 720 px frame can't render
+         at 720 px, and stacking 3 nearly-identical clamped players just
+         repeats the same message three times. The container-aware story
+         is already told by section III (slider XS→XL).
          ═══════════════════════════════════════════════════════════════ -->
-      <section class="section">
+      <section class="section section--three-widths">
         <p class="section__eyebrow">
           <span class="act-num">IV·b</span><span class="act-sep">·</span>Responsive · Container
           queries
@@ -1305,8 +1375,7 @@ const hero = computed(() => ({
             <div class="responsive__rule">{{ w }} px</div>
             <div class="responsive__frame" :style="{ width: w + 'px' }">
               <MusicPlayer
-                variant="midnight"
-                accent-color="#8B5CF6"
+                variant="auto"
                 :github-url="'https://github.com/YamadaBlog/pulse-player'"
                 :spotify-url="'https://open.spotify.com/'"
               />
@@ -1366,28 +1435,20 @@ const hero = computed(() => ({
       <!-- ═══════════════════════════════════════════════════════════════
          FOOTER
          ═══════════════════════════════════════════════════════════════ -->
-      <footer class="footer">
-        <div class="footer__inner">
-          <div class="footer__brand">pulse-player</div>
-          <div class="footer__meta">Floating + inline music for Vue 3</div>
-          <a
-            class="footer__link"
-            href="https://github.com/YamadaBlog/pulse-player"
-            target="_blank"
-            rel="noopener noreferrer"
-            >github →</a
-          >
-        </div>
-      </footer>
+      <AppFooter />
     </template>
 
-    <!-- Persistent FAB — global, survives navigation (hidden in showcase mode) -->
+    <!-- Persistent FAB — global, survives navigation (hidden in showcase mode).
+         `:size` is responsive (56/64/72/88/104) so the ring + cover
+         geometry inside MiniPlayer scales coherently across viewports
+         instead of staying at the default 56 on a 2K display. -->
     <MiniPlayer
       v-if="!showcase"
       :variant="activeFabVariant"
       :accent-color="fabPalette.find((p) => p.id === activeFabVariant)?.accent"
       :pulso="fabPulso"
       :position="tourFabPos"
+      :size="fabResponsiveSize"
     />
   </div>
 </template>
@@ -1506,13 +1567,31 @@ code {
   background-image: var(--hero-cover);
   background-size: cover;
   background-position: center;
-  filter: blur(80px) saturate(1.35);
-  opacity: 0.55;
+  /* alpha.32 VISUAL-QA — boosted blur (80 → 110) and lowered opacity
+     (0.55 → 0.38) so the auto-mood cover art behaves like a real
+     cinematic backdrop (atmospheric, not literal). */
+  filter: blur(110px) saturate(1.5) brightness(0.92);
+  opacity: 0.38;
   z-index: -2;
-  transform: scale(1.1);
+  transform: scale(1.18);
   transition:
     background-image 0.6s ease,
-    opacity 0.6s ease;
+    opacity 0.6s ease,
+    filter 0.6s ease;
+}
+.hero__backdrop::after {
+  /* Centre vignette so the eye lands on the player even when the
+     backdrop has a busy composition. */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 45%,
+    transparent 0%,
+    rgba(5, 5, 10, 0.42) 55%,
+    rgba(5, 5, 10, 0.78) 100%
+  );
+  pointer-events: none;
 }
 .hero__glow {
   position: absolute;
@@ -1524,12 +1603,15 @@ code {
   pointer-events: none;
 }
 .hero__inner {
-  max-width: 880px;
+  /* alpha.33 — caps raised so 2K (2560) and 4K (3840) keep the hero
+     proportional to viewport. Gap also scales so vertical rhythm
+     stays balanced across the typography upscale. */
+  width: min(84vw, 1640px);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(20px, 3vw, 32px);
+  gap: clamp(20px, 2vw, 48px);
 }
 .hero__badge {
   padding: 7px 14px;
@@ -1545,22 +1627,40 @@ code {
   -webkit-backdrop-filter: blur(12px);
 }
 .hero__title {
-  font-size: clamp(36px, 6vw, 64px);
+  /* alpha.32 VISUAL-QA fix — kinetic-char spans inside the title were
+     inheriting `color: transparent` from the gradient-text-fill and
+     stayed invisible across every viewport.
+     alpha.33 — was capped at 64 px which felt small on 2K/4K. New
+     range scales to ~96 px on 2K and ~128 px on 4K. */
+  font-size: clamp(36px, 5.4vw, 132px);
   font-weight: 700;
   letter-spacing: -0.035em;
-  line-height: 1.05;
+  line-height: 1.02;
   margin: 0;
-  background: linear-gradient(180deg, #ffffff 0%, #c7c7d4 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  max-width: 760px;
+  color: #f5f6fa;
+  max-width: min(20ch, 100%);
+}
+.hero__title .kinetic-char {
+  /* Belt-and-braces — explicit colour on the spans defeats any cascade
+     fight from `background-clip: text` higher up. */
+  color: #f5f6fa;
+  -webkit-text-fill-color: currentColor;
+}
+.hero__title {
+  /* inline-block char spans create wrap opportunities at every char
+     boundary, which produced ugly "V / ue 3." breaks. keep-all locks
+     Latin words together. */
+  word-break: keep-all;
+  overflow-wrap: normal;
+  text-wrap: balance;
 }
 .hero__lede {
-  font-size: clamp(15px, 1.6vw, 19px);
-  line-height: 1.6;
+  /* alpha.33 — was capped at 19 px which on 2K reads as fine print.
+     New range scales to ~28 px on 2K, ~36 px on 4K. */
+  font-size: clamp(16px, 1.25vw, 28px);
+  line-height: 1.55;
   color: var(--pg-text-mid);
-  max-width: 620px;
+  max-width: min(64ch, 100%);
   margin: 0;
 }
 .hero__player {
@@ -1578,11 +1678,13 @@ code {
 }
 
 .cta {
+  /* alpha.33 — fluid CTA so it stays touch-friendly on mobile + has
+     real presence on 2K/4K. Padding and font-size both scale. */
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 22px;
-  font-size: 14px;
+  gap: clamp(8px, 0.6vw, 14px);
+  padding: clamp(12px, 0.9vw, 22px) clamp(22px, 1.6vw, 40px);
+  font-size: clamp(14px, 1vw, 22px);
   font-weight: 600;
   letter-spacing: 0;
   border-radius: 999px;
@@ -2029,36 +2131,48 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
 }
 
 /* ─── SECTIONS ─────────────────────────────────────────────── */
+/* alpha.32 VISUAL-QA fix — page used to sit inside a 1080 px column
+   regardless of viewport, which left enormous empty bands on 1440 +
+   1920 displays. Sections now scale to ~88 vw up to a 1480 px hard
+   cap so wide screens feel inhabited without going full-bleed. */
 .section {
-  max-width: 1080px;
+  /* alpha.33 — caps raised so 2K (2560) and 4K (3840) keep the section
+     proportional to viewport instead of going narrow at 1480 px. */
+  width: min(86vw, 1880px);
   margin: 0 auto;
-  padding: clamp(60px, 8vw, 100px) 24px;
+  padding: clamp(60px, 6vw, 140px) clamp(24px, 3vw, 72px);
 }
 .section--narrow {
-  max-width: 760px;
+  width: min(86vw, 1280px);
 }
 
 .section__eyebrow {
-  font-size: 11px;
+  /* alpha.33 — eyebrow scales up gently on 2K/4K so it's not lost
+     under huge headings. */
+  font-size: clamp(11px, 0.85vw, 16px);
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--pg-accent);
-  margin: 0 0 12px;
+  margin: 0 0 clamp(12px, 1vw, 20px);
 }
 .section__h {
-  font-size: clamp(28px, 3.4vw, 44px);
+  /* alpha.33 — was clamped at 44 px which was invisible on 2K. New
+     range scales to ~64 px on 2K (2560) and ~88 px on 4K (3840). */
+  font-size: clamp(32px, 3.6vw, 96px);
   font-weight: 700;
   letter-spacing: -0.025em;
-  line-height: 1.1;
-  margin: 0 0 14px;
+  line-height: 1.08;
+  margin: 0 0 clamp(14px, 1.2vw, 28px);
 }
 .section__sub {
-  font-size: clamp(15px, 1.4vw, 17px);
-  line-height: 1.65;
+  /* alpha.33 — was 17 px cap which became invisible on 2K. New range
+     scales to ~28 px on 2K and ~36 px on 4K. */
+  font-size: clamp(16px, 1.3vw, 30px);
+  line-height: 1.6;
   color: var(--pg-text-mid);
-  max-width: 640px;
-  margin: 0 0 36px;
+  max-width: min(72ch, 100%);
+  margin: 0 0 clamp(28px, 2.4vw, 56px);
 }
 
 /* ─── RESIZE STAGE ─────────────────────────────────────────── */
@@ -2555,36 +2669,7 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.22);
 }
 
-/* ─── FOOTER ───────────────────────────────────────────────── */
-.footer {
-  margin-top: 40px;
-  border-top: 1px solid var(--pg-border);
-}
-.footer__inner {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 30px 24px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px;
-}
-.footer__brand {
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-.footer__meta {
-  color: var(--pg-text-low);
-  flex: 1;
-}
-.footer__link {
-  color: var(--pg-accent);
-  text-decoration: none;
-  font-weight: 600;
-}
-.footer__link:hover {
-  text-decoration: underline;
-}
+/* Footer styles moved to AppFooter.vue (P1.1 extraction 2026-06-10). */
 
 @media (max-width: 640px) {
   .grid {
@@ -2697,6 +2782,14 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   /* Smooth the rotation around the centre of the glyph baseline. */
   transform-origin: 50% 80%;
   will-change: opacity, transform;
+  /* alpha.32 VISUAL-QA fix — force NBSP to render visibly. inline-block
+     collapses adjacent NBSP-only spans without explicit minimum width. */
+  white-space: pre;
+}
+.kinetic-char:empty,
+.kinetic-char[data-space],
+.kinetic-char:where([data-space]) {
+  min-width: 0.27em;
 }
 
 /* Cursor-tracking glow — Apple interactive light. The composable sets:
@@ -2860,15 +2953,24 @@ samp,
   line-height: 1.04;
   letter-spacing: -0.025em;
   margin: 0 0 64px;
-  max-width: 18ch;
+  max-width: 22ch;
   /* Default fill while the per-char wave runs. */
   color: rgba(255, 255, 255, 0.96);
+  /* alpha.32 VISUAL-QA — same fix as .hero__title: inline-block chars
+     create wrap opportunities at every glyph; keep-all locks Latin
+     words together. */
+  word-break: keep-all;
+  overflow-wrap: normal;
+  text-wrap: balance;
 }
 
 .wave-char {
   display: inline-block;
   /* will-change set by the composable; we keep the layout stable. */
   vertical-align: baseline;
+  /* alpha.32 VISUAL-QA fix — force NBSP to render visibly. */
+  white-space: pre;
+  min-width: 0.04em;
 }
 
 .why__columns {

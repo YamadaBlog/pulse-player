@@ -1,0 +1,194 @@
+/* ═══════════════════════════════════════════════════════════════════
+   variants-premium.css — alpha.34 premium gradient overlay.
+
+   Goal: lift the four mood variants (sunset, midnight, aurora, vinyl)
+   out of the "flat dark surface" look without touching `src/lib/`. The
+   `--variant-bg-gradient` CSS custom property defined in
+   `src/lib/shared/variants.css` is redefined here with a layered
+   mesh-style gradient — 3-4 radial blobs + the original base linear
+   underneath. Because CSS variables are resolved at use-time, the
+   `background: var(--variant-bg-gradient)` declarations inside
+   MusicPlayer.vue and MiniPlayer.vue (scoped + byte-identical) now
+   read the richer values without their source ever being edited.
+
+   The `.mp__bg::after` + `.fab__btn::after` blocks add a subtle SVG
+   feTurbulence grain overlay (inlined data URI, no extra HTTP request)
+   blended at 10-14 % opacity so the chrome stops feeling "digitally
+   flat" — the Stripe / Linear / OpenAI grain receipt.
+
+   Sources (web search 2026):
+     - CSS-Tricks Grainy Gradients
+     - Nine Hub Tools "Apple Style Mesh Gradients 2026"
+     - Better Gradient mesh-gradient-css-guide
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Re-declared mesh gradients ──────────────────────────────── */
+
+[data-variant='sunset'] {
+  --variant-bg-gradient:
+    radial-gradient(ellipse 70% 60% at 18% 12%, rgba(255, 138, 76, 0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 82% 22%, rgba(236, 72, 153, 0.42) 0%, transparent 65%),
+    radial-gradient(ellipse 80% 70% at 50% 95%, rgba(245, 158, 11, 0.42) 0%, transparent 70%),
+    radial-gradient(circle at 8% 88%, rgba(124, 45, 18, 0.55) 0%, transparent 55%),
+    linear-gradient(135deg, #1a0a05 0%, #2d140c 50%, #3d1c0e 100%);
+}
+
+[data-variant='midnight'] {
+  --variant-bg-gradient:
+    radial-gradient(ellipse 70% 60% at 20% 15%, rgba(139, 92, 246, 0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 60% at 80% 12%, rgba(99, 102, 241, 0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 95% 70%, rgba(236, 72, 153, 0.38) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 60% at 30% 90%, rgba(67, 56, 202, 0.5) 0%, transparent 60%),
+    linear-gradient(140deg, #07071a 0%, #0e0c2a 45%, #161438 100%);
+}
+
+[data-variant='aurora'] {
+  --variant-bg-gradient:
+    radial-gradient(ellipse 70% 60% at 18% 18%, rgba(6, 182, 212, 0.5) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 60% at 85% 22%, rgba(16, 185, 129, 0.42) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 50% 95%, rgba(45, 212, 191, 0.45) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 60% at 92% 85%, rgba(56, 189, 248, 0.4) 0%, transparent 60%),
+    linear-gradient(135deg, #02161b 0%, #052a30 45%, #073846 100%);
+}
+
+[data-variant='vinyl'] {
+  --variant-bg-gradient:
+    radial-gradient(ellipse 65% 55% at 25% 20%, rgba(212, 175, 121, 0.32) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 60% at 78% 30%, rgba(200, 120, 70, 0.28) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(150, 90, 50, 0.32) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 10% 90%, rgba(240, 200, 150, 0.18) 0%, transparent 60%),
+    linear-gradient(135deg, #07050a 0%, #110b08 50%, #1f160f 100%);
+}
+
+/* ── Grain noise overlay ─────────────────────────────────────────
+   Inline SVG noise via feTurbulence. data URI keeps everything in
+   the CSS bundle so the player can be dropped into any host page
+   without a noise.svg asset.
+   The contrast(170%) + brightness(1000%) trick turns the noise
+   into a monochrome speckle that mix-blend-mode: overlay can use. */
+
+.mp[data-variant='sunset'] .mp__bg::after,
+.mp[data-variant='midnight'] .mp__bg::after,
+.mp[data-variant='aurora'] .mp__bg::after,
+.mp[data-variant='vinyl'] .mp__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+  mix-blend-mode: overlay;
+  opacity: 0.12;
+  z-index: 1;
+}
+
+/* Specular sheen — single soft diagonal highlight inside the chrome
+   that makes the gradient feel like real glass rather than a flat
+   blob. Stronger on midnight/aurora (cool), gentler on vinyl. */
+.mp[data-variant='sunset'] .mp__bg::before,
+.mp[data-variant='midnight'] .mp__bg::before,
+.mp[data-variant='aurora'] .mp__bg::before,
+.mp[data-variant='vinyl'] .mp__bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 32%,
+    rgba(255, 255, 255, 0.12) 48%,
+    rgba(255, 255, 255, 0.04) 60%,
+    transparent 100%
+  );
+  z-index: 1;
+}
+.mp[data-variant='vinyl'] .mp__bg::before {
+  opacity: 0.55;
+}
+
+/* Apply the same recipe to the FAB chrome (MiniPlayer.vue). */
+
+.fab[data-variant='sunset'] .fab__btn::after,
+.fab[data-variant='midnight'] .fab__btn::after,
+.fab[data-variant='aurora'] .fab__btn::after,
+.fab[data-variant='vinyl'] .fab__btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n2)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  mix-blend-mode: overlay;
+  opacity: 0.1;
+}
+
+/* ── alpha.35 — Accent halo box-shadow ───────────────────────────
+   Each mood casts a coloured glow that reads as the player "carrying"
+   its mood off-canvas. Subtle on mobile (where the player fills the
+   viewport), grows on desktop. Single declaration via the same
+   `--variant-accent-rgb` token; no per-variant duplication.
+
+   Strength of the second shadow keyword (50px at 12 % alpha)
+   inspired by Linear's app shell hover state. */
+
+.mp[data-variant='sunset'],
+.mp[data-variant='midnight'],
+.mp[data-variant='aurora'],
+.mp[data-variant='vinyl'] {
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--variant-accent-rgb) / 0.22),
+    0 12px 32px rgb(0 0 0 / 0.4),
+    0 0 60px -10px rgb(var(--variant-accent-rgb) / 0.18);
+  transition: box-shadow 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mp[data-variant='sunset']:hover,
+.mp[data-variant='midnight']:hover,
+.mp[data-variant='aurora']:hover,
+.mp[data-variant='vinyl']:hover {
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--variant-accent-rgb) / 0.34),
+    0 18px 48px rgb(0 0 0 / 0.5),
+    0 0 88px -8px rgb(var(--variant-accent-rgb) / 0.28);
+}
+
+/* ── alpha.35 — Vinyl warmth boost ───────────────────────────────
+   The alpha.34 mesh redefinition lifted vinyl out of "near-black", but
+   on big screens it still read as the quietest mood. Boost the central
+   warm light without breaking the leather/wood aesthetic. */
+[data-variant='vinyl'] {
+  --variant-bg-gradient:
+    radial-gradient(ellipse 72% 60% at 22% 20%, rgba(228, 188, 130, 0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 58% 60% at 78% 28%, rgba(212, 130, 78, 0.38) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(168, 100, 55, 0.42) 0%, transparent 70%),
+    radial-gradient(ellipse 42% 42% at 12% 88%, rgba(245, 210, 158, 0.26) 0%, transparent 60%),
+    linear-gradient(135deg, #0d0907 0%, #18100a 50%, #2a1c12 100%);
+}
+
+/* ── alpha.35 — Sunset extra warmth ─────────────────────────────
+   Push sunset a touch closer to "real fire" with a brighter top-left
+   solar flare and a deeper magenta on the right cheek. */
+[data-variant='sunset'] {
+  --variant-bg-gradient:
+    radial-gradient(ellipse 70% 58% at 16% 10%, rgba(255, 158, 90, 0.62) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 84% 20%, rgba(244, 88, 168, 0.5) 0%, transparent 65%),
+    radial-gradient(ellipse 80% 70% at 50% 96%, rgba(248, 168, 32, 0.48) 0%, transparent 70%),
+    radial-gradient(circle at 6% 90%, rgba(140, 50, 22, 0.6) 0%, transparent 55%),
+    linear-gradient(135deg, #1d0c06 0%, #321810 50%, #421f12 100%);
+}
+
+/* ── alpha.35 — Mood-tint accent dot on the FAB chip palette ────
+   Each `.palette__chip` already gets a subtle dot via accent token in
+   App.vue. On desktop we lift the dot opacity so the chip cluster
+   reads as the colour rail it is. */
+@media (min-width: 1180px) {
+  .palette__chip.palette__chip--active {
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--variant-accent-rgb, 255 255 255) / 0.35),
+      0 0 32px -8px rgb(var(--variant-accent-rgb, 255 255 255) / 0.25);
+  }
+}

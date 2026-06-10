@@ -126,12 +126,21 @@ export function useScrollKineticWave(
     const el = target.value
     if (!el) return
     const text = el.textContent ?? ''
+    // alpha.37 — mobile word-break fix : on ≤ 720 px, skip the wave
+    // entirely (no per-char split, no transform loop). The headline
+    // then wraps naturally by word — desktop keeps the kinetic wave.
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches) {
+      el.setAttribute('aria-label', text)
+      return
+    }
     const fragment = document.createDocumentFragment()
     chars = []
     for (const ch of text) {
       const s = document.createElement('span')
       s.className = 'wave-char'
-      s.textContent = ch === ' ' ? ' ' : ch
+      // alpha.32 VISUAL-QA fix — explicit NBSP (U+00A0) for spaces
+      // so inline-block spans don't collapse the inter-word gap.
+      s.textContent = ch === ' ' ? ' ' : ch
       s.style.display = 'inline-block'
       s.style.willChange = 'transform'
       fragment.appendChild(s)
