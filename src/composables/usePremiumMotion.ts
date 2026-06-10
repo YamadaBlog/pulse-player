@@ -243,10 +243,48 @@ export function useKineticType(target: Ref<HTMLElement | null>): void {
       const span = document.createElement('span')
       span.className = 'kinetic-char'
       span.textContent = ch === ' ' ? ' ' : ch
-      span.style.display = 'inline-block'
+      // alpha.37 — only set inline-block on non-mobile viewports.
+      // On mobile, leaving spans inline lets the browser wrap by word
+      // instead of by glyph, fixing the "Audio that mo / ves the chrom
+      // / e" mid-word break bug. CSS class still drives animation.
+      if (typeof window === 'undefined' || !window.matchMedia('(max-width: 720px)').matches) {
+        span.style.display = 'inline-block'
+      }
       // Preserve word-wrap by leaving the parent's white-space alone.
       fragment.appendChild(span)
       chars.push(span)
+    }
+    // alpha.37 STEP 2 — mobile re-grouping : after per-char split, if
+    // we're on mobile, re-wrap the chars into per-word spans so the
+    // browser only wraps at whitespace, not mid-word.
+    const isMobileWrap =
+      typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
+    if (isMobileWrap) {
+      const wrapped = document.createDocumentFragment()
+      let current: HTMLSpanElement | null = null
+      const childNodes = Array.from(fragment.childNodes) as HTMLSpanElement[]
+      for (const node of childNodes) {
+        const txt = node.textContent ?? ''
+        if (txt === ' ' || /^\s+$/.test(txt)) {
+          if (current) {
+            wrapped.appendChild(current)
+            current = null
+          }
+          wrapped.appendChild(document.createTextNode(' '))
+        } else {
+          if (!current) {
+            current = document.createElement('span')
+            current.className = 'kinetic-word'
+            current.style.display = 'inline-block'
+            current.style.whiteSpace = 'nowrap'
+          }
+          current.appendChild(node)
+        }
+      }
+      if (current) wrapped.appendChild(current)
+      // Replace fragment contents.
+      while (fragment.firstChild) fragment.removeChild(fragment.firstChild)
+      fragment.appendChild(wrapped)
     }
 
     el.textContent = ''
@@ -565,3 +603,5 @@ export function useAudioParticles(
     ro?.disconnect()
   })
 }
+// touch
+// touch

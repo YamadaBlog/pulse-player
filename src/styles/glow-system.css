@@ -1,0 +1,276 @@
+/* ═══════════════════════════════════════════════════════════════════
+   glow-system.css — alpha.37 unified halo / glow tokens & utilities.
+
+   Rationale (audit user feedback "halos enfermés dans leurs containers") :
+
+   The mood box-shadows defined in `variants-premium.css` (alpha.35)
+   cast a coloured glow OUTSIDE the .mp card. Box-shadows are not
+   clipped by the SHADOWING element's own `overflow: hidden`, BUT they
+   ARE clipped by any ancestor that sets `overflow: hidden` or
+   `overflow-x: clip`.
+
+   Earlier alpha.37 mobile overrides set `overflow-x: clip` on
+   `.section, .grid__cell, .resize-stage, .drag-stage` so player chrome
+   couldn't push the page wide. That same clip ate the glow shadows —
+   the user's "enfermés dans leurs containers" verdict. Sections H+I in
+   `responsive-fix.css` now use `overflow: visible` ; the horizontal-
+   scroll guard lives only on `html / body / #app / .app`.
+
+   This file provides :
+     1. ROOT TOKENS — single source of truth for halo blur, spread,
+        opacity, and accent colour ramps. One change here re-tunes the
+        entire page.
+     2. UTILITY CLASS `.glow-frame` — applies a soft amber+violet halo
+        ::before pseudo-element to any container WITHOUT clipping its
+        children. Use when you want a player to feel "presented" — a
+        Pick a mood card, the resize stage, a hero focal product.
+     3. VARIANT MOOD GLOWS — extends `variants-premium.css` accent glow
+        so it survives the desktop drop-shadow rule already on .mp and
+        becomes the dominant visual signal at all viewports.
+     4. SAFETY RAILS — `.glow-frame` is opt-in. No global side effect.
+
+   Sources (Anthropic frontend-design + Codrops grain skill + Stripe
+   product page deconstruction).
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Halo tokens ───────────────────────────────────────────────── */
+  /* Three size tiers — the visual budget scales with the surface :
+     a 12 px chip uses --glow-blur-sm, a 360 px card uses --glow-blur-md,
+     a hero showcase uses --glow-blur-lg. */
+  --glow-blur-sm: clamp(20px, 2.5vw, 40px);
+  --glow-blur-md: clamp(40px, 5vw, 80px);
+  --glow-blur-lg: clamp(60px, 8vw, 140px);
+
+  --glow-spread-sm: clamp(8px, 1vw, 16px);
+  --glow-spread-md: clamp(16px, 2vw, 36px);
+  --glow-spread-lg: clamp(28px, 3.5vw, 60px);
+
+  /* Opacity tiers — soft for ambient backgrounds, strong for focal
+     reveal moments. Always lower on mobile (the wash dominates the
+     small viewport). */
+  --glow-opacity-soft: 0.18;
+  --glow-opacity-med: 0.32;
+  --glow-opacity-strong: 0.48;
+
+  /* Accent palette — RGB triplets so they compose with rgb()/var().
+     The four cool/warm pairs mirror the mood variants. */
+  --glow-warm: 245 158 11; /* amber */
+  --glow-cool: 139 92 246; /* violet */
+  --glow-rose: 236 72 153; /* magenta */
+  --glow-aqua: 6 182 212; /* cyan */
+}
+
+@media (max-width: 720px) {
+  :root {
+    /* Mobile : same shape, lower intensity — small viewports cannot
+       carry a fully saturated wash without looking neon. */
+    --glow-opacity-soft: 0.22;
+    --glow-opacity-med: 0.36;
+    --glow-opacity-strong: 0.52;
+  }
+}
+
+/* ── .glow-frame utility ────────────────────────────────────────
+   Drop on any container that holds a focal product (.mp player).
+   It paints a soft amber+violet wash BEHIND the content via ::before,
+   keeps the container itself non-clipping, and stays compatible with
+   the variant-accent glow on .mp itself. */
+
+.glow-frame {
+  position: relative;
+  isolation: isolate; /* scopes the ::before z-index: -1 to this stacker */
+  overflow: visible !important;
+}
+
+.glow-frame::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--glow-spread-md) * -1);
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse 80% 70% at center,
+    rgb(var(--glow-warm) / var(--glow-opacity-med)) 0%,
+    rgb(var(--glow-cool) / calc(var(--glow-opacity-med) * 0.7)) 35%,
+    rgb(var(--glow-rose) / calc(var(--glow-opacity-soft) * 0.7)) 60%,
+    transparent 100%
+  );
+  filter: blur(var(--glow-blur-md));
+  mix-blend-mode: screen;
+}
+
+/* Variants : pick a target accent so the wash matches the mood. */
+.glow-frame[data-glow='warm']::before {
+  background: radial-gradient(
+    ellipse 80% 70% at center,
+    rgb(var(--glow-warm) / var(--glow-opacity-strong)) 0%,
+    rgb(var(--glow-rose) / var(--glow-opacity-med)) 40%,
+    transparent 100%
+  );
+}
+.glow-frame[data-glow='cool']::before {
+  background: radial-gradient(
+    ellipse 80% 70% at center,
+    rgb(var(--glow-cool) / var(--glow-opacity-strong)) 0%,
+    rgb(var(--glow-aqua) / var(--glow-opacity-med)) 45%,
+    transparent 100%
+  );
+}
+.glow-frame[data-glow='aurora']::before {
+  background: radial-gradient(
+    ellipse 80% 70% at center,
+    rgb(var(--glow-aqua) / var(--glow-opacity-strong)) 0%,
+    rgb(var(--glow-cool) / var(--glow-opacity-med)) 45%,
+    transparent 100%
+  );
+}
+
+/* Larger blur on focal hero moments. */
+.glow-frame--lg::before {
+  inset: calc(var(--glow-spread-lg) * -1);
+  filter: blur(var(--glow-blur-lg));
+}
+
+/* ── Auto-apply to known mood-bearing player containers ────────
+   Rather than asking App.vue to add `.glow-frame` manually around every
+   .mp instance (which would require editing template at every callsite),
+   we apply the glow ::before directly to the containers we KNOW hold
+   a mood player. This is zero-Vue-edit, future-proof, and stays
+   coherent with `variants-premium.css` which already targets the same
+   variants. */
+
+.variants .grid__cell,
+.resize-stage,
+.drag-stage,
+.rotate3d__rotator {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+}
+
+/* The wash itself — only renders when the inner .mp carries a known
+   variant (sunset/midnight/aurora/vinyl). The `:has()` modern selector
+   keeps the wash off neutral light/dark/transparent variants where a
+   warm glow would feel out of place. Chrome 105+, Safari 15.4+,
+   Firefox 121+ (caniuse > 92 % in 2026). */
+
+.variants .grid__cell:has(.mp[data-variant='sunset'])::after,
+.variants .grid__cell:has(.mp[data-variant='midnight'])::after,
+.variants .grid__cell:has(.mp[data-variant='aurora'])::after,
+.variants .grid__cell:has(.mp[data-variant='vinyl'])::after,
+.variants .grid__cell:has(.mp[data-variant='auto'])::after {
+  content: '';
+  position: absolute;
+  inset: calc(var(--glow-spread-lg) * -1) calc(var(--glow-spread-md) * -1);
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 90% 75% at center,
+    rgb(var(--glow-warm) / var(--glow-opacity-med)) 0%,
+    rgb(var(--glow-cool) / calc(var(--glow-opacity-med) * 0.7)) 40%,
+    rgb(var(--glow-rose) / var(--glow-opacity-soft)) 65%,
+    transparent 100%
+  );
+  filter: blur(var(--glow-blur-lg));
+  mix-blend-mode: screen;
+}
+
+/* Per-variant accent so the wash matches the mood mesh. */
+.variants .grid__cell:has(.mp[data-variant='sunset'])::after {
+  background: radial-gradient(
+    ellipse 90% 75% at center,
+    rgb(var(--glow-warm) / var(--glow-opacity-strong)) 0%,
+    rgb(var(--glow-rose) / var(--glow-opacity-med)) 45%,
+    transparent 100%
+  );
+}
+.variants .grid__cell:has(.mp[data-variant='midnight'])::after {
+  background: radial-gradient(
+    ellipse 90% 75% at center,
+    rgb(var(--glow-cool) / var(--glow-opacity-strong)) 0%,
+    rgb(var(--glow-rose) / var(--glow-opacity-med)) 45%,
+    transparent 100%
+  );
+}
+.variants .grid__cell:has(.mp[data-variant='aurora'])::after {
+  background: radial-gradient(
+    ellipse 90% 75% at center,
+    rgb(var(--glow-aqua) / var(--glow-opacity-strong)) 0%,
+    rgb(16 185 129 / var(--glow-opacity-med)) 45%,
+    transparent 100%
+  );
+}
+.variants .grid__cell:has(.mp[data-variant='vinyl'])::after {
+  background: radial-gradient(
+    ellipse 90% 75% at center,
+    rgb(var(--glow-warm) / var(--glow-opacity-med)) 0%,
+    rgb(168 100 55 / var(--glow-opacity-soft)) 50%,
+    transparent 100%
+  );
+}
+
+/* ── Stronger glow on the resize-stage + drag-stage focal players. */
+.resize-stage::after,
+.drag-stage::after {
+  content: '';
+  position: absolute;
+  inset: calc(var(--glow-spread-lg) * -1);
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 80% 65% at center,
+    rgb(var(--glow-warm) / var(--glow-opacity-med)) 0%,
+    rgb(var(--glow-cool) / var(--glow-opacity-soft)) 45%,
+    transparent 100%
+  );
+  filter: blur(var(--glow-blur-lg));
+  mix-blend-mode: screen;
+}
+
+/* ── Premium box-shadow boost on .mp mood variants ─────────────
+   Layered shadows beat a single one for the "this card sits in light"
+   feeling. The existing variants-premium.css set one outer glow ; we
+   add a softer wider second + an inner edge highlight so the chrome
+   reads as a real object with thickness. Stays scoped to mood
+   variants — neutral light/dark/transparent are left alone. */
+.mp[data-variant='sunset'],
+.mp[data-variant='midnight'],
+.mp[data-variant='aurora'],
+.mp[data-variant='vinyl'] {
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--variant-accent-rgb) / 0.24),
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 14px 36px rgb(0 0 0 / 0.42),
+    0 0 0 1px rgb(var(--variant-accent-rgb) / 0.06),
+    0 0 60px -6px rgb(var(--variant-accent-rgb) / 0.32),
+    0 0 120px -16px rgb(var(--variant-accent-rgb) / 0.22);
+  transition: box-shadow 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mp[data-variant='sunset']:hover,
+.mp[data-variant='midnight']:hover,
+.mp[data-variant='aurora']:hover,
+.mp[data-variant='vinyl']:hover {
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--variant-accent-rgb) / 0.38),
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    0 20px 48px rgb(0 0 0 / 0.5),
+    0 0 0 1px rgb(var(--variant-accent-rgb) / 0.1),
+    0 0 80px -4px rgb(var(--variant-accent-rgb) / 0.46),
+    0 0 160px -10px rgb(var(--variant-accent-rgb) / 0.3);
+}
+
+/* ── Reduced motion / mobile : tone down the wash so it stays
+   atmospheric without being heavy on small viewports or for users
+   who opted out of motion. */
+@media (prefers-reduced-motion: reduce) {
+  .glow-frame::before,
+  .variants .grid__cell::after,
+  .resize-stage::after,
+  .drag-stage::after {
+    opacity: 0.65;
+    transition: none;
+  }
+}

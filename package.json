@@ -79,13 +79,15 @@
     "test:visual": "playwright test --grep-invert a11y",
     "test:visual:update": "playwright test --update-snapshots --grep-invert a11y",
     "test:a11y": "cross-env PULSE_A11Y=1 playwright test --grep a11y",
-    "size": "size-limit",
-    "size:why": "size-limit --why",
+    "size": "npm run build:packages && npm run build:lib && size-limit",
+    "size:why": "npm run build:packages && npm run build:lib && size-limit --why",
+    "size:check": "size-limit",
     "setup:demo-audio": "node scripts/setup-demo-audio.mjs",
     "publish:dry-run": "node scripts/publish-dry-run.mjs",
     "build:packages": "npm run build --workspace=@pulse-music/types --workspace=@pulse-music/core --workspace=@pulse-music/tokens --workspace=@pulse-music/web-component --workspace=@pulse-music/react --workspace=@pulse-music/svelte",
     "audit": "npm audit --omit=dev --audit-level=moderate",
-    "ci": "npm run type-check && npm run lint && npm run test && npm run test:packages && npm run build && npm run audit",
+    "check:lib-identical": "node scripts/check-lib-byte-identical.mjs",
+    "ci": "npm run type-check && npm run lint && npm run test && npm run test:packages && npm run build && npm run audit && npm run check:lib-identical",
     "prepublishOnly": "npm run ci && npm run build:lib",
     "prepare": "husky 2>/dev/null || true"
   },
@@ -94,6 +96,7 @@
     "vue": "^3.4.0"
   },
   "dependencies": {
+    "gsap": "^3.15.0",
     "lenis": "^1.3.23",
     "lucide-vue-next": "^0.300.0",
     "motion": "^12.40.0"

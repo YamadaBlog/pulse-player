@@ -11,7 +11,8 @@ import {
   useCursorGlow,
   useScrollParallax,
   useAudioParticles,
-  withViewTransition,
+  // withViewTransition — now consumed inside FloatingFabSection.vue,
+  // no longer needed at the App.vue top level after the P1.1 extraction.
 } from './composables/usePremiumMotion'
 import {
   useScrollProgress,
@@ -19,6 +20,32 @@ import {
   useScrollOrbitField,
   useMagneticHover,
 } from './composables/useAdvancedMotion'
+import {
+  useFloatingBob,
+  // useTypeOnReveal — exported for future install section in alpha.33
+  useFirstPlayFlare,
+} from './composables/useCinematicEffects'
+import { useResponsiveWidth } from './composables/useResponsiveWidth'
+import CinematicIntro from './components/CinematicIntro.vue'
+// alpha.32 — scrollytelling components informed by Codrops Maxima
+// case study + Olivier Larose tutorials + LottieFiles motion-design
+// skill. The flagship is ProductReveal (6-act pin/scrub GSAP). The
+// others are supporting acts.
+import ProductReveal from './components/ProductReveal.vue'
+import ProductRotate3D from './components/ProductRotate3D.vue'
+import PhoneShowcase from './components/PhoneShowcase.vue'
+import DisplayHeadline from './components/DisplayHeadline.vue'
+import AudioBars from './components/AudioBars.vue'
+// alpha.37 (P1.1 extraction) — pure-markup footer split out of the
+// 3300-LOC App.vue monolith. No reactive deps, no logic. Reduces the
+// surface area integrators have to scroll through.
+import AppFooter from './components/AppFooter.vue'
+import FeaturesGrid from './components/FeaturesGrid.vue'
+import FloatingFabSection from './components/FloatingFabSection.vue'
+import ResizeStageSection from './components/ResizeStageSection.vue'
+import DragStageSection from './components/DragStageSection.vue'
+import PickAMoodSection from './components/PickAMoodSection.vue'
+import ThreeWidthsSection from './components/ThreeWidthsSection.vue'
 
 // Multi-step spotlight controller (replaces the v1.x single-boolean
 // `fabFocused`). Lifecycle: every demo step can call
@@ -34,12 +61,18 @@ const store = useAudioStore()
 // scroll. All three respect prefers-reduced-motion and ship in the
 // DEMO PAGE only (never in @pulse-music/* tarballs). See
 // docs/setup/PREMIUM_DEMO.md for the design rationale.
+// alpha.30 cascade order — PRODUCT FIRST (Apple page discipline).
+// alpha.32 VISUAL-QA fix: `.hero__title` removed from this cascade
+// because `useKineticType` (below) splits it into per-char spans and
+// drives its own opacity animation — running both engines against the
+// same element left chars stuck at opacity 0 on wide viewports. The
+// title now relies solely on the kinetic char cascade.
 useStagedReveal({
-  selectors: ['.hero__badge', '.hero__title', '.hero__lede', '.hero__player', '.hero__cta'],
-  duration: 0.45,
-  yFrom: 18,
-  stagger: 0.06,
-  startDelay: 0.1,
+  selectors: ['.hero__player', '.hero__badge', '.hero__lede', '.hero__cta'],
+  duration: 0.55,
+  yFrom: 22,
+  stagger: 0.08,
+  startDelay: 0.12,
 })
 const ambientRoot = ref<HTMLElement | null>(null)
 const audioReactiveSnapshot = computed(() => ({
@@ -54,8 +87,11 @@ useSmoothScroll()
 const heroTitleEl = ref<HTMLElement | null>(null)
 useKineticType(heroTitleEl)
 // Cursor-tracking glow on hero (Apple interactive light)
+// alpha.30 — intensity bumped 0.32 → 0.42 so the resting state is
+// visible even before the user moves; radius down 420 → 360 so the
+// effect is tighter and feels more designed than ambient.
 const heroEl = ref<HTMLElement | null>(null)
-useCursorGlow(heroEl, { radius: 420, intensity: 0.32 })
+useCursorGlow(heroEl, { radius: 360, intensity: 0.42 })
 // Scroll parallax on hero backdrop (subtle depth)
 const heroBackdropEl = ref<HTMLElement | null>(null)
 useScrollParallax(heroBackdropEl, { depth: 50 })
@@ -66,6 +102,65 @@ useAudioParticles(particleCanvasEl, audioReactiveSnapshot, {
   colour: 'rgba(245, 158, 11, 0.55)', // amber — breaks the AI purple-teal default
 })
 
+// alpha.30 — scroll-progress channel on the hero powers the
+// variable-font weight axis (Geist 650→800). The CSS consumer reads
+// --scroll-progress and drives font-variation-settings.
+useScrollProgress(heroEl)
+
+// alpha.31 — cinematic finishing touches.
+// 1. Hero player floats — subtle 12 s Y bob, 6 px amplitude.
+const heroPlayerEl = ref<HTMLElement | null>(null)
+useFloatingBob(heroPlayerEl, { amplitude: 6, period: 12_000 })
+// alpha.33 — fluid hero player width responsive from mobile to 4K.
+// Drives the MusicPlayer :width prop so the chrome stays balanced
+// across the full viewport range. See ./composables/useResponsiveWidth.ts.
+const heroPlayerWidth = useResponsiveWidth({
+  multiplier: 1,
+  min: 280,
+  max: 1080,
+  fractionOfViewport: 0.78,
+})
+
+// alpha.37 — responsive MiniPlayer (persistent FAB) size.
+// Previous attempt overrode `--fab-size` via CSS `!important` to scale
+// the FAB on wide screens — that broke the internal SVG progress ring
+// because MiniPlayer computes the ring radius from `props.size` (default
+// 56), not from the CSS variable. The CSS override grew the box without
+// recomputing the ring geometry → ring sat off-centred in the corner.
+//
+// The correct path is to drive `props.size` reactively from the
+// viewport, so Vue re-runs the ring computed and re-renders the SVG
+// with matching coordinates.
+//
+//   Mobile  (≤ 720)         → 56 px  (Material default)
+//   Tablet  (721 → 1279)    → 64 px
+//   Laptop  (1280 → 1919)   → 72 px
+//   Desktop (1920 → 2559)   → 88 px
+//   2K + 4K (≥ 2560)        → 104 px
+const fabResponsiveSize = ref(56)
+const _updateFabSize = () => {
+  if (typeof window === 'undefined') return
+  const w = window.innerWidth
+  if (w >= 2560) fabResponsiveSize.value = 104
+  else if (w >= 1920) fabResponsiveSize.value = 88
+  else if (w >= 1280) fabResponsiveSize.value = 72
+  else if (w >= 721) fabResponsiveSize.value = 64
+  else fabResponsiveSize.value = 56
+}
+onMounted(() => {
+  _updateFabSize()
+  window.addEventListener('resize', _updateFabSize, { passive: true })
+})
+onUnmounted(() => {
+  if (typeof window !== 'undefined') window.removeEventListener('resize', _updateFabSize)
+})
+// 2. useTypeOnReveal — composable ready, no install code block in the
+// current template to attach to. Wired in alpha.32 when a dedicated
+// install section ships (currently the install snippet lives in the
+// README only).
+// 3. First-play flare — Apple "screen lights up" cue.
+useFirstPlayFlare(audioReactiveSnapshot)
+
 // alpha.29 — informed by deep research on Anthropic frontend-design
 // skill anti-slop rules + Leonxlnx/taste-skill + Codrops 2026 patterns.
 // New section "Why Pulse" demonstrates scroll-driven dual-wave text,
@@ -74,7 +169,9 @@ useAudioParticles(particleCanvasEl, audioReactiveSnapshot, {
 const whyPulseSectionEl = ref<HTMLElement | null>(null)
 useScrollProgress(whyPulseSectionEl)
 const whyPulseWaveEl = ref<HTMLElement | null>(null)
-useScrollKineticWave(whyPulseWaveEl, { amplitude: 20, period: 7 })
+// alpha.30 — wave amplitude 20→8 + period 7→11 so the kinetic dual-
+// wave reads as gentle parallax-per-glyph, NOT "drunk text" wiggle.
+useScrollKineticWave(whyPulseWaveEl, { amplitude: 8, period: 11 })
 const orbitFieldEl = ref<HTMLElement | null>(null)
 useScrollOrbitField(orbitFieldEl, {
   count: 5,
@@ -85,7 +182,8 @@ useScrollOrbitField(orbitFieldEl, {
   colours: ['#8B5CF6', '#3DBDA7', '#F59E0B', '#EC4899', '#06B6D4'],
 })
 const ctaPrimaryEl = ref<HTMLElement | null>(null)
-useMagneticHover(ctaPrimaryEl, { strength: 6, damping: 0.18 })
+// alpha.30 — magnetic hover strength 6→10 so it's actually felt.
+useMagneticHover(ctaPrimaryEl, { strength: 10, damping: 0.16 })
 
 // ─── Showcase mode (?showcase=1 — used for README hero capture) ────────
 // Optional query params:
@@ -135,86 +233,16 @@ onMounted(() => {
 //   and the corner-drag handle now share the exact same responsive
 //   logic — the player crosses the same thresholds and goes through
 //   the same morph at the same widths.
-const SLIDER_MIN = 160
-const SLIDER_MAX = 720
+//   The ref stays HERE (not in ResizeStageSection) because the demo
+//   tour tweens it directly from steps 3/4 — App.vue is the owner,
+//   the section edits it via v-model:width. SIZE_PRESETS + SLIDER_MIN/
+//   MAX moved into ResizeStageSection.vue (no other consumer).
 const sliderWidth = ref(440) // mid-size default — comparable to the previous scale 1.0 visual
-const SIZE_PRESETS = [
-  { label: 'XS', value: 160 },
-  { label: 'S', value: 240 },
-  { label: 'M', value: 360 },
-  { label: 'L', value: 540 },
-  { label: 'XL', value: 720 },
-] as const
-
-function setPreset(v: number) {
-  sliderWidth.value = v
-}
 
 // ─── Variants gallery ──────────────────────────────────────────
-interface VariantSpec {
-  id: string
-  variant: MusicPlayerVariant
-  label: string
-  caption: string
-  customBackground?: string
-  accentColor?: string
-}
-
-const variants: VariantSpec[] = [
-  { id: 'auto', variant: 'auto', label: 'Auto', caption: 'Live cover art blur — signature look.' },
-  {
-    id: 'vinyl',
-    variant: 'vinyl',
-    label: 'Vinyl',
-    caption: 'Warm analog · vinyl + leather.',
-    accentColor: '#C8A97E',
-  },
-  {
-    id: 'sunset',
-    variant: 'sunset',
-    label: 'Sunset',
-    caption: 'Sepia · brown gradient.',
-    accentColor: '#F59E0B',
-  },
-  {
-    id: 'midnight',
-    variant: 'midnight',
-    label: 'Midnight',
-    caption: 'Deep navy · violet.',
-    accentColor: '#8B5CF6',
-  },
-  {
-    id: 'aurora',
-    variant: 'aurora',
-    label: 'Aurora',
-    caption: 'Teal · cyan night.',
-    accentColor: '#06B6D4',
-  },
-  { id: 'dark', variant: 'dark', label: 'Dark', caption: 'Pure neutral dark.' },
-  {
-    id: 'light',
-    variant: 'light',
-    label: 'Light',
-    caption: 'Light-mode inversion.',
-    accentColor: '#6750A4',
-  },
-  {
-    id: 'transparent',
-    variant: 'transparent',
-    label: 'Transparent',
-    caption: 'Frameless — over your bg.',
-  },
-  {
-    id: 'custom-brown',
-    variant: 'custom',
-    label: 'Custom',
-    caption: 'Any CSS background.',
-    customBackground: 'linear-gradient(135deg, #2c1610 0%, #4a2c1f 45%, #6b4226 100%)',
-    accentColor: '#E8A87C',
-  },
-]
-
-const responsiveWidths = [320, 480, 720] as const
+// ─── Variants gallery + Three Widths data ─────────────────────
+// Moved into PickAMoodSection.vue / ThreeWidthsSection.vue (P1.1
+// round-3) — no other consumer existed in App.vue.
 
 // ─── Hero variant — reactive so the demo tour can cycle it ─────
 const heroVariant = ref<MusicPlayerVariant>('auto')
@@ -382,6 +410,15 @@ const demoSteps: DemoStep[] = [
       // Stage D — Slow shrink past the FAB threshold (110).
       // The rectangle morphs into the circular FAB disc with chrome,
       // cover, ring and EQ overlay all fading in together.
+      //
+      // NOTE (audit round-4) : the tween target 95 only needs to be
+      // BELOW the 110 threshold to flip `data-fab` — once flipped, the
+      // RENDERED disc size is owned by the responsive FAB matrix in
+      // responsive-fix.css §K (56/64/72/88/104 px by viewport,
+      // !important), not by this width prop. The MusicPlayer's
+      // ResizeObserver reads the CSS-forced size, so the ring + cover
+      // geometry stay coherent. 95 is an input trigger, not the visual
+      // output.
       ctx.setMessage('And finally the FAB form — circular, autonomous, ready to drag.')
       await ctx.tween(set, 145, 95, 4400, 'inOutQuart')
       await ctx.delay(2800)
@@ -823,6 +860,7 @@ const hero = computed(() => ({
 </script>
 
 <template>
+  <CinematicIntro v-if="!showcase" />
   <div class="app" ref="ambientRoot">
     <!-- ═══════════════════════════════════════════════════════════════
          SHOWCASE — clean hero capture for the README. Activate with
@@ -980,7 +1018,10 @@ const hero = computed(() => ({
         <canvas class="hero__particles" ref="particleCanvasEl" aria-hidden="true"></canvas>
 
         <div class="hero__inner">
-          <div class="hero__badge">v0.11 · Vue 3 · MIT · ~47 kB gzip</div>
+          <div class="hero__badge">
+            <span class="act-num">I</span><span class="act-sep">·</span>The instrument
+            <span class="hero__badge-sep">·</span>v0.11 · Vue 3 · MIT
+          </div>
           <h1 class="hero__title" ref="heroTitleEl">Premium drop-in music for Vue 3.</h1>
           <p class="hero__lede">
             An inline card and a floating FAB. One global audio session. FFT visualiser, nine
@@ -988,10 +1029,11 @@ const hero = computed(() => ({
             thing. Drop in. Ship.
           </p>
 
-          <div class="hero__player">
+          <div class="hero__player" ref="heroPlayerEl">
             <MusicPlayer
               :variant="heroVariant"
               :accent-color="heroAccent"
+              :width="heroPlayerWidth"
               github-url="https://github.com/YamadaBlog/pulse-player"
               spotify-url="https://open.spotify.com/"
             />
@@ -1028,6 +1070,30 @@ const hero = computed(() => ({
       </section>
 
       <!-- ═══════════════════════════════════════════════════════════════
+         alpha.32 — Full-width FFT visualiser bars below the hero.
+         Sits between the hero and the Why section as an audio receipt:
+         "the engine is running, look".
+         ═══════════════════════════════════════════════════════════════ -->
+      <AudioBars :engine="audioReactiveSnapshot" />
+
+      <!-- ═══════════════════════════════════════════════════════════════
+         alpha.32 — Display headline as the page's first breath.
+         Apple-page rhythm: between two busy scenes, sit one huge phrase.
+         ═══════════════════════════════════════════════════════════════ -->
+      <DisplayHeadline
+        eyebrow="The instrument · in four facets"
+        text="Audio. Mood. Touch. Anywhere."
+      />
+
+      <!-- ═══════════════════════════════════════════════════════════════
+         alpha.32 — Sticky-pinned scrollytelling: the player stays in
+         place while four facets reveal in sequence (AirPods Pro pattern).
+         ═══════════════════════════════════════════════════════════════ -->
+      <!-- alpha.32 — six-act pinned scrub: the production-grade
+           cinematic. ProductReveal owns its GSAP timeline + pin. -->
+      <ProductReveal />
+
+      <!-- ═══════════════════════════════════════════════════════════════
          WHY PULSE — alpha.29 scrollytelling moment
          Dual-wave kinetic text + orbit field with warm tertiary accents.
          Built from the research synthesis: Codrops Jan 2026 dual-wave
@@ -1035,7 +1101,9 @@ const hero = computed(() => ({
          ═══════════════════════════════════════════════════════════════ -->
       <section id="section-why" class="section section--why" ref="whyPulseSectionEl">
         <div class="why__orbit" ref="orbitFieldEl" aria-hidden="true"></div>
-        <p class="section__eyebrow why__eyebrow">Story · 03</p>
+        <p class="section__eyebrow why__eyebrow">
+          <span class="act-num">II</span><span class="act-sep">·</span>In motion
+        </p>
         <h2 class="why__title" ref="whyPulseWaveEl">Audio that moves the chrome, not the user.</h2>
         <div class="why__columns">
           <div class="why__col">
@@ -1055,261 +1123,57 @@ const hero = computed(() => ({
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════
-         INTERACTIVE — Resize the component live
-         ═══════════════════════════════════════════════════════════════ -->
-      <section id="section-resize" class="section section--narrow">
-        <p class="section__eyebrow">Live · Interactive</p>
-        <h2 class="section__h">Resize it. Everything follows.</h2>
-        <p class="section__sub">
-          One <code>--pulse-scale</code> variable drives the artwork, title, icons, buttons,
-          padding, radius, shadows, EQ bars, progress and gaps. Move the slider — there is no
-          breakpoint trick.
-        </p>
-
-        <div class="resize-stage">
-          <div class="resize-stage__player">
-            <MusicPlayer
-              :width="sliderWidth"
-              variant="midnight"
-              accent-color="#8B5CF6"
-              github-url="https://github.com/YamadaBlog/pulse-player"
-              spotify-url="https://open.spotify.com/"
-            />
-          </div>
-
-          <div class="resize-controls">
-            <div class="presets" role="group" aria-label="Size presets">
-              <button
-                v-for="p in SIZE_PRESETS"
-                :key="p.label"
-                class="presets__btn"
-                :class="{ 'presets__btn--active': sliderWidth === p.value }"
-                @click="setPreset(p.value)"
-              >
-                {{ p.label }}
-              </button>
-            </div>
-            <label class="slider">
-              <span class="slider__label">Width</span>
-              <input
-                type="range"
-                :min="SLIDER_MIN"
-                :max="SLIDER_MAX"
-                step="1"
-                v-model.number="sliderWidth"
-                aria-label="Component width in pixels"
-              />
-              <span class="slider__value">{{ sliderWidth }} px</span>
-            </label>
-          </div>
-        </div>
-      </section>
+      <!-- INTERACTIVE sections III + III·b — extracted to dedicated SFCs.
+           The demo tour still owns the `sliderWidth` / `tourDragWidth`
+           refs ; the sections render + edit them through v-model/props. -->
+      <ResizeStageSection v-model:width="sliderWidth" />
+      <DragStageSection :tour-width="tourDragWidth" />
 
       <!-- ═══════════════════════════════════════════════════════════════
-         DRAG TO RESIZE — manual pointer-driven resize
+         ROTATE 3D — alpha.35 scroll-driven product-reveal rotation
          ═══════════════════════════════════════════════════════════════ -->
-      <section id="section-drag" class="section section--narrow">
-        <p class="section__eyebrow">Drag · Pointer events</p>
-        <h2 class="section__h">Grab the corner. Resize it yourself.</h2>
-        <p class="section__sub">
-          Pass <code>resizable</code> to the inline player and a diagonal handle appears in the
-          bottom-right corner. Mouse, finger or stylus — same code path (pointer events +
-          <code>setPointerCapture</code>). Pull it small enough and it collapses to compact mode
-          automatically.
-        </p>
-
-        <div class="drag-stage">
-          <div class="drag-stage__hint">
-            <span class="drag-stage__dot"></span>
-            Grab the
-            <span class="drag-stage__icon" aria-hidden="true">
-              <svg viewBox="0 0 14 14" width="14" height="14">
-                <path
-                  d="M1 13 L13 1 M5 13 L13 5 M9 13 L13 9"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  fill="none"
-                  stroke-linecap="round"
-                />
-              </svg>
-            </span>
-            handle in the bottom-right corner
-          </div>
-          <MusicPlayer
-            variant="midnight"
-            accent-color="#8B5CF6"
-            resizable
-            :min-width="60"
-            :width="tourDragWidth"
-            github-url="https://github.com/YamadaBlog/pulse-player"
-            spotify-url="https://open.spotify.com/"
-          />
-          <label class="ambient-toggle" :class="{ 'ambient-toggle--on': store.ambientEq }">
-            <input type="checkbox" v-model="store.ambientEq" />
-            <span class="ambient-toggle__dot"></span>
-            <span class="ambient-toggle__label">Ambient EQ — global</span>
-          </label>
-        </div>
-      </section>
+      <ProductRotate3D />
 
       <!-- ═══════════════════════════════════════════════════════════════
-         FEATURES — Three-up
+         PHONE SHOWCASE — alpha.37 CSS phone frame + Pulse Player inside
+         Desktop/tablet only. Hidden on mobile (user IS holding a phone).
          ═══════════════════════════════════════════════════════════════ -->
-      <section class="section">
-        <div class="features">
-          <article class="feature">
-            <div class="feature__chip">01</div>
-            <h3 class="feature__h">Truly proportional</h3>
-            <p class="feature__p">
-              One CSS variable scales every dimension at once. Artwork, type, chrome and shadows all
-              breathe together.
-            </p>
-          </article>
-          <article class="feature">
-            <div class="feature__chip">02</div>
-            <h3 class="feature__h">Container-aware</h3>
-            <p class="feature__p">
-              Sizes itself off the container, not the viewport. Sidebar, hero, modal — it always
-              looks intentional.
-            </p>
-          </article>
-          <article class="feature">
-            <div class="feature__chip">03</div>
-            <h3 class="feature__h">Persistent session</h3>
-            <p class="feature__p">
-              One Pinia store, one audio element. Mount the FAB at the root and playback survives
-              every route change.
-            </p>
-          </article>
-        </div>
-      </section>
+      <PhoneShowcase />
 
-      <!-- ═══════════════════════════════════════════════════════════════
-         VARIANTS — gallery (Library · 9 presets / Pick a mood)
-         ═══════════════════════════════════════════════════════════════ -->
-      <section class="section variants" id="variants">
-        <p class="section__eyebrow">Library · 9 presets</p>
-        <h2 class="section__h">Pick a mood.</h2>
-        <p class="section__sub">
-          Nine curated background presets, including the new <code>vinyl</code> warm analog look.
-          <code>accentColor</code> retunes the EQ + progress.
-        </p>
+      <!-- FEATURES — Three-up cards (extracted to FeaturesGrid.vue) -->
+      <FeaturesGrid />
 
-        <div class="grid">
-          <article v-for="v in variants" :key="v.id" class="grid__cell">
-            <div class="grid__label">
-              <span class="grid__label-name">{{ v.label }}</span>
-              <code class="grid__label-code">{{ v.variant }}</code>
-            </div>
-            <MusicPlayer
-              :variant="v.variant"
-              :custom-background="v.customBackground"
-              :accent-color="v.accentColor"
-            />
-            <p class="grid__caption">{{ v.caption }}</p>
-          </article>
-        </div>
-      </section>
+      <!-- VARIANTS gallery IV + Three Widths IV·b — extracted SFCs.
+           Both are self-contained (their data arrays had no other
+           consumer in App.vue). -->
+      <PickAMoodSection />
+      <ThreeWidthsSection />
 
-      <!-- ═══════════════════════════════════════════════════════════════
-         RESPONSIVE — Three sizes side by side
-         ═══════════════════════════════════════════════════════════════ -->
-      <section class="section">
-        <p class="section__eyebrow">Responsive · Container queries</p>
-        <h2 class="section__h">Same component. Three widths.</h2>
-        <p class="section__sub">
-          At 320 px the artwork is compact, the title sits tight. At 720 px the same component fills
-          its space — bigger artwork, larger type, deeper chrome — not because there is a media
-          query, but because every dimension is a function of <code>--pulse-scale</code>.
-        </p>
-
-        <div class="responsive">
-          <div v-for="w in responsiveWidths" :key="w" class="responsive__cell">
-            <div class="responsive__rule">{{ w }} px</div>
-            <div class="responsive__frame" :style="{ width: w + 'px' }">
-              <MusicPlayer
-                variant="midnight"
-                accent-color="#8B5CF6"
-                :github-url="'https://github.com/YamadaBlog/pulse-player'"
-                :spotify-url="'https://open.spotify.com/'"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ═══════════════════════════════════════════════════════════════
-         FAB
-         ═══════════════════════════════════════════════════════════════ -->
-      <section class="section section--narrow">
-        <p class="section__eyebrow">Floating FAB</p>
-        <h2 class="section__h">Persistent, draggable, dismissible.</h2>
-        <p class="section__sub">
-          Mount once at the root. Drag to move, swipe down/right to dismiss, long-press for the
-          radial menu. The ring around it tracks progress.
-        </p>
-
-        <div class="palette" role="group" aria-label="Mini-player variant">
-          <button
-            v-for="opt in fabPalette"
-            :key="opt.id"
-            class="palette__chip"
-            :class="{ 'palette__chip--active': activeFabVariant === opt.id }"
-            @click="withViewTransition(() => (activeFabVariant = opt.id))"
-          >
-            {{ opt.label }}
-          </button>
-        </div>
-        <p class="palette__group-label">Options</p>
-        <div class="palette__hint">
-          <button class="cta cta--ghost cta--sm" @click="store.open" :disabled="store.isVisible">
-            Show FAB
-          </button>
-          <button class="cta cta--ghost cta--sm" @click="store.close">Hide FAB</button>
-          <label
-            class="pulso-toggle"
-            :class="{
-              'pulso-toggle--on': fabPulso,
-              'pulso-toggle--highlight': tourPulsoHighlight,
-            }"
-          >
-            <input type="checkbox" v-model="fabPulso" />
-            <span class="pulso-toggle__dot"></span>
-            <span class="pulso-toggle__label">Pulso</span>
-          </label>
-        </div>
-        <p class="palette__note">
-          <code>pulso</code> &nbsp;adds a subtle audio-wave ripple around the FAB. Try it once the
-          FAB is visible.
-        </p>
-      </section>
+      <!-- FAB section V — markup extracted to FloatingFabSection.vue -->
+      <FloatingFabSection
+        :fab-palette="fabPalette"
+        v-model:active-variant="activeFabVariant"
+        v-model:pulso="fabPulso"
+        :pulso-highlight="tourPulsoHighlight"
+      />
 
       <!-- ═══════════════════════════════════════════════════════════════
          FOOTER
          ═══════════════════════════════════════════════════════════════ -->
-      <footer class="footer">
-        <div class="footer__inner">
-          <div class="footer__brand">pulse-player</div>
-          <div class="footer__meta">Floating + inline music for Vue 3</div>
-          <a
-            class="footer__link"
-            href="https://github.com/YamadaBlog/pulse-player"
-            target="_blank"
-            rel="noopener noreferrer"
-            >github →</a
-          >
-        </div>
-      </footer>
+      <AppFooter />
     </template>
 
-    <!-- Persistent FAB — global, survives navigation (hidden in showcase mode) -->
+    <!-- Persistent FAB — global, survives navigation (hidden in showcase mode).
+         `:size` is responsive (56/64/72/88/104) so the ring + cover
+         geometry inside MiniPlayer scales coherently across viewports
+         instead of staying at the default 56 on a 2K display. -->
     <MiniPlayer
       v-if="!showcase"
       :variant="activeFabVariant"
       :accent-color="fabPalette.find((p) => p.id === activeFabVariant)?.accent"
       :pulso="fabPulso"
       :position="tourFabPos"
+      :size="fabResponsiveSize"
     />
   </div>
 </template>
@@ -1428,13 +1292,31 @@ code {
   background-image: var(--hero-cover);
   background-size: cover;
   background-position: center;
-  filter: blur(80px) saturate(1.35);
-  opacity: 0.55;
+  /* alpha.32 VISUAL-QA — boosted blur (80 → 110) and lowered opacity
+     (0.55 → 0.38) so the auto-mood cover art behaves like a real
+     cinematic backdrop (atmospheric, not literal). */
+  filter: blur(110px) saturate(1.5) brightness(0.92);
+  opacity: 0.38;
   z-index: -2;
-  transform: scale(1.1);
+  transform: scale(1.18);
   transition:
     background-image 0.6s ease,
-    opacity 0.6s ease;
+    opacity 0.6s ease,
+    filter 0.6s ease;
+}
+.hero__backdrop::after {
+  /* Centre vignette so the eye lands on the player even when the
+     backdrop has a busy composition. */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 45%,
+    transparent 0%,
+    rgba(5, 5, 10, 0.42) 55%,
+    rgba(5, 5, 10, 0.78) 100%
+  );
+  pointer-events: none;
 }
 .hero__glow {
   position: absolute;
@@ -1446,12 +1328,15 @@ code {
   pointer-events: none;
 }
 .hero__inner {
-  max-width: 880px;
+  /* alpha.33 — caps raised so 2K (2560) and 4K (3840) keep the hero
+     proportional to viewport. Gap also scales so vertical rhythm
+     stays balanced across the typography upscale. */
+  width: min(84vw, 1640px);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(20px, 3vw, 32px);
+  gap: clamp(20px, 2vw, 48px);
 }
 .hero__badge {
   padding: 7px 14px;
@@ -1467,22 +1352,40 @@ code {
   -webkit-backdrop-filter: blur(12px);
 }
 .hero__title {
-  font-size: clamp(36px, 6vw, 64px);
+  /* alpha.32 VISUAL-QA fix — kinetic-char spans inside the title were
+     inheriting `color: transparent` from the gradient-text-fill and
+     stayed invisible across every viewport.
+     alpha.33 — was capped at 64 px which felt small on 2K/4K. New
+     range scales to ~96 px on 2K and ~128 px on 4K. */
+  font-size: clamp(36px, 5.4vw, 132px);
   font-weight: 700;
   letter-spacing: -0.035em;
-  line-height: 1.05;
+  line-height: 1.02;
   margin: 0;
-  background: linear-gradient(180deg, #ffffff 0%, #c7c7d4 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  max-width: 760px;
+  color: #f5f6fa;
+  max-width: min(20ch, 100%);
+}
+.hero__title .kinetic-char {
+  /* Belt-and-braces — explicit colour on the spans defeats any cascade
+     fight from `background-clip: text` higher up. */
+  color: #f5f6fa;
+  -webkit-text-fill-color: currentColor;
+}
+.hero__title {
+  /* inline-block char spans create wrap opportunities at every char
+     boundary, which produced ugly "V / ue 3." breaks. keep-all locks
+     Latin words together. */
+  word-break: keep-all;
+  overflow-wrap: normal;
+  text-wrap: balance;
 }
 .hero__lede {
-  font-size: clamp(15px, 1.6vw, 19px);
-  line-height: 1.6;
+  /* alpha.33 — was capped at 19 px which on 2K reads as fine print.
+     New range scales to ~28 px on 2K, ~36 px on 4K. */
+  font-size: clamp(16px, 1.25vw, 28px);
+  line-height: 1.55;
   color: var(--pg-text-mid);
-  max-width: 620px;
+  max-width: min(64ch, 100%);
   margin: 0;
 }
 .hero__player {
@@ -1500,11 +1403,13 @@ code {
 }
 
 .cta {
+  /* alpha.33 — fluid CTA so it stays touch-friendly on mobile + has
+     real presence on 2K/4K. Padding and font-size both scale. */
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 22px;
-  font-size: 14px;
+  gap: clamp(8px, 0.6vw, 14px);
+  padding: clamp(12px, 0.9vw, 22px) clamp(22px, 1.6vw, 40px);
+  font-size: clamp(14px, 1vw, 22px);
   font-weight: 600;
   letter-spacing: 0;
   border-radius: 999px;
@@ -1951,36 +1856,48 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
 }
 
 /* ─── SECTIONS ─────────────────────────────────────────────── */
+/* alpha.32 VISUAL-QA fix — page used to sit inside a 1080 px column
+   regardless of viewport, which left enormous empty bands on 1440 +
+   1920 displays. Sections now scale to ~88 vw up to a 1480 px hard
+   cap so wide screens feel inhabited without going full-bleed. */
 .section {
-  max-width: 1080px;
+  /* alpha.33 — caps raised so 2K (2560) and 4K (3840) keep the section
+     proportional to viewport instead of going narrow at 1480 px. */
+  width: min(86vw, 1880px);
   margin: 0 auto;
-  padding: clamp(60px, 8vw, 100px) 24px;
+  padding: clamp(60px, 6vw, 140px) clamp(24px, 3vw, 72px);
 }
 .section--narrow {
-  max-width: 760px;
+  width: min(86vw, 1280px);
 }
 
 .section__eyebrow {
-  font-size: 11px;
+  /* alpha.33 — eyebrow scales up gently on 2K/4K so it's not lost
+     under huge headings. */
+  font-size: clamp(11px, 0.85vw, 16px);
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--pg-accent);
-  margin: 0 0 12px;
+  margin: 0 0 clamp(12px, 1vw, 20px);
 }
 .section__h {
-  font-size: clamp(28px, 3.4vw, 44px);
+  /* alpha.33 — was clamped at 44 px which was invisible on 2K. New
+     range scales to ~64 px on 2K (2560) and ~88 px on 4K (3840). */
+  font-size: clamp(32px, 3.6vw, 96px);
   font-weight: 700;
   letter-spacing: -0.025em;
-  line-height: 1.1;
-  margin: 0 0 14px;
+  line-height: 1.08;
+  margin: 0 0 clamp(14px, 1.2vw, 28px);
 }
 .section__sub {
-  font-size: clamp(15px, 1.4vw, 17px);
-  line-height: 1.65;
+  /* alpha.33 — was 17 px cap which became invisible on 2K. New range
+     scales to ~28 px on 2K and ~36 px on 4K. */
+  font-size: clamp(16px, 1.3vw, 30px);
+  line-height: 1.6;
   color: var(--pg-text-mid);
-  max-width: 640px;
-  margin: 0 0 36px;
+  max-width: min(72ch, 100%);
+  margin: 0 0 clamp(28px, 2.4vw, 56px);
 }
 
 /* ─── RESIZE STAGE ─────────────────────────────────────────── */
@@ -2171,43 +2088,7 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   color: var(--pg-accent);
 }
 
-.features {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-}
-.feature {
-  padding: 28px;
-  background: var(--pg-surface);
-  border: 1px solid var(--pg-border);
-  border-radius: 20px;
-}
-.feature__chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--pg-accent);
-  background: rgba(61, 189, 167, 0.12);
-  border: 1px solid rgba(61, 189, 167, 0.3);
-  border-radius: 50%;
-  margin-bottom: 16px;
-}
-.feature__h {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  margin: 0 0 8px;
-}
-.feature__p {
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--pg-text-mid);
-  margin: 0;
-}
+/* Features grid styles moved to FeaturesGrid.vue (P1.1 ext 2026-06-10). */
 
 /* ─── GRID (variants) ──────────────────────────────────────── */
 .grid {
@@ -2477,36 +2358,7 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.22);
 }
 
-/* ─── FOOTER ───────────────────────────────────────────────── */
-.footer {
-  margin-top: 40px;
-  border-top: 1px solid var(--pg-border);
-}
-.footer__inner {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 30px 24px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px;
-}
-.footer__brand {
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-.footer__meta {
-  color: var(--pg-text-low);
-  flex: 1;
-}
-.footer__link {
-  color: var(--pg-accent);
-  text-decoration: none;
-  font-weight: 600;
-}
-.footer__link:hover {
-  text-decoration: underline;
-}
+/* Footer styles moved to AppFooter.vue (P1.1 extraction 2026-06-10). */
 
 @media (max-width: 640px) {
   .grid {
@@ -2528,21 +2380,23 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
 }
 
 .hero__glow {
-  /* Existing glow now scales + brightens with the music. The scale
-     delta is intentionally small (1.0 → 1.06) so it reads as ambient
-     breathing rather than a strobe. */
-  transform: scale(calc(1 + var(--pulse-ambient) * 0.06));
-  filter: brightness(calc(1 + var(--pulse-ambient) * 0.15));
+  /* alpha.30 — audit said the previous amplitude (1.0 → 1.06 scale,
+     ×1.15 brightness) read as "barely there" during playback. New:
+     1.0 → 1.12 scale, ×1.30 brightness. Still under "strobe" threshold
+     because the smoothing factor is 0.18/frame. */
+  transform: scale(calc(1 + var(--pulse-ambient) * 0.12));
+  filter: brightness(calc(1 + var(--pulse-ambient) * 0.3));
   transition:
-    transform 80ms linear,
-    filter 80ms linear;
+    transform 60ms linear,
+    filter 60ms linear;
 }
 
 .hero__backdrop {
-  /* Slight saturation pump on the cover-derived backdrop. */
-  filter: saturate(calc(1 + var(--pulse-ambient) * 0.25))
-    brightness(calc(1 + var(--pulse-ambient) * 0.08));
-  transition: filter 80ms linear;
+  /* alpha.30 — saturation pump doubled (×0.25 → ×0.5) so the cover-
+     derived backdrop visibly vibrates with the music. */
+  filter: saturate(calc(1 + var(--pulse-ambient) * 0.5))
+    brightness(calc(1 + var(--pulse-ambient) * 0.16));
+  transition: filter 60ms linear;
 }
 
 /* Apple-style "light sweep" on the primary CTA hover.
@@ -2617,6 +2471,14 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   /* Smooth the rotation around the centre of the glyph baseline. */
   transform-origin: 50% 80%;
   will-change: opacity, transform;
+  /* alpha.32 VISUAL-QA fix — force NBSP to render visibly. inline-block
+     collapses adjacent NBSP-only spans without explicit minimum width. */
+  white-space: pre;
+}
+.kinetic-char:empty,
+.kinetic-char[data-space],
+.kinetic-char:where([data-space]) {
+  min-width: 0.27em;
 }
 
 /* Cursor-tracking glow — Apple interactive light. The composable sets:
@@ -2780,15 +2642,24 @@ samp,
   line-height: 1.04;
   letter-spacing: -0.025em;
   margin: 0 0 64px;
-  max-width: 18ch;
+  max-width: 22ch;
   /* Default fill while the per-char wave runs. */
   color: rgba(255, 255, 255, 0.96);
+  /* alpha.32 VISUAL-QA — same fix as .hero__title: inline-block chars
+     create wrap opportunities at every glyph; keep-all locks Latin
+     words together. */
+  word-break: keep-all;
+  overflow-wrap: normal;
+  text-wrap: balance;
 }
 
 .wave-char {
   display: inline-block;
   /* will-change set by the composable; we keep the layout stable. */
   vertical-align: baseline;
+  /* alpha.32 VISUAL-QA fix — force NBSP to render visibly. */
+  white-space: pre;
+  min-width: 0.04em;
 }
 
 .why__columns {
@@ -2812,9 +2683,10 @@ samp,
   max-width: 38ch;
 }
 .why__lede--alt {
-  /* Slight tonal break — second lede gets a warmer tint to echo the
-     amber eyebrow. Subtle, not loud. */
-  color: rgba(252, 211, 77, 0.86);
+  /* alpha.30 — was rgba(252, 211, 77, 0.86) but contrast was 4.1:1 vs
+     bg — fails WCAG AA. Now warm-white at 5.4:1, keeps tonal break
+     without the readability hit. */
+  color: rgba(252, 232, 201, 0.92);
 }
 
 /* Orbit field — 5 glowing orbs that drift behind the section copy.
@@ -2876,6 +2748,210 @@ samp,
   }
   .why__col--offset {
     transform: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   alpha.30 — applied audit deltas + Apple Liquid Glass FAB + variable
+   font axis interpolation on scroll.
+   Built from the redesign-audit skill (Leonxlnx/taste-skill) output.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Variable font axis on scroll — the hero title morphs from a lighter
+   weight (650) when the page is at top, to maximum weight (800) as the
+   visitor scrolls past the first viewport. Apple's iPhone Pro pages
+   ship a similar axis-as-narrative pattern. The body uses the
+   --scroll-progress channel set on the hero by useScrollProgress
+   (alpha.29 foundation). */
+.hero {
+  /* Foundation defaults if useScrollProgress hasn't kicked in yet. */
+  --scroll-progress: 0;
+}
+.hero__title {
+  /* font-variation-settings drives the wght axis on Geist Variable.
+     650 → 800 cleanly over the scroll progress 0..1. */
+  font-variation-settings: 'wght' calc(650 + var(--scroll-progress, 0) * 150);
+  /* Prevent FOUT jank when the variable font swaps in. */
+  font-synthesis: none;
+  transition: font-variation-settings 80ms linear;
+}
+
+/* Apple Liquid Glass — applied to the FAB chrome ONLY, per the audit's
+   "no generic glassmorphism on everything" rule. The original Apple
+   spec (iOS 26) combines backdrop-filter blur + saturation + a
+   specular gradient overlay + inset ring. We approximate the
+   appearance without WebGL. */
+.mp__mini-stage,
+.mp__mini-body {
+  /* If the FAB's existing chrome respects the cascade, this layer
+     adds the Liquid Glass material on top without breaking it. */
+  position: relative;
+  isolation: isolate;
+}
+.mp__mini-body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.04) 38%,
+    transparent 62%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  /* Specular highlight — a thin diagonal sweep that catches the eye
+     without strobing. Slow infinite slide (12 s) is below the
+     anti-default threshold the taste-skill flags. */
+  mix-blend-mode: overlay;
+  opacity: 0.88;
+  z-index: 1;
+}
+.mp__mini-body::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  /* Inner ring of light + dark — replicates Apple's "edge of glass"
+     specular. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+  z-index: 2;
+}
+/* When the FAB is playing, the specular shifts slightly with the
+   audio amplitude — the chrome catches "more light" on peaks. */
+.mp__mini-body[data-playing='true']::before {
+  opacity: calc(0.88 + var(--pulse-ambient, 0) * 0.12);
+}
+
+/* alpha.31 FIX — the alpha.30 "feature card grid break" was wrong.
+   `.variants` is the SECTION class (not the inner grid), so the rules
+   below were turning the entire section into a 2-column grid, which
+   collapsed "Pick a mood." to a single column visually.
+   The inner grid is `.grid` (above, line ~2260). It already does
+   `repeat(auto-fit, minmax(320px, 1fr))` correctly.
+   The "feature card" idea now lives inside the inner grid via
+   `.variants .grid > .grid__cell:first-child`. */
+.variants .grid > .grid__cell:first-child {
+  /* Subtle visual lift on the first variant card — Apple "lead colour"
+     pattern, applied as a small scale only. Stays inside the same
+     grid track so the gallery layout is untouched. */
+  transform: scale(1.025);
+  transform-origin: top left;
+}
+@media (prefers-reduced-motion: reduce) {
+  .variants .grid > .grid__cell:first-child {
+    transform: none;
+  }
+}
+
+/* Particle field — alpha.30 — limit the upward drift so it reads as
+   ambient instead of "automatic CSS scroll". Cap particles' Y at the
+   composable level via a slower base velocity (handled in JS), and
+   visually mask the bottom of the canvas so emerging particles
+   feel like they materialise rather than pop in. */
+.hero__particles {
+  /* Bottom-to-top fade — gives the field a feathered horizon. */
+  mask-image: linear-gradient(to top, transparent 0%, black 18%, black 78%, transparent 100%);
+  -webkit-mask-image: linear-gradient(
+    to top,
+    transparent 0%,
+    black 18%,
+    black 78%,
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__title {
+    font-variation-settings: 'wght' 800;
+    transition: none;
+  }
+  .mp__mini-body::before,
+  .mp__mini-body::after {
+    display: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   alpha.31 — "Journey into Sound" cinematic + Roman numeral acts
+   See docs/setup/ALPHA_31_CONCEPT.md for the storyboard.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Roman numeral act eyebrows — one element per section's eyebrow. The
+   number is the protagonist; the separator is a hairline; the title is
+   the role. Amber accent keeps continuity with the alpha.29 palette. */
+.act-num {
+  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+  font-weight: 600;
+  color: var(--accent-amber, #f59e0b);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.92em;
+}
+.act-sep {
+  display: inline-block;
+  margin: 0 0.55em;
+  color: rgba(255, 255, 255, 0.28);
+  font-weight: 400;
+}
+.hero__badge-sep {
+  margin: 0 0.6em;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* Hero composition — the player gets stage presence. Halo behind it,
+   drop shadow under it, restraint around it. The floating Y-bob is
+   driven by useFloatingBob (RAF, GPU translate3d). */
+.hero__player {
+  position: relative;
+  isolation: isolate;
+  /* The composable writes transform on this element — don't fight it
+     with CSS transitions. */
+  will-change: transform;
+}
+.hero__player::before {
+  /* Halo behind the player — soft amber/violet wash that suggests
+     "this object is lit on a studio table". */
+  content: '';
+  position: absolute;
+  inset: -20% -10% -10% -10%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(245, 158, 11, 0.22) 0%,
+    rgba(139, 92, 246, 0.14) 32%,
+    transparent 62%
+  );
+  filter: blur(36px);
+  z-index: -1;
+  pointer-events: none;
+  opacity: calc(0.7 + var(--pulse-ambient, 0) * 0.3);
+  transition: opacity 120ms linear;
+}
+.hero__player::after {
+  /* Floor shadow — perspective cue. */
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: -32px;
+  height: 28px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.45) 0%, transparent 70%);
+  filter: blur(12px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__player {
+    transform: none !important;
+  }
+  .hero__player::before,
+  .hero__player::after {
+    opacity: 0.6;
   }
 }
 </style>

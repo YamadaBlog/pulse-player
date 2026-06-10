@@ -1,0 +1,736 @@
+/* ═══════════════════════════════════════════════════════════════════
+   responsive-fix.css — alpha.35 large-screen densification.
+
+   Diagnostic (BEFORE captures alpha35-before/) :
+   - 2K (2560)  : Pick a mood grid auto-fit = 5 cols → players minuscules,
+                  title tronqué "MIDNIGHT R…" ; section narrow padd vide
+                  derrière à droite.
+   - 4K (3840)  : 7+ cols microscopiques, tout le contenu reste centré sur
+                  ~50 % du viewport, chips Floating FAB illisibles, footer
+                  ~12 px.
+
+   Fix sans toucher `src/lib/` (byte-identical promise — 33+ alphas) :
+   - clamp() le grid `.variants .grid` à 3 colonnes max sur 1180+ px et
+     plafonne la largeur de chaque cellule (sinon les players gonflent au
+     point de tronquer le titre dans le mp__title flex chain).
+   - élargit `.section--narrow` à `min(86vw, 1640px)` sur 2K, 2000px sur 4K
+     via media queries imbriquées.
+   - typo fluide pour `.palette__chip`, `.cta--sm`, `.palette__group-label`,
+     `.palette__note`, `.footer`. Tous reviennent à des tailles confortables
+     sur grand écran sans déranger mobile.
+
+   Inspirations 2026 :
+     - utopia.fyi clamp() rem-anchor + vw-slope
+     - Codrops 3D scroll cinematic for spacing patterns
+     - Smashing fluid type scales
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── A. Pick a mood gallery : 3 cols max ─────────────────────────── */
+
+/* Override `.grid` (the inner variants gallery) to 3-col hard cap.
+   The original rule uses `auto-fit minmax(320px, 1fr)` which on 2560+
+   px viewports yields 5–7 micro-columns. We pin to 3 columns above
+   1180 px so the player always has room to render `MIDNIGHT RUN` in
+   full instead of `MIDNIGHT R…`. */
+@media (min-width: 1180px) {
+  .variants .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(32px, 2.2vw, 56px);
+  }
+}
+
+/* On 4K, allow a slightly wider gap but still 3 cols. The premium-feel
+   gallery is 3 generous players, not 9 tiny ones. */
+@media (min-width: 2400px) {
+  .variants .grid {
+    gap: 64px;
+  }
+}
+
+/* Cap each variant cell so even at 4K the player doesn't go obscenely
+   wide (which makes the cover art look pixelated). Lifts a touch on
+   2K where headroom finally exists. */
+@media (min-width: 1180px) {
+  .variants .grid__cell {
+    max-width: min(620px, 100%);
+    justify-self: stretch;
+  }
+}
+
+/* Variant label name + code chips become readable on 2K/4K instead of
+   the static 13 px / 11 px. */
+@media (min-width: 1440px) {
+  .grid__label-name {
+    font-size: clamp(14px, 0.95vw, 22px);
+  }
+  .grid__label-code {
+    font-size: clamp(11px, 0.7vw, 16px);
+    padding: 3px 8px;
+  }
+  .grid__caption {
+    font-size: clamp(13px, 0.85vw, 18px);
+  }
+}
+
+/* ── B. Section--narrow large-screen breath ──────────────────────── */
+
+/* The "Floating FAB" closing section uses `.section--narrow` with a
+   1280 px hard cap. On 2K+, that leaves a vast empty zone on the
+   right and makes the chips look stranded. Bump the cap. */
+@media (min-width: 1600px) {
+  .section--narrow {
+    width: min(86vw, 1640px);
+  }
+}
+@media (min-width: 2400px) {
+  .section--narrow {
+    width: min(80vw, 2040px);
+  }
+}
+
+/* ── C. Floating FAB controls — palette chips & options ──────────── */
+
+/* Chip cluster (Auto/Vinyl/Sunset/…/Light) — currently a tiny pill row
+   that visually disappears at 2K. Bring it to a usable touch-friendly
+   scale, fluid all the way to 4K. */
+@media (min-width: 1180px) {
+  .palette__chip {
+    font-size: clamp(13px, 0.95vw, 22px);
+    padding: clamp(8px, 0.55vw, 14px) clamp(16px, 1.15vw, 28px);
+    border-radius: 999px;
+  }
+  .palette__group-label {
+    font-size: clamp(11px, 0.78vw, 16px);
+    letter-spacing: 0.18em;
+  }
+  .palette__hint .cta.cta--sm,
+  .palette__hint .pulso-toggle__label {
+    font-size: clamp(13px, 0.9vw, 20px);
+  }
+  .palette__hint .cta.cta--sm {
+    padding: clamp(8px, 0.6vw, 16px) clamp(16px, 1.2vw, 30px);
+  }
+  .palette__note,
+  .palette__note code {
+    font-size: clamp(13px, 0.85vw, 18px);
+    line-height: 1.55;
+  }
+}
+
+/* ── D. Footer — match the rest of the page on big screens ───────── */
+
+@media (min-width: 1180px) {
+  .footer__brand {
+    font-size: clamp(14px, 1vw, 22px);
+  }
+  .footer__meta,
+  .footer__link {
+    font-size: clamp(13px, 0.9vw, 20px);
+  }
+  .footer__inner {
+    padding-block: clamp(28px, 2vw, 56px);
+  }
+}
+
+/* ── E. Resize stage breath on 2K/4K ─────────────────────────────── */
+
+/* `Same component. Three widths.` — give the resize cell some
+   atmospheric space at 4K instead of stacking dead-centre. */
+@media (min-width: 2400px) {
+  .resize-stage {
+    padding: 48px 32px;
+    gap: 48px;
+  }
+}
+
+/* ── F. Hero CTA row chips polish ────────────────────────────────── */
+
+@media (min-width: 1180px) {
+  .hero__cta .cta,
+  .hero__cta a {
+    font-size: clamp(14px, 1vw, 22px);
+  }
+}
+
+/* ── G. alpha.36 — Global mobile robustness ──────────────────────
+   Three fixes :
+   1. `html, body { overflow-x: clip }` — kills any horizontal scroll
+      coming from rotated 3D transforms, oversized chrome on small
+      viewports, or particle canvases.
+   2. `.hero__player` becomes a real centred flex container — the
+      MusicPlayer inside uses its intrinsic `--pulse-width` so without
+      a flex parent it sticks to the left of the wrapper. With
+      `justify-content: center` it sits dead-centre on every viewport.
+   3. Mobile padding tuned for the new ProductRotate3D static front
+      face (no rotation, no overflow). */
+
+html,
+body,
+.app {
+  overflow-x: clip;
+  max-width: 100vw;
+}
+
+.hero__player {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* On the tightest viewports, give the hero a touch more side air so
+   the player + title don't kiss the bezel. */
+@media (max-width: 480px) {
+  .hero {
+    padding-inline: clamp(16px, 4vw, 28px) !important;
+  }
+  .hero__inner {
+    width: 100%;
+  }
+  /* The resize stage on mobile was getting cramped under the new
+     section count — give it real breathing room. */
+  .resize-stage {
+    padding: 16px 8px;
+    gap: 20px;
+  }
+}
+
+/* ── H. alpha.37 — Mobile robustness deep fixes ─────────────────
+   Audit alpha37-audit/ revealed six bugs not caught by alpha.36 :
+
+     1. resize-stage and drag-stage cards overflow horizontally on
+        mobile (player + controls pushed past the viewport edge).
+     2. Pick a mood `.grid__label` code chips ("auto", "vinyl"…) get
+        clipped at the right because the flex row can't accommodate
+        both label-name and code-chip in 358 px.
+     3. ProductReveal pinned chapter titles wrap mid-word ("Audio
+        that mo / ves the chrom / e") because `useKineticType` wraps
+        every character in `display: inline-block`, defeating browser
+        word-break heuristics.
+     4. Section section__h titles on mobile read left-aligned while
+        the design system intends centred mobile heroes.
+     5. Particle/cursor glow / orbit canvases can briefly extend a
+        pixel past 100vw, creating a faint horizontal scroll.
+     6. Resize stage frame + drag stage card need a max-width: 100 %
+        + overflow-x: clip combo so internal MusicPlayer chrome can
+        never push them wide.
+
+   Source : direct WebSearch on Conor Luddy's "Anatomy of a CSS Phone
+   Mockup" (2026) — `overflow-x: clip` over `overflow-x: hidden`
+   because clip lets vertical scroll continue while killing horizontal
+   without creating a new scroll container that breaks position:sticky
+   in nested sections.
+   ───────────────────────────────────────────────────────────────── */
+
+@media (max-width: 720px) {
+  /* 1+5 : kill any horizontal PUSH-OUT at the section level (cap the
+     box width to viewport), but DO NOT clip overflow on the section
+     itself — that would shave off the box-shadow glows alpha.35 set
+     on the .mp variants and the section halos.
+     alpha.37 GLOW FIX — the horizontal-scroll guard already lives on
+     html/body/#app (rule G above). Sections only need `max-width: 100%`
+     to keep their layout in-bounds ; we explicitly `overflow: visible`
+     here so accent halos, drop-shadows and atmospheric washes can
+     extend past the section edges into the page background. */
+  .section,
+  .resize-stage,
+  .drag-stage,
+  .responsive,
+  .hero,
+  .features,
+  .grid,
+  .grid__cell,
+  .palette,
+  .palette__hint {
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  /* 6 : the resize-stage's `.resize-stage__player` wraps an inner
+     MusicPlayer with a computed width. On mobile, cap at 100 % so the
+     player resizes down with the section instead of pushing it. */
+  .resize-stage__player,
+  .drag-stage__player {
+    max-width: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .resize-stage__player > *,
+  .drag-stage__player > * {
+    max-width: 100%;
+  }
+  /* alpha.37 ROOT-CAUSE — the App.vue rule sets `min-width: 680px`
+     on .resize-stage and .drag-stage so the stage stays large even
+     when the player is in compact mode. On mobile (390 px) that
+     forces a 290 px overflow. Override unconditionally so the stage
+     shrinks to fit its parent. */
+  .resize-stage,
+  .drag-stage {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 16px 12px !important;
+  }
+  .drag-stage > .mp,
+  .resize-stage > .mp {
+    max-width: 100%;
+  }
+
+  /* FAB cap → see section K below (single source of truth for the
+     mobile/tablet/laptop/desktop/2K FAB sizing matrix, applied to BOTH
+     `.drag-stage .mp[data-fab='true']` and `.resize-stage` instances).
+     Previously this `@media (max-width: 720px)` block redeclared a
+     96 px cap that was overridden by section K's 56 px later in the
+     cascade — silent contradiction. Removed 2026-06-10 (P1.3
+     consolidation). */
+
+  /* The resize-stage "pill" (XS/S/M/L/XL preset row + slider) was
+     overflowing because its parent didn't wrap. Force wrap. */
+  .resize-controls,
+  .drag-stage__hint {
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* ── Resize It preset chips — mobile tap target & visibility.
+     Default 44×32 fails Apple HIG (44×44 min) and WCAG 2.5.5 hit area.
+     The `.presets` container also crowds them on a 390 px viewport.
+     Boost each chip to 52×44 (well over 44 min), enlarge font, gap up,
+     and make the active state read at a glance with an accent ring +
+     subtle scale lift so tap feedback is unmistakable on touch. */
+  .presets {
+    gap: 6px;
+    padding: 5px;
+    width: 100%;
+    max-width: 360px;
+    justify-content: center;
+  }
+  .presets__btn {
+    flex: 1 1 0;
+    min-width: 52px;
+    height: 44px;
+    font-size: 13px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .presets__btn--active {
+    color: #0a0a0f;
+    background: #ffffff;
+    box-shadow:
+      0 0 0 2px rgba(245, 158, 11, 0.55),
+      0 6px 14px rgba(245, 158, 11, 0.18);
+    transform: translateZ(0) scale(1.04);
+    transition:
+      transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .presets__btn:active {
+    transform: translateZ(0) scale(0.96);
+  }
+
+  /* ── Slider thumb tap target on mobile.
+     The native range thumb is ~12 px which is impossible to grab on a
+     touchscreen. Override the WebKit + Moz thumbs so the hit zone is
+     comfortable while the visual thumb stays small. */
+  .slider input[type='range']::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+  }
+  .slider input[type='range']::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+  }
+  .slider input[type='range'] {
+    height: 28px; /* extra padding around the track for fat fingers */
+  }
+
+  /* 2 : Pick a mood label row — name + code chip — wrap to 2 lines on
+     narrow viewports so the chip never gets clipped. */
+  .grid__label {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+  .grid__label-code {
+    flex-shrink: 0;
+  }
+
+  /* The MusicPlayer inside each variant cell may be slightly wider
+     than the cell on tight viewports because of intrinsic padding.
+     Cap explicitly. Note `overflow: visible` instead of `clip` so the
+     accent glow box-shadow on the .mp variant escapes the cell into
+     the gallery gap — the desired "premium" mood feel. */
+  .variants .grid__cell {
+    max-width: 100%;
+    overflow: visible;
+  }
+  .variants .grid__cell > * {
+    max-width: 100%;
+  }
+  /* alpha.37 ROOT-CAUSE — the gallery MusicPlayer has no explicit
+     width prop and falls back to its intrinsic ~440 px width, which
+     overflows 390 px viewports. Force `.mp` to fill its cell so the
+     internal ResizeObserver picks a fitting --pulse-scale. */
+  .variants .grid__cell .mp,
+  .resize-stage .mp,
+  .drag-stage .mp,
+  .responsive__frame .mp {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  /* alpha.37 FORCE-CLAMP — override `--pulse-scale` directly so the
+     internal flex chain (artwork + title + controls) can never grow
+     past the viewport. 0.78 is the smallest scale that keeps the EQ
+     bars + MIDNIGHT RUN title legible. */
+  .variants .grid__cell .mp {
+    --pulse-scale: 0.78 !important;
+  }
+  /* Tighten the section padding so the cells get every pixel. */
+  .variants {
+    padding-inline: clamp(12px, 3vw, 32px) !important;
+  }
+  .variants .grid {
+    gap: 24px !important;
+  }
+
+  /* 4 : centre section headings on mobile. The desktop left-aligned
+     read is intentional ; on mobile, centred reads premium.
+     Includes DisplayHeadline (.display__h/.display__eyebrow), the
+     ProductReveal chapter, the Why columns. */
+  .section__eyebrow,
+  .section__h,
+  .section__sub,
+  .display__h,
+  .display__eyebrow,
+  .display__sub,
+  .why__title,
+  .why__eyebrow,
+  .why__col,
+  .reveal__chapter,
+  .reveal__title,
+  .reveal__eyebrow {
+    text-align: center;
+  }
+  .section__sub,
+  .display__sub,
+  .why__col {
+    margin-inline: auto;
+  }
+
+  /* 3 : kinetic-char titles — break by whole words, not characters,
+     to prevent the alpha.37 audit "Audio that mo / ves the chrom / e"
+     bug. The root cause is that useKineticType wraps every character
+     in a span with `display: inline-block`, which defeats the browser's
+     word-break heuristics — every char becomes its own break point.
+     Flipping them to `display: inline` on mobile restores word-as-unit
+     wrapping while keeping the spans for desktop kinetic animation. */
+  .section__h,
+  .hero__title,
+  .why__title,
+  .display__h,
+  .reveal__title,
+  h2,
+  h3 {
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+    hyphens: none;
+  }
+  .kinetic-char {
+    display: inline !important;
+    /* Drop the explicit min-width that was preventing inline collapse. */
+    min-width: 0 !important;
+    white-space: normal !important;
+  }
+
+  /* The features 3-up grid was already 1-column on mobile, but the
+     cards picked up the alpha.30 `.variants .grid > .grid__cell:first-child`
+     scale: 1.025 rule. On mobile that pushes the first feature card
+     slightly past the right bezel. Neutralise on mobile. */
+  .variants .grid > .grid__cell:first-child {
+    transform: none;
+  }
+
+  /* ProductReveal chapter titles ("The chrome breathes." / "Audio
+     that moves the chrome…") — centred + balanced + wider letter
+     spacing so the kinetic-char inline-blocks read as a continuous
+     line. */
+  .reveal__chapter h2,
+  .reveal__chapter h3,
+  .reveal__title {
+    text-align: center;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+
+  /* `.act-num` + `.act-sep` eyebrow chains can wrap mid-token on tight
+     viewports. Force them to stay together. */
+  .section__eyebrow {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* alpha.37 — Hide the "Same component. Three widths." section on
+     mobile. The whole point of the demo is the side-by-side comparison
+     of 320 / 480 / 720 px chrome. On a 390 px viewport :
+       - the 720 px frame can't render at 720 px (gets clamped to 100 %)
+       - the 480 px frame visually equals the 720 px clamped one
+       - stacking 3 nearly-identical players repeats the same message
+     The container-aware story is already shown by section III "Made to
+     grow" where the user drags the XS → XL slider on a single player.
+     Cleaner to hide the redundant section than to render it incoherently. */
+  .section--three-widths {
+    display: none;
+  }
+
+  /* alpha.37 ROUND-2 — Why halo full-bleed.
+     Round-1 (inset: -10vw on .why__orbit + larger orbs) was not enough :
+     the orbit-orbs positioned by JS still land in a centred vertical
+     band rather than filling the viewport edge-to-edge. User screenshot
+     showed a neon column instead of a full atmospheric wash.
+
+     Fix: stop relying on the JS orbit orbs to paint the mobile wash —
+     instead, layer a static radial-gradient halo directly on the
+     section via `::before`. It anchors to the viewport (`100vw` width
+     via negative inset), reuses the section's `isolation: isolate` so
+     z-index: -1 stays scoped, and blends underneath the existing
+     orbs. The orbs become accents, not the only halo source. */
+  .why__orbit {
+    inset: -10vw -10vw;
+    overflow: visible;
+  }
+  .orbit-orb {
+    width: clamp(280px, 62vw, 460px) !important;
+    height: clamp(280px, 62vw, 460px) !important;
+    margin-left: calc(clamp(280px, 62vw, 460px) / -2) !important;
+    margin-top: calc(clamp(280px, 62vw, 460px) / -2) !important;
+    opacity: 0.55 !important;
+    filter: blur(70px) !important;
+  }
+  /* Atmospheric full-bleed halo painted directly on the section.
+     -50vw negative inset on both sides guarantees the gradient extends
+     past the viewport bezel ; the .app `overflow-x: clip` then prevents
+     any horizontal scroll from the bleed. Multi-stop gradient gives
+     real depth — amber core, violet ring, fuchsia edge, smooth fade. */
+  .section--why {
+    padding-inline: clamp(20px, 5vw, 48px);
+    position: relative;
+  }
+  .section--why::before {
+    content: '';
+    position: absolute;
+    inset: -5vh -30vw;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        ellipse 70% 50% at 20% 30%,
+        rgba(139, 92, 246, 0.32) 0%,
+        rgba(139, 92, 246, 0.12) 40%,
+        transparent 100%
+      ),
+      radial-gradient(
+        ellipse 75% 50% at 80% 70%,
+        rgba(245, 158, 11, 0.22) 0%,
+        rgba(236, 72, 153, 0.14) 35%,
+        transparent 100%
+      ),
+      radial-gradient(ellipse 100% 60% at 50% 50%, rgba(99, 102, 241, 0.16) 0%, transparent 100%);
+    filter: blur(50px);
+    mix-blend-mode: screen;
+  }
+
+  /* alpha.37 — Hero glow + cursor-glow on mobile : they were clipped
+     by the hero padding, leaving a faint vignette rather than the
+     intended bleed. Extend so the glow fills the full hero viewport. */
+  .hero__glow,
+  .hero__cursor-glow {
+    inset: -10vh -10vw !important;
+    opacity: 0.6;
+  }
+}
+
+/* ── J. alpha.37 — Desktop halo "hard ring" fix ─────────────────
+   Audit user feedback : on wide screens (1440+ px) the halos on the
+   reveal section and on the product `.reveal__product::before` "cut
+   in a straight line" with a visible circular boundary, then leave a
+   "gros vide" (big empty zone) past the cut. Root cause = the
+   radial-gradient stops at `transparent 45 %/60 %/62 %` which gives
+   the browser a sharp transition exactly at that distance.
+
+   The component-side rules have been pushed to `transparent 100 %`
+   directly in `ProductReveal.vue` (alpha.37 in-file edit). This
+   `.css` file complements with a global rule that softens any other
+   halo using the same anti-pattern — covers ProductRotate3D and the
+   PhoneShowcase backdrop blurs where we want the same feathering. */
+.rotate3d__halo,
+.phone-showcase__ambient,
+.rotate3d__floor {
+  /* Belt-and-braces — extend the visible footprint by 20 % on all sides
+     so the gradient never lands a hard ring on the section background. */
+  inset: -20% !important;
+}
+@media (max-width: 720px) {
+  .rotate3d__halo,
+  .phone-showcase__ambient {
+    /* On mobile push them edge-to-edge for the full-bleed atmospheric
+       wash. */
+    inset: -20vw -20vw !important;
+  }
+}
+
+/* ── I. alpha.37 — Stronger global clip ────────────────────────── */
+/* Belt-and-braces : even if a child element computes a wider width,
+   the page itself never grows beyond the viewport. Important for the
+   particle canvas + orbit canvas which paint to absolute-positioned
+   layers that don't respect parent width. */
+#app {
+  overflow-x: clip;
+  max-width: 100vw;
+}
+
+/* ── J. alpha.37 — Hide "Resize it. Everything follows." on mobile.
+   The Made-to-grow story (slider + XS/S/M/L/XL presets) is redundant
+   with the next section "Grab the corner" which already demonstrates
+   container-aware resizing via a real handle. On mobile the dual story
+   stretches the page without adding value : the visitor has just seen
+   the swipe-carousel acts, the FAB section pitches the same idea more
+   concretely. Hide it cleanly so the flow goes : Reveal carousel →
+   Why → Grab the corner → Hold it → Pick a mood → FAB → footer. */
+@media (max-width: 720px) {
+  #section-resize {
+    display: none !important;
+  }
+}
+
+/* ── K. alpha.37 — Harmonised FAB sizing matrix (REVISED).
+   First attempt overrode `--fab-size` via CSS `!important` on `.fab`.
+   That visually grew the box but BROKE the SVG progress ring + cover
+   geometry inside MiniPlayer, because those are computed in JS from
+   `props.size` (default 56) — the ring stayed at radius 27 while the
+   box became 88×88, leaving an off-centred ring in the top-left corner.
+
+   The correct fix is two-fold :
+   (a) The persistent .fab MiniPlayer takes its size from the `:size`
+       prop on the `<MiniPlayer>` instance in App.vue (`fabResponsiveSize`
+       computed below) — that recalculates the ring + cover via Vue
+       reactivity, no CSS override needed.
+   (b) The drag/resize-stage `.mp[data-fab='true']` instances are
+       MusicPlayer components whose internal `fabSize = max(40,
+       containerWidth)` computed already follows their CSS width via
+       ResizeObserver — so capping the CSS width alone re-aligns the
+       ring automatically.
+
+   This section keeps ONLY the width caps for (b). The MiniPlayer size
+   is driven by App.vue. */
+
+/* Drag/resize stage : cap the inline mp[data-fab=true] disc by viewport
+   so it never balloons on wide screens. The MusicPlayer ResizeObserver
+   recomputes fabSize from this width — ring + cover follow. */
+.drag-stage .mp[data-fab='true'],
+.resize-stage .mp[data-fab='true'] {
+  max-width: 56px !important;
+  max-height: 56px !important;
+  width: 56px !important;
+  height: 56px !important;
+  align-self: center;
+}
+
+@media (min-width: 721px) and (max-width: 1279px) {
+  .drag-stage .mp[data-fab='true'],
+  .resize-stage .mp[data-fab='true'] {
+    max-width: 64px !important;
+    max-height: 64px !important;
+    width: 64px !important;
+    height: 64px !important;
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1919px) {
+  .drag-stage .mp[data-fab='true'],
+  .resize-stage .mp[data-fab='true'] {
+    max-width: 72px !important;
+    max-height: 72px !important;
+    width: 72px !important;
+    height: 72px !important;
+  }
+}
+
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .drag-stage .mp[data-fab='true'],
+  .resize-stage .mp[data-fab='true'] {
+    max-width: 88px !important;
+    max-height: 88px !important;
+    width: 88px !important;
+    height: 88px !important;
+  }
+}
+
+@media (min-width: 2560px) {
+  .drag-stage .mp[data-fab='true'],
+  .resize-stage .mp[data-fab='true'] {
+    max-width: 104px !important;
+    max-height: 104px !important;
+    width: 104px !important;
+    height: 104px !important;
+  }
+}
+
+/* ── M. alpha.37 — `.responsive` side-by-side on desktop / wide.
+   "Same component. Three widths." existed since v2.3.4 as a stacked
+   column. On wide viewports (≥ 1440 px) that wastes the breathing
+   room — 3 cards 320/480/720 fit comfortably in a single horizontal
+   row and read instantly as "three sizes of the same player". Keep
+   the stacked layout for tablet / laptop and switch to a grid for
+   desktop wide+. */
+@media (min-width: 1440px) {
+  .responsive {
+    flex-direction: row;
+    align-items: stretch;
+    gap: clamp(24px, 2vw, 48px);
+    overflow-x: visible;
+    flex-wrap: nowrap;
+    /* Centre the row in the section so the 320 frame doesn't sit
+       awkwardly far-left while the 720 stretches its size at the
+       opposite end — instead the trio reads as one cohesive group. */
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .responsive__cell {
+    flex: 0 0 auto;
+    max-width: none;
+  }
+}
+
+/* ── L. alpha.37 — Drag handle thumb-friendly hit area on touch.
+   `.mp__resize` is 22×22 px in src/lib/ (byte-identical). 22 px is fine
+   on a 16-px wide mouse cursor but unreachable with a finger (Apple
+   HIG / WCAG min 44×44). We can't grow the visual glyph (it would
+   distort the chrome). Instead we extend the HIT AREA via an invisible
+   `::after` pseudo-element that overlaps the bottom-right corner by 24
+   px in both directions — the resize handle now reads as 46×46 to the
+   pointer event system while still painting as 22×22.
+   Mobile only : desktop pointer precision is fine at 22 px and a wider
+   hit area would cause accidental drags from the bottom of the chrome. */
+@media (max-width: 1024px) and (pointer: coarse) {
+  .mp__resize {
+    position: absolute;
+  }
+  .mp__resize::after {
+    content: '';
+    position: absolute;
+    inset: -24px -24px 0 0;
+    pointer-events: auto;
+    touch-action: none;
+    z-index: -1;
+  }
+  /* Belt-and-braces : ensure the drag-stage doesn't capture the swipe
+     for vertical scroll. The .mp__resize already declares
+     `touch-action: none` in src/lib/ — this preserves vertical scroll
+     anywhere else in the stage. */
+  .drag-stage > .mp {
+    touch-action: pan-y;
+  }
+}

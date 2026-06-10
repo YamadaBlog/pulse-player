@@ -1,0 +1,64 @@
+name: Responsive smoke (multi-viewport)
+
+# Runs the multi-viewport smoke suite (tests/visual/responsive.spec.ts)
+# against the Vue demo via Playwright. Added as audit follow-up P2.2 /
+# round-3 (2026-06-10).
+#
+# What it guards — at 390 / 768 / 1440 / 1920 / 2560 px :
+#   - the demo mounts (hero visible, ≥ 1 MusicPlayer in the DOM)
+#   - NO horizontal overflow (scrollWidth ≤ clientWidth + 1) — the
+#     regression class behind every "halo clipped / page scrolls
+#     sideways" bug fixed during the alpha.35-37 cycles
+#   - the seek slider keeps its ARIA contract on every viewport
+#   - keyboard (Tab) reaches the hero play button on mobile
+#
+# Deliberately NOT snapshot-based : the demo runs idle animations
+# (ambient EQ, kinetic title, FFT canvas) that made pixel baselines
+# flaky at a single viewport already — five viewports would multiply
+# the maintenance cost for little extra signal. Smoke-level invariants
+# catch the layout regressions the audit cares about.
+
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+    branches: [main, 'feat/**']
+
+concurrency:
+  group: responsive-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Multi-viewport smoke (Vue demo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --prefer-offline
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run multi-viewport smoke suite
+        run: npx playwright test tests/visual/responsive.spec.ts --project=chromium
+        env:
+          PULSE_RESPONSIVE: '1'
+
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: responsive-traces
+          path: test-results/
+          retention-days: 7
