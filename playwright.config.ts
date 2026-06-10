@@ -43,7 +43,20 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          // Headless Chromium on CI runners rejects
+          // HTMLMediaElement.play() under the autoplay policy even
+          // after a force-click (synthetic gestures don't always count
+          // as "user activation" there). The pages-live "play actually
+          // plays" smoke needs play() to be allowed so the assertion
+          // tests OUR pipeline (file present + decodable + store state
+          // holds), not Chrome's gesture heuristics. Harmless for the
+          // visual / a11y / responsive suites — none of them autoplay.
+          args: ['--autoplay-policy=no-user-gesture-required'],
+        },
+      },
     },
   ],
   expect: {

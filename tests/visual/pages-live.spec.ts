@@ -63,10 +63,16 @@ test.describe('GitHub Pages — deployed demo smoke', () => {
     await page.goto(`${PAGES_URL}?intro=skip`, { waitUntil: 'networkidle' })
     await page.waitForTimeout(1200)
 
-    // The hero idle animations (floating bob) keep the player moving,
-    // which trips Playwright's stability heuristic — force the click.
+    // Keyboard activation instead of click : the hero idle animations
+    // (floating bob) keep the player moving, so pointer clicks either
+    // trip the stability heuristic or land beside the moving target —
+    // and a force-click is not always treated as user activation by
+    // headless Chromium's autoplay policy. focus() + Enter is
+    // position-independent AND a trusted activation (verified working
+    // against the live deploy where force-click failed).
     const art = page.locator('.hero .mp__art').first()
-    await art.click({ force: true })
+    await art.focus()
+    await page.keyboard.press('Enter')
 
     // Behavioural proxy for "sound is coming out" : the store's
     // safePlay() ROLLS BACK isPlaying (and the button flips back to
