@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- "MIDNIGHT RUN" demo cover — ORIGINAL artwork created for this
+       repository (plain SVG authored in-tree, 2026-06-10). Licensed MIT
+       with the rest of the source per NOTICE.md §1 — unlike the
+       maintainer's local .webp covers (provenance undocumented, NOT
+       redistributable, gitignored), this file is safe to deploy to
+       GitHub Pages and to ship in forks. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1e1b4b"/>
+      <stop offset="0.45" stop-color="#312e81"/>
+      <stop offset="0.8" stop-color="#6d28d9"/>
+      <stop offset="1" stop-color="#a21caf"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.3" cy="0.25" r="0.9">
+      <stop offset="0" stop-color="#c4b5fd" stop-opacity="0.5"/>
+      <stop offset="0.5" stop-color="#8b5cf6" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vinyl" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#27272a"/>
+      <stop offset="0.32" stop-color="#0a0a0f"/>
+      <stop offset="0.34" stop-color="#3f3f46"/>
+      <stop offset="0.36" stop-color="#0a0a0f"/>
+      <stop offset="0.55" stop-color="#18181b"/>
+      <stop offset="0.57" stop-color="#3f3f46"/>
+      <stop offset="0.59" stop-color="#0f0f12"/>
+      <stop offset="0.78" stop-color="#1c1c20"/>
+      <stop offset="0.8" stop-color="#45454d"/>
+      <stop offset="0.82" stop-color="#0a0a0f"/>
+      <stop offset="1" stop-color="#101014"/>
+    </radialGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0.35" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#fff" stop-opacity="0.14"/>
+      <stop offset="0.65" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <rect width="512" height="512" fill="url(#glow)"/>
+
+  <!-- Vinyl disc -->
+  <circle cx="256" cy="256" r="172" fill="url(#vinyl)"/>
+  <!-- Label -->
+  <circle cx="256" cy="256" r="56" fill="#7c3aed"/>
+  <circle cx="256" cy="256" r="56" fill="none" stroke="#a78bfa" stroke-opacity="0.6" stroke-width="2"/>
+  <circle cx="256" cy="256" r="7" fill="#0a0a0f"/>
+  <!-- Sheen across the disc -->
+  <circle cx="256" cy="256" r="172" fill="url(#sheen)"/>
+
+  <!-- Skyline silhouette along the bottom — the "midnight run" -->
+  <path d="M0 430 L0 512 L512 512 L512 418 L488 418 L488 396 L462 396 L462 430 L430 430 L430 380 L422 380 L422 360 L404 360 L404 430 L368 430 L368 404 L336 404 L336 430 L300 430 L300 442 L262 442 L262 430 L228 430 L228 388 L218 388 L218 372 L200 372 L200 430 L168 430 L168 410 L140 410 L140 430 L104 430 L104 392 L72 392 L72 430 L40 430 L40 412 L18 412 L18 430 Z"
+        fill="#0a0a14" opacity="0.92"/>
+
+  <!-- Eyebrow text rendered as shapes-free <text> (system font ok in covers) -->
+  <text x="256" y="64" text-anchor="middle" font-family="Arial, Helvetica, sans-serif"
+        font-size="22" font-weight="700" letter-spacing="10" fill="#e9d5ff" opacity="0.9">MIDNIGHT RUN</text>
+  <text x="256" y="92" text-anchor="middle" font-family="Arial, Helvetica, sans-serif"
+        font-size="13" letter-spacing="6" fill="#c4b5fd" opacity="0.6">PULSE · DEMO 01</text>
+</svg>

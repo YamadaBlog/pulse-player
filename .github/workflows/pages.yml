@@ -65,3 +65,41 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+  # Post-deploy smoke against the LIVE URL (audit round-5). The public
+  # vitrine shipped broken cover images for weeks with zero CI signal
+  # because every suite ran against localhost. This job loads the
+  # deployed page and fails on what a visitor would actually see :
+  # failed asset requests, console errors, undecoded <img>.
+  verify:
+    name: Verify deployed demo
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --prefer-offline
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Smoke the live demo
+        run: npx playwright test tests/visual/pages-live.spec.ts --project=chromium
+        env:
+          PULSE_PAGES_URL: https://yamadablog.github.io/pulse-player/
+
+      - name: Upload trace on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pages-live-trace
+          path: test-results/
+          retention-days: 7

@@ -145,6 +145,19 @@ export function useAudioReactiveBackdrop(
         target = Math.max(0, Math.min(1, sum / bars.length))
       }
     }
+    // Idle early-bail (audit round-5) : once playback is paused AND the
+    // decay has settled at ~0, skip the per-frame style write. The rAF
+    // keeps polling (so a resume re-engages within one frame — no
+    // watcher plumbing) but the style mutation + recalc that made this
+    // loop cost something at idle is gone. One last write pins the
+    // property at exactly 0 before going quiet.
+    if (!e.isPlaying && smoothed < 0.001) {
+      if (smoothed !== 0) {
+        smoothed = 0
+        el.style.setProperty('--pulse-ambient', '0')
+      }
+      return
+    }
     // Smooth toward target — 0.18 factor = ~150 ms decay at 60 fps.
     smoothed += (target - smoothed) * 0.18
     el.style.setProperty('--pulse-ambient', smoothed.toFixed(3))
