@@ -1,0 +1,43 @@
+name: Consumer smoke (packed artefacts)
+
+# Audit №5 root-cause closure : the rc.0/rc.1 npm publish shipped
+# stale dist/ files importing the pre-rename @pulse/* scope. Every CI
+# suite was green because everything ran on workspace SOURCES — no job
+# ever installed a tarball the way a real user does. This workflow
+# packs each buildable package (plus the root Vue lib), installs the
+# tarballs into throwaway consumer projects, vite-builds an entry that
+# imports the public surface, and asserts no stale-scope strings in
+# the output bundles. If this is red, DO NOT PUBLISH.
+
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: consumer-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Pack → install → build (4 consumers)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --prefer-offline
+
+      - name: Build workspace packages
+        run: npm run build:packages
+
+      - name: Consumer smoke
+        run: npm run test:consumer

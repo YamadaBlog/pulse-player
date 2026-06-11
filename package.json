@@ -89,7 +89,8 @@
     "check:lib-identical": "node scripts/check-lib-byte-identical.mjs",
     "ci": "npm run type-check && npm run lint && npm run test && npm run test:packages && npm run build && npm run audit && npm run check:lib-identical",
     "prepublishOnly": "npm run ci && npm run build:lib",
-    "prepare": "husky 2>/dev/null || true"
+    "prepare": "husky 2>/dev/null || true",
+    "test:consumer": "node scripts/consumer-smoke.mjs"
   },
   "peerDependencies": {
     "pinia": "^2.1.0",

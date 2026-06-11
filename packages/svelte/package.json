@@ -1,6 +1,6 @@
 {
   "name": "@pulse-music/svelte",
-  "version": "3.0.0-rc.0",
+  "version": "3.0.0-rc.2",
   "description": "Svelte 5 wrapper for pulse-player. Plain TypeScript hook + Svelte classic-store contract over @pulse-music/web-component.",
   "license": "MIT",
   "type": "module",
@@ -22,7 +22,8 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
     "svelte": "^5.56.3"
