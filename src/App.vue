@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, defineAsyncComponent } from 'vue'
 import { MusicPlayer, MiniPlayer, useAudioStore, type MusicPlayerVariant } from './lib'
 import { useDemoTour, type DemoStep } from './composables/useDemoTour'
 import { useDemoSpotlight } from './composables/useDemoSpotlight'
@@ -27,25 +27,59 @@ import {
 } from './composables/useCinematicEffects'
 import { useResponsiveWidth } from './composables/useResponsiveWidth'
 import CinematicIntro from './components/CinematicIntro.vue'
-// alpha.32 — scrollytelling components informed by Codrops Maxima
-// case study + Olivier Larose tutorials + LottieFiles motion-design
-// skill. The flagship is ProductReveal (6-act pin/scrub GSAP). The
-// others are supporting acts.
-import ProductReveal from './components/ProductReveal.vue'
-import ProductRotate3D from './components/ProductRotate3D.vue'
-import PhoneShowcase from './components/PhoneShowcase.vue'
+// Above-the-fold components stay statically imported — they ARE the
+// LCP path (hero chrome + the EQ strip right under it).
 import DisplayHeadline from './components/DisplayHeadline.vue'
 import AudioBars from './components/AudioBars.vue'
-// alpha.37 (P1.1 extraction) — pure-markup footer split out of the
-// 3300-LOC App.vue monolith. No reactive deps, no logic. Reduces the
-// surface area integrators have to scroll through.
-import AppFooter from './components/AppFooter.vue'
-import FeaturesGrid from './components/FeaturesGrid.vue'
-import FloatingFabSection from './components/FloatingFabSection.vue'
-import ResizeStageSection from './components/ResizeStageSection.vue'
-import DragStageSection from './components/DragStageSection.vue'
-import PickAMoodSection from './components/PickAMoodSection.vue'
-import ThreeWidthsSection from './components/ThreeWidthsSection.vue'
+// ─── Below-the-fold sections : async chunks (audit №5 perf P1) ────
+// Measured baseline on the minified build (localhost, Playwright
+// PerformanceObserver) : LCP 2 456 ms, worst init long task 1 237 ms,
+// 1 797 ms total main-thread blocking at load. Cause : the whole demo
+// (15 player instances, 3 GSAP ScrollTrigger scenes, gallery, tour
+// plumbing) parsed + mounted in ONE synchronous flow.
+// defineAsyncComponent splits each section into its own chunk : the
+// entry bundle shrinks, parse/exec spreads across idle frames, and
+// the DOM still ends up identical (chunks mount within ~1 s on
+// localhost) — so the demo-tour selectors and spotlight anchors keep
+// working unchanged. Deliberately NOT IntersectionObserver-gated :
+// lazy-mount-on-scroll could race the tour's programmatic scrolling.
+const ProductReveal = defineAsyncComponent(() => import('./components/ProductReveal.vue'))
+const ProductRotate3D = defineAsyncComponent(() => import('./components/ProductRotate3D.vue'))
+const PhoneShowcase = defineAsyncComponent(() => import('./components/PhoneShowcase.vue'))
+const AppFooter = defineAsyncComponent(() => import('./components/AppFooter.vue'))
+const FeaturesGrid = defineAsyncComponent(() => import('./components/FeaturesGrid.vue'))
+const FloatingFabSection = defineAsyncComponent(() => import('./components/FloatingFabSection.vue'))
+const ResizeStageSection = defineAsyncComponent(() => import('./components/ResizeStageSection.vue'))
+const DragStageSection = defineAsyncComponent(() => import('./components/DragStageSection.vue'))
+const PickAMoodSection = defineAsyncComponent(() => import('./components/PickAMoodSection.vue'))
+const ThreeWidthsSection = defineAsyncComponent(() => import('./components/ThreeWidthsSection.vue'))
+
+// ─── Staged idle mounting (audit №5 perf P1, step 2) ───────────────
+// Code-splitting alone moved the parse cost off the entry bundle, but
+// on a fast connection every chunk lands almost at once and the
+// sections still MOUNT in a single burst — measured median worst task
+// stayed ~1 s. `mountStage` gates the below-the-fold sections in three
+// waves, each released in an idle slot (rIC, timeout fallback), so the
+// mount work spreads across frames instead of stacking. Order follows
+// the page : the further down a section lives, the later its wave.
+// The demo tour is click-triggered seconds after load — all waves are
+// long mounted by then.
+const mountStage = ref(0)
+onMounted(() => {
+  const idle: (cb: () => void) => void =
+    typeof requestIdleCallback === 'function'
+      ? (cb) => requestIdleCallback(cb, { timeout: 800 })
+      : (cb) => setTimeout(cb, 120)
+  idle(() => {
+    mountStage.value = 1 // six-act reveal
+    idle(() => {
+      mountStage.value = 2 // interactive stages + 3D + phone
+      idle(() => {
+        mountStage.value = 3 // gallery + widths + FAB + footer
+      })
+    })
+  })
+})
 
 // Multi-step spotlight controller (replaces the v1.x single-boolean
 // `fabFocused`). Lifecycle: every demo step can call
@@ -1091,7 +1125,7 @@ const hero = computed(() => ({
          ═══════════════════════════════════════════════════════════════ -->
       <!-- alpha.32 — six-act pinned scrub: the production-grade
            cinematic. ProductReveal owns its GSAP timeline + pin. -->
-      <ProductReveal />
+      <ProductReveal v-if="mountStage >= 1" />
 
       <!-- ═══════════════════════════════════════════════════════════════
          WHY PULSE — alpha.29 scrollytelling moment
@@ -1126,31 +1160,32 @@ const hero = computed(() => ({
       <!-- INTERACTIVE sections III + III·b — extracted to dedicated SFCs.
            The demo tour still owns the `sliderWidth` / `tourDragWidth`
            refs ; the sections render + edit them through v-model/props. -->
-      <ResizeStageSection v-model:width="sliderWidth" />
-      <DragStageSection :tour-width="tourDragWidth" />
+      <ResizeStageSection v-if="mountStage >= 2" v-model:width="sliderWidth" />
+      <DragStageSection v-if="mountStage >= 2" :tour-width="tourDragWidth" />
 
       <!-- ═══════════════════════════════════════════════════════════════
          ROTATE 3D — alpha.35 scroll-driven product-reveal rotation
          ═══════════════════════════════════════════════════════════════ -->
-      <ProductRotate3D />
+      <ProductRotate3D v-if="mountStage >= 2" />
 
       <!-- ═══════════════════════════════════════════════════════════════
          PHONE SHOWCASE — alpha.37 CSS phone frame + Pulse Player inside
          Desktop/tablet only. Hidden on mobile (user IS holding a phone).
          ═══════════════════════════════════════════════════════════════ -->
-      <PhoneShowcase />
+      <PhoneShowcase v-if="mountStage >= 2" />
 
       <!-- FEATURES — Three-up cards (extracted to FeaturesGrid.vue) -->
-      <FeaturesGrid />
+      <FeaturesGrid v-if="mountStage >= 3" />
 
       <!-- VARIANTS gallery IV + Three Widths IV·b — extracted SFCs.
            Both are self-contained (their data arrays had no other
            consumer in App.vue). -->
-      <PickAMoodSection />
-      <ThreeWidthsSection />
+      <PickAMoodSection v-if="mountStage >= 3" />
+      <ThreeWidthsSection v-if="mountStage >= 3" />
 
       <!-- FAB section V — markup extracted to FloatingFabSection.vue -->
       <FloatingFabSection
+        v-if="mountStage >= 3"
         :fab-palette="fabPalette"
         v-model:active-variant="activeFabVariant"
         v-model:pulso="fabPulso"
@@ -1160,7 +1195,7 @@ const hero = computed(() => ({
       <!-- ═══════════════════════════════════════════════════════════════
          FOOTER
          ═══════════════════════════════════════════════════════════════ -->
-      <AppFooter />
+      <AppFooter v-if="mountStage >= 3" />
     </template>
 
     <!-- Persistent FAB — global, survives navigation (hidden in showcase mode).

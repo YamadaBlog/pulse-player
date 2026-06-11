@@ -39,6 +39,8 @@ const canvas = ref<HTMLCanvasElement | null>(null)
 let raf = 0
 let ro: ResizeObserver | null = null
 const smoothed: number[] = []
+// Frame-cached canvas-space gradient (audit №5 P2) — see render().
+const gradCache: { h: number; grad: CanvasGradient | null } = { h: 0, grad: null }
 
 const render = () => {
   raf = requestAnimationFrame(render)
@@ -110,20 +112,32 @@ const render = () => {
   const baseH = h * 0.08 // resting baseline 8 % of canvas
   const maxH = h * 0.78
 
+  // Audit №5 P2 — ONE canvas-space gradient per frame instead of 64
+  // per-bar gradients. The gradient spans the full drawable height in
+  // canvas coordinates : a tall bar reveals more of the amber top, a
+  // short bar shows mostly the violet base — visually equivalent to
+  // (arguably nicer than) the old per-bar variant, and it removes 64
+  // createLinearGradient allocations + colour-string formats per frame.
+  // Cached across frames, rebuilt only when the canvas height changes
+  // (resize), keyed by `h`.
+  if (gradCache.h !== h || !gradCache.grad) {
+    const g = ctx.createLinearGradient(0, h - (baseH + maxH), 0, h)
+    g.addColorStop(0, 'rgba(245, 158, 11, 0.95)')
+    g.addColorStop(0.45, 'rgba(236, 72, 153, 0.6)')
+    g.addColorStop(1, 'rgba(139, 92, 246, 0.3)')
+    gradCache.h = h
+    gradCache.grad = g
+  }
+  ctx.fillStyle = gradCache.grad
+
+  ctx.beginPath()
   for (let i = 0; i < N; i++) {
     const x = i * (barW + gap)
     const v = smoothed[i]
     const bh = baseH + maxH * v
     const y = h - bh
-    // Amber→pink gradient on the active portion; cool grey on the rest.
-    const grad = ctx.createLinearGradient(0, y, 0, h)
-    grad.addColorStop(0, `rgba(245, 158, 11, ${0.6 + v * 0.35})`)
-    grad.addColorStop(0.6, `rgba(236, 72, 153, ${0.35 + v * 0.3})`)
-    grad.addColorStop(1, `rgba(139, 92, 246, ${0.18 + v * 0.18})`)
-    ctx.fillStyle = grad
     // Rounded top — small radius for the "EQ block" look.
     const r = Math.min(barW / 2, 4 * dpr)
-    ctx.beginPath()
     ctx.moveTo(x, h)
     ctx.lineTo(x, y + r)
     ctx.quadraticCurveTo(x, y, x + r, y)
@@ -131,8 +145,9 @@ const render = () => {
     ctx.quadraticCurveTo(x + barW, y, x + barW, y + r)
     ctx.lineTo(x + barW, h)
     ctx.closePath()
-    ctx.fill()
   }
+  // Single fill for all 64 bars — one paint op instead of 64.
+  ctx.fill()
 }
 
 onMounted(() => {

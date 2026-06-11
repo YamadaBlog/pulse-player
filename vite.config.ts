@@ -35,6 +35,10 @@ export default defineConfig({
         outDir: 'dist/lib',
         emptyOutDir: true,
         cssCodeSplit: false,
+        // Audit №6 P2 — ship sourcemaps in the npm tarball like the
+        // @pulse-music/* packages already do (tsup emits them). Without
+        // this, consumers debugging the Vue lib step into minified code.
+        sourcemap: true,
         lib: {
           entry: resolve(__dirname, 'src/lib/index.ts'),
           name: 'PulsePlayer',

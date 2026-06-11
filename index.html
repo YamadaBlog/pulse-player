@@ -13,15 +13,38 @@
     />
     <link rel="canonical" href="https://yamadablog.github.io/pulse-player/" />
 
-    <!-- Display typefaces — Geist Sans + Geist Mono. Variable fonts,
-         single TTF subset each. Breaks the system-stack-only sloppiness
-         flagged in Anthropic's frontend-design skill anti-rules. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Display typefaces — Geist Sans + Geist Mono, SELF-HOSTED
+         (round 10, audit №6 P2). Previously loaded from the Google
+         Fonts CDN : a third-party request on the first-text-paint path
+         + a GDPR exposure (visitor IP shipped to Google). The official
+         Vercel variable WOFF2 files (SIL OFL 1.1 — licence shipped at
+         fonts/OFL.txt) now serve from the same origin : one connection,
+         no DNS/TLS round-trip to fonts.gstatic.com, no tracking.
+         font-display: swap preserved — text paints in the fallback
+         stack immediately. -->
     <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap"
+      rel="preload"
+      href="%BASE_URL%fonts/Geist-Variable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
     />
+    <style>
+      @font-face {
+        font-family: 'Geist';
+        src: url('%BASE_URL%fonts/Geist-Variable.woff2') format('woff2');
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Geist Mono';
+        src: url('%BASE_URL%fonts/GeistMono-Variable.woff2') format('woff2');
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: swap;
+      }
+    </style>
 
     <!-- Open Graph (Bluesky / LinkedIn / Discord / Facebook) -->
     <meta property="og:type" content="website" />
@@ -66,7 +89,7 @@
         "applicationCategory": "DeveloperApplication",
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
         "license": "https://opensource.org/licenses/MIT",
-        "softwareVersion": "3.0.0-rc.0",
+        "softwareVersion": "3.0.0-rc.2",
         "downloadUrl": "https://www.npmjs.com/package/@pulse-music/react",
         "video": "https://youtu.be/q_FJ1GWaCc8",
         "url": "https://yamadablog.github.io/pulse-player/"

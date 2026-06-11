@@ -31,12 +31,13 @@ import { GITHUB_SVG, STREAM_SVG } from './icons'
  *   - `accent-color`   : CSS color (default unset — inherits theme)
  *   - `tracks`         : JSON array of Track objects (optional override)
  *
- * Status: v3.0.0-alpha.2 SKELETON. Renders the minimum chrome
- * (artwork, title, play/pause, progress, time). Full v2.3.4 parity
- * (ambient EQ, drag-to-resize, three responsive states, social icons,
- * `prev` / `next` controls) lands in subsequent alphas. The Lit
- * controller pattern is already in place — adding more chrome is
- * additive markup, not architectural refactor.
+ * Status: v3.0.0-rc — feature-complete chrome (round-10 docstring
+ * refresh; the "SKELETON" note below dated from alpha.2 and was stale).
+ * Renders artwork, title, play/pause, `prev`/`next`, progress, time,
+ * drag-to-resize handle, three responsive width states, and optional
+ * GitHub/Spotify social icons. Remaining gap vs the Vue v2.3.4
+ * reference: the 64-bar ambient EQ backdrop (the 4-bar condensed
+ * visualiser is wired via the engine's `eqBars`).
  */
 @customElement('pulse-player')
 export class PulsePlayerElement extends LitElement {

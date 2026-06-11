@@ -1,6 +1,6 @@
 {
   "name": "@pulse-music/core",
-  "version": "3.0.0-rc.0",
+  "version": "3.0.0-rc.2",
   "description": "Framework-agnostic audio engine for pulse-player — Web Audio + state machine + typed event bus. Pure TypeScript, no DOM, no framework imports.",
   "license": "MIT",
   "type": "module",
@@ -22,7 +22,8 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@pulse-music/types": "*"

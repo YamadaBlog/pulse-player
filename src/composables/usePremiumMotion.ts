@@ -313,16 +313,21 @@ export function useKineticType(target: Ref<HTMLElement | null>): void {
       return
     }
 
+    // Audit №5 perf P1 — transform-ONLY entrance. The previous
+    // opacity:0 start hid the hero headline (the LCP element) until
+    // the 0.55 s cascade finished, holding LCP at ~2.5 s on the
+    // minified build. Benchmark canon ("don't animate critical
+    // content's visibility") : the glyphs now stay PAINTED from the
+    // first frame and only rise/settle — LCP fires immediately, the
+    // kinetic personality survives.
     for (const c of chars) {
-      c.style.opacity = '0'
       c.style.transform = 'translate3d(0, 28px, 0) rotate(2deg)'
-      c.style.willChange = 'opacity, transform'
+      c.style.willChange = 'transform'
     }
 
     animate(
       chars,
       {
-        opacity: [0, 1],
         y: [28, 0],
         rotate: [2, 0],
       },
