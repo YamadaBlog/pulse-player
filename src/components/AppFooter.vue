@@ -10,9 +10,12 @@
       <div class="footer__brand">pulse-player</div>
       <div class="footer__meta">
         Floating + inline music for Vue 3
-        <!-- CC BY 4.0 attribution for the deployed demo tracks
-             (NOTICE.md §3bis). Required by the licence — keep accurate
-             if PULSE_TRACK*_URL overrides change the music. -->
+        <!-- CC BY 3.0 attribution for the deployed demo tracks
+             ("Protofunk" + "Lobby Time", NOTICE.md §3bis — full
+             per-work credits there). Required by the licence — keep
+             accurate if PULSE_TRACK*_URL overrides change the music.
+             Audit №4 fix : was mislabelled CC BY 4.0 ; the incompetech
+             catalogue licenses these works under CC BY 3.0. -->
         <span class="footer__credit"
           >· Music:
           <a
@@ -22,7 +25,7 @@
             class="footer__credit-link"
             >Kevin MacLeod — incompetech.com</a
           >
-          (CC BY 4.0)</span
+          (CC BY 3.0)</span
         >
       </div>
       <a

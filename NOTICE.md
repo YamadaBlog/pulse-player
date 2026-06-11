@@ -64,10 +64,17 @@ The **deployed demo** (https://yamadablog.github.io/pulse-player/) now ships rea
 
 | Demo slot                  | Work         | Author / source                                                                                            | Licence                                                                          |
 | -------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| track1 ("MIDNIGHT RUN" UI) | _Protofunk_  | [Kevin MacLeod — incompetech.com](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100222) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — attribution required |
-| track2 ("DEEP FOCUS" UI)   | _Lobby Time_ | [Kevin MacLeod — incompetech.com](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100302) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — attribution required |
+| track1 ("MIDNIGHT RUN" UI) | _Protofunk_  | [Kevin MacLeod — incompetech.com](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100103) | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) — attribution required |
+| track2 ("DEEP FOCUS" UI)   | _Lobby Time_ | [Kevin MacLeod — incompetech.com](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1600054) | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) — attribution required |
 
-Attribution is displayed in the demo footer ("Music: Kevin MacLeod — incompetech.com · CC BY 4.0") and recorded here. The UI track _titles_ ("MIDNIGHT RUN", "DEEP FOCUS") are Pulse demo labels, not the works' titles.
+Per-work credit in the licensor's recommended format :
+
+> "Protofunk" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 3.0 — http://creativecommons.org/licenses/by/3.0/
+> "Lobby Time" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 3.0 — http://creativecommons.org/licenses/by/3.0/
+
+Attribution is also displayed in the demo footer ("Music: Kevin MacLeod — incompetech.com · CC BY 3.0"). The UI track _titles_ ("MIDNIGHT RUN", "DEEP FOCUS") are Pulse demo labels, not the works' titles.
+
+> _Correction note (audit №4, 2026-06-11)_ : the round-8 version of this section carried two wrong ISRC links (USUAN1100222 / USUAN1100302) and cited CC BY 4.0 — the catalogue licenses these works under **CC BY 3.0** (verified : ISRC USUAN1100103 for Protofunk, USUAN1600054 for Lobby Time, via incompetech + filmmusic.io cross-check). Fixed here, in the demo footer, and in the script comments.
 
 If the incompetech download fails at deploy time, the pipeline falls back to the in-repo composed tracks (`scripts/synth-demo-tracks.mjs` — original works of this repository, MIT). Maintainer overrides via the `PULSE_TRACK1_URL` / `PULSE_TRACK2_URL` repository variables must keep this section + the footer credit accurate for whatever they point at.
 

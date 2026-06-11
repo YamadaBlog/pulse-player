@@ -59,6 +59,31 @@ test.describe('GitHub Pages — deployed demo smoke', () => {
     expect(brokenImages, `Broken <img> (naturalWidth=0):\n${brokenImages.join('\n')}`).toEqual([])
   })
 
+  test('deployed tracks are the catalogue ones, not the silent fallback (audit №4)', async ({
+    request,
+  }) => {
+    // The deploy pipeline has a graceful degradation chain :
+    // incompetech download → in-repo composed fallback. Graceful is
+    // right for availability, but it also means a broken catalogue URL
+    // would SILENTLY swap professionally-produced music for the
+    // composed pads — a quality regression with zero CI signal. Size
+    // is a cheap discriminator : the MacLeod tracks transcode to
+    // ~1.8-2.6 MB opus, the composed pads to ~0.9-1.4 MB. The 1.6 MB
+    // floor splits the two populations cleanly. If the default music
+    // changes, update the floor alongside NOTICE.md §3bis.
+    const MIN_CATALOGUE_BYTES = 1_600_000
+    for (const file of ['audio/track1.webm', 'audio/track2.webm']) {
+      const res = await request.get(`${PAGES_URL}${file}`)
+      expect(res.status(), `${file} should be deployed`).toBe(200)
+      const bytes = (await res.body()).length
+      expect(
+        bytes,
+        `${file} is ${bytes} B — below the ${MIN_CATALOGUE_BYTES} B catalogue floor : ` +
+          `the deploy likely fell back to the composed tracks (download failure upstream?)`,
+      ).toBeGreaterThanOrEqual(MIN_CATALOGUE_BYTES)
+    }
+  })
+
   test('play actually plays — audio survives the click (round-6)', async ({ page }) => {
     await page.goto(`${PAGES_URL}?intro=skip`, { waitUntil: 'networkidle' })
     await page.waitForTimeout(1200)

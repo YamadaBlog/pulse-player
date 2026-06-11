@@ -76,7 +76,7 @@ mkdirSync(AUDIO_DIR, { recursive: true })
 const SOURCES = {
   // Round-8 : default sources switched from Pixabay (CDN anti-hotlinks
   // → 403, licence redistribution grey) to Kevin MacLeod's incompetech
-  // catalogue — REAL professionally-produced music under CC BY 4.0
+  // catalogue — REAL professionally-produced music under CC BY 3.0
   // (commercial use OK, attribution required). URLs verified
   // hotlinkable 2026-06-10 (HTTP 206 range support, 320/256 kbps).
   // ATTRIBUTION LIVES IN : NOTICE.md §2bis + the demo footer credit.
@@ -84,7 +84,7 @@ const SOURCES = {
   track1: {
     // "Protofunk" — electric funk groove (closest MacLeod gets to the
     // acid-jazz/Persona vibe the maintainer is after).
-    // Kevin MacLeod (incompetech.com) · CC BY 4.0.
+    // Kevin MacLeod (incompetech.com) · CC BY 3.0.
     //
     // Verified-hotlinkable alternates in the same catalogue, for quick
     // taste iteration (swap the URL or set PULSE_TRACK1_URL — keep
@@ -101,7 +101,7 @@ const SOURCES = {
   },
   track2: {
     // "Lobby Time" — jazzy lounge, 3:13.
-    // Kevin MacLeod (incompetech.com) · CC BY 4.0.
+    // Kevin MacLeod (incompetech.com) · CC BY 3.0.
     url: 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lobby%20Time.mp3',
     out: 'track2.webm',
   },
@@ -120,23 +120,34 @@ const SOURCES = {
 // ─── Download helper with timeout + size cap ─────────────────────────────
 
 async function downloadFile(url, outPath, maxBytes = 20 * 1024 * 1024) {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 60_000)
-  try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: { 'User-Agent': 'pulse-player-demo-setup/1.0' },
-    })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const ws = createWriteStream(outPath)
-    await pipeline(Readable.fromWeb(res.body), ws)
-    return true
-  } catch (err) {
-    console.warn(`  ⚠️  download failed for ${url}: ${err.message}`)
-    return false
-  } finally {
-    clearTimeout(timeout)
+  // Retry with backoff (audit №4) : the 5c14c22 Pages deploy lost
+  // track2 to a single transient "fetch failed" on the runner —
+  // track1 had succeeded from the same host 6 s earlier — and the
+  // graceful fallback silently shipped the composed pad instead of
+  // the catalogue track. One flaky fetch should not decide what music
+  // production gets. 3 attempts, 2 s / 5 s pauses.
+  const ATTEMPTS = 3
+  const PAUSES = [2_000, 5_000]
+  for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 60_000)
+    try {
+      const res = await fetch(url, {
+        signal: controller.signal,
+        headers: { 'User-Agent': 'pulse-player-demo-setup/1.0' },
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const ws = createWriteStream(outPath)
+      await pipeline(Readable.fromWeb(res.body), ws)
+      return true
+    } catch (err) {
+      console.warn(`  ⚠️  download attempt ${attempt}/${ATTEMPTS} failed for ${url}: ${err.message}`)
+      if (attempt < ATTEMPTS) await new Promise((r) => setTimeout(r, PAUSES[attempt - 1]))
+    } finally {
+      clearTimeout(timeout)
+    }
   }
+  return false
 }
 
 // ─── Audio install (download → opus 96k webm) ────────────────────────────
