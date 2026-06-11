@@ -22,11 +22,11 @@ import { baseStyles, fabStyles } from './styles'
  * Events: same as `<pulse-player>` (events bubble + compose, so a
  * single parent listener covers both elements).
  *
- * Status: v3.0.0-alpha.2 SKELETON. Renders the disc + play/pause +
- * variant. Drag-to-reposition, radial menu, pulso heartbeat
- * keyframes land in subsequent alphas. The Lit controller pattern is
- * in place — adding drag is additive logic, not architectural
- * refactor.
+ * Status: v3.0.0-rc — feature-complete (round-10 docstring refresh;
+ * the "SKELETON" note dated from alpha.2 and was stale). Renders the
+ * disc + play/pause + variant, with drag-to-reposition (`draggable`,
+ * persisted to localStorage), the radial menu (`show-menu`) and the
+ * pulso heartbeat ring all implemented below.
  */
 @customElement('pulse-fab')
 export class PulseFabElement extends LitElement {

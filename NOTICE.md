@@ -78,6 +78,21 @@ Attribution is also displayed in the demo footer ("Music: Kevin MacLeod — inco
 
 If the incompetech download fails at deploy time, the pipeline falls back to the in-repo composed tracks (`scripts/synth-demo-tracks.mjs` — original works of this repository, MIT). Maintainer overrides via the `PULSE_TRACK1_URL` / `PULSE_TRACK2_URL` repository variables must keep this section + the footer credit accurate for whatever they point at.
 
+### 3ter. Demo typefaces — self-hosted Geist (round-10, 2026-06-11)
+
+The demo page (NOT the library) ships two variable typefaces under
+`public/fonts/`, self-hosted since round 10 (previously loaded from the
+Google Fonts CDN — removed for GDPR + first-paint performance):
+
+- **Geist** (`Geist-Variable.woff2`) and **Geist Mono**
+  (`GeistMono-Variable.woff2`) — © The Geist Project Authors
+  (Vercel), licensed under the **SIL Open Font License 1.1**.
+  Full licence text shipped alongside at `public/fonts/OFL.txt`.
+  Source: <https://github.com/vercel/geist-font>.
+
+The OFL permits bundling, redistribution and self-hosting provided the
+licence accompanies the fonts — it does here.
+
 ## 4. Trademarks and brand names
 
 pulse-player references the following brand names purely for descriptive
