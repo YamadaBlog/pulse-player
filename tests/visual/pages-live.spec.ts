@@ -60,7 +60,25 @@ test.describe('GitHub Pages — deployed demo smoke', () => {
       }
       window.scrollTo(0, 0)
     })
-    await page.waitForTimeout(1500)
+    // Round-19 — the walk alone is racy on real-network latency :
+    // Chromium does not even START a lazy fetch for images that cross
+    // the viewport in ~120 ms, so distant shells stayed naturalWidth=0
+    // depending on machine/network timing (local run vs CI runner
+    // diverged). Deterministic instead : flip every <img> to eager and
+    // await settlement — a 404 still fires onerror and is caught below.
+    await page.evaluate(() =>
+      Promise.all(
+        Array.from(document.images).map((img) => {
+          img.loading = 'eager'
+          if (img.complete) return null
+          return new Promise((r) => {
+            img.onload = img.onerror = r
+            setTimeout(r, 8000) // safety: never hang the spec
+          })
+        }),
+      ),
+    )
+    await page.waitForTimeout(300)
 
     // 4. Every rendered <img> decoded — a 404 cover produces
     //    naturalWidth === 0 even when the request error was swallowed.
