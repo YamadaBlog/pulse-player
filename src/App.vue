@@ -530,30 +530,34 @@ const demoSteps: DemoStep[] = [
         // the heading still visible above for context.
         const startY = Math.max(0, firstCellAbsoluteBottom - window.innerHeight * 0.85)
 
-        // END — pick the more conservative of two limits:
-        //
-        // (a) The "title still visible" limit: stop where the H2
-        //     "Pick a mood." remains fully readable at the top of
-        //     the viewport (≈ 40 px scroll past section top, so the
-        //     subtitle scrolls off but the heading and start of the
-        //     description stay in frame). Losing the title means
-        //     losing the section's context — never acceptable.
-        //
-        // (b) The "all content shown" limit: stop where the bottom
-        //     of the section just clears the viewport bottom. For
-        //     tall sections this is past (a); for short sections
-        //     (where the entire grid fits in one viewport) this is
-        //     above (a). Take whichever lands sooner.
-        const titleStillVisibleEndY = sectionAbsoluteTop + 40
-        const showAllContentEndY = sectionAbsoluteBottom - window.innerHeight + 32
+        // END — round-26 user report : the old "title still visible"
+        // limit (sectionTop + 40) ALWAYS won for the tall grid, so the
+        // descent stopped at row 1 and the last moods were never shown
+        // — on every format, worst on mobile's single column. The tour
+        // must glide down TO THE LAST CELL : end where the bottom of
+        // the last grid cell sits at ~92 % of the viewport (fully
+        // visible, breathing room below). Naturally responsive : every
+        // position is measured at run time, so the 1-column mobile
+        // grid simply produces a longer, equally smooth descent.
+        const cells = variantsEl.querySelectorAll('.grid__cell')
+        const lastCell = cells[cells.length - 1] as HTMLElement
+        const lastCellAbsoluteBottom = lastCell
+          ? lastCell.getBoundingClientRect().bottom + window.scrollY
+          : sectionAbsoluteBottom
         const pageBottom = document.documentElement.scrollHeight - window.innerHeight
         const endY = Math.max(
           startY,
-          Math.min(pageBottom, titleStillVisibleEndY, showAllContentEndY),
+          Math.min(pageBottom, lastCellAbsoluteBottom - window.innerHeight * 0.92),
         )
 
         // 1) Cinematic landing on the start framing.
-        await ctx.tween((y) => window.scrollTo(0, y), window.scrollY, startY, 1800, 'inOutCubic')
+        await ctx.tween(
+          (y) => window.scrollTo({ top: y, behavior: 'instant' }),
+          window.scrollY,
+          startY,
+          1800,
+          'inOutCubic',
+        )
 
         ctx.setMessage('Nine carefully tuned themes ship in — not just colour swatches.')
         await ctx.delay(2100)
@@ -564,7 +568,13 @@ const demoSteps: DemoStep[] = [
         //    perceptible jolt at the start or end of the descent.
         const descentDistance = Math.abs(endY - startY)
         const descentDuration = Math.max(7000, Math.min(13000, 5500 + descentDistance * 18))
-        await ctx.tween((y) => window.scrollTo(0, y), startY, endY, descentDuration, 'inOutCubic')
+        await ctx.tween(
+          (y) => window.scrollTo({ top: y, behavior: 'instant' }),
+          startY,
+          endY,
+          descentDuration,
+          'inOutCubic',
+        )
 
         ctx.setMessage('Auto, Midnight, Sunset, Aurora, Vinyl, Dark, Light, Transparent, Custom.')
         await ctx.delay(2300)
@@ -607,7 +617,9 @@ const demoSteps: DemoStep[] = [
         const startY = window.scrollY
         const fastDuration = Math.max(700, Math.min(1400, 350 + Math.abs(targetY - startY) * 0.4))
         await ctx.tween(
-          (y) => window.scrollTo(0, y),
+          // 'instant' bypasses the CSS smooth behavior — the tween IS
+          // the easing (same fix as the other tour tweens, round-26).
+          (y) => window.scrollTo({ top: y, behavior: 'instant' }),
           startY,
           targetY,
           fastDuration * 1.5,
