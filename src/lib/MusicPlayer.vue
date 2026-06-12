@@ -50,6 +50,7 @@ const AMBIENT_BAR_STYLES: { color: string }[] = (() => {
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { Play, Pause, SkipBack, SkipForward } from 'lucide-vue-next'
 import { useAudioStore } from './useAudioStore'
+import EqBarsRow from './EqBarsRow.vue'
 import type { PulseVariant } from './shared/types'
 import { useProgressRing } from './shared/useProgressRing'
 
@@ -428,11 +429,9 @@ onUnmounted(() => {
       <div class="mp__top">
         <div class="mp__now">
           <span class="mp__eq" aria-hidden="true">
-            <i
-              v-for="(v, idx) in store.eqBars"
-              :key="idx"
-              :style="{ '--bar-y': store.isPlaying ? Math.max(0.15, v) : 0.15 }"
-            ></i>
+            <!-- v2.3.5 — isolated child : eq ticks no longer re-render
+                 this whole component (see EqBarsRow.vue). -->
+            <EqBarsRow :floor="0.15" idle-when-paused />
           </span>
           <span class="mp__now-label">NOW PLAYING</span>
         </div>
@@ -517,7 +516,7 @@ onUnmounted(() => {
         <Play v-else />
       </div>
       <span class="mp__fab-eq" :class="{ 'mp__fab-eq--on': store.isPlaying }">
-        <i v-for="(v, idx) in store.eqBars" :key="idx" :style="{ '--bar-y': Math.max(0.2, v) }"></i>
+        <EqBarsRow :floor="0.2" />
       </span>
       <svg
         class="mp__fab-ring"
@@ -870,7 +869,7 @@ onUnmounted(() => {
 .mp__fab-eq--on {
   opacity: 1;
 }
-.mp__fab-eq i {
+.mp__fab-eq :deep(i) {
   display: block;
   width: 2px;
   height: 100%; /* fixed height — animate via scaleY */
@@ -1219,7 +1218,7 @@ onUnmounted(() => {
 }
 /* EQ bars locked to Spotify green for brand consistency.
    Themes (accent override, variant) do NOT touch this color. */
-.mp__eq i {
+.mp__eq :deep(i) {
   display: block;
   width: var(--pulse-eq-w);
   height: 100%; /* fixed; animate via scaleY for GPU compositing */
@@ -1484,7 +1483,7 @@ onUnmounted(() => {
   .mp__ambient,
   .mp__ambient i,
   .mp__eq i,
-  .mp__fab-eq i {
+  .mp__fab-eq :deep(i) {
     transition: none !important;
   }
   .mp__resize {

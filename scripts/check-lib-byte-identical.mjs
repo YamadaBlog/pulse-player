@@ -31,7 +31,7 @@
 import { execFileSync } from 'node:child_process'
 import process from 'node:process'
 
-const BASELINE_REF = process.env.PULSE_LIB_BASELINE_REF ?? 'v2.3.4'
+const BASELINE_REF = process.env.PULSE_LIB_BASELINE_REF ?? 'v2.3.5'
 const TARGET_REF = process.env.PULSE_LIB_TARGET_REF ?? 'HEAD'
 const LIB_PATH = 'src/lib/'
 
