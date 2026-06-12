@@ -516,7 +516,6 @@ const demoSteps: DemoStep[] = [
       if (variantsEl && firstCell) {
         const variantsRect = variantsEl.getBoundingClientRect()
         const firstCellRect = firstCell.getBoundingClientRect()
-        const sectionAbsoluteTop = variantsRect.top + window.scrollY
         const sectionAbsoluteBottom = variantsRect.bottom + window.scrollY
         const firstCellAbsoluteBottom = firstCellRect.bottom + window.scrollY
 
