@@ -8,3 +8,5 @@ docs/screenshots
 # (each one gets its own .prettierrc when promoted out of scaffold).
 packages
 apps
+# Round-14 — pre-rendered player-shell captures (binary WebP + generated manifest)
+src/assets/shells

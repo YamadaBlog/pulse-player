@@ -1,0 +1,77 @@
+{
+  "mood-auto": {
+    "w": 960,
+    "h": 368,
+    "ratio": 2.6087
+  },
+  "mood-vinyl": {
+    "w": 960,
+    "h": 368,
+    "ratio": 2.6087
+  },
+  "mood-sunset": {
+    "w": 960,
+    "h": 368,
+    "ratio": 2.6087
+  },
+  "mood-midnight": {
+    "w": 960,
+    "h": 368,
+    "ratio": 2.6087
+  },
+  "mood-aurora": {
+    "w": 960,
+    "h": 368,
+    "ratio": 2.6087
+  },
+  "mood-dark": {
+    "w": 960,
+    "h": 368,
+    "ratio": 2.6087
+  },
+  "mood-light": {
+    "w": 960,
+    "h": 368,
+    "ratio": 2.6087
+  },
+  "mood-transparent": {
+    "w": 960,
+    "h": 368,
+    "ratio": 2.6087
+  },
+  "mood-custom-brown": {
+    "w": 960,
+    "h": 368,
+    "ratio": 2.6087
+  },
+  "width-320": {
+    "w": 640,
+    "h": 288,
+    "ratio": 2.2222
+  },
+  "width-480": {
+    "w": 960,
+    "h": 368,
+    "ratio": 2.6087
+  },
+  "width-720": {
+    "w": 1440,
+    "h": 488,
+    "ratio": 2.9508
+  },
+  "face-front-auto": {
+    "w": 920,
+    "h": 360,
+    "ratio": 2.5556
+  },
+  "face-back-sunset": {
+    "w": 920,
+    "h": 360,
+    "ratio": 2.5556
+  },
+  "phone-auto": {
+    "w": 680,
+    "h": 300,
+    "ratio": 2.2667
+  }
+}

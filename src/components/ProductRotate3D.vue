@@ -34,7 +34,18 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { MusicPlayer } from '../lib'
+import PlayerShell from './PlayerShell.vue'
+import shellManifest from '../assets/shells/manifest.json'
+
+// Round-14 — both cube faces are decorative during the scroll-driven
+// rotation : full instances replaced by pre-rendered shells.
+const shellSrc = import.meta.glob('../assets/shells/face-*.webp', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>
+const faceShell = (n: string) => shellSrc[`../assets/shells/face-${n}.webp`]
+const faceRatio = (n: string) =>
+  (shellManifest as Record<string, { ratio: number }>)[`face-${n}`]?.ratio
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useResponsiveWidth } from '../composables/useResponsiveWidth'
@@ -173,11 +184,11 @@ onBeforeUnmount(() => {
       <div ref="rotatorEl" class="rotate3d__rotator">
         <!-- Front face — variant="auto" (cover-derived blue/red mood). -->
         <div class="rotate3d__face rotate3d__face--front">
-          <MusicPlayer
-            variant="auto"
-            :width="playerWidth"
-            :github-url="'https://github.com/YamadaBlog/pulse-player'"
-            :spotify-url="'https://open.spotify.com/'"
+          <PlayerShell
+            :src="faceShell('front-auto')"
+            alt="Pulse Player — auto mood (front face)"
+            :ratio="faceRatio('front-auto')"
+            :style="{ width: playerWidth + 'px' }"
           />
         </div>
 
@@ -186,11 +197,11 @@ onBeforeUnmount(() => {
              the back makes the rotation a real product flip, not a
              cosmetic spin around an empty card. -->
         <div class="rotate3d__face rotate3d__face--back" aria-hidden="true">
-          <MusicPlayer
-            variant="sunset"
-            :width="playerWidth"
-            :github-url="'https://github.com/YamadaBlog/pulse-player'"
-            :spotify-url="'https://open.spotify.com/'"
+          <PlayerShell
+            :src="faceShell('back-sunset')"
+            alt="Pulse Player — sunset mood (back face)"
+            :ratio="faceRatio('back-sunset')"
+            :style="{ width: playerWidth + 'px' }"
           />
         </div>
       </div>

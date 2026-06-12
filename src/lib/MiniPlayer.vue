@@ -21,6 +21,7 @@
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { Play, Pause, SkipForward, X } from 'lucide-vue-next'
 import { useAudioStore } from './useAudioStore'
+import EqBarsRow from './EqBarsRow.vue'
 
 import type { PulseVariant } from './shared/types'
 import { useProgressRing } from './shared/useProgressRing'
@@ -385,11 +386,9 @@ onUnmounted(() => {
           </div>
 
           <span v-if="store.isPlaying" class="fab__eq" aria-hidden="true">
-            <i
-              v-for="(v, idx) in store.eqBars"
-              :key="idx"
-              :style="{ '--bar-y': Math.max(0.2, v) }"
-            ></i>
+            <!-- v2.3.5 — isolated child : eq ticks no longer re-render
+                 this whole component (see EqBarsRow.vue). -->
+            <EqBarsRow :floor="0.2" />
           </span>
 
           <svg class="fab__ring" :width="size" :height="size" :viewBox="`0 0 ${size} ${size}`">
@@ -776,7 +775,7 @@ onUnmounted(() => {
   height: 8px;
   z-index: 2;
 }
-.fab__eq i {
+.fab__eq :deep(i) {
   display: block;
   width: 2px;
   height: 100%; /* fixed height — animate via scaleY for GPU compositing */
@@ -896,7 +895,7 @@ onUnmounted(() => {
   .fab__overlay,
   .fab__ring-progress,
   .fab__menu-btn,
-  .fab__eq i {
+  .fab__eq :deep(i) {
     transition: none !important;
   }
   .fab-pop-enter-active,

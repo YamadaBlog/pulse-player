@@ -108,12 +108,10 @@ useStagedReveal({
   stagger: 0.08,
   startDelay: 0.12,
 })
-const ambientRoot = ref<HTMLElement | null>(null)
 const audioReactiveSnapshot = computed(() => ({
   eqBars: store.eqBars,
   isPlaying: store.isPlaying,
 }))
-useAudioReactiveBackdrop(audioReactiveSnapshot, ambientRoot)
 useSmoothScroll()
 
 // alpha.28 — next-gen premium motion
@@ -126,6 +124,17 @@ useKineticType(heroTitleEl)
 // effect is tighter and feels more designed than ambient.
 const heroEl = ref<HTMLElement | null>(null)
 useCursorGlow(heroEl, { radius: 360, intensity: 0.42 })
+// Round-12 FLUIDITY FIX — the audio pump used to write
+// `--pulse-ambient` on the `.app` ROOT every playing frame : a custom-
+// property change on the root invalidates style for the entire page
+// subtree. Headed-GPU bisection at 2560×1440 measured that single
+// write at ~24 ms/frame (playing p50 48.5 → 24.3 ms with the pump
+// no-opped). Every live consumer (.hero__glow, .hero__backdrop,
+// .hero__player::before) sits under the hero section, so the var is
+// written there now — same visuals, a fraction of the subtree. (The
+// FAB consumer was provably inert anyway : MiniPlayer teleports to
+// <body>, OUTSIDE the old .app root, and falls back to 0.)
+useAudioReactiveBackdrop(audioReactiveSnapshot, heroEl)
 // Scroll parallax on hero backdrop (subtle depth)
 const heroBackdropEl = ref<HTMLElement | null>(null)
 useScrollParallax(heroBackdropEl, { depth: 50 })
@@ -255,11 +264,28 @@ const SHOWCASE_ACCENTS: Partial<Record<MusicPlayerVariant, string>> = {
 const showcaseAccent = computed(
   () => showcaseParams()?.get('a') ?? SHOWCASE_ACCENTS[showcaseVariant.value],
 )
+// Round-14 shell pipeline — extra showcase params so the capture rig
+// (scripts/generate-player-shells.mjs) can render every demo-card
+// configuration :
+//   &w=480       → explicit :width passed to the player
+//   &bg=<css>    → customBackground (URL-encoded CSS, custom variant)
+//   &t=0         → track index (demo cards show track 0)
+//   &clean=1     → hide the showcase backdrop (alpha captures)
+const showcaseWidth = computed(() => {
+  const w = showcaseParams()?.get('w')
+  return w ? Number(w) : undefined
+})
+const showcaseBg = computed(() => showcaseParams()?.get('bg') ?? undefined)
+const showcaseClean = computed(() => showcaseParams()?.has('clean') ?? false)
 
 // Showcase mode starts on track 2 (white "a couple of good days" cover —
-// gives the backdrop a warm cream palette that reads cleanly on README).
+// gives the backdrop a warm cream palette that reads cleanly on README)
+// unless the capture rig pins a track via &t=.
 onMounted(() => {
-  if (showcase.value) store.loadTrack(1)
+  if (showcase.value) {
+    const t = showcaseParams()?.get('t')
+    store.loadTrack(t !== null && t !== undefined ? Number(t) : 1)
+  }
 })
 
 // ─── Interactive size slider ───────────────────────────────────
@@ -895,18 +921,25 @@ const hero = computed(() => ({
 
 <template>
   <CinematicIntro v-if="!showcase" />
-  <div class="app" ref="ambientRoot">
+  <div class="app">
     <!-- ═══════════════════════════════════════════════════════════════
          SHOWCASE — clean hero capture for the README. Activate with
          `?showcase=1`. Renders the player centered over a blurred
          cover-art backdrop with rounded corners — no chrome, no text.
          ═══════════════════════════════════════════════════════════════ -->
-    <section v-if="showcase" class="showcase" :style="hero">
-      <div class="showcase__backdrop" aria-hidden="true"></div>
+    <section
+      v-if="showcase"
+      class="showcase"
+      :style="hero"
+      :class="{ 'showcase--clean': showcaseClean }"
+    >
+      <div v-if="!showcaseClean" class="showcase__backdrop" aria-hidden="true"></div>
       <div class="showcase__player">
         <MusicPlayer
           :variant="showcaseVariant"
           :accent-color="showcaseAccent"
+          :width="showcaseWidth"
+          :custom-background="showcaseBg"
           github-url="https://github.com/YamadaBlog/pulse-player"
           spotify-url="https://open.spotify.com/"
         />
@@ -1286,6 +1319,11 @@ code {
   overflow: hidden;
   padding: clamp(24px, 6vw, 80px) clamp(20px, 5vw, 64px);
 }
+/* Round-14 capture rig — &clean=1 : fully transparent stage so element
+   screenshots of the player keep their alpha (transparent variant). */
+.showcase--clean {
+  background: transparent;
+}
 .showcase__backdrop {
   position: absolute;
   inset: -40px;
@@ -1334,9 +1372,11 @@ code {
   opacity: 0.38;
   z-index: -2;
   transform: scale(1.18);
+  /* Round-12 — `opacity` removed from this transition list: it is now
+     pumped per-frame by `--pulse-ambient` (see the motion layer below)
+     and a 600 ms transition would queue a fresh animation per write. */
   transition:
     background-image 0.6s ease,
-    opacity 0.6s ease,
     filter 0.6s ease;
 }
 .hero__backdrop::after {
@@ -1901,6 +1941,27 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   width: min(86vw, 1880px);
   margin: 0 auto;
   padding: clamp(60px, 6vw, 140px) clamp(24px, 3vw, 72px);
+  /* Round-12b FLUIDITY — the page is ~20 700 px tall with 1 900 DOM
+     nodes, 74 blurred layers and 87 promoted layers. content-visibility
+     lets the browser SKIP style/layout/paint for every offscreen plain
+     section (the 3 pinned showcases — .reveal, .rotate3d,
+     .phone-showcase — keep their own classes and are NOT affected, so
+     ScrollTrigger pin measurements stay exact). `auto` remembers the
+     real height after first render ; the 1100px estimate only seeds
+     the initial scrollbar. In-section animations are
+     IntersectionObserver-driven and keep working (intersection is
+     still computed for c-v subtrees). */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1100px;
+}
+/* The three pinned ScrollTrigger showcases also carry `.section` —
+   exempt them : pin spacers + scrub measurements need real layout at
+   refresh time, and `content-visibility` containment would skew them. */
+.reveal,
+.rotate3d,
+.phone-showcase {
+  content-visibility: visible;
+  contain-intrinsic-size: none;
 }
 .section--narrow {
   width: min(86vw, 1280px);
@@ -2415,23 +2476,28 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
 }
 
 .hero__glow {
-  /* alpha.30 — audit said the previous amplitude (1.0 → 1.06 scale,
-     ×1.15 brightness) read as "barely there" during playback. New:
-     1.0 → 1.12 scale, ×1.30 brightness. Still under "strobe" threshold
-     because the smoothing factor is 0.18/frame. */
+  /* Round-12 FLUIDITY FIX — the alpha.30 pump animated `filter:
+     brightness()` via the per-frame `--pulse-ambient` write. `filter`
+     is not compositor-animatable: each frame re-rasterised this
+     viewport-sized gradient on the main thread. Measured at 2560×1440:
+     scroll-while-playing p50 = 100 ms/frame (10 fps, 99 % janky).
+     The pump now drives `transform: scale` + `opacity` only — both
+     compositor-friendly on a promoted layer. */
   transform: scale(calc(1 + var(--pulse-ambient) * 0.12));
-  filter: brightness(calc(1 + var(--pulse-ambient) * 0.3));
-  transition:
-    transform 60ms linear,
-    filter 60ms linear;
+  opacity: calc(1 - var(--pulse-ambient) * 0.15);
+  will-change: transform, opacity;
 }
 
 .hero__backdrop {
-  /* alpha.30 — saturation pump doubled (×0.25 → ×0.5) so the cover-
-     derived backdrop visibly vibrates with the music. */
-  filter: saturate(calc(1 + var(--pulse-ambient) * 0.5))
-    brightness(calc(1 + var(--pulse-ambient) * 0.16));
-  transition: filter 60ms linear;
+  /* Round-12 FLUIDITY FIX — this rule used to REPLACE the base
+     blur(110px) filter with a per-frame saturate()/brightness() calc
+     (plus `transition: filter 60ms`), forcing a full re-raster of the
+     hero-sized cover image every frame while audio played. The
+     "vibrates with the music" read is preserved as an opacity pump on
+     the same layer — compositor-only: the backdrop breathes brighter
+     on peaks because more of it shows through. */
+  opacity: calc(0.38 + var(--pulse-ambient) * 0.16);
+  will-change: opacity;
 }
 
 /* Apple-style "light sweep" on the primary CTA hover.
@@ -2803,12 +2869,15 @@ samp,
   --scroll-progress: 0;
 }
 .hero__title {
-  /* font-variation-settings drives the wght axis on Geist Variable.
-     650 → 800 cleanly over the scroll progress 0..1. */
-  font-variation-settings: 'wght' calc(650 + var(--scroll-progress, 0) * 150);
-  /* Prevent FOUT jank when the variable font swaps in. */
+  /* Round-12 FLUIDITY FIX — the scroll-driven wght axis
+     (calc(650 + var(--scroll-progress) * 150)) re-shaped and re-laid-
+     out the ~96 px headline on every scrolled frame :
+     font-variation-settings is among the most expensive properties to
+     animate (full text relayout + repaint). The narrative gain did not
+     survive the measured cost — static weight ; the kinetic-char
+     entrance keeps the typographic personality. */
+  font-variation-settings: 'wght' 700;
   font-synthesis: none;
-  transition: font-variation-settings 80ms linear;
 }
 
 /* Apple Liquid Glass — applied to the FAB chrome ONLY, per the audit's

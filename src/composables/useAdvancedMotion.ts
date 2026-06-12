@@ -26,6 +26,49 @@
 
 import { onBeforeUnmount, onMounted, type Ref } from 'vue'
 
+// ─── 0. Shared visibility gate (round-12 fluidity fix) ──────────────
+//
+// Every per-frame loop in this file used to run UNCONDITIONALLY from
+// mount to unmount — getBoundingClientRect() reads + style writes at
+// 60 Hz for sections that were nowhere near the viewport. Measured at
+// 2560×1440 (prod build, paused, resting at the hero): p50 frame time
+// 100 ms — 10 fps at IDLE — dominated by raster work from offscreen
+// blurred/blended layers being animated (5 orbit orbs at blur(60px)
+// + mix-blend screen, time-stepped every frame).
+//
+// `runWhileVisible` wraps a rAF loop in an IntersectionObserver: the
+// loop runs ONLY while the target intersects the viewport (plus a
+// small margin so animations are already moving when they enter).
+// Returns a disposer.
+function runWhileVisible(el: HTMLElement, tick: FrameRequestCallback): () => void {
+  let raf = 0
+  let running = false
+  const loop: FrameRequestCallback = (t) => {
+    if (!running) return
+    tick(t)
+    raf = requestAnimationFrame(loop)
+  }
+  const io = new IntersectionObserver(
+    ([entry]) => {
+      const shouldRun = entry.isIntersecting
+      if (shouldRun && !running) {
+        running = true
+        raf = requestAnimationFrame(loop)
+      } else if (!shouldRun && running) {
+        running = false
+        cancelAnimationFrame(raf)
+      }
+    },
+    { rootMargin: '120px' },
+  )
+  io.observe(el)
+  return () => {
+    running = false
+    cancelAnimationFrame(raf)
+    io.disconnect()
+  }
+}
+
 // ─── 1. useScrollProgress ────────────────────────────────────────────
 
 /**
@@ -42,21 +85,7 @@ import { onBeforeUnmount, onMounted, type Ref } from 'vue'
  * everything from sequence frames to text masks to camera positions).
  */
 export function useScrollProgress(target: Ref<HTMLElement | null>): void {
-  let raf = 0
-
-  const update = () => {
-    raf = requestAnimationFrame(update)
-    const el = target.value
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    const vh = window.innerHeight
-    // Progress reaches 0 when the element's top hits the bottom of
-    // the viewport, 1 when its bottom hits the top.
-    const span = rect.height + vh
-    const traversed = vh - rect.top
-    const p = Math.max(0, Math.min(1, traversed / span))
-    el.style.setProperty('--scroll-progress', p.toFixed(4))
-  }
+  let dispose: (() => void) | null = null
 
   onMounted(() => {
     if (typeof window === 'undefined') return
@@ -64,11 +93,29 @@ export function useScrollProgress(target: Ref<HTMLElement | null>): void {
       target.value?.style.setProperty('--scroll-progress', '0.5')
       return
     }
-    raf = requestAnimationFrame(update)
+    const el = target.value
+    if (!el) return
+    // Round-12 fluidity : visibility-gated + scroll-delta-gated. The
+    // value only changes when the page scrolls (or resizes), so the
+    // rect read + style write are skipped on static frames — this loop
+    // used to force a layout EVERY frame for the page's lifetime.
+    let lastScrollY = -1
+    let lastVh = -1
+    dispose = runWhileVisible(el, () => {
+      const vh = window.innerHeight
+      if (window.scrollY === lastScrollY && vh === lastVh) return
+      lastScrollY = window.scrollY
+      lastVh = vh
+      const rect = el.getBoundingClientRect()
+      const span = rect.height + vh
+      const traversed = vh - rect.top
+      const p = Math.max(0, Math.min(1, traversed / span))
+      el.style.setProperty('--scroll-progress', p.toFixed(4))
+    })
   })
 
   onBeforeUnmount(() => {
-    if (raf) cancelAnimationFrame(raf)
+    dispose?.()
   })
 }
 
@@ -98,15 +145,20 @@ export function useScrollKineticWave(
   target: Ref<HTMLElement | null>,
   opts: KineticWaveOptions = {},
 ): void {
-  let raf = 0
+  let dispose: (() => void) | null = null
   let chars: HTMLSpanElement[] = []
   const amplitude = opts.amplitude ?? 24
   const period = opts.period ?? 6
 
-  const tick = () => {
-    raf = requestAnimationFrame(tick)
-    const el = target.value
-    if (!el || !chars.length) return
+  // Round-12 fluidity : the wave phase depends ONLY on scroll position,
+  // so static frames skip the rect read + N char-transform writes
+  // (this used to be a forced layout + ~30 style writes per frame, for
+  // the whole page lifetime, even with the headline offscreen).
+  let lastScrollY = -1
+  const tick = (el: HTMLElement) => {
+    if (!chars.length) return
+    if (window.scrollY === lastScrollY) return
+    lastScrollY = window.scrollY
     const rect = el.getBoundingClientRect()
     const vh = window.innerHeight
     const span = rect.height + vh
@@ -152,11 +204,11 @@ export function useScrollKineticWave(
 
     if (typeof window === 'undefined') return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    raf = requestAnimationFrame(tick)
+    dispose = runWhileVisible(el, () => tick(el))
   })
 
   onBeforeUnmount(() => {
-    if (raf) cancelAnimationFrame(raf)
+    dispose?.()
   })
 }
 
@@ -191,7 +243,7 @@ export function useScrollOrbitField(
   target: Ref<HTMLElement | null>,
   opts: OrbitFieldOptions = {},
 ): void {
-  let raf = 0
+  let dispose: (() => void) | null = null
   let orbs: HTMLDivElement[] = []
   const count = opts.count ?? 5
   const maxRadius = opts.maxRadius ?? 28
@@ -203,15 +255,32 @@ export function useScrollOrbitField(
     '#06B6D4', // cyan for variety
   ]
 
-  const tick = () => {
-    raf = requestAnimationFrame(tick)
-    const el = target.value
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    const vh = window.innerHeight
-    const span = rect.height + vh
-    const traversed = vh - rect.top
-    const p = Math.max(0, Math.min(1, traversed / span))
+  // Round-12 fluidity — this loop was the single worst idle cost on
+  // the page : 5 orbs of ~380×380 px, each blur(60px) + mix-blend
+  // screen, re-transformed EVERY frame from mount to unmount (time-
+  // based, so never at rest), even with the section far offscreen.
+  // Moving blended+blurred layers forces large re-composites per
+  // frame ; the idle-cost bisection measured the page resting at the
+  // hero at p50 = 100 ms/frame, and hiding decorations like these
+  // recovered most of it. Fixes :
+  //   1. visibility-gated (runWhileVisible) — zero cost offscreen ;
+  //   2. orbit stepped at 30 Hz instead of 60 — the 4 s-period drift
+  //      is imperceptible at half rate, halves the composite load ;
+  //   3. rect read only when scroll moved (radius/speed input).
+  let lastScrollY = -1
+  let p = 0
+  let frameToggle = false
+  const tick = (el: HTMLElement) => {
+    frameToggle = !frameToggle
+    if (frameToggle) return // 30 Hz
+    if (window.scrollY !== lastScrollY) {
+      lastScrollY = window.scrollY
+      const rect = el.getBoundingClientRect()
+      const vh = window.innerHeight
+      const span = rect.height + vh
+      const traversed = vh - rect.top
+      p = Math.max(0, Math.min(1, traversed / span))
+    }
     // Time t advances at a base rate + boosted by scroll progress.
     const t = performance.now() / 4000 + p * Math.PI
     for (let i = 0; i < orbs.length; i++) {
@@ -248,11 +317,11 @@ export function useScrollOrbitField(
       })
       return
     }
-    raf = requestAnimationFrame(tick)
+    dispose = runWhileVisible(el, () => tick(el))
   })
 
   onBeforeUnmount(() => {
-    if (raf) cancelAnimationFrame(raf)
+    dispose?.()
     orbs.forEach((o) => o.remove())
     orbs = []
   })

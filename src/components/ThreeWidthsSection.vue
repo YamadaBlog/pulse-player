@@ -14,7 +14,19 @@
      ≥ 1440 px against those selectors.
      ════════════════════════════════════════════════════════════════ -->
 <script setup lang="ts">
-import { MusicPlayer } from '../lib'
+import PlayerShell from './PlayerShell.vue'
+import shellManifest from '../assets/shells/manifest.json'
+
+// Round-14 — this section is a static width comparison : 3 full
+// MusicPlayer instances replaced by pre-rendered shells (same pixels,
+// zero engine/blur cost). Regenerate via `npm run generate:shells`.
+const shellSrc = import.meta.glob('../assets/shells/width-*.webp', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>
+const shellFor = (w: number) => shellSrc[`../assets/shells/width-${w}.webp`]
+const shellRatio = (w: number) =>
+  (shellManifest as Record<string, { ratio: number }>)[`width-${w}`]?.ratio
 
 const responsiveWidths = [320, 480, 720] as const
 </script>
@@ -35,11 +47,7 @@ const responsiveWidths = [320, 480, 720] as const
       <div v-for="w in responsiveWidths" :key="w" class="responsive__cell">
         <div class="responsive__rule">{{ w }} px</div>
         <div class="responsive__frame" :style="{ width: w + 'px' }">
-          <MusicPlayer
-            variant="auto"
-            :github-url="'https://github.com/YamadaBlog/pulse-player'"
-            :spotify-url="'https://open.spotify.com/'"
-          />
+          <PlayerShell :src="shellFor(w)" :alt="`Pulse Player at ${w} px`" :ratio="shellRatio(w)" />
         </div>
       </div>
     </div>

@@ -38,11 +38,21 @@ const canvas = ref<HTMLCanvasElement | null>(null)
 
 let raf = 0
 let ro: ResizeObserver | null = null
+let io: IntersectionObserver | null = null
+let visible = true
+let paintToggle = false
 const smoothed: number[] = []
 // Frame-cached canvas-space gradient (audit №5 P2) — see render().
 const gradCache: { h: number; grad: CanvasGradient | null } = { h: 0, grad: null }
 
 const render = () => {
+  // Round-12 fluidity — visibility gate : stop redrawing 64 bars per
+  // frame once the visualiser is scrolled out of view (the loop used
+  // to run for the page's whole lifetime). The IO callback restarts it.
+  if (!visible) {
+    raf = 0
+    return
+  }
   raf = requestAnimationFrame(render)
   const c = canvas.value
   if (!c) return
@@ -104,6 +114,14 @@ const render = () => {
     const k = target > smoothed[i] ? 0.45 : 0.1
     smoothed[i] += (target - smoothed[i]) * k
   }
+
+  // Round-12 fluidity — PAINT at 30 Hz (smoothing math stays at 60).
+  // Every canvas damage forces a re-composite of the full-width
+  // blended strip (mix-blend screen over the hero backdrop) plus its
+  // blurred wash : skipping every second paint halves that composite
+  // load, and a 64-bar meter at 30 fps is visually indistinguishable.
+  paintToggle = !paintToggle
+  if (paintToggle) return
 
   ctx.clearRect(0, 0, w, h)
   const dpr = Math.min(2, window.devicePixelRatio || 1)
@@ -168,6 +186,16 @@ onMounted(() => {
   ro = new ResizeObserver(sync)
   if (c.parentElement) ro.observe(c.parentElement)
 
+  io = new IntersectionObserver(
+    ([entry]) => {
+      const was = visible
+      visible = entry.isIntersecting
+      if (visible && !was && raf === 0) raf = requestAnimationFrame(render)
+    },
+    { rootMargin: '60px' },
+  )
+  io.observe(c)
+
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     // alpha.37 — paint a STATIC spectrum silhouette (same formula as
     // the idle branch of render()) so reduced-motion users still see
@@ -213,8 +241,10 @@ onMounted(() => {
   raf = requestAnimationFrame(render)
 })
 onBeforeUnmount(() => {
+  visible = false
   if (raf) cancelAnimationFrame(raf)
   ro?.disconnect()
+  io?.disconnect()
 })
 </script>
 
