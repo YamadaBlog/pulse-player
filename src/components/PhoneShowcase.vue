@@ -240,6 +240,7 @@ onBeforeUnmount(() => {
               <div ref="screenInnerEl" class="phone__screen-inner">
                 <div class="phone__widget">
                   <PlayerShell
+                    eager
                     :src="phoneShellSrc"
                     alt="Pulse Player widget inside a phone screen"
                     :ratio="phoneShellRatio"

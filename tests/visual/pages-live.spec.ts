@@ -46,6 +46,22 @@ test.describe('GitHub Pages — deployed demo smoke', () => {
     await expect(page.locator('.hero').first()).toBeVisible()
     expect(await page.locator('.mp').count()).toBeGreaterThan(0)
 
+    // Round-15 — the demo now ships loading="lazy" shell captures
+    // inside content-visibility sections : below-fold images stay
+    // naturalWidth=0 BY DESIGN until approached. Walk the page so
+    // every lazy image gets its load kick, settle, THEN assert —
+    // the broken-image net keeps covering ALL images (a 404 shell is
+    // still caught here and by the failedRequests assertion).
+    await page.evaluate(async () => {
+      const step = window.innerHeight
+      for (let y = 0; y <= document.body.scrollHeight; y += step) {
+        window.scrollTo(0, y)
+        await new Promise((r) => setTimeout(r, 120))
+      }
+      window.scrollTo(0, 0)
+    })
+    await page.waitForTimeout(1500)
+
     // 4. Every rendered <img> decoded — a 404 cover produces
     //    naturalWidth === 0 even when the request error was swallowed.
     const brokenImages = await page.evaluate(() =>

@@ -29,8 +29,16 @@ withDefaults(
     alt: string
     /** Intrinsic aspect ratio of the capture, width/height. */
     ratio?: number
+    /**
+     * Load eagerly instead of lazily. REQUIRED for shells inside 3D-
+     * transformed / backface-hidden contexts (rotate3d faces, phone
+     * screen) : lazy images there are never considered "near the
+     * viewport" by the browser and stay naturalWidth=0 forever —
+     * caught by the live-deploy verify job (round-15).
+     */
+    eager?: boolean
   }>(),
-  { ratio: 480 / 218 },
+  { ratio: 480 / 218, eager: false },
 )
 </script>
 
@@ -40,7 +48,7 @@ withDefaults(
     :src="src"
     :alt="alt"
     :style="{ aspectRatio: String(ratio) }"
-    loading="lazy"
+    :loading="eager ? 'eager' : 'lazy'"
     decoding="async"
     draggable="false"
   />

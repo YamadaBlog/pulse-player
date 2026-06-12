@@ -185,6 +185,7 @@ onBeforeUnmount(() => {
         <!-- Front face — variant="auto" (cover-derived blue/red mood). -->
         <div class="rotate3d__face rotate3d__face--front">
           <PlayerShell
+            eager
             :src="faceShell('front-auto')"
             alt="Pulse Player — auto mood (front face)"
             :ratio="faceRatio('front-auto')"
@@ -198,6 +199,7 @@ onBeforeUnmount(() => {
              cosmetic spin around an empty card. -->
         <div class="rotate3d__face rotate3d__face--back" aria-hidden="true">
           <PlayerShell
+            eager
             :src="faceShell('back-sunset')"
             alt="Pulse Player — sunset mood (back face)"
             :ratio="faceRatio('back-sunset')"
