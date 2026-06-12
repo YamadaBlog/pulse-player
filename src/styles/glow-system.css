@@ -97,6 +97,12 @@
     rgb(var(--glow-rose) / calc(var(--glow-opacity-soft) * 0.7)) 60%,
     transparent 100%
   );
+  /* Round-22 — blur RESTORED here (was removed round-21) : without it
+     the ellipse gradient overruns the box edges and CUTS into a hard
+     rounded RECTANGLE (user : 'les aurores sont devenues carrees').
+     This layer is STATIC (no scrub, no per-frame work) and, with
+     content-visibility gone, it rasterises ONCE — the round-21 spikes
+     came from moving/one-frame-re-rendered layers, not this one. */
   filter: blur(var(--glow-blur-md));
   mix-blend-mode: screen;
 }
@@ -154,13 +160,25 @@
    variant (sunset/midnight/aurora/vinyl). The `:has()` modern selector
    keeps the wash off neutral light/dark/transparent variants where a
    warm glow would feel out of place. Chrome 105+, Safari 15.4+,
-   Firefox 121+ (caniuse > 92 % in 2026). */
+   Firefox 121+ (caniuse > 92 % in 2026).
+
+   Round-20 — the shells (PlayerShell, pre-rendered captures) replaced
+   most live .mp instances, which silently KILLED these blooms (the
+   :has(.mp…) selector no longer matched — user report). Each selector
+   now also matches .player-shell[data-variant] so shell cells glow
+   exactly like the real component. The blooms are static rasters
+   (no per-frame work) ; content-visibility skips them offscreen. */
 
 .variants .grid__cell:has(.mp[data-variant='sunset'])::after,
+.variants .grid__cell:has(.player-shell[data-variant='sunset'])::after,
 .variants .grid__cell:has(.mp[data-variant='midnight'])::after,
+.variants .grid__cell:has(.player-shell[data-variant='midnight'])::after,
 .variants .grid__cell:has(.mp[data-variant='aurora'])::after,
+.variants .grid__cell:has(.player-shell[data-variant='aurora'])::after,
 .variants .grid__cell:has(.mp[data-variant='vinyl'])::after,
-.variants .grid__cell:has(.mp[data-variant='auto'])::after {
+.variants .grid__cell:has(.player-shell[data-variant='vinyl'])::after,
+.variants .grid__cell:has(.mp[data-variant='auto'])::after,
+.variants .grid__cell:has(.player-shell[data-variant='auto'])::after {
   content: '';
   position: absolute;
   inset: calc(var(--glow-spread-lg) * -1) calc(var(--glow-spread-md) * -1);
@@ -173,12 +191,19 @@
     rgb(var(--glow-rose) / var(--glow-opacity-soft)) 65%,
     transparent 100%
   );
+  /* Round-22 — blur RESTORED here (was removed round-21) : without it
+     the ellipse gradient overruns the box edges and CUTS into a hard
+     rounded RECTANGLE (user : 'les aurores sont devenues carrees').
+     This layer is STATIC (no scrub, no per-frame work) and, with
+     content-visibility gone, it rasterises ONCE — the round-21 spikes
+     came from moving/one-frame-re-rendered layers, not this one. */
   filter: blur(var(--glow-blur-lg));
   mix-blend-mode: screen;
 }
 
 /* Per-variant accent so the wash matches the mood mesh. */
-.variants .grid__cell:has(.mp[data-variant='sunset'])::after {
+.variants .grid__cell:has(.mp[data-variant='sunset'])::after,
+.variants .grid__cell:has(.player-shell[data-variant='sunset'])::after {
   background: radial-gradient(
     ellipse 90% 75% at center,
     rgb(var(--glow-warm) / var(--glow-opacity-strong)) 0%,
@@ -186,7 +211,8 @@
     transparent 100%
   );
 }
-.variants .grid__cell:has(.mp[data-variant='midnight'])::after {
+.variants .grid__cell:has(.mp[data-variant='midnight'])::after,
+.variants .grid__cell:has(.player-shell[data-variant='midnight'])::after {
   background: radial-gradient(
     ellipse 90% 75% at center,
     rgb(var(--glow-cool) / var(--glow-opacity-strong)) 0%,
@@ -194,7 +220,8 @@
     transparent 100%
   );
 }
-.variants .grid__cell:has(.mp[data-variant='aurora'])::after {
+.variants .grid__cell:has(.mp[data-variant='aurora'])::after,
+.variants .grid__cell:has(.player-shell[data-variant='aurora'])::after {
   background: radial-gradient(
     ellipse 90% 75% at center,
     rgb(var(--glow-aqua) / var(--glow-opacity-strong)) 0%,
@@ -202,7 +229,8 @@
     transparent 100%
   );
 }
-.variants .grid__cell:has(.mp[data-variant='vinyl'])::after {
+.variants .grid__cell:has(.mp[data-variant='vinyl'])::after,
+.variants .grid__cell:has(.player-shell[data-variant='vinyl'])::after {
   background: radial-gradient(
     ellipse 90% 75% at center,
     rgb(var(--glow-warm) / var(--glow-opacity-med)) 0%,
@@ -225,7 +253,10 @@
     rgb(var(--glow-cool) / var(--glow-opacity-soft)) 45%,
     transparent 100%
   );
-  filter: blur(var(--glow-blur-lg));
+  /* Round-21 - blur removed : gradient-only decorative layer ; the
+     radial fade is already soft and the filter forced a costly raster
+     burst when the layer (re)entered the viewport (user-reported
+     hitches at pin release + page ascent). */
   mix-blend-mode: screen;
 }
 

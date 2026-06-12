@@ -1941,27 +1941,15 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
   width: min(86vw, 1880px);
   margin: 0 auto;
   padding: clamp(60px, 6vw, 140px) clamp(24px, 3vw, 72px);
-  /* Round-12b FLUIDITY — the page is ~20 700 px tall with 1 900 DOM
-     nodes, 74 blurred layers and 87 promoted layers. content-visibility
-     lets the browser SKIP style/layout/paint for every offscreen plain
-     section (the 3 pinned showcases — .reveal, .rotate3d,
-     .phone-showcase — keep their own classes and are NOT affected, so
-     ScrollTrigger pin measurements stay exact). `auto` remembers the
-     real height after first render ; the 1100px estimate only seeds
-     the initial scrollbar. In-section animations are
-     IntersectionObserver-driven and keep working (intersection is
-     still computed for c-v subtrees). */
-  content-visibility: auto;
-  contain-intrinsic-size: auto 1100px;
-}
-/* The three pinned ScrollTrigger showcases also carry `.section` —
-   exempt them : pin spacers + scrub measurements need real layout at
-   refresh time, and `content-visibility` containment would skew them. */
-.reveal,
-.rotate3d,
-.phone-showcase {
-  content-visibility: visible;
-  contain-intrinsic-size: none;
+  /* Round-21 — content-visibility REMOVED (was round-12b). It was
+     added when the page carried 25 live player instances and 74 live
+     blur layers ; skipping offscreen sections then saved real work.
+     After the shell architecture (round-14) and the decorative-blur
+     purge (rounds 17+21), permanent rendering is cheap — and c-v's
+     remaining contribution was NEGATIVE : its one-frame re-renders
+     were precisely the user-reported 'rame d'un coup' spikes at
+     section (re)entry on ascent (zone profiling : max 191-236 ms at
+     the bottom zones, gone without it). */
 }
 .section--narrow {
   width: min(86vw, 1280px);
@@ -2245,7 +2233,8 @@ body.tour-running .mp[data-fab='true'] .mp__fab-chrome {
 }
 .responsive__frame {
   max-width: 100%;
-  filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.35));
+  /* Round-21 — drop-shadow moved into PlayerShell itself (the shadow
+     belongs to the card, and shells now ship shadow-free captures). */
 }
 
 /* ─── FAB PALETTE ──────────────────────────────────────────── */
@@ -2807,7 +2796,10 @@ samp,
   width: clamp(220px, 30vw, 380px);
   height: clamp(220px, 30vw, 380px);
   border-radius: 50%;
-  filter: blur(60px);
+  /* Round-21 - blur removed : gradient-only decorative layer ; the
+     radial fade is already soft and the filter forced a costly raster
+     burst when the layer (re)entered the viewport (user-reported
+     hitches at pin release + page ascent). */
   opacity: 0.55;
   mix-blend-mode: screen;
   /* The composable writes transform in vh units relative to the centre. */
@@ -3029,7 +3021,10 @@ samp,
     rgba(139, 92, 246, 0.14) 32%,
     transparent 62%
   );
-  filter: blur(36px);
+  /* Round-21 - blur removed : gradient-only decorative layer ; the
+     radial fade is already soft and the filter forced a costly raster
+     burst when the layer (re)entered the viewport (user-reported
+     hitches at pin release + page ascent). */
   z-index: -1;
   pointer-events: none;
   opacity: calc(0.7 + var(--pulse-ambient, 0) * 0.3);
@@ -3044,7 +3039,10 @@ samp,
   bottom: -32px;
   height: 28px;
   background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.45) 0%, transparent 70%);
-  filter: blur(12px);
+  /* Round-21 - blur removed : gradient-only decorative layer ; the
+     radial fade is already soft and the filter forced a costly raster
+     burst when the layer (re)entered the viewport (user-reported
+     hitches at pin release + page ascent). */
   z-index: -1;
   pointer-events: none;
 }

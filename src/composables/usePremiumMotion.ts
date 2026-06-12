@@ -33,7 +33,7 @@
  */
 
 import { onBeforeUnmount, onMounted, type Ref } from 'vue'
-import { isScrolling } from './useScrollActivity'
+import { isScrollingFast } from './useScrollActivity'
 import { animate, stagger } from 'motion'
 
 // ─── 1. Staged entrance ──────────────────────────────────────────────
@@ -139,7 +139,7 @@ export function useAudioReactiveBackdrop(
     // mid-scroll.
     frameToggle = !frameToggle
     if (frameToggle) return
-    if (isScrolling()) return
+    if (isScrollingFast()) return
     const el = root.value
     if (!el) return
     const e = engine.value
@@ -554,7 +554,7 @@ export function useAudioParticles(
     frameToggle = !frameToggle
     if (frameToggle) return
     // Round-18 — frozen while scrolling (same rationale as AudioBars).
-    if (isScrolling()) return
+    if (isScrollingFast()) return
     const c = canvas.value
     if (!c) return
     const ctx = c.getContext('2d')
