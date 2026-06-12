@@ -285,6 +285,11 @@ onBeforeUnmount(() => {
 /* Halo — coloured wash behind the rotator, tinted by the auto-mood
    cover. GSAP fades it in at mid-scroll. */
 .rotate3d__halo {
+  /* Round-22 user feedback ("je n'aime pas les gros effets en BG") -
+     this wash, once its blur was gone, turned into a loud hard-edged
+     colour disc. Removed outright rather than re-blurred : the section
+     reads cleaner without it. */
+  display: none;
   position: absolute;
   inset: 10% 15%;
   border-radius: 50%;
@@ -295,7 +300,10 @@ onBeforeUnmount(() => {
     rgba(255, 120, 90, 0.16) 60%,
     transparent 80%
   );
-  filter: blur(60px);
+  /* Round-21 - blur removed : gradient-only decorative layer ; the
+     radial fade is already soft and the filter forced a costly raster
+     burst when the layer (re)entered the viewport (user-reported
+     hitches at pin release + page ascent). */
   z-index: 1;
   opacity: 0.35;
   will-change: opacity, transform;
@@ -315,7 +323,10 @@ onBeforeUnmount(() => {
     rgba(0, 0, 0, 0.2) 40%,
     transparent 75%
   );
-  filter: blur(14px);
+  /* Round-21 - blur removed : gradient-only decorative layer ; the
+     radial fade is already soft and the filter forced a costly raster
+     burst when the layer (re)entered the viewport (user-reported
+     hitches at pin release + page ascent). */
   z-index: 0;
   opacity: 0.4;
   will-change: opacity, transform;
@@ -400,7 +411,10 @@ onBeforeUnmount(() => {
         rgba(236, 72, 153, 0.16) 40%,
         transparent 100%
       );
-    filter: blur(80px);
+    /* Round-21 - blur removed : gradient-only decorative layer ; the
+     radial fade is already soft and the filter forced a costly raster
+     burst when the layer (re)entered the viewport (user-reported
+     hitches at pin release + page ascent). */
     mix-blend-mode: screen;
   }
   .rotate3d__floor {

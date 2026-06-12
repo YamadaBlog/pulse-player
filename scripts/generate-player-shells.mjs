@@ -32,19 +32,19 @@ mkdirSync(OUT, { recursive: true })
 /** Every decorative card on the demo page, by section. */
 const SPECS = [
   // Pick a mood — 9 cards (PickAMoodSection.vue variant specs).
-  { name: 'mood-auto', v: 'auto', w: 480 },
-  { name: 'mood-vinyl', v: 'vinyl', a: '#C8A97E', w: 480 },
-  { name: 'mood-sunset', v: 'sunset', a: '#F59E0B', w: 480 },
-  { name: 'mood-midnight', v: 'midnight', a: '#8B5CF6', w: 480 },
-  { name: 'mood-aurora', v: 'aurora', a: '#06B6D4', w: 480 },
-  { name: 'mood-dark', v: 'dark', w: 480 },
-  { name: 'mood-light', v: 'light', a: '#6750A4', w: 480 },
-  { name: 'mood-transparent', v: 'transparent', w: 480, alpha: true },
+  { name: 'mood-auto', v: 'auto', w: 536 },
+  { name: 'mood-vinyl', v: 'vinyl', a: '#C8A97E', w: 536 },
+  { name: 'mood-sunset', v: 'sunset', a: '#F59E0B', w: 536 },
+  { name: 'mood-midnight', v: 'midnight', a: '#8B5CF6', w: 536 },
+  { name: 'mood-aurora', v: 'aurora', a: '#06B6D4', w: 536 },
+  { name: 'mood-dark', v: 'dark', w: 536 },
+  { name: 'mood-light', v: 'light', a: '#6750A4', w: 536 },
+  { name: 'mood-transparent', v: 'transparent', w: 536, alpha: true },
   {
     name: 'mood-custom-brown',
     v: 'custom',
     a: '#E8A87C',
-    w: 480,
+    w: 536,
     bg: 'linear-gradient(135deg, #2c1610 0%, #4a2c1f 45%, #6b4226 100%)',
   },
   // Three widths — auto variant at the three demo breakpoints.
@@ -84,15 +84,39 @@ for (const s of SPECS) {
   if (s.w) q.set('w', String(s.w))
   if (s.bg) q.set('bg', s.bg)
   await page.goto(url(q.toString()), { waitUntil: 'networkidle' })
-  // Transparent page so alpha captures stay alpha.
-  await page.addStyleTag({ content: 'html,body{background:transparent!important}' })
+  // Round-20 user report ("coins noirs") — the first pipeline only
+  // cleared html/body, but `.app` (and the showcase stage) kept their
+  // dark backgrounds BEHIND the player, so omitBackground had nothing
+  // transparent to reveal : every capture shipped opaque corners
+  // (hasAlpha=false). Clear the WHOLE ancestor chain — the rounded
+  // card then keeps true alpha corners.
+  await page.addStyleTag({
+    content:
+      'html,body,#app,.app,.showcase,.showcase__player{background:transparent!important}' +
+      '.app::before,.app::after,.showcase::before,.showcase::after{display:none!important}' +
+      // Round-21 ('coins sombres' follow-up) : the card's own
+      // box-shadow paints INSIDE the screenshot rect beyond the
+      // rounded corners (alpha~18 black pixels). Kill it at capture
+      // time — PlayerShell re-creates it at display time with
+      // drop-shadow, which follows the alpha (i.e. the radius).
+      '.showcase .mp{box-shadow:none!important}',
+  })
   await page.waitForSelector('.showcase .mp', { timeout: 15000 })
   // Let the cover image decode + the card settle.
   await page.waitForTimeout(1200)
   const el = page.locator('.showcase .mp').first()
   const png = await el.screenshot({ omitBackground: true, type: 'png' })
-  const img = sharp(png)
-  const meta = await img.metadata()
+  // Round-21 — ALPHA EROSION : some component-internal overlay paints
+  // a faint veil (alpha ~18) across the whole rect, including the
+  // corners beyond the border-radius — the user's residual 'coins
+  // sombres' on light backdrops. Squash any alpha below 32 to 0
+  // (nothing legitimate in the chrome sits under ~12 % opacity ; the
+  // glassy `transparent` variant lives well above it).
+  const rawImg = sharp(png).ensureAlpha()
+  const { data, info } = await rawImg.raw().toBuffer({ resolveWithObject: true })
+  for (let i = 3; i < data.length; i += 4) if (data[i] < 32) data[i] = 0
+  const img = sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } })
+  const meta = info
   const out = join(OUT, `${s.name}.webp`)
   await img.webp({ quality: 84, alphaQuality: 90 }).toFile(out)
   manifest[s.name] = {

@@ -26,19 +26,30 @@
 let installed = false
 let scrolling = false
 let settleTimer: ReturnType<typeof setTimeout> | null = null
+let lastY = 0
+let lastT = 0
+let speed = 0 // px/s, decayed estimate
 
 const SETTLE_MS = 160
 
 function ensureListener(): void {
   if (installed || typeof window === 'undefined') return
   installed = true
+  lastY = window.scrollY
+  lastT = performance.now()
   window.addEventListener(
     'scroll',
     () => {
+      const now = performance.now()
+      const dt = Math.max(1, now - lastT)
+      speed = Math.abs(window.scrollY - lastY) / (dt / 1000)
+      lastY = window.scrollY
+      lastT = now
       scrolling = true
       if (settleTimer) clearTimeout(settleTimer)
       settleTimer = setTimeout(() => {
         scrolling = false
+        speed = 0
       }, SETTLE_MS)
     },
     { passive: true },
@@ -49,4 +60,16 @@ function ensureListener(): void {
 export function isScrolling(): boolean {
   ensureListener()
   return scrolling
+}
+
+/**
+ * Round-23 ("la page tremble") — the binary freeze was the tremor :
+ * a slow wheel scroll alternated freeze -> catch-up -> freeze on the
+ * audio cosmetics every few frames. Freezing is only worth it (and
+ * only invisible) during FAST scrolling, so consumers now gate on
+ * velocity instead : true only above `threshold` px/s (default 1500).
+ */
+export function isScrollingFast(threshold = 1500): boolean {
+  ensureListener()
+  return scrolling && speed > threshold
 }

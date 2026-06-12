@@ -690,17 +690,23 @@ body,
     flex-direction: row;
     align-items: stretch;
     gap: clamp(24px, 2vw, 48px);
-    overflow-x: visible;
-    flex-wrap: nowrap;
-    /* Centre the row in the section so the 320 frame doesn't sit
-       awkwardly far-left while the 720 stretches its size at the
-       opposite end — instead the trio reads as one cohesive group. */
+    /* Round-20 user report — between 1440 and ~1700 px the fixed
+       320+480+720 row (~1390 px + gaps) overflowed the narrow section
+       (~1200 px) and `overflow-x: auto` SLICED the 720 card at the
+       container edge. Cards must never be cut by their parents :
+       overflow stays visible (drop-shadows breathe) and the row WRAPS
+       — the 720 frame drops to its own line until the viewport gives
+       the trio enough room. */
+    overflow: visible;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: flex-start;
   }
   .responsive__cell {
     flex: 0 0 auto;
-    max-width: none;
+    /* keep 100% so a frame can still shrink-fit inside tight parents
+       instead of being clipped (its PlayerShell img scales with it). */
+    max-width: 100%;
   }
 }
 

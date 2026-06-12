@@ -143,6 +143,7 @@ const variants: VariantSpec[] = [
             :src="shellFor(v.id)"
             :alt="`Pulse Player — ${v.label} mood`"
             :ratio="shellRatio(v.id)"
+            :variant="v.variant"
           />
         </button>
         <p class="grid__caption">{{ v.caption }}</p>

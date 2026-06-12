@@ -295,6 +295,11 @@ onBeforeUnmount(() => {
 
 /* Ambient coloured wash behind the phone. */
 .phone-showcase__ambient {
+  /* Round-22 user feedback ("je n'aime pas les gros effets en BG") -
+     this wash, once its blur was gone, turned into a loud hard-edged
+     colour disc. Removed outright rather than re-blurred : the section
+     reads cleaner without it. */
+  display: none;
   position: absolute;
   inset: 6% 18%;
   border-radius: 50%;
@@ -305,7 +310,10 @@ onBeforeUnmount(() => {
     rgba(245, 90, 200, 0.16) 60%,
     transparent 80%
   );
-  filter: blur(80px);
+  /* Round-21 - blur removed : gradient-only decorative layer ; the
+     radial fade is already soft and the filter forced a costly raster
+     burst when the layer (re)entered the viewport (user-reported
+     hitches at pin release + page ascent). */
   z-index: 1;
   opacity: 0.45;
   will-change: opacity, transform;

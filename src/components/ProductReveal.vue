@@ -158,11 +158,27 @@ onMounted(() => {
       trigger: w,
       start: 'top top',
       end: 'bottom bottom',
-      scrub: 1, // tween catches up over 1 s — feels organic
+      // Round-21 — 1 s -> 0.75 s : the 1 s catch-up replayed act
+      // boundaries well after the wheel stopped ('the page keeps
+      // moving without me', worst at the release — user request to
+      // 'free the user more fluidly'). 0.5 s was measured WORSE while
+      // moving (same animation path compressed into fewer, heavier
+      // frames : pin-ascent jank 42->59 %). 0.75 s is the measured
+      // middle : shorter trailing, no per-frame overload.
+      scrub: 0.75,
       pin: s,
       pinSpacing: true,
       anticipatePin: 1,
       onUpdate: (st) => {
+        // Round-21 — act swaps are skipped while the user FLICKS
+        // through the pin (|velocity| > 3000 px/s) : each swap
+        // re-skins the live player, and a fast traverse used to fire
+        // all six re-skins back-to-back (worst on ascent : 42-59 %
+        // janky frames through the pin zone). The final low-velocity
+        // update always lands the correct act. (First tried in
+        // round-17, shelved as unprovable under whole-page variance —
+        // re-validated with per-zone profiling.)
+        if (Math.abs(st.getVelocity()) > 3000) return
         // 6 segments → segment index from progress.
         const i = Math.min(5, Math.floor(st.progress * 6))
         swapAct(i)

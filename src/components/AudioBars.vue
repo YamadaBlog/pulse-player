@@ -15,7 +15,7 @@
  */
 
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { isScrolling } from '../composables/useScrollActivity'
+import { isScrollingFast } from '../composables/useScrollActivity'
 
 interface Engine {
   eqBars: readonly number[]
@@ -55,11 +55,13 @@ const render = () => {
     return
   }
   raf = requestAnimationFrame(render)
-  // Round-18 — freeze the draw while the page scrolls : a static
-  // canvas scrolls as a cached texture (zero raster), and the eye
-  // tracks the page motion, not the bars. Resumes within one frame
-  // after the scroll settles.
-  if (isScrolling()) return
+  // Round-23 ("la page tremble") — the round-18 freeze was BINARY :
+  // any scroll event froze the bars, then they snapped back through
+  // the attack smoothing 160 ms later. A slow wheel scroll therefore
+  // alternated freeze -> catch-up -> freeze : the user-reported
+  // tremor. The freeze now only engages during FAST scrolling
+  // (> 1500 px/s), where the eye cannot track the bars anyway.
+  if (isScrollingFast()) return
   const c = canvas.value
   if (!c) return
   const ctx = c.getContext('2d')
@@ -75,49 +77,55 @@ const render = () => {
   const engine = props.engine
   const playing = engine?.isPlaying ?? false
 
-  // Upsample the 4 focal bars into N bands via cosine interpolation,
-  // plus a small symmetry curve so the visualiser feels balanced.
+  // Round-23 ("des vagues stables et calculées, ce sera plus joli") —
+  // the per-bar pseudo-random character (hash sin(i*12.9898)*43758…)
+  // made neighbours jitter independently : energetic, but noisy, and
+  // it burned a hash + ripple per bar per frame. New model : THREE
+  // superposed deterministic travelling sine waves (slow phase
+  // velocities, irrational-ish frequency ratios so the pattern never
+  // visibly repeats), modulated by the audio energy when playing.
+  // Calm, continuous, ocean-like — and cheaper : 3 sin() per bar.
+  //
+  //   idle    : signed-off silhouette + a barely-there breathing wave
+  //   playing : silhouette anchor + energy envelope × wave field
   const fft = engine?.eqBars ?? [0, 0, 0, 0]
-  // Round-7 (user feedback : "au repos elles sont très bien" mais en
-  // lecture "ça ne donne pas l'effet attendu") — the active branch used
-  // to REPLACE the idle silhouette with `base × bell`, which collapsed
-  // 64 bars onto 4 interpolated FFT values : everything rose and fell
-  // together, mushy and uniform. New model : the bars DANCE AROUND the
-  // resting silhouette instead of discarding it —
-  //   target = idle-anchor + audio energy × bell × per-bar character
-  // with per-bar character = a stable pseudo-random gain (breaks the
-  // 4-band uniformity : neighbours respond differently to the same
-  // energy) + a travelling phase so peaks ripple across the row.
-  // Asymmetric smoothing (fast attack / slow release) makes kicks SNAP
-  // and decay like a real analyser instead of the old single-constant
-  // mush.
   const tNow = performance.now() / 1000
+  // Global audio energy (mean of the 4 focal bands) — ONE smooth
+  // scalar instead of 64 independent reactions.
+  let energy = 0
+  if (playing) {
+    let sum = 0
+    for (let i = 0; i < fft.length; i++) sum += fft[i] || 0
+    energy = fft.length ? sum / fft.length : 0
+  }
   for (let i = 0; i < N; i++) {
     const t = i / (N - 1)
     // Bell curve around centre — louder at the middle bands, quieter
     // at edges. Matches the perceptual "spectrum" feel.
     const bell = Math.sin(t * Math.PI) ** 1.6
-    // Sample 2 fft channels and blend.
-    const f0 = fft[Math.floor(t * (fft.length - 1))] ?? 0
-    const f1 = fft[Math.min(fft.length - 1, Math.floor(t * (fft.length - 1)) + 1)] ?? 0
-    const blend = (Math.floor(t * (fft.length - 1)) + t) % 1
-    const base = f0 * (1 - blend) + f1 * blend
     // IDLE silhouette : static "spectrum at rest" (unchanged — the
     // user signed off on this shape).
     const idle = bell * 0.46 + Math.sin(i * 0.55) * 0.07 + Math.cos(i * 0.31) * 0.05
+    // Deterministic wave field, normalised to [0..1] : two travelling
+    // waves moving against each other + one long swell.
+    const x = t * Math.PI * 2
+    const wave =
+      0.5 +
+      0.27 * Math.sin(x * 3.0 - tNow * 1.35) +
+      0.16 * Math.sin(x * 5.2 + tNow * 0.9) +
+      0.07 * Math.sin(x * 1.3 - tNow * 0.4)
     let target
     if (playing) {
-      // Stable per-bar gain (deterministic from the index) so adjacent
-      // bars have personality ; travelling phase so energy ripples.
-      const character = 0.65 + 0.7 * Math.abs((Math.sin(i * 12.9898) * 43758.5453) % 1)
-      const ripple = 0.85 + 0.3 * Math.sin(i * 0.45 - tNow * 7)
       const anchor = Math.max(0.14, idle * 0.55)
-      target = Math.min(1, anchor + base * bell * 1.5 * character * ripple)
+      target = Math.min(1, anchor + energy * bell * (0.55 + 0.85 * wave))
     } else {
-      target = Math.max(0.18, idle)
+      // Resting silhouette with a breathing micro-swell (±0.03) so the
+      // strip feels alive without ever reading as motion.
+      target = Math.max(0.18, idle + (wave - 0.5) * 0.06)
     }
-    // Asymmetric smoothing : ~35 ms attack, ~260 ms release at 60 fps.
-    const k = target > smoothed[i] ? 0.45 : 0.1
+    // Asymmetric smoothing — slightly softer attack than before
+    // (0.45 -> 0.3) : the wave model wants continuity, not snap.
+    const k = target > smoothed[i] ? 0.3 : 0.12
     smoothed[i] += (target - smoothed[i]) * k
   }
 
@@ -295,7 +303,10 @@ onBeforeUnmount(() => {
     rgba(236, 72, 153, 0.1) 40%,
     transparent 100%
   );
-  filter: blur(40px);
+  /* Round-21 - blur removed : gradient-only decorative layer ; the
+     radial fade is already soft and the filter forced a costly raster
+     burst when the layer (re)entered the viewport (user-reported
+     hitches at pin release + page ascent). */
   mix-blend-mode: screen;
 }
 .bars__canvas {

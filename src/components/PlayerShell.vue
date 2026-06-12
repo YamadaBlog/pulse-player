@@ -37,8 +37,15 @@ withDefaults(
      * caught by the live-deploy verify job (round-15).
      */
     eager?: boolean
+    /**
+     * Mood variant of the captured component — exposed as
+     * `data-variant` so the demo glow system (glow-system.css) can
+     * bloom shell cells exactly like live `.mp[data-variant]` cards
+     * (round-20 : the blooms had silently died with the shell swap).
+     */
+    variant?: string
   }>(),
-  { ratio: 480 / 218, eager: false },
+  { ratio: 480 / 218, eager: false, variant: undefined },
 )
 </script>
 
@@ -48,6 +55,7 @@ withDefaults(
     :src="src"
     :alt="alt"
     :style="{ aspectRatio: String(ratio) }"
+    :data-variant="variant"
     :loading="eager ? 'eager' : 'lazy'"
     decoding="async"
     draggable="false"
@@ -60,9 +68,13 @@ withDefaults(
   width: 100%;
   height: auto;
   user-select: none;
-  /* The capture already contains the card's own radius + shadow ;
-     keep the element chrome-free so it composites as a plain quad. */
   border: 0;
   background: transparent;
+  /* Round-21 — the capture is now shadow-FREE (the card's box-shadow
+     used to dirty the corners beyond the radius with semi-opaque
+     black). The shadow is re-created here with drop-shadow, which
+     follows the image's alpha — i.e. the real rounded outline. Static
+     raster, never animated. */
+  filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.35));
 }
 </style>
