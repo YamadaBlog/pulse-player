@@ -29,11 +29,14 @@ export function useFloatingBob(
   opts: { amplitude?: number; period?: number } = {},
 ): void {
   let raf = 0
+  let running = false
+  let io: IntersectionObserver | null = null
   const start = performance.now()
   const amplitude = opts.amplitude ?? 6
   const period = opts.period ?? 12_000
 
   const tick = () => {
+    if (!running) return
     raf = requestAnimationFrame(tick)
     const el = target.value
     if (!el) return
@@ -45,10 +48,29 @@ export function useFloatingBob(
   onMounted(() => {
     if (typeof window === 'undefined') return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    raf = requestAnimationFrame(tick)
+    const el = target.value
+    if (!el) return
+    // Round-12 fluidity — visibility-gated : the bob used to keep its
+    // per-frame transform write alive even with the hero scrolled far
+    // out of view.
+    io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !running) {
+          running = true
+          raf = requestAnimationFrame(tick)
+        } else if (!entry.isIntersecting && running) {
+          running = false
+          cancelAnimationFrame(raf)
+        }
+      },
+      { rootMargin: '80px' },
+    )
+    io.observe(el)
   })
   onBeforeUnmount(() => {
+    running = false
     if (raf) cancelAnimationFrame(raf)
+    io?.disconnect()
   })
 }
 
@@ -138,8 +160,10 @@ export function useFirstPlayFlare(engine: Ref<PlayableEngine>): void {
   let raf = 0
 
   const watchTick = () => {
-    raf = requestAnimationFrame(watchTick)
+    // Round-12 — once fired, STOP rescheduling : this poll used to run
+    // a rAF for the page's whole lifetime after its one-shot job.
     if (fired) return
+    raf = requestAnimationFrame(watchTick)
     if (!engine.value.isPlaying) return
     fired = true
     if (typeof window === 'undefined') return

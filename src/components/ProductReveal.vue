@@ -24,6 +24,23 @@
 
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { MusicPlayer, type MusicPlayerVariant } from '../lib'
+
+// Round-14 — the mobile swipe carousel (6 more full MusicPlayer
+// instances) used to be MOUNTED on every viewport and merely hidden
+// with CSS on desktop : 6 engines + blur layers in the tree for
+// nothing. It now mounts only when the mobile media query matches
+// (reactive, so a window resize across 720 px swaps correctly).
+const isMobileViewport = ref(false)
+let mq: MediaQueryList | null = null
+const onMq = (e: MediaQueryListEvent | MediaQueryList) => {
+  isMobileViewport.value = e.matches
+}
+onMounted(() => {
+  mq = window.matchMedia('(max-width: 720px)')
+  onMq(mq)
+  mq.addEventListener('change', onMq)
+})
+onBeforeUnmount(() => mq?.removeEventListener('change', onMq))
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useResponsiveWidth } from '../composables/useResponsiveWidth'
@@ -249,7 +266,11 @@ onBeforeUnmount(() => {
          carousel : one slide per act, swipe left/right to advance.
          All 6 acts render simultaneously ; no GSAP, no pin, no scroll
          hijack. Hidden on ≥ 721 px (desktop keeps the pin scrub). -->
-    <div class="reveal__mobile-track" aria-label="Pulse — swipe through the six acts">
+    <div
+      v-if="isMobileViewport"
+      class="reveal__mobile-track"
+      aria-label="Pulse — swipe through the six acts"
+    >
       <article v-for="(act, i) in ACTS" :key="i" class="reveal__mobile-slide">
         <div class="reveal__mobile-copy">
           <p class="reveal__eyebrow">{{ act.eyebrow }}</p>

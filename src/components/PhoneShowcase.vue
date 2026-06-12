@@ -46,7 +46,13 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { MusicPlayer } from '../lib'
+import PlayerShell from './PlayerShell.vue'
+import shellManifest from '../assets/shells/manifest.json'
+import phoneShellSrc from '../assets/shells/phone-auto.webp'
+
+// Round-14 — the in-phone widget is decorative : pre-rendered shell.
+const phoneShellRatio = (shellManifest as Record<string, { ratio: number }>)['phone-auto']
+  ?.ratio
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
@@ -234,11 +240,11 @@ onBeforeUnmount(() => {
                    player so it fills the screen precisely. -->
               <div ref="screenInnerEl" class="phone__screen-inner">
                 <div class="phone__widget">
-                  <MusicPlayer
-                    variant="auto"
-                    :width="playerWidthProp"
-                    :github-url="'https://github.com/YamadaBlog/pulse-player'"
-                    :spotify-url="'https://open.spotify.com/'"
+                  <PlayerShell
+                    :src="phoneShellSrc"
+                    alt="Pulse Player widget inside a phone screen"
+                    :ratio="phoneShellRatio"
+                    :style="{ width: playerWidthProp + 'px' }"
                   />
                 </div>
                 <p class="phone__caption">Drop-in widget · Pulse Player v0.11</p>
