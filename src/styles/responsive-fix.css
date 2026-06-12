@@ -754,3 +754,19 @@ body,
     scroll-behavior: smooth;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Round-24 user report — "resize-stage / drag-stage ne sont pas
+   responsive et dépassent de la page".
+   Reproduced : dragging the corner grip pushed the player to its
+   720 px ceiling REGARDLESS of the stage width — on a 768 px tablet
+   that is +20 px past the stage card and +10 px past the viewport.
+   The lib is container-aware (ResizeObserver-driven chrome), so a CSS
+   max-width cleanly caps the inline width the drag writes : the box
+   clamps, the chrome follows, every breakpoint stays inside its
+   stage. Applies at ALL widths (the old clamp only covered ≤720 px).
+   ═══════════════════════════════════════════════════════════════════ */
+.drag-stage .mp,
+.resize-stage .mp {
+  max-width: 100% !important;
+}
