@@ -74,7 +74,10 @@ const ACTS = [
     eyebrow: 'I · Listen',
     title: 'A song you have not heard yet.',
     sub: 'Press play. The instrument wakes.',
-    variant: 'midnight' as MusicPlayerVariant,
+    // Round-25 (user request) — open frameless : the bare component
+    // floats on the stage, then the chrome materialises at act II
+    // ('The instrument'). Stronger entrance than opening on a card.
+    variant: 'transparent' as MusicPlayerVariant,
   },
   {
     eyebrow: 'II · The instrument',
