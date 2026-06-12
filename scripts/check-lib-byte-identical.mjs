@@ -104,7 +104,7 @@ for (const d of drift) {
 console.error('')
 console.error('Resolution :')
 console.error('  - If the change is intentional, bump the library version and')
-console.error('    update PULSE_LIB_BASELINE_REF (or this script\'s default).')
+console.error("    update PULSE_LIB_BASELINE_REF (or this script's default).")
 console.error('  - Otherwise revert the offending change so consumers of')
 console.error('    pulse-player@2.3.4 keep getting the same library bytes.')
 process.exit(1)

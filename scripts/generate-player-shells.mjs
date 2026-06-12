@@ -70,7 +70,10 @@ const url = (q) => `http://localhost:${PORT}/pulse-player/?showcase=1&t=0&clean=
 await new Promise((r) => setTimeout(r, 2500))
 
 const browser = await chromium.launch()
-const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 }, deviceScaleFactor: 2 })
+const ctx = await browser.newContext({
+  viewport: { width: 1400, height: 900 },
+  deviceScaleFactor: 2,
+})
 const page = await ctx.newPage()
 
 const manifest = {}
@@ -92,7 +95,11 @@ for (const s of SPECS) {
   const meta = await img.metadata()
   const out = join(OUT, `${s.name}.webp`)
   await img.webp({ quality: 84, alphaQuality: 90 }).toFile(out)
-  manifest[s.name] = { w: meta.width, h: meta.height, ratio: +(meta.width / meta.height).toFixed(4) }
+  manifest[s.name] = {
+    w: meta.width,
+    h: meta.height,
+    ratio: +(meta.width / meta.height).toFixed(4),
+  }
   console.log(`✓ ${s.name}.webp  ${meta.width}×${meta.height}`)
 }
 

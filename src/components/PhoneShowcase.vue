@@ -51,8 +51,7 @@ import shellManifest from '../assets/shells/manifest.json'
 import phoneShellSrc from '../assets/shells/phone-auto.webp'
 
 // Round-14 — the in-phone widget is decorative : pre-rendered shell.
-const phoneShellRatio = (shellManifest as Record<string, { ratio: number }>)['phone-auto']
-  ?.ratio
+const phoneShellRatio = (shellManifest as Record<string, { ratio: number }>)['phone-auto']?.ratio
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 

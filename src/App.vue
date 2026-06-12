@@ -927,7 +927,12 @@ const hero = computed(() => ({
          `?showcase=1`. Renders the player centered over a blurred
          cover-art backdrop with rounded corners — no chrome, no text.
          ═══════════════════════════════════════════════════════════════ -->
-    <section v-if="showcase" class="showcase" :style="hero" :class="{ 'showcase--clean': showcaseClean }">
+    <section
+      v-if="showcase"
+      class="showcase"
+      :style="hero"
+      :class="{ 'showcase--clean': showcaseClean }"
+    >
       <div v-if="!showcaseClean" class="showcase__backdrop" aria-hidden="true"></div>
       <div class="showcase__player">
         <MusicPlayer
