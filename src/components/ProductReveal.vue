@@ -387,7 +387,10 @@ onBeforeUnmount(() => {
   );
   mix-blend-mode: screen;
   pointer-events: none;
-  filter: blur(28px);
+  /* Round-17 — blur(28px) removed : a linear gradient is already soft,
+     and this full-width layer is tweened (yPercent/opacity) per scrub
+     frame — the live filter forced a re-raster of ~2560×550 px on the
+     way through the pin. Visually indistinguishable without it. */
   z-index: -1;
 }
 
@@ -408,7 +411,9 @@ onBeforeUnmount(() => {
   );
   mix-blend-mode: screen;
   pointer-events: none;
-  filter: blur(20px);
+  /* Round-17 — blur(20px) removed : the radial fades to transparent
+     100% already ; the filter doubled the raster cost of a layer
+     bigger than the viewport (inset -30%). */
   z-index: -1;
 }
 
@@ -472,7 +477,12 @@ onBeforeUnmount(() => {
     rgba(139, 92, 246, 0.04) 70%,
     transparent 100%
   );
-  filter: blur(60px);
+  /* Round-17 — blur(60px) removed : this halo MOVES with the product
+     (y/scale tweened every scrub frame), so the filter re-composited a
+     ~1500×900 blurred+blended layer per scrolled frame — the single
+     hottest layer of the measured reveal-flick jank (45%). The radial
+     stops below already end at transparent 100% ; widening the inner
+     stop compensates the lost softness. */
   z-index: -1;
   pointer-events: none;
 }
@@ -564,19 +574,17 @@ onBeforeUnmount(() => {
     inset: auto -10vw 0 -10vw;
     height: 28vh;
     opacity: 0.6;
-    filter: blur(36px);
+    /* Round-17 — blur removed (gradient-only layer, see desktop note) */
   }
   .reveal__flare {
     /* extend past the viewport so the wash never shows a circular cut */
     inset: -40vw -30vw -30vw -30vw;
-    filter: blur(40px);
     opacity: 0.7;
   }
   .reveal__product::before {
     /* Halo behind the centred player — extend full-bleed for the same
        no-hard-ring reason as desktop, just at mobile proportions. */
     inset: -40% -40% -50% -40%;
-    filter: blur(48px);
   }
   .reveal__stage {
     /* Spread the stage background gradients out so they cover the
@@ -669,7 +677,7 @@ onBeforeUnmount(() => {
       rgba(139, 92, 246, 0.12) 40%,
       transparent 100%
     );
-    filter: blur(40px);
+    /* Round-17 — blur removed (gradient-only, mobile slide halo) */
     z-index: -1;
     pointer-events: none;
   }

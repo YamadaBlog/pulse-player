@@ -403,7 +403,9 @@ function abortableScrollTo(
     }
     // Reduced motion → jump directly to the target Y, no smooth scroll.
     if (prefersReducedMotion()) {
-      window.scrollTo(0, targetY)
+      // 'instant' bypasses the html { scroll-behavior: smooth } added in
+      // round-16 — this branch IS the no-animation path.
+      window.scrollTo({ top: targetY, behavior: 'instant' })
       resolve()
       return
     }
@@ -428,7 +430,9 @@ function abortableScrollTo(
       if (!isPaused()) elapsed += dt
       const t = Math.min(1, elapsed / duration)
       const eased = easing(t)
-      window.scrollTo(0, startY + distance * eased)
+      // 'instant' : the tour eases manually frame-by-frame ; letting the
+      // CSS smooth behavior re-ease every step would fight it (round-16).
+      window.scrollTo({ top: startY + distance * eased, behavior: 'instant' })
       if (t < 1 && !signal.aborted) {
         raf = requestAnimationFrame(tick)
       } else if (!signal.aborted) {

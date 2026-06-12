@@ -6,7 +6,6 @@ import { useDemoSpotlight } from './composables/useDemoSpotlight'
 import {
   useStagedReveal,
   useAudioReactiveBackdrop,
-  useSmoothScroll,
   useKineticType,
   useCursorGlow,
   useScrollParallax,
@@ -15,7 +14,6 @@ import {
   // no longer needed at the App.vue top level after the P1.1 extraction.
 } from './composables/usePremiumMotion'
 import {
-  useScrollProgress,
   useScrollKineticWave,
   useScrollOrbitField,
   useMagneticHover,
@@ -91,8 +89,9 @@ const store = useAudioStore()
 
 // ─── Premium motion layer (alpha.27) ────────────────────────────
 // Apple-style staged reveal on the hero block + audio-reactive
-// ambient backdrop driven by the engine's FFT bars + Lenis smooth
-// scroll. All three respect prefers-reduced-motion and ship in the
+// ambient backdrop driven by the engine's FFT bars. NATIVE scroll
+// (Lenis removed round-16 — see usePremiumMotion.ts §3 rationale).
+// Everything respects prefers-reduced-motion and ships in the
 // DEMO PAGE only (never in @pulse-music/* tarballs). See
 // docs/setup/PREMIUM_DEMO.md for the design rationale.
 // alpha.30 cascade order — PRODUCT FIRST (Apple page discipline).
@@ -112,7 +111,6 @@ const audioReactiveSnapshot = computed(() => ({
   eqBars: store.eqBars,
   isPlaying: store.isPlaying,
 }))
-useSmoothScroll()
 
 // alpha.28 — next-gen premium motion
 // Kinetic title: split per-char + cascade
@@ -148,7 +146,6 @@ useAudioParticles(particleCanvasEl, audioReactiveSnapshot, {
 // alpha.30 — scroll-progress channel on the hero powers the
 // variable-font weight axis (Geist 650→800). The CSS consumer reads
 // --scroll-progress and drives font-variation-settings.
-useScrollProgress(heroEl)
 
 // alpha.31 — cinematic finishing touches.
 // 1. Hero player floats — subtle 12 s Y bob, 6 px amplitude.
@@ -210,7 +207,6 @@ useFirstPlayFlare(audioReactiveSnapshot)
 // orbit field with amber tertiary accent, and primary-CTA magnetic
 // hover. See docs/setup/ALPHA_29_RESEARCH.md for the source map.
 const whyPulseSectionEl = ref<HTMLElement | null>(null)
-useScrollProgress(whyPulseSectionEl)
 const whyPulseWaveEl = ref<HTMLElement | null>(null)
 // alpha.30 — wave amplitude 20→8 + period 7→11 so the kinetic dual-
 // wave reads as gentle parallax-per-glyph, NOT "drunk text" wiggle.
@@ -914,8 +910,14 @@ onUnmounted(() => {
 })
 
 // ─── Hero blurred backdrop driven by current cover ────────────
+// Round-16 : the backdrop consumes a PRE-BLURRED webp (baked by
+// scripts/generate-hero-backdrop.mjs) instead of live-blurring the
+// cover with filter: blur(110px) — that filter was the most expensive
+// rasterised layer on the page at 2K. Convention : <cover>-blur.webp
+// next to the cover asset ; falls back to the sharp cover if absent.
 const hero = computed(() => ({
   '--hero-cover': `url(${store.track.cover})`,
+  '--hero-cover-blur': `url(${store.track.cover.replace(/\.(svg|webp|png|jpg)$/, '-blur.webp')})`,
 }))
 </script>
 
@@ -1182,9 +1184,9 @@ const hero = computed(() => ({
           </div>
           <div class="why__col why__col--offset">
             <p class="why__lede why__lede--alt">
-              Scroll moves the page; the page moves with the scroll. Lenis momentum +
-              scroll-progress channels keep the impression of control — not the toy-car overshoot of
-              cheap parallax.
+              Scroll moves the page; the page moves with the scroll. Native scrolling,
+              compositor-only motion — your input lands instantly, with none of the toy-car
+              overshoot of hijacked momentum.
             </p>
           </div>
         </div>
@@ -1362,22 +1364,20 @@ code {
 .hero__backdrop {
   position: absolute;
   inset: -60px;
-  background-image: var(--hero-cover);
+  /* Round-16 — pre-blurred asset (generate:backdrop) : blur(110px) +
+     saturate + brightness are BAKED into the webp. The layer is now a
+     plain textured quad — zero live filter, zero kernel re-raster
+     during fast scrolling (this was the page's costliest layer). */
+  background-image: var(--hero-cover-blur, var(--hero-cover));
   background-size: cover;
   background-position: center;
-  /* alpha.32 VISUAL-QA — boosted blur (80 → 110) and lowered opacity
-     (0.55 → 0.38) so the auto-mood cover art behaves like a real
-     cinematic backdrop (atmospheric, not literal). */
-  filter: blur(110px) saturate(1.5) brightness(0.92);
   opacity: 0.38;
   z-index: -2;
   transform: scale(1.18);
   /* Round-12 — `opacity` removed from this transition list: it is now
      pumped per-frame by `--pulse-ambient` (see the motion layer below)
      and a 600 ms transition would queue a fresh animation per write. */
-  transition:
-    background-image 0.6s ease,
-    filter 0.6s ease;
+  transition: background-image 0.6s ease;
 }
 .hero__backdrop::after {
   /* Centre vignette so the eye lands on the player even when the

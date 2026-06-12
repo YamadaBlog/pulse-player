@@ -734,3 +734,17 @@ body,
     touch-action: pan-y;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Round-16 — NATIVE smooth anchor scrolling.
+   Lenis (JS momentum scroll) removed : native scroll is compositor-
+   threaded (jank-immune to main-thread work) and input lands with
+   zero added latency. Anchor jumps + the guided tour's scrollTo keep
+   a smooth glide via the CSS below — gated on reduced-motion, per
+   css-tricks.com/smooth-scrolling-accessibility/.
+   ═══════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}

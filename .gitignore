@@ -47,3 +47,8 @@ coverage/
 public/audio/*.webm
 public/audio/*.mp3
 public/audio/*.webp
+# EXCEPTION (round-16) : the baked hero backdrops are derived from the
+# COMMITTED MIT-licensed SVG covers (scripts/generate-hero-backdrop.mjs)
+# — full rights chain, deterministic, needed by the Pages deploy.
+!public/audio/cover-blur.webp
+!public/audio/cover2-blur.webp
