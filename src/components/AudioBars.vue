@@ -15,6 +15,7 @@
  */
 
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { isScrolling } from '../composables/useScrollActivity'
 
 interface Engine {
   eqBars: readonly number[]
@@ -54,6 +55,11 @@ const render = () => {
     return
   }
   raf = requestAnimationFrame(render)
+  // Round-18 — freeze the draw while the page scrolls : a static
+  // canvas scrolls as a cached texture (zero raster), and the eye
+  // tracks the page motion, not the bars. Resumes within one frame
+  // after the scroll settles.
+  if (isScrolling()) return
   const c = canvas.value
   if (!c) return
   const ctx = c.getContext('2d')

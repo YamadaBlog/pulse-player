@@ -33,8 +33,8 @@
  */
 
 import { onBeforeUnmount, onMounted, type Ref } from 'vue'
+import { isScrolling } from './useScrollActivity'
 import { animate, stagger } from 'motion'
-import Lenis from 'lenis'
 
 // ─── 1. Staged entrance ──────────────────────────────────────────────
 
@@ -130,8 +130,16 @@ export function useAudioReactiveBackdrop(
   let raf = 0
   let smoothed = 0
 
+  let frameToggle = false
   const tick = () => {
     raf = requestAnimationFrame(tick)
+    // Round-18 — 30 Hz (smoothing factor doubled below to keep the
+    // same time-constant) + frozen while the page scrolls : the write
+    // invalidates the hero subtree's styles, which is pure overhead
+    // mid-scroll.
+    frameToggle = !frameToggle
+    if (frameToggle) return
+    if (isScrolling()) return
     const el = root.value
     if (!el) return
     const e = engine.value
@@ -158,8 +166,8 @@ export function useAudioReactiveBackdrop(
       }
       return
     }
-    // Smooth toward target — 0.18 factor = ~150 ms decay at 60 fps.
-    smoothed += (target - smoothed) * 0.18
+    // Smooth toward target — 0.33 at 30 Hz ≈ the old 0.18 at 60 fps.
+    smoothed += (target - smoothed) * 0.33
     el.style.setProperty('--pulse-ambient', smoothed.toFixed(3))
   }
 
@@ -181,52 +189,23 @@ export function useAudioReactiveBackdrop(
   })
 }
 
-// ─── 3. Smooth scroll boot (Lenis) ───────────────────────────────────
-
-/**
- * Boots Lenis once for the page. Reduced-motion users get the native
- * scroll behaviour; everyone else gets buttery momentum scrolling that
- * doesn't break `position: sticky` or Intersection Observer.
- *
- * Returns the Lenis instance so callers can drive `.scrollTo()`.
- * Disposes on unmount — singleton per component lifecycle.
- */
-export function useSmoothScroll(): Ref<Lenis | null> {
-  const instance = { value: null as Lenis | null } as Ref<Lenis | null>
-  let rafId = 0
-
-  onMounted(() => {
-    if (
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) {
-      return
-    }
-
-    const lenis = new Lenis({
-      duration: 1.0,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // easeOutExpo
-      smoothWheel: true,
-      touchMultiplier: 1.5,
-    })
-
-    const tick = (time: number) => {
-      lenis.raf(time)
-      rafId = requestAnimationFrame(tick)
-    }
-    rafId = requestAnimationFrame(tick)
-
-    instance.value = lenis
-  })
-
-  onBeforeUnmount(() => {
-    if (rafId) cancelAnimationFrame(rafId)
-    instance.value?.destroy()
-    instance.value = null
-  })
-
-  return instance
-}
+// ─── 3. Smooth scroll — REMOVED round-16 ────────────────────────────
+//
+// Lenis (JS momentum smooth-scroll) was deleted in favour of NATIVE
+// scrolling. Measured + researched rationale :
+//   - it ran its own permanent rAF and re-dispatched scroll through
+//     the main thread, converting any main-thread work into visible
+//     scroll judder (the easing also added ~1 s of input lag — the
+//     "floaty/slow" feel reported on the 2K reference machine) ;
+//   - the 2026 consensus (NN/g disorientation findings, INP impact,
+//     CSS-Tricks accessibility guidance) is native scroll for
+//     product/storytelling pages — Apple's own product reveals run on
+//     native scroll + sticky + pre-rendered frames ;
+//   - ScrollTrigger is designed for native scrolling ; nothing here
+//     needed frame-synced scroll hijacking.
+// Smooth ANCHOR scrolling (tour, #links) is now CSS :
+//   html { scroll-behavior: smooth } gated by prefers-reduced-motion
+// (see App.vue global styles).
 
 // ─── 4. Kinetic typography — split title into chars ──────────────────
 
@@ -451,22 +430,30 @@ export function useScrollParallax(
   let lastY = 0
   const depth = opts.depth ?? 60
 
-  const onScroll = () => {
-    lastY = window.scrollY
-  }
-  const tick = () => {
-    raf = requestAnimationFrame(tick)
+  // Round-16 — scroll-event-driven instead of a permanent rAF : the
+  // loop used to write the same transform 60×/s even with the page at
+  // rest. One passive scroll listener + one rAF per scroll burst.
+  let scheduled = false
+  const apply = () => {
+    scheduled = false
     const el = target.value
     if (!el) return
     const factor = -(lastY / Math.max(1, window.innerHeight)) * depth
     el.style.transform = `translate3d(0, ${factor.toFixed(2)}px, 0)`
+  }
+  const onScroll = () => {
+    lastY = window.scrollY
+    if (!scheduled) {
+      scheduled = true
+      raf = requestAnimationFrame(apply)
+    }
   }
 
   onMounted(() => {
     if (typeof window === 'undefined') return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     window.addEventListener('scroll', onScroll, { passive: true })
-    raf = requestAnimationFrame(tick)
+    onScroll() // initial position
   })
 
   onBeforeUnmount(() => {
@@ -534,6 +521,7 @@ export function useAudioParticles(
 ): void {
   let raf = 0
   let ro: ResizeObserver | null = null
+  let io: IntersectionObserver | null = null
   type P = { x: number; y: number; vy: number; r: number; phase: number }
   const particles: P[] = []
   const count = opts.count ?? 60
@@ -552,8 +540,21 @@ export function useAudioParticles(
     }
   }
 
+  // Round-16 — visibility gate + 30 Hz : 48 arcs were redrawn every
+  // frame for the page's lifetime, music on or off, hero offscreen or
+  // not. Ambient drift is imperceptible at half rate.
+  let visible = true
+  let frameToggle = false
   const tick = () => {
+    if (!visible) {
+      raf = 0
+      return
+    }
     raf = requestAnimationFrame(tick)
+    frameToggle = !frameToggle
+    if (frameToggle) return
+    // Round-18 — frozen while scrolling (same rationale as AudioBars).
+    if (isScrolling()) return
     const c = canvas.value
     if (!c) return
     const ctx = c.getContext('2d')
@@ -613,12 +614,23 @@ export function useAudioParticles(
     sync()
     ro = new ResizeObserver(sync)
     if (c.parentElement) ro.observe(c.parentElement)
+    io = new IntersectionObserver(
+      ([entry]) => {
+        const was = visible
+        visible = entry.isIntersecting
+        if (visible && !was && raf === 0) raf = requestAnimationFrame(tick)
+      },
+      { rootMargin: '80px' },
+    )
+    io.observe(c)
     raf = requestAnimationFrame(tick)
   })
 
   onBeforeUnmount(() => {
+    visible = false
     if (raf) cancelAnimationFrame(raf)
     ro?.disconnect()
+    io?.disconnect()
   })
 }
 // touch

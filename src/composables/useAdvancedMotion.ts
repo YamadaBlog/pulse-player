@@ -69,55 +69,11 @@ function runWhileVisible(el: HTMLElement, tick: FrameRequestCallback): () => voi
   }
 }
 
-// ─── 1. useScrollProgress ────────────────────────────────────────────
-
-/**
- * Tracks the target element's scroll progress through the viewport as
- * a number in [0..1]:
- *   - 0 when the element's top hits the bottom of the viewport
- *   - 1 when the element's bottom hits the top of the viewport
- *
- * Sets a CSS custom property `--scroll-progress` on the element so the
- * CSS consumer can drive any compositable property. Zero Vue rerender.
- *
- * This is the foundation block: the same primitive that Apple's
- * scroll-driven product pages use (a single 0..1 scalar that paints
- * everything from sequence frames to text masks to camera positions).
- */
-export function useScrollProgress(target: Ref<HTMLElement | null>): void {
-  let dispose: (() => void) | null = null
-
-  onMounted(() => {
-    if (typeof window === 'undefined') return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      target.value?.style.setProperty('--scroll-progress', '0.5')
-      return
-    }
-    const el = target.value
-    if (!el) return
-    // Round-12 fluidity : visibility-gated + scroll-delta-gated. The
-    // value only changes when the page scrolls (or resizes), so the
-    // rect read + style write are skipped on static frames — this loop
-    // used to force a layout EVERY frame for the page's lifetime.
-    let lastScrollY = -1
-    let lastVh = -1
-    dispose = runWhileVisible(el, () => {
-      const vh = window.innerHeight
-      if (window.scrollY === lastScrollY && vh === lastVh) return
-      lastScrollY = window.scrollY
-      lastVh = vh
-      const rect = el.getBoundingClientRect()
-      const span = rect.height + vh
-      const traversed = vh - rect.top
-      const p = Math.max(0, Math.min(1, traversed / span))
-      el.style.setProperty('--scroll-progress', p.toFixed(4))
-    })
-  })
-
-  onBeforeUnmount(() => {
-    dispose?.()
-  })
-}
+// ─── 1. useScrollProgress — REMOVED round-16 ────────────────────────
+// Its only consumer (the hero font-variation wght axis) was deleted in
+// round-12 for fluidity ; the hook then burned a rect read + style
+// write per scrolled frame for nothing. Re-add from git history if a
+// CSS consumer ever returns.
 
 // ─── 2. useScrollKineticWave ──────────────────────────────────────────
 
