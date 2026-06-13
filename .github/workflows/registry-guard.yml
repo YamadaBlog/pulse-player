@@ -1,0 +1,33 @@
+name: Registry guard (published packages)
+
+# The regression net for the audit #5/#6 P0 (published dists importing
+# the pre-rename @pulse/* scope, undetected for weeks because CI only
+# ran on local sources). This job downloads the LIVE published tarballs
+# and fails if any ships a real stale-scope import. Scheduled weekly +
+# on demand — if it goes red, the registry is serving broken packages.
+
+on:
+  schedule:
+    - cron: '0 7 * * 1' # Mondays 07:00 UTC
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'npm dist-tag to check'
+        type: string
+        default: 'latest'
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: Stale-scope guard on the registry
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+      - name: Guard published packages
+        run: node scripts/registry-guard.mjs --tag "${{ inputs.tag || 'latest' }}"
