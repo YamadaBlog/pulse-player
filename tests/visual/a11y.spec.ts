@@ -59,4 +59,29 @@ test.describe('Vue v2.3.4 demo — Axe-core a11y scan', () => {
 
     expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([])
   })
+
+  test('hero player — PLAYING interactive state — WCAG 2.1 AA', async ({ page }) => {
+    // The two scans above cover STATIC states. This one exercises the
+    // player's INTERACTIVE a11y surface: once playing, the artwork
+    // button flips to aria-pressed="true" / aria-label="Pause", the
+    // progress slider exposes aria-valuenow/valuetext, and the EQ is
+    // live — none of which the paused scans see. Keyboard activation
+    // (focus + Enter) is a trusted gesture and position-independent.
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto('/?intro=skip')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(600)
+
+    const art = page.locator('.hero .mp__art').first()
+    await art.focus()
+    await page.keyboard.press('Enter')
+    await page.waitForTimeout(1200)
+
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .include('.hero .mp')
+      .analyze()
+
+    expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([])
+  })
 })
