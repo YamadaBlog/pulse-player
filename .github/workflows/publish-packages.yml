@@ -107,5 +107,9 @@ jobs:
           MSG="Broken: dist imports the pre-rename @pulse/* scope and fails consumer builds. Upgrade to 3.0.0-rc.2."
           for p in core web-component react svelte; do
             name=$(node -p "require('./packages/$p/package.json').name")
-            npm deprecate "$name@\"<3.0.0-rc.2\"" "$MSG" || echo "deprecate skipped for $name"
+            # The range must be ONE arg with no embedded quotes — the
+            # escaped \"<…\" form made npm read it as a literal tag name
+            # (EINVALIDTAGNAME). `<` is safe inside the double quotes
+            # (no shell redirection because it is quoted).
+            npm deprecate "$name@<3.0.0-rc.2" "$MSG" || echo "deprecate skipped for $name"
           done
