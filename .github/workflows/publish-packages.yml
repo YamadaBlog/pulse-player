@@ -80,7 +80,9 @@ jobs:
           DIST_TAG: ${{ inputs.dist_tag }}
         run: |
           set -euo pipefail
-          PKGS="types tokens core web-component react svelte"
+          # react-native ships SOURCE (no build step) — it still
+          # publishes from its dir and gets provenance like the rest.
+          PKGS="types tokens core web-component react svelte react-native"
           for p in $PKGS; do
             dir="packages/$p"
             name=$(node -p "require('./$dir/package.json').name")
