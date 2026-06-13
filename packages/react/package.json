@@ -37,5 +37,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "private": false
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YamadaBlog/pulse-player.git",
+    "directory": "packages/react"
+  }
 }
