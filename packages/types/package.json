@@ -1,6 +1,6 @@
 {
   "name": "@pulse-music/types",
-  "version": "3.0.0-rc.0",
+  "version": "3.0.0-rc.2",
   "description": "Shared TypeScript types for every pulse-player framework wrapper (Track, PulseVariant, EventMap, PulseState).",
   "license": "MIT",
   "type": "module",

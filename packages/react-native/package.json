@@ -1,6 +1,6 @@
 {
   "name": "@pulse-music/react-native",
-  "version": "3.0.0-rc.1",
+  "version": "3.0.0-rc.2",
   "description": "React Native wrapper for pulse-player. Real renderer powered by expo-av + Reanimated + react-native-svg. v3.0.0-rc.1 — first iteration: audio + 9 themes + ambient EQ (Reanimated) + pulso + FAB drag. Advanced FFT and backdrop blur land in subsequent patches.",
   "license": "MIT",
   "type": "module",
