@@ -32,10 +32,10 @@
   ],
   "main": "./dist/lib/pulse-player.cjs.js",
   "module": "./dist/lib/pulse-player.es.js",
-  "types": "./src/lib/index.ts",
+  "types": "./dist/lib/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/lib/index.ts",
+      "types": "./dist/lib/types/index.d.ts",
       "import": "./dist/lib/pulse-player.es.js",
       "require": "./dist/lib/pulse-player.cjs.js"
     },
@@ -58,7 +58,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "build:lib": "vue-tsc --noEmit && cross-env VITE_BUILD_TARGET=lib vite build",
+    "build:lib": "vue-tsc --noEmit && cross-env VITE_BUILD_TARGET=lib vite build && npm run build:lib:types",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --ext .ts,.vue,.js,.tsx,.jsx --cache --max-warnings=0",
@@ -87,12 +87,15 @@
     "build:packages": "npm run build --workspace=@pulse-music/types --workspace=@pulse-music/core --workspace=@pulse-music/tokens --workspace=@pulse-music/web-component --workspace=@pulse-music/react --workspace=@pulse-music/svelte",
     "audit": "npm audit --omit=dev --audit-level=moderate",
     "check:lib-identical": "node scripts/check-lib-byte-identical.mjs",
-    "ci": "npm run type-check && npm run lint && npm run test && npm run test:packages && npm run build && npm run audit && npm run check:lib-identical",
+    "ci": "npm run type-check && npm run lint && npm run test && npm run test:packages && npm run build && npm run audit && npm run check:lib-identical && npm run check:assets",
     "prepublishOnly": "npm run ci && npm run build:lib",
     "prepare": "husky 2>/dev/null || true",
     "test:consumer": "node scripts/consumer-smoke.mjs",
     "generate:shells": "node scripts/generate-player-shells.mjs",
-    "generate:backdrop": "node scripts/generate-hero-backdrop.mjs"
+    "generate:backdrop": "node scripts/generate-hero-backdrop.mjs",
+    "build:lib:types": "vue-tsc -p tsconfig.lib.json",
+    "guard:registry": "node scripts/registry-guard.mjs",
+    "check:assets": "node scripts/assets-license-check.mjs"
   },
   "peerDependencies": {
     "pinia": "^2.1.0",
