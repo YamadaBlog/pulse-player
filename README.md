@@ -17,6 +17,15 @@
 <sub>Six-act cinematic scrollytelling, 3D product rotation, guided "Watch demo" tour, nine mood themes, drag-to-resize down to a FAB — responsive from 390 px mobile to 4K. Verified clean on every deploy by a post-deploy smoke job (zero console errors, zero broken assets).</sub>
 
 > **`v3.0.0-rc.0` is LIVE on npm (2026-06-08).** The **7 `@pulse-music/*` packages** shipped after a 21-tag audit-driven alpha cycle (types, core, tokens, web-component, react, svelte, react-native). The Vue 3 reference (`src/lib/`) stays source-available — vendor it directly or use the Web Component from any Vue template. The Angular wrapper stays source-available (`packages/angular/`) until the peer floor decision is made for rc.1. **Try it now:** `npm install @pulse-music/react @pulse-music/core` — see the install block below.
+>
+> ⚠️ **Known issue — `rc.0`/`rc.1` on npm fail to build.** The published
+> `@pulse-music/*` dist bundles still import the pre-rename `@pulse/*`
+> scope, so `npm install @pulse-music/web-component && vite build` errors
+> with `Rollup failed to resolve import "@pulse/core"`. The fix is built
+> and validated (`rc.2`, machine-checked by `npm run test:consumer` —
+> 4/4 clean-consumer builds) but **not yet published**. Until `rc.2`
+> ships, **vendor the Vue reference (`src/lib/`) directly** rather than
+> installing the wrappers from npm.
 > Architecture map: [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md). Cadence to v3.0.0 stable: [`docs/universal/VERSION_STRATEGY.md`](./docs/universal/VERSION_STRATEGY.md). Roadmap: [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md).
 
 ### Originally a Vue 3 music player that grows with the page.
