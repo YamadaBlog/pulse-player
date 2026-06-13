@@ -1,0 +1,111 @@
+name: Publish @pulse-music packages
+
+# Manual, gated npm publish for the multi-framework packages.
+#
+# WHY THIS EXISTS
+#   The published rc.0/rc.1 dist bundles import the pre-rename @pulse/*
+#   scope and fail in real consumer builds (audits #5/#6, reproduced).
+#   The fix (rc.2) is built + validated locally but was never shipped
+#   because `npm publish` needs an interactive OTP. This workflow does
+#   it non-interactively with a granular automation token, behind the
+#   same consumer-smoke gate that proves the artefacts resolve — and
+#   adds npm provenance (OIDC attestation), which the CLI publish never
+#   had.
+#
+# ONE-TIME SETUP (maintainer)
+#   1. npmjs.com -> Access Tokens -> Generate -> Granular Access Token
+#      - Packages and scopes: @pulse-music/*  (Read and write)
+#      - Short expiry (e.g. 7 days)
+#   2. Repo -> Settings -> Secrets and variables -> Actions -> New secret
+#      Name: NPM_TOKEN   Value: <the granular token>
+#   (Recovery codes / account password are NEVER used or needed here.)
+#
+# RUNNING IT
+#   Actions -> "Publish @pulse-music packages" -> Run workflow.
+#   First run with dry_run=true (default) — it prints exactly what WOULD
+#   publish without touching the registry. Then run again dry_run=false.
+#   Already-published versions are skipped, so re-runs are safe.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Rehearse without publishing (recommended first run)'
+        type: boolean
+        default: true
+      dist_tag:
+        description: 'npm dist-tag for the published versions'
+        type: string
+        default: 'latest'
+      deprecate_broken:
+        description: 'Also `npm deprecate` the broken rc.0/rc.1 ranges'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write # required for npm provenance attestations
+
+jobs:
+  publish:
+    name: Build → consumer-smoke gate → publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node 20 (npm registry)
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --prefer-offline
+
+      - name: Build workspace packages
+        run: npm run build:packages
+
+      # HARD GATE — packs the freshly-built tarballs into clean consumer
+      # projects and fails if any import does not resolve. If this is
+      # red, nothing is published.
+      - name: Consumer smoke (DO NOT PUBLISH if red)
+        run: npm run test:consumer
+
+      - name: Publish (idempotent, provenance)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          DIST_TAG: ${{ inputs.dist_tag }}
+        run: |
+          set -euo pipefail
+          PKGS="types tokens core web-component react svelte"
+          for p in $PKGS; do
+            dir="packages/$p"
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "⏭  $name@$version already on registry — skipping"
+              continue
+            fi
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "🟡 [dry-run] would publish $name@$version --tag $DIST_TAG --provenance"
+              ( cd "$dir" && npm publish --provenance --access public --tag "$DIST_TAG" --dry-run )
+            else
+              echo "🚀 publishing $name@$version --tag $DIST_TAG --provenance"
+              ( cd "$dir" && npm publish --provenance --access public --tag "$DIST_TAG" )
+            fi
+          done
+
+      - name: Deprecate broken ranges
+        if: ${{ inputs.deprecate_broken && !inputs.dry_run }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          MSG="Broken: dist imports the pre-rename @pulse/* scope and fails consumer builds. Upgrade to 3.0.0-rc.2."
+          for p in core web-component react svelte; do
+            name=$(node -p "require('./packages/$p/package.json').name")
+            npm deprecate "$name@\"<3.0.0-rc.2\"" "$MSG" || echo "deprecate skipped for $name"
+          done
