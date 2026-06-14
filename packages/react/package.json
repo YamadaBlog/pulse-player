@@ -1,6 +1,6 @@
 {
   "name": "@pulse-music/react",
-  "version": "3.0.0-rc.2",
+  "version": "3.0.0-rc.3",
   "description": "React 18 / 19 wrapper for pulse-player — hooks + JSX components built on @pulse-music/web-component.",
   "license": "MIT",
   "type": "module",
@@ -30,9 +30,9 @@
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "dependencies": {
-    "@pulse-music/core": "*",
-    "@pulse-music/types": "*",
-    "@pulse-music/web-component": "*"
+    "@pulse-music/core": "3.0.0-rc.3",
+    "@pulse-music/types": "3.0.0-rc.3",
+    "@pulse-music/web-component": "3.0.0-rc.3"
   },
   "publishConfig": {
     "access": "public"
