@@ -29,6 +29,7 @@ export default defineConfig({
         'src/lib/**',
         'src/composables/useDemoTour.ts',
         'src/composables/useResponsiveWidth.ts',
+        'src/composables/useAutoFab.ts',
       ],
       exclude: ['**/*.vue', '**/index.ts'],
       reporter: ['text', 'html'],
