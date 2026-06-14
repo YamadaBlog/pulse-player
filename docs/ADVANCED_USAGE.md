@@ -104,6 +104,51 @@ router.afterEach((to) => {
 })
 ```
 
+## Auto-FAB on scroll + show on navigation
+
+Out of the box the FAB appears when playback starts (or `store.open()`)
+and stays until `store.close()` — it is **not** tied to scroll position
+or route changes. Two small composables (built only on the public
+`store.open()` / writable `store.isVisible`) add exactly those modes.
+The reference implementation lives at
+[`src/composables/useAutoFab.ts`](../src/composables/useAutoFab.ts)
+(unit-tested in `tests/useAutoFab.test.ts`) — copy it into your app, or
+import it if you vendor the repo.
+
+**Mode 1 — surface the FAB when the inline player scrolls out of view,
+hide it (without pausing) when it scrolls back:**
+
+```ts
+import { ref } from 'vue'
+import { useAutoFab } from './composables/useAutoFab'
+
+const playerEl = ref<HTMLElement | null>(null)
+useAutoFab(playerEl) // observes playerEl; show FAB out of view, hide in view
+```
+
+```vue
+<div ref="playerEl"><MusicPlayer /></div>
+```
+
+The key detail: when the player returns to view the helper writes
+`store.isVisible = false` directly rather than calling `store.close()`,
+because `close()` also **pauses playback** — here you want the FAB to
+disappear while the song keeps playing. Options: `requirePlayback`
+(only show after first play), `rootMargin`, `threshold`.
+
+**Mode 2 — show the FAB on navigation (opt-in):**
+
+```ts
+import { useRouter } from 'vue-router'
+import { showFabOnRouteChange } from './composables/useAutoFab'
+
+const onRoute = showFabOnRouteChange() // only after first play; { always: true } for every nav
+useRouter().afterEach(() => onRoute())
+```
+
+Opt-in by definition — nothing happens unless you wire it. (To do the
+reverse — _hide_ the FAB on specific routes — see the section above.)
+
 ## Tracks behind authentication
 
 The audio element follows standard browser rules. If the source needs cookies, host it on the same origin or serve it with CORS + `Access-Control-Allow-Credentials`. The FFT analyser additionally requires `Access-Control-Allow-Origin` to be permissive — otherwise the bars stay flat, but **playback still works**.
