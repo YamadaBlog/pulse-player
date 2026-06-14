@@ -101,6 +101,37 @@ You're on a version older than v2.1.0. Update — v2.1.0 sets `publicDir: false`
 
 It was retired from the public API in v2.0.0 (it's a demo-page helper, not a library primitive). If you need it, import directly from the repo's source via your build's path mapping, or copy it into your app.
 
+## Multiple players / playlists
+
+### Two `<MusicPlayer>` instances show the same track — I want different playlists per instance
+
+**By design.** Pulse is a _single global audio session_: one Pinia store
+(`pulsePlayerAudio`), one `<audio>` element, one playlist. Every
+`<MusicPlayer>` / `<MiniPlayer>` / `<PulseFab>` you mount is a **view** onto
+that one engine — they all reflect the same current track, play state and
+progress. This is intentional (a page should never play two songs at once,
+and the FAB must stay in sync with the inline card), but it means:
+
+- `setAudioTracks(tracks)` replaces the playlist for **every** instance —
+  it mutates module-global state, not per-component state.
+- You cannot have player A playing track 1 while player B independently
+  plays track 2 in the same app.
+
+Note that the `<pulse-player>` web component and the Vue `MusicPlayer`
+**both** use the same shared singleton (`getSharedEngine()` /
+`pulsePlayerAudio` store) — mounting two of either does not give you two
+engines.
+
+If you genuinely need two _independent_ engines on one page (e.g. a
+preview widget beside a main player), drop down to **`@pulse-music/core`**:
+the `PulseEngine` class is instantiable (`new PulseEngine(playlist)`) and
+each instance owns its own `<audio>`, state and FFT — verified in
+`packages/core/src/PulseEngine.ts` (`constructor(tracks?: Track[])`,
+`_tracks` is a private instance field). Drive your own minimal UI off that
+instance's `subscribe(...)` / `onStateChange(...)` hooks. You can also swap
+the shared engine globally with `setSharedEngine(new PulseEngine(...))`
+from the web-component package.
+
 ## SSR
 
 ### Hydration mismatch on the FAB
