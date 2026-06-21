@@ -26,7 +26,7 @@
  */
 
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { createWriteStream } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -141,7 +141,9 @@ async function downloadFile(url, outPath, maxBytes = 20 * 1024 * 1024) {
       await pipeline(Readable.fromWeb(res.body), ws)
       return true
     } catch (err) {
-      console.warn(`  ⚠️  download attempt ${attempt}/${ATTEMPTS} failed for ${url}: ${err.message}`)
+      console.warn(
+        `  ⚠️  download attempt ${attempt}/${ATTEMPTS} failed for ${url}: ${err.message}`,
+      )
       if (attempt < ATTEMPTS) await new Promise((r) => setTimeout(r, PAUSES[attempt - 1]))
     } finally {
       clearTimeout(timeout)
@@ -193,7 +195,14 @@ async function setupTrack(key, spec) {
       ['-y', '-i', tmpMp3, '-c:a', 'libopus', '-b:a', '96k', '-vn', outWebm],
       { stdio: 'pipe' },
     )
-    try { execFileSync(process.platform === 'win32' ? 'cmd' : 'sh', process.platform === 'win32' ? ['/c', 'del', tmpMp3] : ['-c', `rm -f "${tmpMp3}"`], { stdio: 'pipe' }) } catch {}
+    // Security hardening (audit) — was `cmd /c del` / `sh -c rm`, which
+    // spawned a cmd.exe/shell just to delete a temp file. rmSync does it
+    // cross-platform with no process spawn and no shell-string interpolation.
+    try {
+      rmSync(tmpMp3, { force: true })
+    } catch {
+      /* best-effort temp cleanup */
+    }
     console.log(`  ✔ ${spec.out} (network source)`)
     return
   }
@@ -208,13 +217,18 @@ async function setupTrack(key, spec) {
   const wav = key === 'track1' ? composeTrack1() : composeTrack2()
   const tmpWav = join(AUDIO_DIR, `_tmp_${key}.wav`)
   writeFileSync(tmpWav, wav)
-  execFileSync(
-    ffmpegPath,
-    ['-y', '-i', tmpWav, '-c:a', 'libopus', '-b:a', '112k', outWebm],
-    { stdio: 'pipe' },
+  execFileSync(ffmpegPath, ['-y', '-i', tmpWav, '-c:a', 'libopus', '-b:a', '112k', outWebm], {
+    stdio: 'pipe',
+  })
+  // Security hardening (audit) — rmSync instead of cmd /c del / sh -c rm.
+  try {
+    rmSync(tmpWav, { force: true })
+  } catch {
+    /* best-effort temp cleanup */
+  }
+  console.log(
+    `  ✔ ${spec.out} (composed in-repo — ${key === 'track1' ? '104 BPM synthwave' : '76 BPM lofi'})`,
   )
-  try { execFileSync(process.platform === 'win32' ? 'cmd' : 'sh', process.platform === 'win32' ? ['/c', 'del', tmpWav] : ['-c', `rm -f "${tmpWav}"`], { stdio: 'pipe' }) } catch {}
-  console.log(`  ✔ ${spec.out} (composed in-repo — ${key === 'track1' ? '104 BPM synthwave' : '76 BPM lofi'})`)
 }
 
 // ─── Cover generation (FFmpeg → PNG → cwebp) ─────────────────────────────
@@ -230,16 +244,25 @@ async function setupCover(key, spec) {
     ffmpegPath,
     [
       '-y',
-      '-f', 'lavfi',
-      '-i', `color=c=${c1}:size=512x512:duration=1`,
-      '-vf', `format=rgba,geq=r='${parseInt(c1.slice(1,3),16)}+(${parseInt(c2.slice(1,3),16)}-${parseInt(c1.slice(1,3),16)})*Y/H':g='${parseInt(c1.slice(3,5),16)}+(${parseInt(c2.slice(3,5),16)}-${parseInt(c1.slice(3,5),16)})*Y/H':b='${parseInt(c1.slice(5,7),16)}+(${parseInt(c2.slice(5,7),16)}-${parseInt(c1.slice(5,7),16)})*Y/H':a=255`,
-      '-frames:v', '1',
+      '-f',
+      'lavfi',
+      '-i',
+      `color=c=${c1}:size=512x512:duration=1`,
+      '-vf',
+      `format=rgba,geq=r='${parseInt(c1.slice(1, 3), 16)}+(${parseInt(c2.slice(1, 3), 16)}-${parseInt(c1.slice(1, 3), 16)})*Y/H':g='${parseInt(c1.slice(3, 5), 16)}+(${parseInt(c2.slice(3, 5), 16)}-${parseInt(c1.slice(3, 5), 16)})*Y/H':b='${parseInt(c1.slice(5, 7), 16)}+(${parseInt(c2.slice(5, 7), 16)}-${parseInt(c1.slice(5, 7), 16)})*Y/H':a=255`,
+      '-frames:v',
+      '1',
       tmpPng,
     ],
     { stdio: 'pipe' },
   )
   execFileSync(cwebpPath, ['-q', '85', tmpPng, '-o', outWebp], { stdio: 'pipe' })
-  try { execFileSync(process.platform === 'win32' ? 'cmd' : 'sh', process.platform === 'win32' ? ['/c', 'del', tmpPng] : ['-c', `rm -f "${tmpPng}"`], { stdio: 'pipe' }) } catch {}
+  // Security hardening (audit) — rmSync instead of cmd /c del / sh -c rm.
+  try {
+    rmSync(tmpPng, { force: true })
+  } catch {
+    /* best-effort temp cleanup */
+  }
   console.log(`  ✔ ${spec.out} ready (cwebp q=85)`)
 }
 
