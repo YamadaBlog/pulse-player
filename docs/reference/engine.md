@@ -13,7 +13,12 @@ You rarely need it directly — the elements and wrappers use it for you — but
 ```ts
 const engine = new PulseEngine({
   tracks: [
-    { title: 'Protofunk', artist: 'Kevin MacLeod', src: '/protofunk.mp3', cover: '/protofunk.jpg' },
+    {
+      title: 'Projector Screen',
+      artist: 'HoliznaCC0',
+      src: '/projector-screen.mp3',
+      cover: '/projector-screen.jpg',
+    },
   ],
   volume: 0.8,
   repeat: 'all',

@@ -4,12 +4,12 @@ import { PulseEngine } from '../src/index'
 
 export const TRACKS: Track[] = [
   {
-    title: 'Protofunk',
-    artist: 'Kevin MacLeod',
-    src: '/audio/protofunk.mp3',
-    cover: '/covers/protofunk.svg',
+    title: 'Projector Screen',
+    artist: 'HoliznaCC0',
+    src: '/audio/projector-screen.mp3',
+    cover: '/covers/projector-screen.svg',
   },
-  { title: 'Lobby Time', artist: 'Kevin MacLeod', src: '/audio/lobby-time.mp3' },
+  { title: 'Warm Fuzz', artist: 'HoliznaCC0', src: '/audio/warm-fuzz.mp3' },
 ]
 
 export function makeEngine(tracks: Track[] = TRACKS): PulseEngine {

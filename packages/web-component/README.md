@@ -14,8 +14,8 @@ npm i @pulse-music/web-component
 <pulse-player variant="auto" ambient-eq>
   <pulse-track
     src="/song.mp3"
-    title="Protofunk"
-    artist="Kevin MacLeod"
+    title="Projector Screen"
+    artist="HoliznaCC0"
     cover="/cover.jpg"
   ></pulse-track>
 </pulse-player>

@@ -10,7 +10,12 @@ npm i @pulse-music/react
 import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse-music/react'
 
 const tracks = [
-  { title: 'Protofunk', artist: 'Kevin MacLeod', src: '/protofunk.mp3', cover: '/protofunk.jpg' },
+  {
+    title: 'Projector Screen',
+    artist: 'HoliznaCC0',
+    src: '/projector-screen.mp3',
+    cover: '/projector-screen.jpg',
+  },
 ]
 
 export function Player() {

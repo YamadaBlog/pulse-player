@@ -11,7 +11,12 @@ npm i @pulse-music/vue
 import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse-music/vue'
 
 const tracks = [
-  { title: 'Protofunk', artist: 'Kevin MacLeod', src: '/protofunk.mp3', cover: '/protofunk.jpg' },
+  {
+    title: 'Projector Screen',
+    artist: 'HoliznaCC0',
+    src: '/projector-screen.mp3',
+    cover: '/projector-screen.jpg',
+  },
 ]
 const { isPlaying, track, toggle } = usePulseAudio()
 </script>

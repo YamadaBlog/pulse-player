@@ -14,10 +14,10 @@ const { variant = 'auto' } = Astro.props
 
 <pulse-player variant={variant} ambient-eq>
   <pulse-track
-    src="/audio/protofunk.mp3"
-    title="Protofunk"
-    artist="Kevin MacLeod"
-    cover="/audio/protofunk.jpg"
+    src="/audio/projector-screen.mp3"
+    title="Projector Screen"
+    artist="HoliznaCC0"
+    cover="/audio/projector-screen.jpg"
   ></pulse-track>
 </pulse-player>
 

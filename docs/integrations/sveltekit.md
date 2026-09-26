@@ -20,7 +20,7 @@ npm i @pulse-music/svelte
 <script lang="ts">
   import { usePulseAudio, type Track } from '@pulse-music/svelte'
 
-  const tracks: Track[] = [{ title: 'Protofunk', artist: 'Kevin MacLeod', src: '/audio/protofunk.mp3' }]
+  const tracks: Track[] = [{ title: 'Projector Screen', artist: 'HoliznaCC0', src: '/audio/projector-screen.mp3' }]
   const audio = usePulseAudio()
 </script>
 

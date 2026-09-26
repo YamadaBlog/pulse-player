@@ -61,7 +61,7 @@ test('dropping the needle plays, reveals the floating player, and lifts again', 
 }) => {
   await page.goto('./')
   await expect(page.getByRole('heading', { level: 1 })).toContainText('A music player')
-  await expect(hero(page).locator('.title')).toHaveText('Protofunk')
+  await expect(hero(page).locator('.title')).toHaveText('Projector Screen')
   const fab = page.locator('body > pulse-fab')
   await expect(fab.locator('.fab')).not.toHaveAttribute('data-shown', '')
 
@@ -96,7 +96,7 @@ test('keyboard shortcuts work inside a player', async ({ page }) => {
   await page.keyboard.press('k')
   await expect(hero(page).getByRole('button', { name: 'Pause', exact: true })).toBeVisible()
   await page.keyboard.press('Shift+N')
-  await expect(hero(page).locator('.title')).toHaveText('Lobby Time')
+  await expect(hero(page).locator('.title')).toHaveText('Warm Fuzz')
   await page.keyboard.press('k')
   await expect(hero(page).getByRole('button', { name: 'Play', exact: true })).toBeVisible()
 })

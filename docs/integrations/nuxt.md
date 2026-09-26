@@ -19,7 +19,7 @@ export default defineNuxtConfig({
 import { PulsePlayer, type Track } from '@pulse-music/vue'
 
 const tracks: Track[] = [
-  { title: 'Protofunk', artist: 'Kevin MacLeod', src: '/audio/protofunk.mp3' },
+  { title: 'Projector Screen', artist: 'HoliznaCC0', src: '/audio/projector-screen.mp3' },
 ]
 </script>
 

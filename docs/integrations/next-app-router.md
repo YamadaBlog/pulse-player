@@ -14,10 +14,10 @@ import { PulsePlayer, PulseFab, type Track } from '@pulse-music/react'
 
 const tracks: Track[] = [
   {
-    title: 'Protofunk',
-    artist: 'Kevin MacLeod',
-    src: '/audio/protofunk.mp3',
-    cover: '/audio/protofunk.jpg',
+    title: 'Projector Screen',
+    artist: 'HoliznaCC0',
+    src: '/audio/projector-screen.mp3',
+    cover: '/audio/projector-screen.jpg',
   },
 ]
 

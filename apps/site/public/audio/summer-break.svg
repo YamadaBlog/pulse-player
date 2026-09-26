@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Original artwork for the Pulse demo — MIT, like the rest of the repository. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2bb5b0"/>
+      <stop offset="0.62" stop-color="#ffd3a1"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0f7c86"/>
+      <stop offset="1" stop-color="#06343f"/>
+    </linearGradient>
+    <clipPath id="above"><rect width="512" height="330"/></clipPath>
+  </defs>
+  <rect width="512" height="512" fill="url(#sky)"/>
+  <circle cx="330" cy="330" r="92" fill="#ff8a5c" clip-path="url(#above)"/>
+  <circle cx="330" cy="330" r="68" fill="#ffb27a" clip-path="url(#above)"/>
+  <rect y="330" width="512" height="182" fill="url(#sea)"/>
+  <g fill="#ffd3a1" fill-opacity="0.55">
+    <rect x="262" y="344" width="136" height="6" rx="3"/>
+    <rect x="286" y="362" width="88" height="5" rx="2.5"/>
+    <rect x="306" y="378" width="48" height="4" rx="2"/>
+  </g>
+  <g fill="none" stroke="#bff3ee" stroke-opacity="0.4" stroke-width="3" stroke-linecap="round">
+    <path d="M40 416 q20 -12 40 0 t40 0 t40 0"/>
+    <path d="M300 452 q20 -12 40 0 t40 0 t40 0"/>
+    <path d="M120 474 q20 -12 40 0 t40 0"/>
+  </g>
+  <g transform="translate(118 262)">
+    <path d="M40 0 L40 66 L0 66 Z" fill="#fffaf2"/>
+    <path d="M46 10 L46 66 L78 66 Z" fill="#fffaf2" fill-opacity="0.8"/>
+    <path d="M-6 72 L86 72 L74 86 L6 86 Z" fill="#06343f"/>
+  </g>
+  <text x="56" y="106" font-family="Helvetica Neue, Arial, sans-serif" font-size="58" font-weight="800" letter-spacing="-2" fill="#06343f">SUMMER</text>
+  <text x="58" y="148" font-family="Helvetica Neue, Arial, sans-serif" font-size="34" font-weight="300" letter-spacing="14" fill="#06343f" fill-opacity="0.8">BREAK</text>
+</svg>
