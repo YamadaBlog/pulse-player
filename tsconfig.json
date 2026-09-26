@@ -12,7 +12,8 @@
       "@pulse-music/svelte": ["./packages/svelte/src/index.ts"],
       "@pulse-music/vue": ["./packages/vue/src/index.ts"],
       "@pulse-music/test-utils": ["./packages/test-utils/src/index.ts"]
-    }
+    },
+    "allowImportingTsExtensions": true
   },
   "include": [
     "packages/*/src",

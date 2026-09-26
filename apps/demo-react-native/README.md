@@ -1,18 +1,15 @@
 # @pulse-music/demo-react-native
 
-Expo demo app for the React Native renderer that ships in `@pulse-music/react-native@3.0.0-rc.1`. Boots a single screen with a 3-theme picker + `<PulsePlayerRN ambientEq />` + `<PulseFabRN pulso />`.
+Expo demo app for the **experimental** React Native renderer (`@pulse-music/react-native`). It is not part of the npm workspaces: it installs its own dependencies. Boots a single screen with a 3-theme picker + `<PulsePlayerRN ambientEq />` + `<PulseFabRN pulso />`.
 
 ## Boot procedure
 
 ```bash
-# 1. From the repo root — install the JS deps shared across the monorepo.
-cd /path/to/pulse-player
+# 1. Install the app on its own.
+cd apps/demo-react-native
 npm install
 
-# 2. From inside this app dir — let Expo align the RN peer deps with
-#    the current SDK. This is the Expo-recommended way; pinning
-#    versions in package.json drifts as SDKs evolve.
-cd apps/demo-react-native
+# 2. Let Expo align the native peer dependencies with the current SDK.
 npm run setup       # → npx expo install …
 
 # 3. Boot.
@@ -23,12 +20,12 @@ npm run ios         # macOS only (requires Xcode + CocoaPods)
 
 ## What you should see
 
-- Title `Pulse RN demo` + subtitle `@pulse-music/react-native · v3.0.0-rc.1`.
+- Title `Pulse RN demo`.
 - 3 theme chips: `midnight` / `sunset` / `vinyl` — tap to switch the player's variant.
 - An inline `<PulsePlayerRN />` card with cover art + title + prev/play/next + ambient EQ bars (animate while playing).
 - A floating `<PulseFabRN />` bottom-right with cover + pulso heartbeat ring (animates while playing).
 
-## What's NOT in this rc.1 demo
+## Not yet implemented
 
 Deferred to subsequent patches (documented in `packages/react-native/README.md`):
 

@@ -1,35 +1,39 @@
 # @pulse-music/react
 
-React wrapper for pulse-player. Hooks + JSX components built on top of `@pulse-music/web-component`.
+React 18 / 19 bindings for [Pulse](https://github.com/YamadaBlog/pulse-player): typed `<PulsePlayer />` / `<PulseFab />` components and a `usePulseAudio()` hook built on `useSyncExternalStore`.
 
-## Usage (once implemented)
+```bash
+npm i @pulse-music/react
+```
 
 ```tsx
 import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse-music/react'
 
-export function App() {
-  const { isPlaying, toggle } = usePulseAudio()
+const tracks = [
+  { title: 'Protofunk', artist: 'Kevin MacLeod', src: '/protofunk.mp3', cover: '/protofunk.jpg' },
+]
 
+export function Player() {
+  const { isPlaying, track, toggle } = usePulseAudio()
   return (
     <>
-      <PulsePlayer variant="midnight" ambientEq onPlay={({ track }) => console.log(track.title)} />
+      <PulsePlayer
+        tracks={tracks}
+        variant="aurora"
+        ambientEq
+        onTrackChange={({ track }) => console.log(track.title)}
+      />
+      <button onClick={toggle}>
+        {isPlaying ? 'Pause' : 'Play'} {track?.title}
+      </button>
       <PulseFab pulso />
-      <button onClick={toggle}>{isPlaying ? 'Pause' : 'Play'}</button>
     </>
   )
 }
 ```
 
-## Architecture
+Values reach the element as DOM properties on both React 18 and 19; callbacks are always the latest ones. In Next.js, render the players from a client component.
 
-This package is a **thin adapter**: rendering is handled by `<pulse-player>` (Lit Custom Element from `@pulse-music/web-component`), and `@pulse-music/react` just maps React conventions onto the underlying DOM events / attributes. Each component is ~30-60 lines.
+**Docs:** [React guide](https://github.com/YamadaBlog/pulse-player/blob/main/docs/frameworks.md#react) · [element reference](https://github.com/YamadaBlog/pulse-player/blob/main/docs/reference/elements.md)
 
-React 19+ has native Custom Elements support (camelCase → kebab-case + event listeners just work). For React 18, the wrapper handles the attribute / event bridging.
-
-## Status
-
-⏳ **Scaffold** — implementation lands in v3.0.0-alpha.3, after `@pulse-music/core` (alpha.1) and `@pulse-music/web-component` (alpha.2).
-
-## License
-
-MIT.
+MIT © YamadaBlog

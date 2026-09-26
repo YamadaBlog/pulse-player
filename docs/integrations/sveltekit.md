@@ -1,138 +1,31 @@
-# Pulse in SvelteKit 2+
-
-SvelteKit is Svelte under the hood with SSR by default. Pulse's `@pulse-music/svelte` package ships as a plain TypeScript hook + a side-effect import that registers the Web Components. The integration is one of the smallest in the family — Svelte's compiler handles Custom Element binding natively.
-
-## Install
+# SvelteKit
 
 ```bash
-npm install @pulse-music/svelte @pulse-music/core
+npm i @pulse-music/svelte
 ```
 
-## The component
+```svelte
+<!-- src/routes/+layout.svelte -->
+<script lang="ts">
+  import '@pulse-music/svelte' // registers the elements (safe during SSR)
+  let { children } = $props()
+</script>
 
-`src/lib/components/MusicPlayer.svelte`:
+{@render children()}
+<pulse-fab pulso></pulse-fab>
+```
 
 ```svelte
+<!-- src/routes/+page.svelte -->
 <script lang="ts">
-  import { usePulseAudio } from '@pulse-music/svelte'
-  import { onMount } from 'svelte'
-  import type { Track } from '@pulse-music/svelte'
+  import { usePulseAudio, type Track } from '@pulse-music/svelte'
 
+  const tracks: Track[] = [{ title: 'Protofunk', artist: 'Kevin MacLeod', src: '/audio/protofunk.mp3' }]
   const audio = usePulseAudio()
-
-  const tracks: Track[] = [
-    {
-      title: 'Ambient Test',
-      artist: 'You',
-      src: '/audio/ambient-test.webm',
-      cover: '/covers/ambient-test.webp',
-    },
-  ]
-
-  onMount(() => {
-    audio.setAudioTracks(tracks)
-  })
-
-  function onPlay(e: CustomEvent) {
-    // wire your analytics here
-    console.log('play', e.detail.track.title, e.detail.time)
-  }
 </script>
 
-<pulse-player
-  variant="midnight"
-  ambient-eq
-  resizable
-  onpulse-play={onPlay}
-></pulse-player>
-
-<pulse-fab variant="vinyl" pulso draggable show-menu></pulse-fab>
-
-<!-- Optional reactive overlay using the Svelte classic-store contract -->
-<p>{$audio.isPlaying ? '▶' : '⏸'} {$audio.track.title}</p>
+<pulse-player {tracks} variant="sunset" ambient-eq></pulse-player>
+<p>{$audio.isPlaying ? `Playing ${$audio.track?.title}` : 'Paused'}</p>
 ```
 
-## Use it from a route
-
-`src/routes/+page.svelte`:
-
-```svelte
-<script lang="ts">
-  import MusicPlayer from '$lib/components/MusicPlayer.svelte'
-</script>
-
-<svelte:head>
-  <title>My SvelteKit site</title>
-</svelte:head>
-
-<main>
-  <h1>My site</h1>
-  <MusicPlayer />
-</main>
-```
-
-## SSR / hydration safety
-
-Svelte's `customElements.define()` call happens at import time inside `@pulse-music/svelte`. On the SvelteKit server, `customElements` is undefined and the package skips registration — no crash, the server-rendered HTML is bare `<pulse-player>` tags. On the client, the registration fires, the Lit elements upgrade, and the chrome renders.
-
-If you see a Svelte hydration warning about the Custom Element, wrap it in `{#if browser}`:
-
-```svelte
-<script lang="ts">
-  import { browser } from '$app/environment'
-</script>
-
-{#if browser}
-  <pulse-player variant="midnight" ambient-eq></pulse-player>
-{/if}
-```
-
-This avoids server-render entirely for the player subtree. Trade-off: there's a flash before client-side hydration completes; the empty space sits there for ~50-200 ms.
-
-## Persistent FAB across routes
-
-Mount the FAB once at the root layout:
-
-`src/routes/+layout.svelte`:
-
-```svelte
-<script lang="ts">
-  import { browser } from '$app/environment'
-  import '@pulse-music/svelte' // side-effect register the Custom Elements
-</script>
-
-<slot />
-
-{#if browser}
-  <pulse-fab variant="vinyl" pulso draggable></pulse-fab>
-{/if}
-```
-
-The engine is a singleton — playback state survives navigations transparently.
-
-## Configuration tweak
-
-If your SvelteKit project uses Vite's `optimizeDeps` and you see warnings about `@pulse-music/svelte` not being in the optimizer's pre-bundle list, add it explicitly to `vite.config.ts`:
-
-```ts
-export default defineConfig({
-  plugins: [sveltekit()],
-  optimizeDeps: {
-    include: ['@pulse-music/svelte', '@pulse-music/core', '@pulse-music/web-component'],
-  },
-})
-```
-
-## Tested against
-
-- SvelteKit 2.x (Svelte 5)
-- Node 20 + 22
-- Vite 5+
-
-## What this snippet doesn't cover
-
-- Svelte stores beyond Pulse's own subscribe contract — the `$audio` syntax is the classic-store autosubscribe; for runes-style consumers, use `usePulseAudio()` directly and call `engine.onStateChange()`.
-- Per-page variant theming via `$page.url.pathname` (just compute the variant string in the component's script).
-- SvelteKit's `+page.ts` `load` function for server-side analytics — same pattern as Next.js / Nuxt: capture on client, POST to server route.
-
-For the canonical Svelte API see [`docs/frameworks/svelte.md`](../../docs/frameworks/svelte.md).
+Static files in `static/` are served from your origin, which keeps the real spectrum and cover-sampled accents working without CORS.

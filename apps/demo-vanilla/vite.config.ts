@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
 import { defineConfig } from 'vite'
-import { workspaceAliases } from '../workspace-aliases'
+import { workspaceAliases } from '../workspace-aliases.ts'
 
 // Plain HTML pages; demo media is shared with the showcase site.
 export default defineConfig({

@@ -2,69 +2,102 @@ name: CI
 
 on:
   push:
-    branches: [main, 'feat/**']
+    branches: [main]
   pull_request:
-    branches: [main, 'feat/**']
 
-# Cancel an in-flight run when a new commit lands on the same branch.
+permissions:
+  contents: read
+
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  quality:
-    name: Quality gate
+  checks:
+    name: Lint, types and unit tests (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        node-version: [18, 20, 22]
-
+        node: [22, 24]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Node ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run build:packages
+      - run: npm run typecheck
+      - run: npm run test:coverage
+      - name: Upload coverage report
+        if: matrix.node == 24
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 14
 
-      - name: Install dependencies
-        run: npm ci --no-audit --prefer-offline
+  packages:
+    name: Package quality (publint, types, size, real consumers)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=high
+      - run: npm run build:packages
+      - run: npm run check:packages
+      - run: npm run check:size
+      - run: npm run check:assets
+      - run: npm run test:consumer
 
-      - name: Type-check
-        run: npm run type-check
+  e2e:
+    name: End-to-end and accessibility (Chromium)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build -w @pulse-music/site -w @pulse-music/demo-vanilla
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Format check
-        run: npm run format:check
-
-      - name: Unit tests (Vue v2.3.4 reference)
-        run: npm test
-
-      - name: Unit tests (multi-framework packages)
-        run: npm run test:packages
-
-      - name: Build Vue demo
-        run: npm run build
-
-      - name: Build Vue library
-        run: npm run build:lib
-
-      - name: Build multi-framework packages
-        run: npm run build:packages
-
-      - name: Audit production dependencies
-        run: npm run audit
-
-      - name: Bundle size budget (size-limit)
-        # Only run on Node 20 — size-limit reads the built dist/ output,
-        # and the budget is the same across Node versions. Running on every
-        # matrix entry would triple the wall-clock without adding signal.
-        if: matrix.node-version == 20
-        run: npm run size
+  examples:
+    name: Framework examples build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build -w @pulse-music/demo-react -w @pulse-music/demo-svelte -w @pulse-music/demo-vanilla

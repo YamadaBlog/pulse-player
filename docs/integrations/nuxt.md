@@ -1,118 +1,43 @@
-# Pulse in Nuxt 3+
-
-Nuxt 3 is Vue under the hood — Pulse's Vue reference (`pulse-player` v2.3.4 or `@pulse-music/vue` from v3.0.0-rc.0+) integrates with minimal ceremony. The one gotcha is Nuxt's SSR by default — Pulse's audio engine and Custom Elements need the browser, so the rendered chrome lives inside `<ClientOnly>` or in a `.client.vue` component.
-
-## Install
+# Nuxt 3 / 4
 
 ```bash
-npm install @pulse-music/vue @pulse-music/core
+npm i @pulse-music/vue
 ```
 
-(Or `pulse-player` if you want the Vue v2.3.4 reference build during the alpha phase — it's the same code, see the alpha.15 CHANGELOG entry for the soft re-export status.)
+Tell Vue that `pulse-*` tags are Custom Elements (needed only if you write the raw tags in templates; the `PulsePlayer` / `PulseFab` components work without it):
 
-## The component
-
-`components/MusicPlayer.client.vue` (the `.client.vue` suffix tells Nuxt to skip SSR for this file):
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  vue: { compilerOptions: { isCustomElement: (tag) => tag.startsWith('pulse-') } },
+})
+```
 
 ```vue
+<!-- components/Player.vue -->
 <script setup lang="ts">
-import { MusicPlayer, MiniPlayer, useAudioStore, type Track } from '@pulse-music/vue'
-
-const audio = useAudioStore()
+import { PulsePlayer, type Track } from '@pulse-music/vue'
 
 const tracks: Track[] = [
-  {
-    title: 'Ambient Test',
-    artist: 'You',
-    src: '/audio/ambient-test.webm',
-    cover: '/covers/ambient-test.webp',
-  },
+  { title: 'Protofunk', artist: 'Kevin MacLeod', src: '/audio/protofunk.mp3' },
 ]
-
-audio.setAudioTracks(tracks)
-
-const onPlay = ({ track, time }: { track: Track; time: number }) => {
-  // wire your analytics here
-  console.log('play', track.title, time)
-}
 </script>
 
 <template>
-  <div>
-    <MusicPlayer variant="midnight" :ambient-eq="true" :resizable="true" @play="onPlay" />
-    <MiniPlayer variant="vinyl" :pulso="true" :draggable="true" :show-menu="true" />
-  </div>
+  <PulsePlayer :tracks="tracks" variant="aurora" />
 </template>
 ```
 
-## Use it from a page
-
-`pages/index.vue`:
-
 ```vue
-<template>
-  <main>
-    <h1>My Nuxt site</h1>
-    <MusicPlayer />
-  </main>
-</template>
-```
-
-Nuxt's auto-imports pick up `components/MusicPlayer.client.vue` automatically. No import statement needed in the page.
-
-## Persistent FAB across routes
-
-Mount the FAB once at the root layout so playback survives navigation:
-
-`layouts/default.vue`:
-
-```vue
+<!-- app.vue — the floating player lives at the root and survives navigation -->
 <script setup lang="ts">
-import { MiniPlayer } from '@pulse-music/vue'
+import { PulseFab } from '@pulse-music/vue'
 </script>
 
 <template>
-  <div>
-    <slot />
-    <ClientOnly>
-      <MiniPlayer variant="vinyl" :pulso="true" :draggable="true" />
-    </ClientOnly>
-  </div>
+  <NuxtPage />
+  <ClientOnly><PulseFab pulso /></ClientOnly>
 </template>
 ```
 
-The `<ClientOnly>` wrapper is the explicit SSR-skip — equivalent to the `.client.vue` suffix but inline.
-
-## CSS
-
-If you use the library bundle (`pulse-player` not `@pulse-music/vue`), import the stylesheet once at the app root:
-
-`app.vue`:
-
-```vue
-<script setup lang="ts">
-import 'pulse-player/style.css'
-</script>
-
-<template>
-  <NuxtLayout>
-    <NuxtPage />
-  </NuxtLayout>
-</template>
-```
-
-`@pulse-music/vue` (the v3.0.0+ scope) ships its CSS as a side-effect of importing the components — no separate `style.css` import needed.
-
-## Tested against
-
-- Nuxt 3.10+
-- Node 20 + 22
-- Vue 3.4+
-
-## What this snippet doesn't cover
-
-- Module wrapper (`modules/pulse.ts`) if you want Pulse auto-registered via Nuxt's module system — for now the auto-imports + `.client.vue` pattern is enough.
-- `useState()` from Nuxt for cross-route state — Pulse's audio engine is already a singleton, so playback state survives routes without `useState` ceremony.
-- Server routes for analytics — same as Next.js, capture `onPlay` on the client and POST to `/api/analytics`.
-
-For the canonical Vue API, see [`docs/API.md`](../../docs/API.md).
+The packages are SSR-safe; `<ClientOnly>` simply avoids rendering an empty element on the server.

@@ -1,0 +1,31 @@
+[
+  {
+    "name": "@pulse-music/core",
+    "path": "packages/core/dist/index.js",
+    "import": "{ PulseEngine }",
+    "limit": "5 kB"
+  },
+  {
+    "name": "@pulse-music/web-component (with Lit and the engine)",
+    "path": "packages/web-component/dist/index.js",
+    "limit": "26 kB"
+  },
+  {
+    "name": "@pulse-music/react (wrapper only)",
+    "path": "packages/react/dist/index.js",
+    "ignore": ["@pulse-music/web-component", "@pulse-music/core", "react"],
+    "limit": "1.5 kB"
+  },
+  {
+    "name": "@pulse-music/vue (wrapper only)",
+    "path": "packages/vue/dist/index.js",
+    "ignore": ["@pulse-music/web-component", "@pulse-music/core", "vue"],
+    "limit": "1.5 kB"
+  },
+  {
+    "name": "@pulse-music/svelte (wrapper only)",
+    "path": "packages/svelte/dist/index.js",
+    "ignore": ["@pulse-music/web-component", "@pulse-music/core"],
+    "limit": "1 kB"
+  }
+]

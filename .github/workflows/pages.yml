@@ -1,131 +1,66 @@
-name: Deploy demo to GitHub Pages
-
-# Repo went public in v3.0.0-alpha.16 — GitHub Pages on the Free tier
-# is now available. The deploy URL is
-# https://yamadablog.github.io/pulse-player/
-#
-# Manual `workflow_dispatch` trigger kept alongside the push trigger so
-# the maintainer can re-deploy from any tag if a regression sneaks in
-# without a fresh push.
+name: Deploy site
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
-# Allow only one concurrent deployment, skipping runs queued between
-# the run in-progress and the latest. Don't cancel the in-progress run
-# — we want it to finish to leave a coherent deploy on the Pages CDN.
+permissions:
+  contents: read
+
 concurrency:
   group: pages
   cancel-in-progress: false
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 jobs:
   build:
-    name: Build demo
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
-
-      - name: Setup Node 20
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --no-audit --prefer-offline
-
-      # Audit round-6 — give the public demo REAL audio. The tracks are
-      # CC0 by construction : the script tries the documented Pixabay
-      # CC0 sources first, and on any network failure (their CDN
-      # anti-hotlinks with 403) falls back to ffmpeg-synthesised
-      # ambient pads — pure sine triads + tremolo, no third-party
-      # rights chain at all (see scripts/setup-demo-audio.mjs).
-      # --audio-only : covers stay the committed SVGs (main.ts env
-      # split) ; the script's gradient .webp covers aren't needed.
-      # continue-on-error : if ffmpeg itself fails, deploy without
-      # audio rather than not deploying — the store's safePlay()
-      # handles the missing-file rejection gracefully.
-      - name: Generate demo audio (override → catalogue → composed fallback)
-        run: npm run setup:demo-audio -- --audio-only
-        continue-on-error: true
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build -w @pulse-music/site
         env:
-          # Maintainer hook (round-7) : to ship a REAL SONG of your
-          # choosing on the public demo, set repository variables
-          # (Settings → Secrets and variables → Actions → Variables)
-          #   PULSE_TRACK1_URL / PULSE_TRACK2_URL
-          # to direct MP3/OGG links whose licence you verified
-          # (CC-BY ⇒ add the credit to NOTICE.md + demo footer), then
-          # re-run this workflow. No commit needed. If unset or the
-          # download fails, the in-repo composed tracks ship instead.
-          PULSE_TRACK1_URL: ${{ vars.PULSE_TRACK1_URL }}
-          PULSE_TRACK2_URL: ${{ vars.PULSE_TRACK2_URL }}
-
-      - name: Build demo
-        run: npm run build
-        env:
-          # GitHub Pages serves the demo from
-          # https://YamadaBlog.github.io/pulse-player/, so Vite needs
-          # to know the base path for asset URLs.
           BASE_PATH: /pulse-player/
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: ./dist
+          path: apps/site/dist
 
   deploy:
-    name: Deploy
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
 
-  # Post-deploy smoke against the LIVE URL (audit round-5). The public
-  # vitrine shipped broken cover images for weeks with zero CI signal
-  # because every suite ran against localhost. This job loads the
-  # deployed page and fails on what a visitor would actually see :
-  # failed asset requests, console errors, undecoded <img>.
   verify:
-    name: Verify deployed demo
+    name: Smoke-test the live site
     needs: deploy
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
-
-      - name: Setup Node 20
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --no-audit --prefer-offline
-
-      - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
-
-      - name: Smoke the live demo
-        run: npx playwright test tests/visual/pages-live.spec.ts --project=chromium
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test e2e/site.smoke.spec.ts --project=site
         env:
-          PULSE_PAGES_URL: https://yamadablog.github.io/pulse-player/
-
-      - name: Upload trace on failure
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: pages-live-trace
-          path: test-results/
-          retention-days: 7
+          PULSE_SITE_URL: https://yamadablog.github.io/pulse-player/

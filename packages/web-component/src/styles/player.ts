@@ -37,7 +37,8 @@ export const playerStyles = css`
     grid-template-columns: var(--art) minmax(0, 1fr);
     align-items: center;
     gap: var(--pad);
-    padding: var(--pad) var(--pad) calc(var(--pad) + 6px);
+    /* Room for the 24 px seek target at the bottom edge (WCAG 2.5.8). */
+    padding: var(--pad) var(--pad) max(calc(var(--pad) + 8px), 26px);
     border-radius: var(--radius);
     overflow: hidden;
     color: var(--fg);
@@ -356,7 +357,7 @@ export const playerStyles = css`
     position: absolute;
     inset: auto 0 0 0;
     z-index: 3;
-    height: 18px;
+    height: 24px;
     display: flex;
     align-items: flex-end;
     cursor: pointer;

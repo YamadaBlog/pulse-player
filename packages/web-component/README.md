@@ -1,26 +1,35 @@
 # @pulse-music/web-component
 
-Universal Custom Elements for pulse-player. Lit-based `<pulse-player>` and `<pulse-fab>`.
+The Pulse music player as standard Custom Elements — `<pulse-player>`, `<pulse-fab>` and `<pulse-track>`. Works in plain HTML and every framework that renders to the DOM.
 
-## Why
-
-Web Components are the W3C standard for cross-framework UI. By implementing the renderer once as Custom Elements, every framework wrapper becomes a thin adapter — no duplicated rendering code, no drift, no maintenance burden growing linearly with framework count.
-
-The wrappers (`@pulse-music/react`, `@pulse-music/vue`, …) consume these elements internally and map framework conventions (camelCase props, synthetic events) to the Custom Elements' DOM attributes and `CustomEvent`s.
-
-## Usage (once implemented)
-
-```html
-<script type="module" src="https://unpkg.com/@pulse-music/web-component"></script>
-
-<pulse-player variant="midnight" ambient-eq></pulse-player>
-<pulse-fab variant="vinyl" pulso></pulse-fab>
+```bash
+npm i @pulse-music/web-component
 ```
 
-## Status
+```html
+<script type="module">
+  import '@pulse-music/web-component'
+</script>
 
-⏳ **Scaffold** — implementation lands in v3.0.0-alpha.2 (after `@pulse-music/core` extraction in alpha.1).
+<pulse-player variant="auto" ambient-eq>
+  <pulse-track
+    src="/song.mp3"
+    title="Protofunk"
+    artist="Kevin MacLeod"
+    cover="/cover.jpg"
+  ></pulse-track>
+</pulse-player>
 
-## License
+<pulse-fab></pulse-fab>
+```
 
-MIT.
+- Container-aware layout: full card → compact → round disc, driven by CSS container queries
+- Nine themes, accent colours, CSS custom properties, `::part()` and `:state()` hooks
+- Live FFT equaliser, cover-sampled accent, spring micro-interactions — all off under reduced motion
+- Keyboard shortcuts, accessible seek slider, Media Session (OS media keys, lock screen)
+- SSR-safe import, ~23 kB brotli including Lit and the engine
+- Ships a [Custom Elements Manifest](./custom-elements.json) for editor tooling
+
+**Docs:** [element reference](https://github.com/YamadaBlog/pulse-player/blob/main/docs/reference/elements.md) · [getting started](https://github.com/YamadaBlog/pulse-player/blob/main/docs/getting-started.md) · [live demo](https://yamadablog.github.io/pulse-player/)
+
+MIT © YamadaBlog

@@ -1,6 +1,6 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import { workspaceAliases } from '../workspace-aliases'
+import { workspaceAliases } from '../workspace-aliases.ts'
 
 export default defineConfig({
   plugins: [react()],

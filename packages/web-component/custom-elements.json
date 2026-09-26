@@ -396,8 +396,24 @@
           ],
           "events": [
             {
-              "description": "/ pulse-pause / pulse-trackchange / pulse-ended / pulse-error",
+              "description": "— playback started. `detail: { track, time }`",
               "name": "pulse-play"
+            },
+            {
+              "description": "— playback paused. `detail: { track, time }`",
+              "name": "pulse-pause"
+            },
+            {
+              "description": "— the active track changed. `detail: { from, to, track }`",
+              "name": "pulse-trackchange"
+            },
+            {
+              "description": "— a track reached its end. `detail: { track }`",
+              "name": "pulse-ended"
+            },
+            {
+              "description": "— playback failed. `detail: { track, reason, detail }`",
+              "name": "pulse-error"
             }
           ],
           "attributes": [
@@ -507,6 +523,7 @@
             "name": "LitElement",
             "package": "lit"
           },
+          "tagName": "pulse-fab",
           "customElement": true
         }
       ],
@@ -527,7 +544,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "`<pulse-player>` — the inline music player card.\n\nSizes itself from its container: full card → narrow → compact → a\nround disc below 128 px, all driven by CSS container queries.",
+          "description": "`<pulse-player>` — the inline music player card.",
           "name": "PulsePlayerElement",
           "cssProperties": [
             {
@@ -1190,6 +1207,7 @@
             "name": "LitElement",
             "package": "lit"
           },
+          "tagName": "pulse-player",
           "customElement": true
         }
       ],
@@ -1212,13 +1230,13 @@
           "kind": "variable",
           "name": "TRACK_ATTRIBUTES",
           "type": {
-            "text": "['src', 'title', 'artist', 'album', 'cover', 'cover-pos', 'cover-scale']"
+            "text": "[\n  'src',\n  'title',\n  'artist',\n  'album',\n  'cover',\n  'cover-pos',\n  'cover-scale',\n]"
           },
-          "default": "['src', 'title', 'artist', 'album', 'cover', 'cover-pos', 'cover-scale']"
+          "default": "[ 'src', 'title', 'artist', 'album', 'cover', 'cover-pos', 'cover-scale', ]"
         },
         {
           "kind": "class",
-          "description": "",
+          "description": "`<pulse-track>` — declares one playlist entry in plain HTML:\n\n```html\n<pulse-player>\n  <pulse-track src=\"/a.mp3\" title=\"Intro\" artist=\"Me\" cover=\"/a.jpg\"></pulse-track>\n</pulse-player>\n```\n\nIt renders nothing; the parent player reads its attributes.",
           "name": "PulseTrackElement",
           "members": [
             {
@@ -1235,7 +1253,9 @@
           "superclass": {
             "name": "Base",
             "module": "src/PulseTrack.ts"
-          }
+          },
+          "tagName": "pulse-track",
+          "customElement": true
         },
         {
           "kind": "variable",
