@@ -15,7 +15,12 @@ npm i @pulse-music/vue
 import { PulsePlayer, PulseFab, usePulseAudio, type Track } from '@pulse-music/vue'
 
 const tracks: Track[] = [
-  { title: 'Protofunk', artist: 'Kevin MacLeod', src: '/protofunk.mp3', cover: '/protofunk.jpg' },
+  {
+    title: 'Projector Screen',
+    artist: 'HoliznaCC0',
+    src: '/projector-screen.mp3',
+    cover: '/projector-screen.jpg',
+  },
 ]
 const { state, track, isPlaying, toggle, next } = usePulseAudio()
 </script>
@@ -120,7 +125,7 @@ import type { Track } from '@pulse-music/web-component'
   `,
 })
 export class PlayerComponent {
-  tracks: Track[] = [{ title: 'Protofunk', src: '/protofunk.mp3' }]
+  tracks: Track[] = [{ title: 'Projector Screen', src: '/projector-screen.mp3' }]
   onTrack(e: Event) {
     console.log((e as CustomEvent).detail.track.title)
   }

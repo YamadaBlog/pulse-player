@@ -23,11 +23,11 @@ describe('<pulse-fab>', () => {
     const engine = makeEngine()
     const el = await mount<PulseFabElement>('<pulse-fab reveal="always"></pulse-fab>', engine)
     const disc = $<HTMLButtonElement>(el, '.disc')
-    expect(disc.getAttribute('aria-label')).toBe('Play: Protofunk')
+    expect(disc.getAttribute('aria-label')).toBe('Play: Projector Screen')
     disc.click()
     await settle(el)
     expect(engine.state.isPlaying).toBe(true)
-    expect(disc.getAttribute('aria-label')).toBe('Pause: Protofunk')
+    expect(disc.getAttribute('aria-label')).toBe('Pause: Projector Screen')
   })
 
   it('opens an accessible menu and handles its actions', async () => {

@@ -65,7 +65,7 @@ describe('sampleAccent', () => {
   })
 
   it('hueFrom is deterministic', () => {
-    expect(hueFrom('Protofunk')).toBe(hueFrom('Protofunk'))
+    expect(hueFrom('Projector Screen')).toBe(hueFrom('Projector Screen'))
     expect(hueFrom('a')).toBeGreaterThanOrEqual(0)
     expect(hueFrom('a')).toBeLessThan(360)
   })
@@ -73,7 +73,7 @@ describe('sampleAccent', () => {
 
 describe('cssUrl', () => {
   it('keeps encoded URLs intact and neutralises string breakouts', () => {
-    expect(cssUrl('/covers/Lobby%20Time.jpg')).toBe('url("/covers/Lobby%20Time.jpg")')
+    expect(cssUrl('/covers/Warm%20Fuzz.jpg')).toBe('url("/covers/Warm%20Fuzz.jpg")')
     expect(cssUrl('/a");background:red;x:("')).toBe(String.raw`url("/a\");background:red;x:(\"")`)
     expect(cssUrl('/a\\b\nc')).toBe(String.raw`url("/a\\bc")`)
   })

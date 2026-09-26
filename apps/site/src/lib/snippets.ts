@@ -18,7 +18,7 @@ export const FRAMEWORKS: Array<{ id: Framework; label: string; install: string }
   { id: 'angular', label: 'Angular', install: 'npm i @pulse-music/web-component' },
 ]
 
-const TRACK = `{ title: 'Protofunk', artist: 'Kevin MacLeod', src: '/protofunk.mp3', cover: '/protofunk.jpg' }`
+const TRACK = `{ title: 'Projector Screen', artist: 'HoliznaCC0', src: '/projector-screen.mp3', cover: '/projector-screen.jpg' }`
 
 type Style = 'html' | 'jsx' | 'vue'
 
@@ -50,8 +50,8 @@ export function snippet(framework: Framework, c: PlayerConfig): string {
         '</script>',
         '',
         `<pulse-player${join(attrs(c, 'html'), '  ')}>`,
-        '  <pulse-track src="/protofunk.mp3" title="Protofunk"',
-        '    artist="Kevin MacLeod" cover="/protofunk.jpg"></pulse-track>',
+        '  <pulse-track src="/projector-screen.mp3" title="Projector Screen"',
+        '    artist="HoliznaCC0" cover="/projector-screen.jpg"></pulse-track>',
         '</pulse-player>',
         '',
         '<!-- Optional floating mini player, same audio session -->',

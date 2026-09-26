@@ -4,7 +4,7 @@ Pulse aims for WCAG 2.2 AA out of the box. The showcase and every theme × width
 
 ## What you get
 
-- **Real controls.** Native `<button>`s with labels that follow the state ("Play" / "Pause"), a `role="slider"` seek bar with a spoken value ("1:02 of 3:12"), and a group label naming the track ("Music player: Protofunk, Kevin MacLeod").
+- **Real controls.** Native `<button>`s with labels that follow the state ("Play" / "Pause"), a `role="slider"` seek bar with a spoken value ("1:02 of 3:12"), and a group label naming the track ("Music player: Projector Screen, HoliznaCC0").
 - **Keyboard.** Every action is reachable with <kbd>Tab</kbd>; media shortcuts (<kbd>K</kbd>, <kbd>J</kbd>/<kbd>L</kbd>, <kbd>M</kbd>, <kbd>Shift</kbd>+<kbd>N</kbd>/<kbd>P</kbd>) work while focus is inside a player. The floating player's menu follows the menu-button pattern (arrows, <kbd>Home</kbd>/<kbd>End</kbd>, <kbd>Esc</kbd> returns focus). Full map in the [reference](./reference/elements.md#keyboard).
 - **Alternatives to dragging.** Seeking, resizing and the FAB menu all work without a pointer drag (WCAG 2.5.7).
 - **Target size.** Interactive targets are at least 24 × 24 px (WCAG 2.5.8), the seek bar included.

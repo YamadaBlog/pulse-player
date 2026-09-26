@@ -6,21 +6,21 @@ Pulse's source code is released under the [MIT licence](./LICENSE). This file do
 
 The published packages depend on [Lit](https://lit.dev) (BSD-3-Clause). The framework packages declare Vue, React or Svelte (all MIT) as peer dependencies. No other third-party code is bundled.
 
-## Demo music — CC BY 4.0
+## Demo music — CC0 (public domain)
 
 Shipped with the showcase site only (`apps/site/public/audio/`), never in the npm packages.
 
-| File             | Work         | Author                                                     | Licence                                                   |
-| ---------------- | ------------ | ---------------------------------------------------------- | --------------------------------------------------------- |
-| `protofunk.mp3`  | “Protofunk”  | Kevin MacLeod — [incompetech.com](https://incompetech.com) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
-| `lobby-time.mp3` | “Lobby Time” | Kevin MacLeod — [incompetech.com](https://incompetech.com) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
-| `deuces.mp3`     | “Deuces”     | Kevin MacLeod — [incompetech.com](https://incompetech.com) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
+| File                   | Work               | Author                                                                                                 | Licence                                                       |
+| ---------------------- | ------------------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| `projector-screen.mp3` | “Projector Screen” | HoliznaCC0 — [“Public Domain Lofi”](https://freemusicarchive.org/music/holiznacc0/public-domain-lofi/) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `warm-fuzz.mp3`        | “Warm Fuzz”        | HoliznaCC0 — [“Public Domain Lofi”](https://freemusicarchive.org/music/holiznacc0/public-domain-lofi/) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `summer-break.mp3`     | “Summer Break”     | HoliznaCC0 — [“Public Domain Lofi”](https://freemusicarchive.org/music/holiznacc0/public-domain-lofi/) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 
-Changes made: loudness-normalised to −16 LUFS and re-encoded as ~110 kbps MP3. The credit is also shown in the site's footer.
+Sourced from the Free Music Archive, where the album is published under CC0 1.0 Universal. Changes made: loudness-normalised to −16 LUFS and re-encoded as ~112 kbps MP3. No attribution is required; the artist is credited anyway in the site's footer and on the record label.
 
 ## Demo artwork — original, MIT
 
-`protofunk.svg`, `lobby-time.svg` and `deuces.svg` are original covers drawn for this repository and released under the MIT licence with the rest of the source. So are the project mark (`docs/brand/logo*.svg`, `logo-*.png`, `favicon.svg`, `favicon.png`), the Open Graph image (`og-banner.png`) and the screenshots in `docs/screenshots/`, all rendered from this repository.
+`projector-screen.svg`, `warm-fuzz.svg` and `summer-break.svg` are original covers drawn for this repository and released under the MIT licence with the rest of the source. So are the project mark (`docs/brand/logo*.svg`, `logo-*.png`, `favicon.svg`, `favicon.png`), the Open Graph image (`og-banner.png`) and the screenshots in `docs/screenshots/`, all rendered from this repository.
 
 ## Fonts — SIL Open Font License 1.1
 

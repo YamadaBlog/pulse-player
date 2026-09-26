@@ -41,8 +41,8 @@ npm i @pulse-music/web-component
 <pulse-player variant="auto" ambient-eq>
   <pulse-track
     src="/song.mp3"
-    title="Protofunk"
-    artist="Kevin MacLeod"
+    title="Projector Screen"
+    artist="HoliznaCC0"
     cover="/cover.jpg"
   ></pulse-track>
 </pulse-player>
@@ -58,7 +58,7 @@ npm i @pulse-music/web-component
 <script setup lang="ts">
 import { PulsePlayer, PulseFab } from '@pulse-music/vue'
 const tracks = [
-  { title: 'Protofunk', artist: 'Kevin MacLeod', src: '/song.mp3', cover: '/cover.jpg' },
+  { title: 'Projector Screen', artist: 'HoliznaCC0', src: '/song.mp3', cover: '/cover.jpg' },
 ]
 </script>
 
@@ -77,7 +77,7 @@ const tracks = [
 import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse-music/react'
 
 const tracks = [
-  { title: 'Protofunk', artist: 'Kevin MacLeod', src: '/song.mp3', cover: '/cover.jpg' },
+  { title: 'Projector Screen', artist: 'HoliznaCC0', src: '/song.mp3', cover: '/cover.jpg' },
 ]
 
 export function Player() {
@@ -104,7 +104,7 @@ export function Player() {
 ```svelte
 <script>
   import { usePulseAudio } from '@pulse-music/svelte'
-  const tracks = [{ title: 'Protofunk', src: '/song.mp3', cover: '/cover.jpg' }]
+  const tracks = [{ title: 'Projector Screen', src: '/song.mp3', cover: '/cover.jpg' }]
   const audio = usePulseAudio()
 </script>
 
@@ -127,7 +127,7 @@ import '@pulse-music/web-component'
   template: `<pulse-player [tracks]="tracks" variant="vinyl"></pulse-player>`,
 })
 export class PlayerComponent {
-  tracks = [{ title: 'Protofunk', src: '/song.mp3' }]
+  tracks = [{ title: 'Projector Screen', src: '/song.mp3' }]
 }
 ```
 
@@ -176,4 +176,4 @@ Issues and pull requests are welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md
 
 ## License
 
-[MIT](./LICENSE). Demo music by Kevin MacLeod (CC BY 4.0) — see [NOTICE.md](./NOTICE.md) for every third-party asset.
+[MIT](./LICENSE). Demo music by HoliznaCC0 (CC0, public domain) — see [NOTICE.md](./NOTICE.md) for every third-party asset.

@@ -9,7 +9,9 @@ npm i -D @pulse-music/types
 ```ts
 import type { Track } from '@pulse-music/types'
 
-const playlist: Track[] = [{ title: 'Protofunk', artist: 'Kevin MacLeod', src: '/protofunk.mp3' }]
+const playlist: Track[] = [
+  { title: 'Projector Screen', artist: 'HoliznaCC0', src: '/projector-screen.mp3' },
+]
 ```
 
 Every other package re-exports these types, so you rarely need to install this one directly.

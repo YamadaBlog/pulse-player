@@ -2,11 +2,11 @@
 
 | File | Title | Author | Licence |
 | --- | --- | --- | --- |
-| `protofunk.mp3` | “Protofunk” | Kevin MacLeod ([incompetech.com](https://incompetech.com)) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
-| `lobby-time.mp3` | “Lobby Time” | Kevin MacLeod ([incompetech.com](https://incompetech.com)) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
-| `deuces.mp3` | “Deuces” | Kevin MacLeod ([incompetech.com](https://incompetech.com)) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
+| `projector-screen.mp3` | “Projector Screen” | HoliznaCC0 — album [“Public Domain Lofi”](https://freemusicarchive.org/music/holiznacc0/public-domain-lofi/) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `warm-fuzz.mp3` | “Warm Fuzz” | HoliznaCC0 — album [“Public Domain Lofi”](https://freemusicarchive.org/music/holiznacc0/public-domain-lofi/) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `summer-break.mp3` | “Summer Break” | HoliznaCC0 — album [“Public Domain Lofi”](https://freemusicarchive.org/music/holiznacc0/public-domain-lofi/) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 
-Changes: loudness-normalised to −16 LUFS and re-encoded to ~110 kbps MP3 for the web.
+Changes: loudness-normalised to −16 LUFS and re-encoded to ~112 kbps MP3 for the web.
 
 The cover artworks (`*.svg`) are original creations for this repository and are
 released under the MIT licence with the rest of the source.

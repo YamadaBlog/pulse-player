@@ -10,7 +10,7 @@ npm i @pulse-music/core
 import { PulseEngine } from '@pulse-music/core'
 
 const engine = new PulseEngine({
-  tracks: [{ title: 'Protofunk', artist: 'Kevin MacLeod', src: '/protofunk.mp3' }],
+  tracks: [{ title: 'Projector Screen', artist: 'HoliznaCC0', src: '/projector-screen.mp3' }],
 })
 
 engine.onStateChange((state) => render(state)) // immutable snapshots

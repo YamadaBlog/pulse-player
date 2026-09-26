@@ -37,10 +37,10 @@ async function drawLabel(): Promise<HTMLCanvasElement> {
   ctx.font = '500 30px "Geist Mono", monospace'
   ctx.fillText('SIDE A  ·  33⅓ RPM', mid, mid - 250)
   ctx.font = '500 25px "Geist Mono", monospace'
-  const lines = ['A1  PROTOFUNK', 'A2  LOBBY TIME', 'A3  DEUCES']
+  const lines = ['A1  PROJECTOR SCREEN', 'A2  WARM FUZZ', 'A3  SUMMER BREAK']
   lines.forEach((line, i) => ctx.fillText(line, mid, mid + 150 + i * 38))
   ctx.font = '500 20px "Geist Mono", monospace'
-  ctx.fillText('KEVIN MACLEOD · CC BY 4.0', mid, mid + 300)
+  ctx.fillText('HOLIZNACC0 · PUBLIC DOMAIN', mid, mid + 300)
   ctx.fillText('℗ 2026 YAMADABLOG · MIT', mid, mid + 332)
   ctx.lineWidth = 3
   ctx.strokeStyle = 'rgb(19 18 16 / 0.35)'

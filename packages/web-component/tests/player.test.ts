@@ -13,10 +13,10 @@ describe('<pulse-player>', () => {
 
   it('renders the active track', async () => {
     const el = await mount<PulsePlayerElement>('<pulse-player></pulse-player>', makeEngine())
-    expect($(el, '.title').textContent).toBe('Protofunk')
-    expect($(el, '.artist').textContent).toBe('Kevin MacLeod')
+    expect($(el, '.title').textContent).toBe('Projector Screen')
+    expect($(el, '.artist').textContent).toBe('HoliznaCC0')
     expect($(el, '.player').getAttribute('aria-label')).toBe(
-      'Music player: Protofunk, Kevin MacLeod',
+      'Music player: Projector Screen, HoliznaCC0',
     )
   })
 
@@ -66,7 +66,7 @@ describe('<pulse-player>', () => {
     document.addEventListener('pulse-play', onDocument)
     await engine.play()
     expect(onPlay).toHaveBeenCalledTimes(1)
-    expect((onPlay.mock.calls[0][0] as CustomEvent).detail.track.title).toBe('Protofunk')
+    expect((onPlay.mock.calls[0][0] as CustomEvent).detail.track.title).toBe('Projector Screen')
     expect(onDocument).not.toHaveBeenCalled()
     document.removeEventListener('pulse-play', onDocument)
   })
@@ -101,7 +101,7 @@ describe('<pulse-player>', () => {
     const el = await mount<PulsePlayerElement>('<pulse-player></pulse-player>', engine)
     el.tracks = TRACKS
     await settle(el)
-    expect($(el, '.title').textContent).toBe('Protofunk')
+    expect($(el, '.title').textContent).toBe('Projector Screen')
   })
 
   it('exposes an accessible seek slider driven by the keyboard', async () => {
