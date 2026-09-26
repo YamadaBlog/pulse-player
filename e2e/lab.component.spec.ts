@@ -36,10 +36,12 @@ test('the seek slider follows the keyboard', async ({ page }) => {
   const slider = player.getByRole('slider', { name: 'Seek' })
   await expect.poll(() => slider.getAttribute('aria-valuemax')).not.toBe('0')
   await slider.focus()
+  const duration = Number(await slider.getAttribute('aria-valuemax'))
   await page.keyboard.press('End')
+  // End jumps to the last second of the track, whatever its length.
   await expect
     .poll(async () => Number(await slider.getAttribute('aria-valuenow')))
-    .toBeGreaterThan(150)
+    .toBeGreaterThanOrEqual(duration - 1)
   await page.keyboard.press('Home')
   await expect(slider).toHaveAttribute('aria-valuenow', '0')
 })
