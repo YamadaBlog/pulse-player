@@ -1,35 +1,42 @@
 {
   "name": "@pulse-music/types",
   "version": "3.0.0-rc.3",
-  "description": "Shared TypeScript types for every pulse-player framework wrapper (Track, PulseVariant, EventMap, PulseState).",
-  "license": "MIT",
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
-  },
-  "files": [
-    "dist",
-    "src",
-    "README.md"
+  "description": "Shared TypeScript types for Pulse — Track, PulseState, EventMap, PulseVariant.",
+  "keywords": [
+    "pulse-player",
+    "types",
+    "audio"
   ],
-  "scripts": {
-    "build": "tsup",
-    "prepublishOnly": "npm run build"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "private": false,
+  "license": "MIT",
+  "author": "YamadaBlog",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/YamadaBlog/pulse-player.git",
     "directory": "packages/types"
+  },
+  "homepage": "https://yamadablog.github.io/pulse-player/",
+  "bugs": {
+    "url": "https://github.com/YamadaBlog/pulse-player/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

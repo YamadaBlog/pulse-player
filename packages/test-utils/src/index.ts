@@ -101,7 +101,9 @@ export class FakeAudio extends EventTarget {
     const outcome = FakeAudio.nextPlay
     FakeAudio.nextPlay = 'resolve'
     if (outcome === 'reject') {
-      return Promise.reject(Object.assign(new Error('NotAllowedError'), { name: 'NotAllowedError' }))
+      return Promise.reject(
+        Object.assign(new Error('NotAllowedError'), { name: 'NotAllowedError' }),
+      )
     }
     if (outcome === 'abort') {
       return Promise.reject(Object.assign(new Error('AbortError'), { name: 'AbortError' }))
@@ -165,7 +167,8 @@ export class FakeAudio extends EventTarget {
 }
 
 /** Factory to pass as `createAudio` in `PulseEngineOptions`. */
-export const createFakeAudio = (): HTMLAudioElement => new FakeAudio() as unknown as HTMLAudioElement
+export const createFakeAudio = (): HTMLAudioElement =>
+  new FakeAudio() as unknown as HTMLAudioElement
 
 // ─── Web Audio ─────────────────────────────────────────────────────
 
@@ -262,7 +265,10 @@ export interface FakeMediaSession {
   playbackState: string
   handlers: Map<string, ((details: Record<string, unknown>) => void) | null>
   positions: Array<Record<string, number>>
-  setActionHandler(action: string, handler: ((details: Record<string, unknown>) => void) | null): void
+  setActionHandler(
+    action: string,
+    handler: ((details: Record<string, unknown>) => void) | null,
+  ): void
   setPositionState(state: Record<string, number>): void
 }
 

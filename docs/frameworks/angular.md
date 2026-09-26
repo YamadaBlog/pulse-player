@@ -68,9 +68,7 @@ export class AppComponent {}
 import { Component } from '@angular/core'
 import type { EventMap } from '@pulse-music/angular'
 
-@Component({
-  /* … */
-})
+@Component({/* … */})
 export class AppComponent {
   onPlay(e: CustomEvent<EventMap['play']>) {
     console.log('▶', e.detail.track.title, e.detail.time)

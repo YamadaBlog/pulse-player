@@ -1,0 +1,1291 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "src/PulseFab.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "`<pulse-fab>` — a floating, draggable mini player.\n\nTap to play / pause. Drag it anywhere: on release it springs to the\nnearest screen edge and remembers the spot. Long-press, right-click,\nthe ⋯ badge or <kbd>Shift</kbd>+<kbd>F10</kbd> open the action menu.",
+          "name": "PulseFabElement",
+          "cssProperties": [
+            {
+              "description": "Accent colour.",
+              "name": "--pulse-accent"
+            },
+            {
+              "description": "Stacking order (default 1000).",
+              "name": "--pulse-fab-z"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "variant",
+              "privacy": "public",
+              "type": {
+                "text": "PulseVariant"
+              },
+              "description": "Visual theme.",
+              "default": "'auto'",
+              "attribute": "variant",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "accentColor",
+              "privacy": "public",
+              "type": {
+                "text": "string | undefined"
+              },
+              "attribute": "accent-color"
+            },
+            {
+              "kind": "field",
+              "name": "placement",
+              "privacy": "public",
+              "type": {
+                "text": "FabPlacement"
+              },
+              "description": "Screen corner, or `inline` to place it in the document flow.",
+              "default": "'bottom-end'",
+              "attribute": "placement",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "reveal",
+              "privacy": "public",
+              "type": {
+                "text": "'on-play' | 'always'"
+              },
+              "description": "`on-play` (default) shows the FAB once playback starts; `always` shows it immediately.",
+              "default": "'on-play'",
+              "attribute": "reveal"
+            },
+            {
+              "kind": "field",
+              "name": "size",
+              "privacy": "public",
+              "type": {
+                "text": "number"
+              },
+              "description": "Diameter in px.",
+              "default": "64",
+              "attribute": "size"
+            },
+            {
+              "kind": "field",
+              "name": "pulso",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Heartbeat ripple while playing.",
+              "default": "false",
+              "attribute": "pulso"
+            },
+            {
+              "kind": "field",
+              "name": "locked",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Disable dragging.",
+              "default": "false",
+              "attribute": "locked"
+            },
+            {
+              "kind": "field",
+              "name": "persistKey",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "description": "`localStorage` key for the dragged position; empty string disables persistence.",
+              "default": "'pulse-fab-position'",
+              "attribute": "persist-key"
+            },
+            {
+              "kind": "field",
+              "name": "session",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "'default'",
+              "attribute": "session"
+            },
+            {
+              "kind": "field",
+              "name": "engine",
+              "privacy": "public",
+              "type": {
+                "text": "PulseEngine | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "labels",
+              "privacy": "public",
+              "type": {
+                "text": "Partial<PulseLabels> | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "menuOpen",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "menuOpen"
+            },
+            {
+              "kind": "field",
+              "name": "dragging",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "dragging"
+            },
+            {
+              "kind": "field",
+              "name": "sampledAccent",
+              "privacy": "private",
+              "type": {
+                "text": "string | undefined"
+              },
+              "attribute": "sampledAccent"
+            },
+            {
+              "kind": "field",
+              "name": "audio",
+              "type": {
+                "text": "EngineController"
+              },
+              "privacy": "private",
+              "readonly": true,
+              "default": "new EngineController(this, (state, prev) => { if (state.currentTrack !== prev.currentTrack) this.refreshAccent() })"
+            },
+            {
+              "kind": "field",
+              "name": "frames",
+              "type": {
+                "text": "FrameController"
+              },
+              "privacy": "private",
+              "readonly": true,
+              "default": "new FrameController( this, () => this.audio.engine, (frame) => this.draw(frame), )"
+            },
+            {
+              "kind": "field",
+              "name": "offset",
+              "type": {
+                "text": "Offset"
+              },
+              "privacy": "private",
+              "default": "{ x: 0, y: 0 }"
+            },
+            {
+              "kind": "field",
+              "name": "press",
+              "type": {
+                "text": "{ x: number; y: number; origin: Offset; id: number } | null"
+              },
+              "privacy": "private",
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "longPress",
+              "type": {
+                "text": "ReturnType<typeof setTimeout> | null"
+              },
+              "privacy": "private",
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "swallowClick",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "movable",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "refreshAccent",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "draw",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "frame",
+                  "type": {
+                    "text": "AudioFrame | null"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "applyOffset",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "offset",
+                  "type": {
+                    "text": "Offset"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "snap",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "persist",
+                  "type": {
+                    "text": "boolean"
+                  }
+                }
+              ],
+              "description": "Snap to the nearest horizontal edge and keep fully on screen."
+            },
+            {
+              "kind": "method",
+              "name": "restoreOffset",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "field",
+              "name": "onViewportResize",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "clearLongPress",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "field",
+              "name": "onDown",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "onMove",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "onUp",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "onClick",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "onContextMenu",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "onDiscKey",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "onOutside",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "closeMenu",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "focusDisc",
+                  "default": "true"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "onMenuKey",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "act",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "action",
+                  "type": {
+                    "text": "'prev' | 'next' | 'close'"
+                  }
+                }
+              ]
+            }
+          ],
+          "events": [
+            {
+              "description": "/ pulse-pause / pulse-trackchange / pulse-ended / pulse-error",
+              "name": "pulse-play"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "variant",
+              "type": {
+                "text": "PulseVariant"
+              },
+              "description": "Visual theme.",
+              "default": "'auto'",
+              "fieldName": "variant"
+            },
+            {
+              "name": "accent-color",
+              "type": {
+                "text": "string | undefined"
+              },
+              "fieldName": "accentColor"
+            },
+            {
+              "name": "placement",
+              "type": {
+                "text": "FabPlacement"
+              },
+              "description": "Screen corner, or `inline` to place it in the document flow.",
+              "default": "'bottom-end'",
+              "fieldName": "placement"
+            },
+            {
+              "name": "reveal",
+              "type": {
+                "text": "'on-play' | 'always'"
+              },
+              "description": "`on-play` (default) shows the FAB once playback starts; `always` shows it immediately.",
+              "default": "'on-play'",
+              "fieldName": "reveal"
+            },
+            {
+              "name": "size",
+              "type": {
+                "text": "number"
+              },
+              "description": "Diameter in px.",
+              "default": "64",
+              "fieldName": "size"
+            },
+            {
+              "name": "pulso",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Heartbeat ripple while playing.",
+              "default": "false",
+              "fieldName": "pulso"
+            },
+            {
+              "name": "locked",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Disable dragging.",
+              "default": "false",
+              "fieldName": "locked"
+            },
+            {
+              "name": "persist-key",
+              "type": {
+                "text": "string"
+              },
+              "description": "`localStorage` key for the dragged position; empty string disables persistence.",
+              "default": "'pulse-fab-position'",
+              "fieldName": "persistKey"
+            },
+            {
+              "name": "session",
+              "type": {
+                "text": "string"
+              },
+              "default": "'default'",
+              "fieldName": "session"
+            },
+            {
+              "name": "menuOpen",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "menuOpen"
+            },
+            {
+              "name": "dragging",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "dragging"
+            },
+            {
+              "name": "sampledAccent",
+              "type": {
+                "text": "string | undefined"
+              },
+              "fieldName": "sampledAccent"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "PulseFabElement",
+          "declaration": {
+            "name": "PulseFabElement",
+            "module": "src/PulseFab.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/PulsePlayer.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "`<pulse-player>` — the inline music player card.\n\nSizes itself from its container: full card → narrow → compact → a\nround disc below 128 px, all driven by CSS container queries.",
+          "name": "PulsePlayerElement",
+          "cssProperties": [
+            {
+              "description": "Accent colour (progress, equaliser, focus rings).",
+              "name": "--pulse-accent"
+            },
+            {
+              "description": "Card background.",
+              "name": "--pulse-bg"
+            },
+            {
+              "description": "Text and icon colour.",
+              "name": "--pulse-fg"
+            },
+            {
+              "description": "Secondary text colour.",
+              "name": "--pulse-muted"
+            },
+            {
+              "description": "Corner radius.",
+              "name": "--pulse-radius"
+            },
+            {
+              "description": "Font family (inherits from the page by default).",
+              "name": "--pulse-font"
+            },
+            {
+              "description": "Outer shadow.",
+              "name": "--pulse-shadow"
+            }
+          ],
+          "cssParts": [
+            {
+              "description": "The card.",
+              "name": "player"
+            },
+            {
+              "description": "The cover art.",
+              "name": "artwork"
+            },
+            {
+              "description": "The track title.",
+              "name": "title"
+            },
+            {
+              "description": "The artist line.",
+              "name": "artist"
+            },
+            {
+              "description": "The transport row.",
+              "name": "controls"
+            },
+            {
+              "description": "The seek bar.",
+              "name": "progress"
+            }
+          ],
+          "slots": [
+            {
+              "description": "Extra controls shown top-right on wide players (links, buttons…).",
+              "name": "actions"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "variant",
+              "privacy": "public",
+              "type": {
+                "text": "PulseVariant"
+              },
+              "description": "Visual theme.",
+              "default": "'auto'",
+              "attribute": "variant",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "accentColor",
+              "privacy": "public",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "Accent colour — any CSS colour. Defaults to the variant's (or the cover's, on `auto`).",
+              "attribute": "accent-color"
+            },
+            {
+              "kind": "field",
+              "name": "customBackground",
+              "privacy": "public",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "CSS `background` used by `variant=\"custom\"`.",
+              "attribute": "custom-background"
+            },
+            {
+              "kind": "field",
+              "name": "ambientEq",
+              "privacy": "public",
+              "type": {
+                "text": "boolean | undefined"
+              },
+              "description": "Show the ambient equaliser behind the card. Defaults to the engine's `ambientEq`.",
+              "attribute": "ambient-eq"
+            },
+            {
+              "kind": "field",
+              "name": "grain",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Film-grain overlay. On by default; `grain=\"false\"` removes it.",
+              "default": "true",
+              "attribute": "grain"
+            },
+            {
+              "kind": "field",
+              "name": "resizable",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Show a corner handle to resize the player (pointer or arrow keys).",
+              "default": "false",
+              "attribute": "resizable",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "resizeMin",
+              "privacy": "public",
+              "type": {
+                "text": "number"
+              },
+              "default": "64",
+              "attribute": "resize-min"
+            },
+            {
+              "kind": "field",
+              "name": "resizeMax",
+              "privacy": "public",
+              "type": {
+                "text": "number"
+              },
+              "default": "760",
+              "attribute": "resize-max"
+            },
+            {
+              "kind": "field",
+              "name": "session",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "description": "Named audio session to join (`'default'` is shared page-wide).",
+              "default": "'default'",
+              "attribute": "session"
+            },
+            {
+              "kind": "field",
+              "name": "engine",
+              "privacy": "public",
+              "type": {
+                "text": "PulseEngine | undefined"
+              },
+              "description": "Bind to an explicit engine instead of a shared session."
+            },
+            {
+              "kind": "field",
+              "name": "tracks",
+              "privacy": "public",
+              "type": {
+                "text": "Track[] | undefined"
+              },
+              "description": "Replace the session's playlist."
+            },
+            {
+              "kind": "field",
+              "name": "labels",
+              "privacy": "public",
+              "type": {
+                "text": "Partial<PulseLabels> | undefined"
+              },
+              "description": "Localised strings."
+            },
+            {
+              "kind": "field",
+              "name": "scrubbing",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "scrubbing"
+            },
+            {
+              "kind": "field",
+              "name": "hoverFraction",
+              "privacy": "private",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "attribute": "hoverFraction"
+            },
+            {
+              "kind": "field",
+              "name": "previousCover",
+              "privacy": "private",
+              "type": {
+                "text": "string | undefined"
+              },
+              "attribute": "previousCover"
+            },
+            {
+              "kind": "field",
+              "name": "sampledAccent",
+              "privacy": "private",
+              "type": {
+                "text": "string | undefined"
+              },
+              "attribute": "sampledAccent"
+            },
+            {
+              "kind": "field",
+              "name": "resizing",
+              "privacy": "private",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "resizing"
+            },
+            {
+              "kind": "field",
+              "name": "audio",
+              "type": {
+                "text": "EngineController"
+              },
+              "privacy": "private",
+              "readonly": true,
+              "default": "new EngineController(this, (state, prev) => this.onEngineState(state, prev))"
+            },
+            {
+              "kind": "field",
+              "name": "frames",
+              "type": {
+                "text": "FrameController"
+              },
+              "privacy": "private",
+              "readonly": true,
+              "default": "new FrameController( this, () => this.audio.engine, (frame) => this.draw(frame), )"
+            },
+            {
+              "kind": "field",
+              "name": "internals",
+              "type": {
+                "text": "ElementInternals | null"
+              },
+              "privacy": "private",
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "trackObserver",
+              "type": {
+                "text": "MutationObserver | null"
+              },
+              "privacy": "private",
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "scrubFraction",
+              "type": {
+                "text": "number"
+              },
+              "privacy": "private",
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "resizeStart",
+              "type": {
+                "text": "{ x: number; width: number } | null"
+              },
+              "privacy": "private",
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "state",
+              "type": {
+                "text": "PulseState"
+              },
+              "privacy": "private",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "onEngineState",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "state",
+                  "type": {
+                    "text": "PulseState"
+                  }
+                },
+                {
+                  "name": "prev",
+                  "type": {
+                    "text": "PulseState"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "lastCover",
+              "type": {
+                "text": "string | undefined"
+              },
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "toggleState",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "states",
+                  "type": {
+                    "text": "CustomStateSet"
+                  }
+                },
+                {
+                  "name": "name",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "on",
+                  "type": {
+                    "text": "boolean"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "refreshAccent",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "syncLightTracks",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "draw",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "frame",
+                  "type": {
+                    "text": "AudioFrame | null"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "fractionAt",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "number"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "PointerEvent"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "onProgressDown",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "onProgressMove",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "onProgressUp",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "onProgressKey",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "onKeydown",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "clampWidth",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "number"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "width",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "applyWidth",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "width",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "onResizeDown",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "onResizeMove",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "onResizeUp",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "onResizeKey",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "renderArt",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "track",
+                  "type": {
+                    "text": "Track | null"
+                  }
+                }
+              ]
+            }
+          ],
+          "events": [
+            {
+              "name": "pulse-resize",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "— the user resized the player. `detail: { width }`"
+            },
+            {
+              "description": "— playback started. `detail: { track, time }`",
+              "name": "pulse-play"
+            },
+            {
+              "description": "— playback paused. `detail: { track, time }`",
+              "name": "pulse-pause"
+            },
+            {
+              "description": "— the active track changed. `detail: { from, to, track }`",
+              "name": "pulse-trackchange"
+            },
+            {
+              "description": "— a track reached its end. `detail: { track }`",
+              "name": "pulse-ended"
+            },
+            {
+              "description": "— playback failed. `detail: { track, reason, detail }`",
+              "name": "pulse-error"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "variant",
+              "type": {
+                "text": "PulseVariant"
+              },
+              "description": "Visual theme.",
+              "default": "'auto'",
+              "fieldName": "variant"
+            },
+            {
+              "name": "accent-color",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "Accent colour — any CSS colour. Defaults to the variant's (or the cover's, on `auto`).",
+              "fieldName": "accentColor"
+            },
+            {
+              "name": "custom-background",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "CSS `background` used by `variant=\"custom\"`.",
+              "fieldName": "customBackground"
+            },
+            {
+              "name": "ambient-eq",
+              "type": {
+                "text": "boolean | undefined"
+              },
+              "description": "Show the ambient equaliser behind the card. Defaults to the engine's `ambientEq`.",
+              "fieldName": "ambientEq"
+            },
+            {
+              "name": "grain",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Film-grain overlay. On by default; `grain=\"false\"` removes it.",
+              "default": "true",
+              "fieldName": "grain"
+            },
+            {
+              "name": "resizable",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Show a corner handle to resize the player (pointer or arrow keys).",
+              "default": "false",
+              "fieldName": "resizable"
+            },
+            {
+              "name": "resize-min",
+              "type": {
+                "text": "number"
+              },
+              "default": "64",
+              "fieldName": "resizeMin"
+            },
+            {
+              "name": "resize-max",
+              "type": {
+                "text": "number"
+              },
+              "default": "760",
+              "fieldName": "resizeMax"
+            },
+            {
+              "name": "session",
+              "type": {
+                "text": "string"
+              },
+              "description": "Named audio session to join (`'default'` is shared page-wide).",
+              "default": "'default'",
+              "fieldName": "session"
+            },
+            {
+              "name": "scrubbing",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "scrubbing"
+            },
+            {
+              "name": "hoverFraction",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "fieldName": "hoverFraction"
+            },
+            {
+              "name": "previousCover",
+              "type": {
+                "text": "string | undefined"
+              },
+              "fieldName": "previousCover"
+            },
+            {
+              "name": "sampledAccent",
+              "type": {
+                "text": "string | undefined"
+              },
+              "fieldName": "sampledAccent"
+            },
+            {
+              "name": "resizing",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "resizing"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "PulsePlayerElement",
+          "declaration": {
+            "name": "PulsePlayerElement",
+            "module": "src/PulsePlayer.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/PulseTrack.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "TRACK_ATTRIBUTES",
+          "type": {
+            "text": "['src', 'title', 'artist', 'album', 'cover', 'cover-pos', 'cover-scale']"
+          },
+          "default": "['src', 'title', 'artist', 'album', 'cover', 'cover-pos', 'cover-scale']"
+        },
+        {
+          "kind": "class",
+          "description": "",
+          "name": "PulseTrackElement",
+          "members": [
+            {
+              "kind": "method",
+              "name": "toTrack",
+              "return": {
+                "type": {
+                  "text": "Track | null"
+                }
+              },
+              "description": "The entry as a `Track`, or `null` when `src` is missing."
+            }
+          ],
+          "superclass": {
+            "name": "Base",
+            "module": "src/PulseTrack.ts"
+          }
+        },
+        {
+          "kind": "variable",
+          "name": "src"
+        },
+        {
+          "kind": "function",
+          "name": "readTracks",
+          "return": {
+            "type": {
+              "text": "Track[]"
+            }
+          },
+          "parameters": [
+            {
+              "name": "host",
+              "type": {
+                "text": "Element"
+              }
+            }
+          ],
+          "description": "Collect the `<pulse-track>` children of `host`."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "TRACK_ATTRIBUTES",
+          "declaration": {
+            "name": "TRACK_ATTRIBUTES",
+            "module": "src/PulseTrack.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PulseTrackElement",
+          "declaration": {
+            "name": "PulseTrackElement",
+            "module": "src/PulseTrack.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "readTracks",
+          "declaration": {
+            "name": "readTracks",
+            "module": "src/PulseTrack.ts"
+          }
+        }
+      ]
+    }
+  ]
+}

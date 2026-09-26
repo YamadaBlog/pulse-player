@@ -1,30 +1,53 @@
 {
   "name": "@pulse-music/vue",
-  "version": "3.0.0-rc.0",
-  "description": "Vue 3 wrapper for pulse-player. Reference implementation — exposes Vue refs + components.",
+  "version": "3.0.0-rc.3",
+  "description": "Vue 3 bindings for Pulse — <PulsePlayer>, <PulseFab> and the usePulseAudio() composable.",
+  "keywords": [
+    "vue",
+    "vue3",
+    "music-player",
+    "audio-player",
+    "composable",
+    "pulse-player"
+  ],
   "license": "MIT",
+  "author": "YamadaBlog",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YamadaBlog/pulse-player.git",
+    "directory": "packages/vue"
+  },
+  "homepage": "https://yamadablog.github.io/pulse-player/",
+  "bugs": {
+    "url": "https://github.com/YamadaBlog/pulse-player/issues"
+  },
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "sideEffects": true,
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts"
-    }
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
-    "src",
-    "README.md"
+    "dist"
   ],
-  "peerDependencies": {
-    "pinia": "^2.1.0",
-    "vue": "^3.4.0"
+  "scripts": {
+    "build": "tsdown"
   },
   "dependencies": {
-    "@pulse-music/types": "*"
+    "@pulse-music/core": "^3.0.0-rc.3",
+    "@pulse-music/types": "^3.0.0-rc.3",
+    "@pulse-music/web-component": "^3.0.0-rc.3"
+  },
+  "peerDependencies": {
+    "vue": "^3.4.0"
   },
   "publishConfig": {
-    "access": "public"
-  },
-  "private": false
+    "access": "public",
+    "provenance": true
+  }
 }

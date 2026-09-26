@@ -37,11 +37,7 @@ function Bar({ active, accent, delay }: BarProps) {
 
   useEffect(() => {
     if (active) {
-      scale.value = withRepeat(
-        withTiming(1, { duration: 600 + delay * 30 }),
-        -1,
-        true,
-      )
+      scale.value = withRepeat(withTiming(1, { duration: 600 + delay * 30 }), -1, true)
     } else {
       cancelAnimation(scale)
       scale.value = withTiming(0.3, { duration: 200 })

@@ -176,7 +176,11 @@ function smooth(bands: Float32Array, i: number, target: number): void {
 }
 
 /** Map `count` log-spaced bands onto analyser bin ranges. */
-function computeRanges(count: number, sampleRate: number, binCount: number): Array<[number, number]> {
+function computeRanges(
+  count: number,
+  sampleRate: number,
+  binCount: number,
+): Array<[number, number]> {
   const hzPerBin = sampleRate / 2 / binCount
   const ranges: Array<[number, number]> = []
   let previous = -1

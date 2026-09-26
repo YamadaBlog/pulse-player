@@ -1,0 +1,334 @@
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/GeistMono-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+/* ─── Tokens ─────────────────────────────────────────────────────── */
+:root {
+  color-scheme: dark;
+
+  --bg: #07070b;
+  --surface: #0f0f15;
+  --surface-2: #16161f;
+  --surface-3: #1e1e29;
+  --line: rgb(255 255 255 / 0.08);
+  --line-strong: rgb(255 255 255 / 0.14);
+  --text: #f4f4f7;
+  --text-2: rgb(244 244 247 / 0.72);
+  --text-3: rgb(244 244 247 / 0.56);
+  --brand: #3dbda7;
+  --brand-2: #a78bfa;
+  --warm: #ff9f5a;
+  --glow: color-mix(in oklab, var(--brand) 55%, transparent);
+
+  --font: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --step--1: 0.8125rem;
+  --step-0: 0.9375rem;
+  --step-1: 1.0625rem;
+  --step-2: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --step-3: clamp(1.75rem, 1.35rem + 1.6vw, 2.75rem);
+  --step-4: clamp(2.5rem, 1.6rem + 3.8vw, 4.75rem);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --space-9: clamp(4.5rem, 3rem + 6vw, 8.5rem);
+
+  --radius-1: 8px;
+  --radius-2: 12px;
+  --radius-3: 18px;
+  --radius-4: 28px;
+
+  --page: min(1160px, 100% - 2 * clamp(1rem, 4vw, 2.5rem));
+  --nav-h: 64px;
+}
+
+/* ─── Base ───────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--nav-h) + 16px);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: var(--font);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+a {
+  color: inherit;
+}
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  font-weight: 700;
+}
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+code,
+kbd,
+pre {
+  font-family: var(--mono);
+}
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+::selection {
+  background: color-mix(in oklab, var(--brand) 40%, transparent);
+}
+
+/* ─── Layout primitives ──────────────────────────────────────────── */
+.page {
+  width: var(--page);
+  margin-inline: auto;
+}
+.section {
+  position: relative;
+  padding-block: var(--space-9);
+}
+.section-head {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 720px;
+  margin-bottom: var(--space-7);
+}
+.section-head--center {
+  margin-inline: auto;
+  text-align: center;
+  justify-items: center;
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+.eyebrow::before {
+  content: '';
+  width: 18px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+.title {
+  font-size: var(--step-3);
+}
+.lede {
+  font-size: var(--step-1);
+  color: var(--text-2);
+  max-width: 62ch;
+}
+.muted {
+  color: var(--text-2);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.card {
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--line);
+  border-radius: var(--radius-4);
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────── */
+.btn {
+  --btn-bg: var(--surface-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-5);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--btn-bg);
+  color: var(--text);
+  font-size: var(--step-0);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--pulse-dur-fast) var(--pulse-ease-out),
+    border-color var(--pulse-dur-fast) var(--pulse-ease-out),
+    box-shadow var(--pulse-dur-base) var(--pulse-ease-out),
+    scale var(--pulse-dur-spring) var(--pulse-ease-pop);
+}
+.btn:hover {
+  border-color: rgb(255 255 255 / 0.24);
+  background: color-mix(in oklab, var(--btn-bg) 85%, white);
+}
+.btn:active {
+  scale: 0.96;
+  transition-duration: var(--pulse-dur-instant);
+}
+.btn--primary {
+  --btn-bg: var(--text);
+  color: #0b0b10;
+  border-color: transparent;
+  box-shadow: 0 10px 30px -12px var(--glow);
+}
+.btn--primary:hover {
+  background: #fff;
+  box-shadow:
+    0 0 0 6px color-mix(in oklab, var(--brand) 22%, transparent),
+    0 14px 34px -12px var(--glow);
+}
+.btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ─── Chips / segmented controls ─────────────────────────────────── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: rgb(255 255 255 / 0.03);
+  color: var(--text-2);
+  font-size: var(--step--1);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color var(--pulse-dur-fast) var(--pulse-ease-out),
+    background-color var(--pulse-dur-fast) var(--pulse-ease-out),
+    border-color var(--pulse-dur-fast) var(--pulse-ease-out),
+    scale var(--pulse-dur-spring) var(--pulse-ease-pop);
+}
+.chip:hover {
+  color: var(--text);
+  border-color: rgb(255 255 255 / 0.24);
+}
+.chip:active {
+  scale: 0.95;
+}
+.chip[aria-pressed='true'],
+.chip[aria-checked='true'] {
+  color: #0b0b10;
+  background: var(--text);
+  border-color: transparent;
+}
+
+kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  border-radius: 7px;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  background: var(--surface-3);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ─── Scroll reveal (see composables/reveal.ts) ──────────────────── */
+[data-reveal] {
+  opacity: 0;
+  translate: 0 28px;
+  filter: blur(6px);
+  transition:
+    opacity 900ms var(--pulse-ease-out),
+    translate 1100ms var(--pulse-ease-gentle),
+    filter 900ms var(--pulse-ease-out);
+  transition-delay: calc(var(--i, 0) * 80ms);
+}
+[data-reveal].is-revealed {
+  opacity: 1;
+  translate: 0 0;
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  [data-reveal] {
+    opacity: 1;
+    translate: none;
+    filter: none;
+    transition: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* Theme switches cross-fade through the View Transitions API. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}

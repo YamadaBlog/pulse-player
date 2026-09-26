@@ -1,63 +1,22 @@
 /**
- * @pulse-music/svelte — Svelte 5 wrapper for pulse-player.
+ * @pulse-music/svelte — Svelte bindings for Pulse.
  *
- * Svelte's DOM-first philosophy means `<pulse-player>` and
- * `<pulse-fab>` Custom Elements work **directly** in any Svelte
- * template — no Svelte components needed, no wrapping. This package
- * exists to ship:
- *
- *   - `usePulseAudio()` — a Svelte 5 runes wrapper around the shared
- *     PulseEngine, returning a `$state`-backed reactive snapshot +
- *     the action surface. Equivalent to Vue's `useAudioStore` and
- *     React's `usePulseAudio()`.
- *   - Re-exports of the engine, the singleton helpers, and every
- *     `@pulse-music/types` shape, so consumers pull everything from one
- *     import.
- *
- * Example:
- *
- * ```svelte
- * <script lang="ts">
- *   import { usePulseAudio } from '@pulse-music/svelte'
- *   const audio = usePulseAudio()
- * </script>
- *
- * <!-- Custom Elements work natively in Svelte. No <PulsePlayer /> needed. -->
- * <pulse-player variant="midnight" onpulse-play={(e) => console.log(e.detail.track.title)}></pulse-player>
- * <pulse-fab pulso></pulse-fab>
- *
- * <p>Tracks played this session: {audio.state.playCount}</p>
- * ```
- *
- * Status: v3.0.0-alpha.3 — first real release. Runes-based hook +
- * type re-exports. No bespoke `<PulsePlayer />` / `<PulseFab />`
- * Svelte components in this alpha — they'd be a single-line wrapper
- * around the Custom Elements without adding meaningful DX, and
- * shipping a real `.svelte` file requires a Svelte build step that
- * complicates the monorepo's npm-workspaces tooling. We can revisit
- * if consumer feedback asks for `<PulsePlayer />` / `<PulseFab />`.
+ * Svelte renders Custom Elements natively, so `<pulse-player>` and
+ * `<pulse-fab>` are used directly; this package registers them and adds
+ * `usePulseAudio()`, a readable store over the audio session.
  */
-
-// Side-effect import registers <pulse-player> + <pulse-fab>.
 import '@pulse-music/web-component'
 
-export { usePulseAudio, type UsePulseAudioStore } from './usePulseAudio'
-
+export { usePulseAudio, type PulseAudioStore, type PulseSnapshot } from './usePulseAudio'
 export {
   PulseEngine,
   getSharedEngine,
   setSharedEngine,
+  formatTime,
+  ALL_VARIANTS,
+  DEFAULT_LABELS,
+  type PulseEngineOptions,
+  type PulseLabels,
+  type FabPlacement,
 } from '@pulse-music/web-component'
-
-export type {
-  AudioEvent,
-  ErrorReason,
-  EventListener,
-  EventMap,
-  PulseState,
-  PulseVariant,
-  Track,
-  Unsubscribe,
-} from '@pulse-music/types'
-
-export { ALL_VARIANTS } from '@pulse-music/types'
+export type { EventMap, PulseState, PulseVariant, RepeatMode, Track } from '@pulse-music/types'

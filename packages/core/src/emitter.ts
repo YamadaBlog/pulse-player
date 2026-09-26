@@ -2,7 +2,7 @@
  * Minimal typed event emitter. A throwing listener is reported and
  * skipped — it can never take the engine (or the other listeners) down.
  */
-export class Emitter<Events extends Record<string, unknown>> {
+export class Emitter<Events extends object> {
   private readonly listeners = new Map<keyof Events, Set<(payload: never) => void>>()
 
   on<E extends keyof Events>(event: E, listener: (payload: Events[E]) => void): () => void {

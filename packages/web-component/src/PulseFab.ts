@@ -1,382 +1,471 @@
-import { LitElement, html } from 'lit'
-import { customElement, property, state } from 'lit/decorators.js'
+import { LitElement, html, nothing, type PropertyDeclarations, type PropertyValues } from 'lit'
+import { keyed } from 'lit/directives/keyed.js'
+import { styleMap } from 'lit/directives/style-map.js'
 import type { PulseEngine } from '@pulse-music/core'
-import type { PulseState, PulseVariant, Unsubscribe } from '@pulse-music/types'
-import { ALL_VARIANTS } from '@pulse-music/types'
-import { getSharedEngine } from './engine-singleton'
-import { baseStyles, fabStyles } from './styles'
+import type { AudioFrame, PulseVariant } from '@pulse-music/types'
+import { EngineController } from './controllers/engine'
+import { FrameController } from './controllers/frames'
+import { closeIcon, moreIcon, nextIcon, noteIcon, pauseIcon, playIcon, previousIcon } from './icons'
+import { mergeLabels, type PulseLabels } from './labels'
+import { baseStyles, motionStyles, variantStyles } from './styles/shared'
+import { fabStyles } from './styles/fab'
+import { hueFrom, sampleAccent } from './utils/color'
+import { prefersReducedMotion, registerAnimatableAccent } from './utils/motion'
+
+export type FabPlacement = 'bottom-end' | 'bottom-start' | 'top-end' | 'top-start' | 'inline'
+
+const DRAG_THRESHOLD = 6
+const LONG_PRESS_MS = 480
+const EDGE = 16
+
+interface Offset {
+  x: number
+  y: number
+}
 
 /**
- * `<pulse-fab>` — universal floating action button Custom Element.
+ * `<pulse-fab>` — a floating, draggable mini player.
  *
- * Compact disc-shaped player. Same singleton engine as
- * `<pulse-player>` — toggling one toggles both. Mirrors the
- * v2.3.4 MiniPlayer.vue behaviour for the play / pause + variant
- * surface.
+ * Tap to play / pause. Drag it anywhere: on release it springs to the
+ * nearest screen edge and remembers the spot. Long-press, right-click,
+ * the ⋯ badge or <kbd>Shift</kbd>+<kbd>F10</kbd> open the action menu.
  *
- * Attributes:
- *   - `variant` : PulseVariant (default 'auto')
- *   - `pulso`   : presence attribute (`<pulse-fab pulso>`) enables the
- *                 heartbeat ring while audio plays
+ * @tagname pulse-fab
  *
- * Events: same as `<pulse-player>` (events bubble + compose, so a
- * single parent listener covers both elements).
+ * @fires pulse-play        — playback started. `detail: { track, time }`
+ * @fires pulse-pause       — playback paused. `detail: { track, time }`
+ * @fires pulse-trackchange — the active track changed. `detail: { from, to, track }`
+ * @fires pulse-ended       — a track reached its end. `detail: { track }`
+ * @fires pulse-error       — playback failed. `detail: { track, reason, detail }`
  *
- * Status: v3.0.0-rc — feature-complete (round-10 docstring refresh;
- * the "SKELETON" note dated from alpha.2 and was stale). Renders the
- * disc + play/pause + variant, with drag-to-reposition (`draggable`,
- * persisted to localStorage), the radial menu (`show-menu`) and the
- * pulso heartbeat ring all implemented below.
+ * @cssprop --pulse-accent - Accent colour.
+ * @cssprop --pulse-fab-z  - Stacking order (default 1000).
  */
-@customElement('pulse-fab')
 export class PulseFabElement extends LitElement {
-  static override styles = [baseStyles, fabStyles]
+  static override styles = [variantStyles, motionStyles, baseStyles, fabStyles]
 
-  @property({ type: String, reflect: true })
-  variant: PulseVariant = 'auto'
-
-  @property({ type: Boolean, reflect: true })
-  pulso = false
-
-  /**
-   * Allow the user to drag the FAB to any position on the viewport.
-   * The chosen position persists across reloads via `localStorage`
-   * under the key configured by `persistKey`. Mirrors v2.3.4
-   * MiniPlayer.
-   */
-  @property({ type: Boolean, reflect: true })
-  draggable = false
-
-  /** localStorage key used by the drag persistence. Default `pulse-fab-pos`. */
-  @property({ type: String, attribute: 'persist-key' })
-  persistKey = 'pulse-fab-pos'
-
-  /**
-   * Opt into the radial menu that lets the user pick a variant and
-   * toggle pulso / fullscreen at runtime. When `true`, a small chevron
-   * appears next to the FAB; clicking it opens the menu.
-   */
-  @property({ type: Boolean, attribute: 'show-menu', reflect: true })
-  showMenu = false
-
-  /** Whether the radial menu is currently open. Internal state. */
-  @state()
-  private menuOpen = false
-
-  @state()
-  private state: PulseState = {
-    currentTrack: 0,
-    isPlaying: false,
-    currentTime: 0,
-    duration: 0,
-    isVisible: false,
-    hasBeenOpened: false,
-    ambientEq: false,
-    playCount: 0,
-    pauseCount: 0,
-    trackChangeCount: 0,
+  static override properties: PropertyDeclarations = {
+    variant: { type: String, reflect: true },
+    accentColor: { type: String, attribute: 'accent-color' },
+    placement: { type: String, reflect: true },
+    reveal: { type: String },
+    size: { type: Number },
+    pulso: { type: Boolean },
+    locked: { type: Boolean },
+    persistKey: { type: String, attribute: 'persist-key' },
+    session: { type: String },
+    engine: { attribute: false },
+    labels: { attribute: false },
+    menuOpen: { state: true },
+    dragging: { state: true },
+    sampledAccent: { state: true },
   }
 
-  private engine: PulseEngine = getSharedEngine()
-  private offState: Unsubscribe | undefined
-  private offPlay: Unsubscribe | undefined
-  private offPause: Unsubscribe | undefined
-  private offTrackChange: Unsubscribe | undefined
-  private offError: Unsubscribe | undefined
+  /** Visual theme. */
+  declare variant: PulseVariant
+  declare accentColor: string | undefined
+  /** Screen corner, or `inline` to place it in the document flow. */
+  declare placement: FabPlacement
+  /** `on-play` (default) shows the FAB once playback starts; `always` shows it immediately. */
+  declare reveal: 'on-play' | 'always'
+  /** Diameter in px. */
+  declare size: number
+  /** Heartbeat ripple while playing. */
+  declare pulso: boolean
+  /** Disable dragging. */
+  declare locked: boolean
+  /** `localStorage` key for the dragged position; empty string disables persistence. */
+  declare persistKey: string
+  declare session: string
+  declare engine: PulseEngine | undefined
+  declare labels: Partial<PulseLabels> | undefined
 
-  private onDocumentClick = (): void => {
-    if (this.menuOpen) this.menuOpen = false
-  }
+  declare private menuOpen: boolean
+  declare private dragging: boolean
+  declare private sampledAccent: string | undefined
 
-  /**
-   * Keyboard navigation inside the open radial menu.
-   *
-   * Listens on `keydown` so `Escape` closes the menu (and returns
-   * focus to the toggle) and `ArrowDown` / `ArrowUp` move through
-   * the menu items, wrapping at the edges. Mirrors the WAI-ARIA
-   * "Menu Button" pattern.
-   */
-  private onMenuKeydown = (e: KeyboardEvent): void => {
-    if (!this.menuOpen) return
-    if (e.key === 'Escape') {
-      e.preventDefault()
-      this.menuOpen = false
-      // Return focus to the chevron toggle.
-      const toggle = this.shadowRoot?.querySelector(
-        '.fab__menu-toggle',
-      ) as HTMLButtonElement | null
-      toggle?.focus()
-      return
-    }
-    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
-    e.preventDefault()
-    const items = Array.from(
-      this.shadowRoot?.querySelectorAll<HTMLElement>(
-        '.fab__chip, .fab__menu-item',
-      ) ?? [],
+  private readonly audio: EngineController
+  private readonly frames: FrameController
+  private offset: Offset = { x: 0, y: 0 }
+  private press: { x: number; y: number; origin: Offset; id: number } | null = null
+  private longPress: ReturnType<typeof setTimeout> | null = null
+  private swallowClick = false
+
+  constructor() {
+    super()
+    this.variant = 'auto'
+    this.placement = 'bottom-end'
+    this.reveal = 'on-play'
+    this.size = 64
+    this.pulso = false
+    this.locked = false
+    this.persistKey = 'pulse-fab-position'
+    this.session = 'default'
+    this.menuOpen = false
+    this.dragging = false
+    this.audio = new EngineController(this, (state, prev) => {
+      if (state.currentTrack !== prev.currentTrack) this.refreshAccent()
+    })
+    this.frames = new FrameController(
+      this,
+      () => this.audio.engine,
+      (frame) => this.draw(frame),
     )
-    if (!items.length) return
-    const active = (this.shadowRoot?.activeElement ?? null) as HTMLElement | null
-    const idx = active ? items.indexOf(active) : -1
-    const next =
-      e.key === 'ArrowDown'
-        ? items[(idx + 1) % items.length]
-        : items[(idx - 1 + items.length) % items.length]
-    next?.focus()
+    registerAnimatableAccent()
   }
 
   override connectedCallback(): void {
+    // Resolve the engine before anything (tracks, controllers) touches it.
+    this.audio.use(this.engine, this.session)
     super.connectedCallback()
-    document.addEventListener('click', this.onDocumentClick)
-    this.addEventListener('keydown', this.onMenuKeydown)
-    this.offState = this.engine.onStateChange((s) => {
-      this.state = { ...s }
-    })
-    this.offPlay = this.engine.subscribe('play', (detail) => this.fire('pulse-play', detail))
-    this.offPause = this.engine.subscribe('pause', (detail) => this.fire('pulse-pause', detail))
-    this.offTrackChange = this.engine.subscribe('trackchange', (detail) =>
-      this.fire('pulse-trackchange', detail),
-    )
-    this.offError = this.engine.subscribe('error', (detail) => this.fire('pulse-error', detail))
-
-    // Restore persisted FAB position if drag is enabled.
-    if (this.draggable && typeof window !== 'undefined') {
-      try {
-        const raw = window.localStorage.getItem(this.persistKey)
-        if (raw) {
-          const { x, y } = JSON.parse(raw) as { x: number; y: number }
-          this.style.position = 'fixed'
-          this.style.left = `${x}px`
-          this.style.top = `${y}px`
-          this.style.right = 'auto'
-          this.style.bottom = 'auto'
-        }
-      } catch {
-        /* malformed localStorage — ignore */
-      }
-    }
+    window.addEventListener('resize', this.onViewportResize)
+    this.restoreOffset()
   }
 
   override disconnectedCallback(): void {
     super.disconnectedCallback()
-    document.removeEventListener('click', this.onDocumentClick)
-    this.removeEventListener('keydown', this.onMenuKeydown)
-    this.offState?.()
-    this.offPlay?.()
-    this.offPause?.()
-    this.offTrackChange?.()
-    this.offError?.()
+    window.removeEventListener('resize', this.onViewportResize)
+    document.removeEventListener('pointerdown', this.onOutside, true)
+    this.clearLongPress()
   }
 
-  private fire<T>(name: string, detail: T): void {
-    this.dispatchEvent(
-      new CustomEvent(name, { detail, bubbles: true, composed: true }),
-    )
+  protected override willUpdate(changed: PropertyValues): void {
+    if (changed.has('engine') || changed.has('session')) {
+      this.audio.use(this.engine, this.session)
+      this.frames.refresh()
+    }
+    if (changed.has('size')) this.style.setProperty('--size', `${this.size}px`)
+    if (changed.has('menuOpen')) {
+      if (this.menuOpen) document.addEventListener('pointerdown', this.onOutside, true)
+      else document.removeEventListener('pointerdown', this.onOutside, true)
+    }
   }
 
-  // ─── Drag-to-reposition (draggable) ──────────────────────────
-  // Pointer events on the FAB button reposition the host element on
-  // the viewport. Pointer capture survives mouse leaving the FAB.
-  // Position persists to localStorage under `persistKey`. Click vs.
-  // drag is distinguished by `didMove` — a pointerdown that never
-  // exceeds 4 px of displacement is forwarded as a normal click
-  // (engine.toggle()). Mirrors v2.3.4 MiniPlayer.
-  private dragStartX = 0
-  private dragStartY = 0
-  private dragOffsetX = 0
-  private dragOffsetY = 0
-  private didMove = false
-
-  private onFabPointerDown(e: PointerEvent): void {
-    if (!this.draggable) return
-    e.preventDefault()
-    const rect = this.getBoundingClientRect()
-    this.dragStartX = e.clientX
-    this.dragStartY = e.clientY
-    this.dragOffsetX = e.clientX - rect.left
-    this.dragOffsetY = e.clientY - rect.top
-    this.didMove = false
-    ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
-    ;(e.currentTarget as Element).addEventListener(
-      'pointermove',
-      this.onFabPointerMove as unknown as EventListener,
-    )
-    ;(e.currentTarget as Element).addEventListener(
-      'pointerup',
-      this.onFabPointerUp as unknown as EventListener,
-    )
+  protected override updated(changed: PropertyValues): void {
+    if (changed.has('variant') || changed.has('accentColor')) this.refreshAccent()
+    if (changed.has('menuOpen') && this.menuOpen) {
+      this.renderRoot.querySelector<HTMLElement>('.item')?.focus()
+    }
   }
 
-  private onFabPointerMove = (e: PointerEvent): void => {
-    const dx = e.clientX - this.dragStartX
-    const dy = e.clientY - this.dragStartY
-    if (!this.didMove && Math.hypot(dx, dy) > 4) this.didMove = true
-    if (!this.didMove) return
-    this.style.position = 'fixed'
-    this.style.left = `${e.clientX - this.dragOffsetX}px`
-    this.style.top = `${e.clientY - this.dragOffsetY}px`
-    this.style.right = 'auto'
-    this.style.bottom = 'auto'
+  private get movable(): boolean {
+    return !this.locked && this.placement !== 'inline'
   }
 
-  private onFabPointerUp = (e: PointerEvent): void => {
-    const target = e.currentTarget as Element
-    target.releasePointerCapture(e.pointerId)
-    target.removeEventListener(
-      'pointermove',
-      this.onFabPointerMove as unknown as EventListener,
-    )
-    target.removeEventListener('pointerup', this.onFabPointerUp as unknown as EventListener)
+  private refreshAccent(): void {
+    const cover = this.audio.engine.track?.cover
+    if (this.variant !== 'auto' || this.accentColor || !cover) {
+      this.sampledAccent = undefined
+      return
+    }
+    void sampleAccent(cover).then((c) => {
+      if (this.audio.engine.track?.cover === cover) this.sampledAccent = c ?? undefined
+    })
+  }
 
-    if (this.didMove) {
-      // Persist the final position.
-      try {
-        const rect = this.getBoundingClientRect()
-        window.localStorage.setItem(
-          this.persistKey,
-          JSON.stringify({ x: rect.left, y: rect.top }),
-        )
-      } catch {
-        /* localStorage unavailable (Safari private mode, etc.) — drop silently */
+  private draw(frame: AudioFrame | null): void {
+    const root = this.renderRoot as ShadowRoot | undefined
+    const bars = root?.querySelector('.eq')?.children
+    if (bars) {
+      for (let i = 0; i < bars.length; i++) {
+        const v = frame ? frame.bands[Math.floor((i / bars.length) * frame.bands.length * 0.7)] : 0
+        ;(bars[i] as HTMLElement).style.transform = frame ? `scaleY(${0.2 + v * 0.8})` : ''
       }
-    } else {
-      // Below the displacement threshold — treat as a click.
-      this.engine.toggle()
+    }
+    const halo = root?.querySelector<HTMLElement>('.halo')
+    if (halo) halo.style.transform = frame ? `scale(${0.9 + frame.energy * 0.35})` : ''
+  }
+
+  // ─── Position ─────────────────────────────────────────────────────
+
+  private applyOffset(offset: Offset): void {
+    this.offset = offset
+    this.style.translate = offset.x || offset.y ? `${offset.x}px ${offset.y}px` : ''
+  }
+
+  /** Snap to the nearest horizontal edge and keep fully on screen. */
+  private snap(persist: boolean): void {
+    if (!this.movable) return
+    const rect = this.getBoundingClientRect()
+    const baseLeft = rect.left - this.offset.x
+    const baseTop = rect.top - this.offset.y
+    const toLeft = rect.left + rect.width / 2 < window.innerWidth / 2
+    const left = toLeft ? EDGE : window.innerWidth - EDGE - rect.width
+    const top = Math.min(Math.max(EDGE, rect.top), window.innerHeight - EDGE - rect.height)
+    const next = { x: Math.round(left - baseLeft), y: Math.round(top - baseTop) }
+    if (!prefersReducedMotion()) {
+      this.toggleAttribute('data-snapping', true)
+      setTimeout(() => this.removeAttribute('data-snapping'), 700)
+    }
+    this.applyOffset(next)
+    if (persist && this.persistKey) {
+      try {
+        localStorage.setItem(this.persistKey, JSON.stringify(next))
+      } catch {
+        /* storage unavailable (private mode, quota) */
+      }
     }
   }
 
-  // ─── Menu controls ─────────────────────────────────────────
-  private toggleMenu = (e: Event): void => {
-    e.stopPropagation()
-    this.menuOpen = !this.menuOpen
+  private restoreOffset(): void {
+    if (!this.movable || !this.persistKey) return
+    try {
+      const raw = localStorage.getItem(this.persistKey)
+      if (!raw) return
+      const saved = JSON.parse(raw) as Partial<Offset>
+      if (typeof saved.x === 'number' && typeof saved.y === 'number') {
+        this.applyOffset({ x: saved.x, y: saved.y })
+        requestAnimationFrame(() => this.snap(false))
+      }
+    } catch {
+      /* corrupt entry */
+    }
   }
 
-  private closeMenu = (): void => {
+  private onViewportResize = (): void => {
+    if (this.offset.x || this.offset.y) this.snap(false)
+  }
+
+  // ─── Pointer: tap / drag / long-press ─────────────────────────────
+
+  private clearLongPress(): void {
+    if (this.longPress) clearTimeout(this.longPress)
+    this.longPress = null
+  }
+
+  private onDown = (e: PointerEvent): void => {
+    if (e.button !== 0) return
+    this.press = { x: e.clientX, y: e.clientY, origin: { ...this.offset }, id: e.pointerId }
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    this.clearLongPress()
+    this.longPress = setTimeout(() => {
+      this.longPress = null
+      if (this.dragging || !this.press) return
+      this.swallowClick = true
+      this.menuOpen = true
+    }, LONG_PRESS_MS)
+  }
+
+  private onMove = (e: PointerEvent): void => {
+    const press = this.press
+    if (!press || e.pointerId !== press.id) return
+    const dx = e.clientX - press.x
+    const dy = e.clientY - press.y
+    if (!this.dragging) {
+      if (!this.movable || Math.hypot(dx, dy) < DRAG_THRESHOLD) return
+      this.dragging = true
+      this.menuOpen = false
+      this.clearLongPress()
+    }
+    this.applyOffset({ x: press.origin.x + dx, y: press.origin.y + dy })
+  }
+
+  private onUp = (e: PointerEvent): void => {
+    if (!this.press || e.pointerId !== this.press.id) return
+    this.press = null
+    this.clearLongPress()
+    const target = e.currentTarget as HTMLElement
+    if (target.hasPointerCapture(e.pointerId)) target.releasePointerCapture(e.pointerId)
+    if (this.dragging) {
+      this.dragging = false
+      this.swallowClick = true
+      this.snap(true)
+    }
+  }
+
+  private onClick = (): void => {
+    if (this.swallowClick) {
+      this.swallowClick = false
+      return
+    }
+    if (this.menuOpen) {
+      this.menuOpen = false
+      return
+    }
+    this.audio.engine.toggle()
+  }
+
+  private onContextMenu = (e: MouseEvent): void => {
+    e.preventDefault()
+    this.menuOpen = true
+  }
+
+  private onDiscKey = (e: KeyboardEvent): void => {
+    if (e.key === 'ContextMenu' || (e.key === 'F10' && e.shiftKey)) {
+      e.preventDefault()
+      this.menuOpen = true
+    }
+  }
+
+  // ─── Menu ─────────────────────────────────────────────────────────
+
+  private onOutside = (e: PointerEvent): void => {
+    if (!e.composedPath().includes(this)) this.menuOpen = false
+  }
+
+  private closeMenu(focusDisc = true): void {
     this.menuOpen = false
+    if (focusDisc) this.renderRoot.querySelector<HTMLElement>('.disc')?.focus()
   }
 
-  private pickVariant(v: PulseVariant): void {
-    this.variant = v
-    this.menuOpen = false
-  }
-
-  private togglePulso(): void {
-    this.pulso = !this.pulso
-  }
-
-  /**
-   * Request fullscreen on `<html>` (the whole document). Most consumers
-   * want the page chrome to disappear when they tap fullscreen on the
-   * FAB, not just the FAB element. Mirrors the v2.3.4 demo.
-   * Re-tapping toggles back. Catches the promise rejection so a
-   * refusal (mobile Safari without user gesture, iframe sandboxed)
-   * doesn't crash.
-   */
-  private toggleFullscreen = (): void => {
-    if (typeof document === 'undefined') return
-    const doc = document as Document & {
-      webkitFullscreenElement?: Element
-      webkitExitFullscreen?: () => Promise<void>
+  private onMenuKey = (e: KeyboardEvent): void => {
+    const items = Array.from(this.renderRoot.querySelectorAll<HTMLElement>('.item'))
+    const index = items.indexOf(this.shadowRoot?.activeElement as HTMLElement)
+    let next = -1
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      this.closeMenu()
+      return
     }
-    const docEl = document.documentElement as HTMLElement & {
-      webkitRequestFullscreen?: () => Promise<void>
+    if (e.key === 'Tab') {
+      this.menuOpen = false
+      return
     }
-    if (doc.fullscreenElement || doc.webkitFullscreenElement) {
-      const exit = doc.exitFullscreen ?? doc.webkitExitFullscreen
-      void exit?.call(doc)
-    } else {
-      const enter = docEl.requestFullscreen ?? docEl.webkitRequestFullscreen
-      void enter?.call(docEl).catch(() => {
-        /* refusal (no user gesture, iframe sandbox) — drop silently */
-      })
-    }
-    this.menuOpen = false
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = (index + 1) % items.length
+    else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft')
+      next = (index - 1 + items.length) % items.length
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = items.length - 1
+    if (next < 0) return
+    e.preventDefault()
+    items[next]?.focus()
   }
 
-  override render() {
-    const isPlaying = this.state.isPlaying
-    const classes = `fab ${isPlaying ? 'fab--playing' : ''} ${this.pulso && isPlaying ? 'fab--pulso' : ''} ${this.draggable ? 'fab--draggable' : ''}`
-    // If `draggable` is on, the click is forwarded by the pointer-up
-    // handler (when displacement < 4 px). Otherwise wire a normal
-    // click → toggle.
+  private act(action: 'prev' | 'next' | 'close'): void {
+    const engine = this.audio.engine
+    if (action === 'prev') engine.prev()
+    else if (action === 'next') engine.next()
+    else {
+      engine.close()
+      this.menuOpen = false
+      return
+    }
+    this.closeMenu()
+  }
+
+  // ─── Render ───────────────────────────────────────────────────────
+
+  protected override render() {
+    const engine = this.audio.engine
+    const state = this.audio.state
+    const track = engine.track
+    const labels = mergeLabels(this.labels)
+    const playing = state.isPlaying
+    const shown = this.reveal === 'always' || state.isVisible
+    const playLabel = playing ? labels.pause : labels.play
+
     return html`
-      <div class="fab-wrapper">
+      <div
+        class="root fab"
+        ?data-shown=${shown}
+        ?data-playing=${playing}
+        ?data-pulso=${this.pulso}
+        ?data-menu=${this.menuOpen}
+        ?data-dragging=${this.dragging}
+        style=${styleMap({
+          '--_sampled-accent': this.sampledAccent ?? null,
+          '--pulse-accent': this.accentColor ?? null,
+          '--progress': String(engine.progress / 100),
+        })}
+      >
+        <div class="halo" aria-hidden="true"></div>
+        <div class="pulso" aria-hidden="true"></div>
         <button
-          class=${classes}
+          class="disc"
           type="button"
-          data-variant=${this.variant}
-          aria-label=${isPlaying ? 'Pause' : 'Play'}
-          aria-pressed=${isPlaying}
-          @pointerdown=${this.onFabPointerDown}
-          @click=${(e: MouseEvent) => {
-            if (this.draggable) {
-              // Drag mode swallows the click — pointer-up emits toggle.
-              e.preventDefault()
-              return
-            }
-            this.engine.toggle()
-          }}
+          aria-label=${track ? `${playLabel}: ${track.title}` : playLabel}
+          ?disabled=${!track}
+          @pointerdown=${this.onDown}
+          @pointermove=${this.onMove}
+          @pointerup=${this.onUp}
+          @pointercancel=${this.onUp}
+          @click=${this.onClick}
+          @contextmenu=${this.onContextMenu}
+          @keydown=${this.onDiscKey}
         >
-          ${isPlaying ? '⏸' : '▶'}
+          ${
+            this.variant === 'auto' && track?.cover
+              ? keyed(
+                  track.cover,
+                  html`<img class="disc__cover" src=${track.cover} alt="" draggable="false" />`,
+                )
+              : this.variant === 'auto'
+                ? html`<div
+                    class="disc__placeholder"
+                    style=${styleMap({
+                      background: track
+                        ? `linear-gradient(135deg, hsl(${hueFrom(track.title)} 70% 50%), hsl(${(hueFrom(track.title) + 50) % 360} 70% 24%))`
+                        : null,
+                    })}
+                  ></div>`
+                : nothing
+          }
+          <div class="disc__scrim"></div>
+          <span class="glyphs" ?data-playing=${playing}
+            >${track ? html`${playIcon}${pauseIcon}` : noteIcon}</span
+          >
+          <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+            <circle class="ring__track" cx="50" cy="50" r="47" pathLength="100" />
+            <circle class="ring__progress" cx="50" cy="50" r="47" pathLength="100" />
+          </svg>
         </button>
 
-        ${this.showMenu
-          ? html`
-              <button
-                class="fab__menu-toggle"
-                type="button"
-                aria-label="Options"
-                aria-expanded=${this.menuOpen}
-                @click=${this.toggleMenu}
-              >
-                ⋮
-              </button>
+        <button
+          class="more"
+          type="button"
+          aria-label=${labels.options}
+          aria-haspopup="menu"
+          aria-expanded=${this.menuOpen ? 'true' : 'false'}
+          @click=${() => (this.menuOpen = !this.menuOpen)}
+        >
+          ${moreIcon}
+        </button>
 
-              ${this.menuOpen
-                ? html`
-                    <div class="fab__menu" role="menu" @click=${(e: Event) => e.stopPropagation()}>
-                      <div class="fab__menu-section">
-                        <p class="fab__menu-label">Variant</p>
-                        <div class="fab__palette">
-                          ${ALL_VARIANTS.filter((v) => v !== 'custom').map(
-                            (v) => html`
-                              <button
-                                class=${`fab__chip ${this.variant === v ? 'fab__chip--active' : ''}`}
-                                type="button"
-                                data-variant=${v}
-                                aria-pressed=${this.variant === v}
-                                aria-label=${`Variant ${v}`}
-                                title=${v}
-                                @click=${() => this.pickVariant(v)}
-                              ></button>
-                            `,
-                          )}
-                        </div>
-                      </div>
+        <div class="menu" role="menu" aria-label=${labels.options} @keydown=${this.onMenuKey}>
+          <button
+            class="item"
+            role="menuitem"
+            style="--i: 0"
+            tabindex=${this.menuOpen ? '0' : '-1'}
+            aria-hidden=${this.menuOpen ? 'false' : 'true'}
+            aria-label=${labels.previous}
+            @click=${() => this.act('prev')}
+          >
+            ${previousIcon}
+          </button>
+          <button
+            class="item"
+            role="menuitem"
+            style="--i: 1"
+            tabindex=${this.menuOpen ? '0' : '-1'}
+            aria-hidden=${this.menuOpen ? 'false' : 'true'}
+            aria-label=${labels.next}
+            @click=${() => this.act('next')}
+          >
+            ${nextIcon}
+          </button>
+          <button
+            class="item item--close"
+            role="menuitem"
+            style="--i: 2"
+            tabindex=${this.menuOpen ? '0' : '-1'}
+            aria-hidden=${this.menuOpen ? 'false' : 'true'}
+            aria-label=${labels.close}
+            @click=${() => this.act('close')}
+          >
+            ${closeIcon}
+          </button>
+        </div>
 
-                      <div class="fab__menu-section">
-                        <button
-                          class="fab__menu-item"
-                          role="menuitemcheckbox"
-                          aria-checked=${this.pulso}
-                          @click=${this.togglePulso}
-                        >
-                          <span>Pulso</span>
-                          <span class="fab__menu-check">${this.pulso ? '●' : '○'}</span>
-                        </button>
-                        <button
-                          class="fab__menu-item"
-                          role="menuitem"
-                          @click=${this.toggleFullscreen}
-                        >
-                          Fullscreen ⤢
-                        </button>
-                      </div>
-                    </div>
-                  `
-                : ''}
-            `
-          : ''}
+        ${
+          track
+            ? html`<div class="peek" aria-hidden="true">
+                <strong>${track.title}</strong
+                >${track.artist ? html`<span>${track.artist}</span>` : nothing}
+              </div>`
+            : nothing
+        }
       </div>
     `
   }

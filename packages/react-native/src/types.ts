@@ -14,13 +14,7 @@
  * throws a clear error if a consumer tries to construct
  * `PulsePlayerRN` before the renderer lands.
  */
-import type {
-  PulseVariant,
-  Track,
-  EventMap,
-  PulseState,
-  Unsubscribe,
-} from '@pulse-music/types'
+import type { PulseVariant, Track, EventMap, PulseState, Unsubscribe } from '@pulse-music/types'
 
 /** Props for the `<PulsePlayerRN />` React Native component. */
 export interface PulsePlayerRNProps {
@@ -71,10 +65,7 @@ export interface UsePulseAudioRNReturn extends PulseState {
   seek: (fraction: number) => void
   setAudioTracks: (tracks: Track[]) => void
   setAmbientEq: (on: boolean) => void
-  subscribe: <E extends keyof EventMap>(
-    event: E,
-    cb: (payload: EventMap[E]) => void,
-  ) => Unsubscribe
+  subscribe: <E extends keyof EventMap>(event: E, cb: (payload: EventMap[E]) => void) => Unsubscribe
   fmt: (seconds: number) => string
 }
 

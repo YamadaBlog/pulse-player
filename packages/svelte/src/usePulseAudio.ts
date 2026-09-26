@@ -1,103 +1,76 @@
-/**
- * `usePulseAudio()` — plain TypeScript wrapper over the shared
- * `PulseEngine`, designed to be consumed from Svelte 5 `.svelte`
- * files OR from any plain `.ts` module.
- *
- * Returns the engine reference + a `subscribe(callback)` channel
- * matching Svelte's classic store contract:
- *
- *   const audio = usePulseAudio()
- *   $: state = audio.state   // reactive snapshot via Svelte's $store autosubscribe
- *
- * Why plain TS (no `$state` runes, no `.svelte.ts` suffix):
- *
- * The previous draft (v3.0.0-alpha.3) was written as a
- * `.svelte.ts` file using Svelte 5 runes. That file is only
- * compilable inside a Svelte project that has the Svelte 5
- * preprocessor in its toolchain — the npm-workspaces tooling at
- * this monorepo level doesn't ship that, so the file's runtime
- * behaviour was suspect (the audit flagged it). Plain TS removes
- * the build dependency and works in EVERY Svelte 5 project
- * (project-side Svelte compiler still handles the consumer's
- * `.svelte` files just fine).
- *
- * Svelte consumers wire it up like any classic store:
- *
- * ```svelte
- * <script lang="ts">
- *   import { usePulseAudio } from '@pulse-music/svelte'
- *
- *   const audio = usePulseAudio()
- * </script>
- *
- * <button onclick={audio.toggle}>{$audio.isPlaying ? '⏸' : '▶'}</button>
- * <p>{$audio.track.title}</p>
- * <p>{audio.fmt($audio.currentTime)} / {audio.fmt($audio.duration)}</p>
- * ```
- *
- * The `$audio` prefix is Svelte's auto-subscribe — Svelte 4 + 5
- * both honour it on any object exposing a `subscribe(cb)` method.
- */
-import {
-  getSharedEngine,
-  type PulseEngine,
-  type PulseState,
-  type Track,
-} from '@pulse-music/web-component'
+import { formatTime, getSharedEngine, type PulseEngine } from '@pulse-music/core'
+import type { PulseState, RepeatMode, Track } from '@pulse-music/types'
 
-type Subscriber = (state: PulseState & { track: Track; progress: number }) => void
+export interface PulseSnapshot extends PulseState {
+  track: Track | null
+  tracks: readonly Track[]
+  progress: number
+}
 
-export interface UsePulseAudioStore {
-  /**
-   * Svelte classic-store subscribe.
-   * Returns the snapshot synchronously, then on every engine state
-   * change. The returned function is the unsubscribe.
-   */
-  subscribe: (run: Subscriber) => () => void
-
-  /** Underlying engine — escape hatch for advanced consumers. */
+export interface PulseAudioStore {
+  /** Svelte store contract — use `$audio` in components. */
+  subscribe: (run: (snapshot: PulseSnapshot) => void) => () => void
   engine: PulseEngine
-
-  /** Format a seconds value as `m:ss`. */
   fmt: (seconds: number) => string
-
+  play: () => Promise<void>
+  pause: () => void
   toggle: () => void
   next: () => void
   prev: () => void
+  load: (index: number, options?: { autoplay?: boolean }) => void
   seek: (fraction: number) => void
-  setAudioTracks: (tracks: Track[]) => void
+  seekTo: (seconds: number) => void
+  seekBy: (deltaSeconds: number) => void
+  setVolume: (volume: number) => void
+  toggleMute: () => void
+  setRepeat: (repeat: RepeatMode) => void
+  setTracks: (tracks: readonly Track[], options?: { startIndex?: number }) => void
   setAmbientEq: (on: boolean) => void
+  close: () => void
 }
 
-export function usePulseAudio(): UsePulseAudioStore {
-  const engine = getSharedEngine()
-
-  function snapshot() {
-    return {
-      ...engine.state,
-      track: engine.track,
-      progress: engine.progress,
-    }
-  }
-
-  function subscribe(run: Subscriber): () => void {
-    // Svelte's contract: fire the snapshot synchronously on
-    // `subscribe`, then on every change.
-    run(snapshot())
-    return engine.onStateChange(() => {
-      run(snapshot())
-    })
-  }
-
+/**
+ * A readable Svelte store over a Pulse audio session (Svelte 4 and 5).
+ *
+ * ```svelte
+ * <script>
+ *   import { usePulseAudio } from '@pulse-music/svelte'
+ *   const audio = usePulseAudio()
+ * </script>
+ * <button onclick={audio.toggle}>{$audio.isPlaying ? 'Pause' : 'Play'}</button>
+ * ```
+ */
+export function usePulseAudio(
+  options: { engine?: PulseEngine; session?: string } = {},
+): PulseAudioStore {
+  const engine = options.engine ?? getSharedEngine(options.session)
+  const snapshot = (): PulseSnapshot => ({
+    ...engine.state,
+    track: engine.track,
+    tracks: engine.tracks,
+    progress: engine.progress,
+  })
   return {
-    subscribe,
+    subscribe(run) {
+      run(snapshot())
+      return engine.onStateChange(() => run(snapshot()))
+    },
     engine,
-    fmt: (s: number) => engine.fmt(s),
+    fmt: formatTime,
+    play: () => engine.play(),
+    pause: () => engine.pause(),
     toggle: () => engine.toggle(),
     next: () => engine.next(),
     prev: () => engine.prev(),
-    seek: (f: number) => engine.seek(f),
-    setAudioTracks: (t: Track[]) => engine.setAudioTracks(t),
-    setAmbientEq: (on: boolean) => engine.setAmbientEq(on),
+    load: (index, opts) => engine.load(index, opts),
+    seek: (fraction) => engine.seek(fraction),
+    seekTo: (seconds) => engine.seekTo(seconds),
+    seekBy: (delta) => engine.seekBy(delta),
+    setVolume: (volume) => engine.setVolume(volume),
+    toggleMute: () => engine.toggleMute(),
+    setRepeat: (repeat) => engine.setRepeat(repeat),
+    setTracks: (tracks, opts) => engine.setTracks(tracks, opts),
+    setAmbientEq: (on) => engine.setAmbientEq(on),
+    close: () => engine.close(),
   }
 }

@@ -8,14 +8,14 @@ Honest comparison of every Pulse feature across every framework wrapper. Last de
 | ------ | -------------------------------------------------------------------------- |
 | ✅     | Implemented and tested                                                     |
 | ⚠️     | Implemented but with a documented caveat (substituted API, partial parity) |
-| 🛡     | Reserved / planned — not yet shipped                                       |
+| 🛡      | Reserved / planned — not yet shipped                                       |
 | ❌     | Cannot be supported (platform constraint)                                  |
 | —      | Not applicable to this surface                                             |
 
 ## Audio engine
 
-| Feature                                                   | Vue v2.3.4 | React | Svelte | Angular | Web Components        | React Native                      | Vanilla HTML |
-| --------------------------------------------------------- | ---------- | ----- | ------ | ------- | --------------------- | --------------------------------- | ------------ |
+| Feature                                                   | Vue v2.3.4 | React | Svelte | Angular | Web Components        | React Native                     | Vanilla HTML |
+| --------------------------------------------------------- | ---------- | ----- | ------ | ------- | --------------------- | -------------------------------- | ------------ |
 | Play / pause                                              | ✅         | ✅    | ✅     | ✅      | ✅                    | 🛡                                | ✅           |
 | Next / prev                                               | ✅         | ✅    | ✅     | ✅      | ✅                    | 🛡                                | ✅           |
 | Seek                                                      | ✅         | ✅    | ✅     | ✅      | ✅                    | 🛡                                | ✅           |
@@ -24,52 +24,52 @@ Honest comparison of every Pulse feature across every framework wrapper. Last de
 | Typed event bus (`play`, `pause`, `trackchange`, `error`) | ✅         | ✅    | ✅     | ✅      | ✅ (as `CustomEvent`) | 🛡                                | ✅           |
 | Privacy-friendly counters                                 | ✅         | ✅    | ✅     | ✅      | ✅                    | 🛡                                | ✅           |
 | `dispose()` tear-down                                     | ✅         | ✅    | ✅     | ✅      | ✅                    | 🛡                                | ✅           |
-| Safari `webkitAudioContext` fallback                      | ✅         | ✅    | ✅     | ✅      | ✅                    | —                                 | ✅           |
+| Safari `webkitAudioContext` fallback                      | ✅         | ✅    | ✅     | ✅      | ✅                    | —                                | ✅           |
 
 ## Theming
 
 | Feature                                                                                  | Vue | React | Svelte | Angular | Web Components | React Native | Vanilla HTML |
 | ---------------------------------------------------------------------------------------- | --- | ----- | ------ | ------- | -------------- | ------------ | ------------ |
-| 8 mood variants (auto, transparent, solid, dark, light, sunset, midnight, aurora, vinyl) | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡           | ✅           |
-| `custom` variant slot                                                                    | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡           | ✅           |
-| `accentColor` / `accent-color` override                                                  | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡           | ✅           |
+| 8 mood variants (auto, transparent, solid, dark, light, sunset, midnight, aurora, vinyl) | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡            | ✅           |
+| `custom` variant slot                                                                    | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡            | ✅           |
+| `accentColor` / `accent-color` override                                                  | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡            | ✅           |
 | Variant tokens at `[data-variant='X']` cascade                                           | ✅  | ✅    | ✅     | ✅      | ✅             | —            | ✅           |
 
 ## Visual chrome
 
 | Feature                                          | Vue | React | Svelte | Angular | Web Components | React Native              | Vanilla HTML |
 | ------------------------------------------------ | --- | ----- | ------ | ------- | -------------- | ------------------------- | ------------ |
-| Ambient EQ background (12 bars, pure CSS)        | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡 (Reanimated)           | ✅           |
-| Pulso heartbeat ring                             | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡 (Reanimated)           | ✅           |
+| Ambient EQ background (12 bars, pure CSS)        | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡 (Reanimated)            | ✅           |
+| Pulso heartbeat ring                             | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡 (Reanimated)            | ✅           |
 | 3 responsive states (220 / 130 / 110 thresholds) | ✅  | ✅    | ✅     | ✅      | ✅             | ⚠️ (RN has no DOM resize) | ✅           |
-| `data-fab` morph state                           | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡                        | ✅           |
+| `data-fab` morph state                           | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡                         | ✅           |
 | `mp__bg` blur cover backdrop                     | ✅  | ✅    | ✅     | ✅      | ✅             | ⚠️ (`react-native-blur`)  | ✅           |
-| `mp__noise` SVG noise overlay                    | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡 (`react-native-svg`)   | ✅           |
-| Real GitHub + Spotify SVG icons                  | ✅  | ✅    | ✅     | ✅      | ✅ (alpha.10)  | 🛡                        | ✅           |
-| Prev / next ghost buttons on inline card         | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡                        | ✅           |
-| Time read-out                                    | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡                        | ✅           |
+| `mp__noise` SVG noise overlay                    | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡 (`react-native-svg`)    | ✅           |
+| Real GitHub + Spotify SVG icons                  | ✅  | ✅    | ✅     | ✅      | ✅ (alpha.10)  | 🛡                         | ✅           |
+| Prev / next ghost buttons on inline card         | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡                         | ✅           |
+| Time read-out                                    | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡                         | ✅           |
 
 ## Interactions
 
 | Feature                                                             | Vue | React | Svelte | Angular | Web Components | React Native                                   | Vanilla HTML |
 | ------------------------------------------------------------------- | --- | ----- | ------ | ------- | -------------- | ---------------------------------------------- | ------------ |
-| Keyboard shortcuts (`Space`/`K` toggle, `J`/`←` prev, `L`/`→` next) | ✅  | ✅    | ✅     | ✅      | ✅ (alpha.10)  | 🛡                                             | ✅           |
-| Click-to-play on cover art                                          | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡                                             | ✅           |
-| Click-to-seek on progress bar                                       | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡                                             | ✅           |
+| Keyboard shortcuts (`Space`/`K` toggle, `J`/`←` prev, `L`/`→` next) | ✅  | ✅    | ✅     | ✅      | ✅ (alpha.10)  | 🛡                                              | ✅           |
+| Click-to-play on cover art                                          | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡                                              | ✅           |
+| Click-to-seek on progress bar                                       | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡                                              | ✅           |
 | Drag-to-resize handle (`resizable`)                                 | ✅  | ✅    | ✅     | ✅      | ✅             | ❌ (no DOM resize on mobile native)            | ✅           |
-| FAB drag-to-reposition (`draggable`)                                | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡 (`react-native-gesture-handler`)            | ✅           |
-| `localStorage` position persist                                     | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡 (`AsyncStorage`)                            | ✅           |
-| FAB radial menu (`show-menu`: palette + Pulso + Fullscreen)         | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡                                             | ✅           |
+| FAB drag-to-reposition (`draggable`)                                | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡 (`react-native-gesture-handler`)             | ✅           |
+| `localStorage` position persist                                     | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡 (`AsyncStorage`)                             | ✅           |
+| FAB radial menu (`show-menu`: palette + Pulso + Fullscreen)         | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡                                              | ✅           |
 | Fullscreen API                                                      | ✅  | ✅    | ✅     | ✅      | ✅             | ❌ (mobile native — fullscreen is the default) | ✅           |
-| `prefers-reduced-motion` guard                                      | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡 (`AccessibilityInfo`)                       | ✅           |
+| `prefers-reduced-motion` guard                                      | ✅  | ✅    | ✅     | ✅      | ✅             | 🛡 (`AccessibilityInfo`)                        | ✅           |
 
 ## Architecture
 
 | Feature                                    | Vue                               | React                                 | Svelte             | Angular              | Web Components | React Native | Vanilla HTML         |
 | ------------------------------------------ | --------------------------------- | ------------------------------------- | ------------------ | -------------------- | -------------- | ------------ | -------------------- |
-| Backed by `@pulse-music/core` audio engine | ✅ (via wrapping, alpha.10+ soft) | ✅                                    | ✅                 | ✅                   | ✅             | 🛡           | ✅                   |
-| Singleton engine across all instances      | ✅ (Pinia)                        | ✅                                    | ✅                 | ✅                   | ✅             | 🛡           | ✅                   |
-| Framework-native hook / store / service    | ✅ `useAudioStore`                | ✅ `usePulseAudio`                    | ✅ `usePulseAudio` | ✅ `getSharedEngine` | —              | 🛡           | ✅ `getSharedEngine` |
+| Backed by `@pulse-music/core` audio engine | ✅ (via wrapping, alpha.10+ soft) | ✅                                    | ✅                 | ✅                   | ✅             | 🛡            | ✅                   |
+| Singleton engine across all instances      | ✅ (Pinia)                        | ✅                                    | ✅                 | ✅                   | ✅             | 🛡            | ✅                   |
+| Framework-native hook / store / service    | ✅ `useAudioStore`                | ✅ `usePulseAudio`                    | ✅ `usePulseAudio` | ✅ `getSharedEngine` | —              | 🛡            | ✅ `getSharedEngine` |
 | Shadow DOM isolation                       | — (Vue SFC)                       | —                                     | —                  | —                    | ✅             | —            | ✅                   |
 | Side-effect Custom Element registration    | —                                 | ✅ (via `@pulse-music/web-component`) | ✅                 | ✅                   | ✅             | —            | ✅                   |
 

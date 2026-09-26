@@ -87,7 +87,10 @@ export function PulsePlayerRN({
             <View
               style={[
                 styles.progressFill,
-                { width: `${Math.max(0, Math.min(100, progressPercent))}%`, backgroundColor: accent },
+                {
+                  width: `${Math.max(0, Math.min(100, progressPercent))}%`,
+                  backgroundColor: accent,
+                },
               ]}
             />
           </View>
@@ -114,9 +117,7 @@ export function PulsePlayerRN({
             accessibilityState={{ pressed: isPlaying }}
             testID="pulse-toggle"
           >
-            <Text style={[styles.btnLabel, { color: accent }]}>
-              {isPlaying ? '⏸' : '▶'}
-            </Text>
+            <Text style={[styles.btnLabel, { color: accent }]}>{isPlaying ? '⏸' : '▶'}</Text>
           </Pressable>
           <Pressable
             style={styles.btn}

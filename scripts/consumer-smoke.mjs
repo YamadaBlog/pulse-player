@@ -62,11 +62,19 @@ function buildConsumer(dir, entryCode, deps, extraPkg = {}) {
       2,
     ),
   )
-  writeFileSync(join(dir, 'index.html'), '<!doctype html><div id="app"></div><script type="module" src="/src/main.js"></script>')
+  writeFileSync(
+    join(dir, 'index.html'),
+    '<!doctype html><div id="app"></div><script type="module" src="/src/main.js"></script>',
+  )
   writeFileSync(join(dir, 'src/main.js'), entryCode)
-  if (extraPkg.files) for (const [p, c] of Object.entries(extraPkg.files)) writeFileSync(join(dir, p), c)
+  if (extraPkg.files)
+    for (const [p, c] of Object.entries(extraPkg.files)) writeFileSync(join(dir, p), c)
   sh('npm install --no-audit --silent --fund=false', dir)
-  if (deps.length) sh(`npm install --no-audit --silent --fund=false ${deps.map((d) => JSON.stringify(d)).join(' ')}`, dir)
+  if (deps.length)
+    sh(
+      `npm install --no-audit --silent --fund=false ${deps.map((d) => JSON.stringify(d)).join(' ')}`,
+      dir,
+    )
   sh('npm run build', dir)
   // Stale-scope assertion on the produced bundle.
   const assets = join(dir, 'dist', 'assets')
@@ -91,15 +99,23 @@ function run(name, fn) {
 
 // ─── 1. Web Component chain (types + tokens + core + web-component) ──
 run('web-component (vanilla)', () => {
-  const tarballs = ['types', 'tokens', 'core', 'web-component'].map((p) => pack(join(ROOT, 'packages', p)))
+  const tarballs = ['types', 'tokens', 'core', 'web-component'].map((p) =>
+    pack(join(ROOT, 'packages', p)),
+  )
   const dir = scaffold('wc')
-  buildConsumer(dir, `import '@pulse-music/web-component'\nif(!customElements.get('pulse-player')) throw new Error('element not registered')\n`, tarballs)
+  buildConsumer(
+    dir,
+    `import '@pulse-music/web-component'\nif(!customElements.get('pulse-player')) throw new Error('element not registered')\n`,
+    tarballs,
+  )
   rmSync(dir, { recursive: true, force: true })
 })
 
 // ─── 2. React wrapper chain ──────────────────────────────────────────
 run('react wrapper', () => {
-  const tarballs = ['types', 'tokens', 'core', 'web-component', 'react'].map((p) => pack(join(ROOT, 'packages', p)))
+  const tarballs = ['types', 'tokens', 'core', 'web-component', 'react'].map((p) =>
+    pack(join(ROOT, 'packages', p)),
+  )
   const dir = scaffold('react')
   buildConsumer(
     dir,
@@ -112,9 +128,15 @@ run('react wrapper', () => {
 
 // ─── 3. Svelte wrapper chain (plain TS hook — no compiler needed) ────
 run('svelte wrapper', () => {
-  const tarballs = ['types', 'tokens', 'core', 'web-component', 'svelte'].map((p) => pack(join(ROOT, 'packages', p)))
+  const tarballs = ['types', 'tokens', 'core', 'web-component', 'svelte'].map((p) =>
+    pack(join(ROOT, 'packages', p)),
+  )
   const dir = scaffold('svelte')
-  buildConsumer(dir, `import { usePulseAudio, ALL_VARIANTS } from '@pulse-music/svelte'\nconsole.log(typeof usePulseAudio, ALL_VARIANTS.length)\n`, tarballs)
+  buildConsumer(
+    dir,
+    `import { usePulseAudio, ALL_VARIANTS } from '@pulse-music/svelte'\nconsole.log(typeof usePulseAudio, ALL_VARIANTS.length)\n`,
+    tarballs,
+  )
   rmSync(dir, { recursive: true, force: true })
 })
 

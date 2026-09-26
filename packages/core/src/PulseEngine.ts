@@ -76,7 +76,9 @@ const isAbortError = (error: unknown): boolean =>
 export class PulseEngine {
   private _state: PulseState
   private _tracks: readonly Track[]
-  private readonly options: Required<Omit<PulseEngineOptions, 'tracks' | 'crossOrigin' | 'createAudio'>> &
+  private readonly options: Required<
+    Omit<PulseEngineOptions, 'tracks' | 'crossOrigin' | 'createAudio'>
+  > &
     Pick<PulseEngineOptions, 'crossOrigin' | 'createAudio'>
 
   private audio: HTMLAudioElement | null = null
@@ -137,7 +139,9 @@ export class PulseEngine {
   /** Playback progress, `0..100`. */
   get progress(): number {
     const { currentTime, duration } = this._state
-    return Number.isFinite(duration) && duration > 0 ? clamp((currentTime / duration) * 100, 0, 100) : 0
+    return Number.isFinite(duration) && duration > 0
+      ? clamp((currentTime / duration) * 100, 0, 100)
+      : 0
   }
 
   /** `true` when visualiser frames carry real spectrum data (not synthesised). */
@@ -303,6 +307,8 @@ export class PulseEngine {
     const currentSrc = this.track?.src
     this._tracks = [...tracks]
     if (!this.canAnalyse() && this.spectrum.live) this.rebuildAudio()
+    // The playlist isn't part of the snapshot: publish a new one regardless.
+    this.set({}, true)
     if (!tracks.length) {
       this.pause()
       if (this.audio) {
@@ -393,9 +399,10 @@ export class PulseEngine {
     if (autoplay) void this.play()
   }
 
-  private set(patch: Partial<PulseState>): void {
+  /** Apply a patch and notify; `force` publishes a new snapshot even without field changes. */
+  private set(patch: Partial<PulseState>, force = false): void {
     const prev = this._state
-    let changed = false
+    let changed = force
     for (const key in patch) {
       if (!Object.is(prev[key as keyof PulseState], patch[key as keyof PulseState])) {
         changed = true
@@ -424,7 +431,8 @@ export class PulseEngine {
 
   private ensureAudio(): HTMLAudioElement | null {
     if (this.audio) return this.audio
-    const factory = this.options.createAudio ?? (typeof Audio === 'undefined' ? null : () => new Audio())
+    const factory =
+      this.options.createAudio ?? (typeof Audio === 'undefined' ? null : () => new Audio())
     if (!factory) return null
     const audio = factory()
     audio.preload = this.options.preload
@@ -444,7 +452,10 @@ export class PulseEngine {
 
   /** Mirror the element's real state — the source of truth for OS-level controls too. */
   private listen(audio: HTMLAudioElement): () => void {
-    const on = <K extends keyof HTMLMediaElementEventMap>(type: K, fn: () => void): (() => void) => {
+    const on = <K extends keyof HTMLMediaElementEventMap>(
+      type: K,
+      fn: () => void,
+    ): (() => void) => {
       audio.addEventListener(type, fn)
       return () => audio.removeEventListener(type, fn)
     }
@@ -529,8 +540,7 @@ export class PulseEngine {
   }
 
   private syncFrameLoop(): void {
-    const wanted =
-      this.frameListeners.size > 0 && (this._state.isPlaying || !this.spectrum.settled)
+    const wanted = this.frameListeners.size > 0 && (this._state.isPlaying || !this.spectrum.settled)
     if (wanted && this.frameHandle === null && typeof requestAnimationFrame !== 'undefined') {
       const tick = (now: number): void => {
         const frame = this.spectrum.sample(this._state.isPlaying, now)

@@ -11,19 +11,13 @@ import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react'
 
 import type { EventMap, Track, Unsubscribe } from '@pulse-music/types'
 
-import {
-  getSharedEngineRN,
-  type PulseEngineRN,
-} from '../utils/audioEngine'
+import { getSharedEngineRN, type PulseEngineRN } from '../utils/audioEngine'
 import type { UsePulseAudioRNReturn } from '../types'
 
 export function usePulseAudioRN(engine?: PulseEngineRN): UsePulseAudioRNReturn {
   const e = useMemo(() => engine ?? getSharedEngineRN(), [engine])
 
-  const subscribe = useCallback(
-    (cb: () => void) => e.onStateChange(cb) as Unsubscribe,
-    [e],
-  )
+  const subscribe = useCallback((cb: () => void) => e.onStateChange(cb) as Unsubscribe, [e])
   const getSnapshot = useCallback(() => e.state, [e])
 
   useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
@@ -56,10 +50,8 @@ export function usePulseAudioRN(engine?: PulseEngineRN): UsePulseAudioRNReturn {
     [e],
   )
   const subscribeEvent = useCallback(
-    <E extends keyof EventMap>(
-      event: E,
-      cb: (payload: EventMap[E]) => void,
-    ) => e.subscribe(event, cb),
+    <E extends keyof EventMap>(event: E, cb: (payload: EventMap[E]) => void) =>
+      e.subscribe(event, cb),
     [e],
   )
   const fmt = useCallback((seconds: number) => e.fmt(seconds), [e])

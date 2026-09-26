@@ -1,43 +1,54 @@
 {
   "name": "@pulse-music/web-component",
   "version": "3.0.0-rc.3",
-  "description": "Universal Web Component renderer for pulse-player — Lit-based `<pulse-player>` and `<pulse-fab>`. Works in React, Vue, Angular, Svelte, Solid, vanilla JS, or plain HTML.",
-  "license": "MIT",
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
-  },
-  "files": [
-    "dist",
-    "src",
-    "README.md"
+  "description": "Drop-in music player Custom Elements — <pulse-player>, <pulse-fab>, <pulse-track>. Works in any framework or plain HTML.",
+  "keywords": [
+    "web-components",
+    "custom-elements",
+    "lit",
+    "music-player",
+    "audio-player",
+    "visualizer",
+    "pulse-player"
   ],
-  "scripts": {
-    "build": "tsup",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "prepublishOnly": "npm run build"
-  },
-  "dependencies": {
-    "@pulse-music/core": "3.0.0-rc.3",
-    "@pulse-music/tokens": "3.0.0-rc.3",
-    "@pulse-music/types": "3.0.0-rc.3",
-    "lit": "^3.1.0"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "private": false,
+  "license": "MIT",
+  "author": "YamadaBlog",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/YamadaBlog/pulse-player.git",
     "directory": "packages/web-component"
+  },
+  "homepage": "https://yamadablog.github.io/pulse-player/",
+  "bugs": {
+    "url": "https://github.com/YamadaBlog/pulse-player/issues"
+  },
+  "type": "module",
+  "sideEffects": true,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "customElements": "custom-elements.json",
+  "files": [
+    "dist",
+    "custom-elements.json"
+  ],
+  "scripts": {
+    "build": "tsdown && cem analyze --litelement --globs \"src/Pulse*.ts\" --outdir ."
+  },
+  "dependencies": {
+    "@pulse-music/core": "^3.0.0-rc.3",
+    "@pulse-music/tokens": "^3.0.0-rc.3",
+    "@pulse-music/types": "^3.0.0-rc.3",
+    "lit": "^3.3.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

@@ -55,3 +55,6 @@ public/audio/*.webp
 
 # Local AI-assistant tooling (kept out of the public repo)
 .claude/
+packages/web-component/custom-elements.json
+*.tgz
+.expo/

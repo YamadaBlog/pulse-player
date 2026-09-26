@@ -174,7 +174,9 @@ describe('play / pause', () => {
     await engine.play()
     audio().fail()
     expect(engine.state).toMatchObject({ isPlaying: false, error: 'media-error' })
-    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ reason: 'media-error', track: TRACKS[0] }))
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: 'media-error', track: TRACKS[0] }),
+    )
   })
 })
 

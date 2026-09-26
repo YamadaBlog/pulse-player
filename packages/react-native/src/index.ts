@@ -40,21 +40,13 @@ export { PulsePlayerRN } from './components/PulsePlayer'
 export { PulseFabRN } from './components/PulseFab'
 
 // Engine surface
-export {
-  PulseEngineRN,
-  getSharedEngineRN,
-  setSharedEngineRN,
-} from './utils/audioEngine'
+export { PulseEngineRN, getSharedEngineRN, setSharedEngineRN } from './utils/audioEngine'
 
 // Hook
 export { usePulseAudioRN } from './hooks/usePulseAudio'
 
 // Interface types
-export type {
-  PulsePlayerRNProps,
-  PulseFabRNProps,
-  UsePulseAudioRNReturn,
-} from './types'
+export type { PulsePlayerRNProps, PulseFabRNProps, UsePulseAudioRNReturn } from './types'
 
 export { RN_PARITY_MATRIX } from './types'
 

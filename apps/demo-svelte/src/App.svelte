@@ -1,60 +1,27 @@
 <script lang="ts">
-  import { usePulseAudio, ALL_VARIANTS, type PulseVariant } from '@pulse-music/svelte'
+  import { ALL_VARIANTS, usePulseAudio, type PulseVariant } from '@pulse-music/svelte'
+  import { demoTracks } from '../../shared-tracks'
 
-  // Svelte 5 runes — the `usePulseAudio()` hook exposes a classic
-  // store, so `$audio.isPlaying` auto-subscribes.
   const audio = usePulseAudio()
-  let variant = $state<PulseVariant>('auto')
-  let log = $state<string[]>([])
-
-  function append(line: string) {
-    log = [`[${new Date().toLocaleTimeString()}] ${line}`, ...log].slice(0, 40)
-  }
-
-  function onPlay(e: CustomEvent) {
-    append(`pulse-play → ${e.detail.track.title}`)
-  }
-  function onPause(e: CustomEvent) {
-    append(`pulse-pause → ${e.detail.track.title}`)
-  }
-  function onTrackChange(e: CustomEvent) {
-    append(`pulse-trackchange → ${e.detail.from} → ${e.detail.to}`)
-  }
+  audio.setTracks(demoTracks())
+  let variant: PulseVariant = $state('auto')
 </script>
 
-<h1>Pulse — Svelte demo</h1>
+<main>
+  <h1>Pulse × Svelte</h1>
+  <div class="picker" role="group" aria-label="Theme">
+    {#each ALL_VARIANTS.filter((v) => v !== 'custom') as v (v)}
+      <button aria-pressed={variant === v} onclick={() => (variant = v)}>{v}</button>
+    {/each}
+  </div>
 
-<div class="picker" role="group" aria-label="Theme variant">
-  {#each ALL_VARIANTS.filter((v) => v !== 'custom') as v}
-    <button data-variant={v} aria-pressed={variant === v} onclick={() => (variant = v)}>
-      {v}
-    </button>
-  {/each}
-</div>
+  <!-- Svelte renders Custom Elements natively and sets their properties. -->
+  <pulse-player {variant} ambient-eq></pulse-player>
 
-<div class="stage">
-  <pulse-player
-    variant={variant}
-    ambient-eq
-    onpulse-play={onPlay}
-    onpulse-pause={onPause}
-    onpulse-trackchange={onTrackChange}
-  ></pulse-player>
-</div>
+  <p class="status">
+    <button onclick={audio.toggle}>{$audio.isPlaying ? 'Pause' : 'Play'}</button>
+    {$audio.track?.title} · {audio.fmt($audio.currentTime)} / {audio.fmt($audio.duration)}
+  </p>
 
-<div class="controls">
-  <button onclick={audio.prev}>⏮ Prev</button>
-  <button onclick={audio.toggle}>{$audio.isPlaying ? '⏸ Pause' : '▶ Play'}</button>
-  <button onclick={audio.next}>Next ⏭</button>
-  <span class="stat">
-    {audio.fmt($audio.currentTime)} / {audio.fmt($audio.duration)} · {$audio.track.title}
-  </span>
-</div>
-
-<pulse-fab variant={variant} pulso></pulse-fab>
-
-<div class="log" aria-live="polite">
-  {#each log as line}
-    <div>{line}</div>
-  {/each}
-</div>
+  <pulse-fab {variant} pulso></pulse-fab>
+</main>

@@ -43,10 +43,7 @@ function Ring({ active, accent, delay }: RingProps) {
       scale.value = withRepeat(
         withDelay(
           delay,
-          withSequence(
-            withTiming(1.4, { duration: 800 }),
-            withTiming(0.6, { duration: 0 }),
-          ),
+          withSequence(withTiming(1.4, { duration: 800 }), withTiming(0.6, { duration: 0 })),
         ),
         -1,
         false,
@@ -54,10 +51,7 @@ function Ring({ active, accent, delay }: RingProps) {
       opacity.value = withRepeat(
         withDelay(
           delay,
-          withSequence(
-            withTiming(0.6, { duration: 0 }),
-            withTiming(0, { duration: 800 }),
-          ),
+          withSequence(withTiming(0.6, { duration: 0 }), withTiming(0, { duration: 800 })),
         ),
         -1,
         false,
@@ -80,10 +74,7 @@ function Ring({ active, accent, delay }: RingProps) {
   }))
 
   return (
-    <Animated.View
-      style={[styles.ring, { borderColor: accent }, style]}
-      pointerEvents="none"
-    />
+    <Animated.View style={[styles.ring, { borderColor: accent }, style]} pointerEvents="none" />
   )
 }
 
