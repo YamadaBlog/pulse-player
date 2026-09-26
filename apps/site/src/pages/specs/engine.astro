@@ -1,0 +1,16 @@
+---
+import Base from '../../layouts/Base.astro'
+import LinerNotes from '../../components/LinerNotes.astro'
+import Specs from '../../components/Specs.astro'
+import { Content, getHeadings } from '../../../../../docs/reference/engine.md'
+---
+
+<Base
+  title="Engine reference — Pulse liner notes"
+  description="PulseEngine: options, shared sessions, immutable state, actions, typed events and Web Audio visualiser frames."
+>
+  <Specs current="engine" headings={getHeadings()}>
+    <Content />
+  </Specs>
+  <LinerNotes />
+</Base>

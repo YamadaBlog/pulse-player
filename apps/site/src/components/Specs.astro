@@ -1,0 +1,235 @@
+---
+import type { MarkdownHeading } from 'astro'
+
+interface Props {
+  current: 'elements' | 'engine'
+  headings: MarkdownHeading[]
+}
+const { current, headings } = Astro.props
+const base = import.meta.env.BASE_URL
+const docs = [
+  {
+    id: 'elements',
+    label: 'Elements',
+    href: `${base}specs/`,
+    note: '<pulse-player> · <pulse-fab> · <pulse-track>',
+  },
+  {
+    id: 'engine',
+    label: 'Engine',
+    href: `${base}specs/engine/`,
+    note: 'PulseEngine · state · frames',
+  },
+]
+const toc = headings.filter((h) => h.depth === 2)
+---
+
+<section id="top" class="specs" data-surface="a" data-still tabindex="-1">
+  <div class="wrap specs__grid">
+    <aside class="specs__side">
+      <p class="label">C3 · Liner notes</p>
+      <nav aria-label="Reference">
+        <ul class="specs__docs">
+          {docs.map((d) => (
+            <li>
+              <a href={d.href} aria-current={d.id === current ? 'page' : undefined}>
+                <span class="specs__doc">{d.label}</span>
+                <span class="specs__note">{d.note}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <nav aria-label="On this page" class="specs__toc">
+        <p class="label">On this page</p>
+        <ol>
+          {toc.map((h) => (
+            <li>
+              <a href={`#${h.slug}`}>{h.text}</a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+    </aside>
+    <article class="prose">
+      <slot />
+    </article>
+  </div>
+</section>
+
+<style>
+  .specs {
+    padding-block: calc(var(--header) + clamp(2rem, 5vw, 4rem)) clamp(4rem, 8vw, 7rem);
+  }
+  .specs__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 17rem) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: start;
+  }
+  .specs__side {
+    position: sticky;
+    top: calc(var(--header) + 1rem);
+    display: grid;
+    gap: 1.8rem;
+    max-height: calc(100svh - var(--header) - 2rem);
+    overflow-y: auto;
+  }
+  .specs__docs,
+  .specs__toc ol {
+    display: grid;
+    gap: 0.2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .specs__docs a {
+    display: grid;
+    gap: 0.1rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    text-decoration: none;
+  }
+  .specs__docs a:hover {
+    border-color: var(--rule);
+  }
+  .specs__docs a[aria-current='page'] {
+    border-color: var(--fg);
+  }
+  .specs__doc {
+    font-family: var(--display);
+    font-weight: 740;
+    font-variation-settings: 'wdth' 82;
+    font-size: 1.25rem;
+    text-transform: uppercase;
+  }
+  .specs__note {
+    font: 0.72rem var(--mono);
+    color: var(--fg-2);
+  }
+  .specs__toc {
+    display: grid;
+    gap: 0.6rem;
+  }
+  .specs__toc .label {
+    color: var(--fg-3);
+  }
+  .specs__toc a {
+    display: block;
+    padding-block: 0.25rem;
+    font-size: 0.9rem;
+    color: var(--fg-2);
+    text-decoration: none;
+  }
+  .specs__toc a:hover {
+    color: var(--fg);
+    text-decoration: underline;
+  }
+
+  /* ─── Rendered Markdown ────────────────────────────────────────── */
+  .prose {
+    min-width: 0;
+    max-width: 78ch;
+  }
+  .prose :global(h1) {
+    margin-bottom: 1.5rem;
+    font-family: var(--display);
+    font-weight: 820;
+    font-variation-settings: 'wdth' 72;
+    font-size: clamp(2.6rem, 1rem + 5vw, 5.5rem);
+    line-height: 0.9;
+    letter-spacing: -0.035em;
+    text-transform: uppercase;
+  }
+  .prose :global(h2) {
+    margin: 3.5rem 0 1rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--fg);
+    font-family: var(--display);
+    font-weight: 740;
+    font-variation-settings: 'wdth' 84;
+    font-size: clamp(1.6rem, 1rem + 1.6vw, 2.4rem);
+    letter-spacing: -0.02em;
+  }
+  .prose :global(h3) {
+    margin: 2.2rem 0 0.6rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+  .prose :global(p),
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin: 0 0 1rem;
+    color: var(--fg-2);
+  }
+  .prose :global(li) {
+    margin-bottom: 0.3rem;
+  }
+  .prose :global(strong) {
+    color: var(--fg);
+  }
+  .prose :global(a) {
+    color: var(--signal-ink);
+  }
+  .prose :global(hr) {
+    margin: 2.5rem 0;
+    border: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .prose :global(:not(pre) > code) {
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    background: var(--paper-2);
+    font: 0.86em var(--mono);
+    color: var(--fg);
+  }
+  .prose :global(pre) {
+    margin: 0 0 1.4rem;
+    padding: 1.1rem 1.3rem;
+    border-radius: 10px;
+    overflow-x: auto;
+    font: 0.82rem/1.65 var(--mono);
+  }
+  .prose :global(pre:focus-visible) {
+    outline-offset: 2px;
+  }
+  .prose :global(table) {
+    display: block;
+    width: 100%;
+    margin: 0 0 1.4rem;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  .prose :global(th),
+  .prose :global(td) {
+    padding: 0.55rem 0.9rem 0.55rem 0;
+    border-bottom: 1px solid var(--rule);
+    text-align: left;
+    vertical-align: top;
+  }
+  .prose :global(td:first-child code),
+  .prose :global(td:nth-child(2) code) {
+    white-space: nowrap;
+  }
+  .prose :global(th) {
+    font: 500 0.72rem var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+    border-bottom-color: var(--fg);
+  }
+  @media (max-width: 900px) {
+    .specs__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .specs__side {
+      position: static;
+      max-height: none;
+    }
+    .specs__toc {
+      display: none;
+    }
+  }
+</style>

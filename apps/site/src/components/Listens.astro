@@ -1,0 +1,171 @@
+<section id="listens" class="side-b listens" data-surface="b" aria-labelledby="listens-title">
+  <div class="wrap">
+    <div class="track-head">
+      <span class="label">B2</span>
+      <span class="label">Listens back</span>
+      <span class="label">1:05</span>
+    </div>
+    <div class="listens__top">
+      <h2 id="listens-title" class="headline" data-split>
+        It hears what
+        <br />
+        it <span class="serif">plays.</span>
+      </h2>
+      <p class="lede">
+        Twenty-four bands of the real spectrum, sixty times a second, from one Web Audio analyser
+        shared by every visual — the ambient EQ, the FAB’s halo, and this landscape. Each line is a
+        moment that just passed.
+      </p>
+    </div>
+  </div>
+
+  <figure class="ridges" data-ridges data-cursor="Live spectrum">
+    <canvas aria-hidden="true"></canvas>
+    <figcaption class="ridges__cap wrap">
+      <span class="label" data-listen-source>
+        Idle — drop the needle
+      </span>
+      <span class="ridges__meters" aria-hidden="true">
+        <span class="label">
+          Energy <b data-listen-energy>0.00</b>
+        </span>
+        <span class="label">
+          Bass <b data-listen-bass>0.00</b>
+        </span>
+      </span>
+    </figcaption>
+  </figure>
+
+  <div class="wrap listens__code">
+    <pre><code><span class="c">// The same frames that drive this page. One analyser, zero copies.</span>
+<span class="k">const</span> off = engine.<span class="f">onFrame</span>((&#123; bands, energy &#125;) =&gt; &#123;
+  <span class="c">// bands: Float32Array(24) · energy: 0..1</span>
+  canvas.<span class="f">draw</span>(bands)
+&#125;)</code></pre>
+    <p class="muted">
+      No audio? No problem: when the analyser can’t run (cross-origin media, no Web Audio), frames
+      are synthesised from playback so visuals never freeze — and they flag <code>synthetic</code>
+      so you can tell.
+    </p>
+  </div>
+</section>
+
+<script>
+  import { engine } from '../scripts/audio'
+  import { subscribeFrames } from '../scripts/audio'
+  import { $, onPage, reducedMotion, whileVisible } from '../scripts/lifecycle'
+  import '../scripts/ridges'
+
+  onPage(() => {
+    const host = $('[data-ridges]')
+    const energy = $('[data-listen-energy]')
+    const bass = $('[data-listen-bass]')
+    const source = $('[data-listen-source]')
+    if (!host || !energy || !bass || !source) return
+    const offState = engine.onStateChange((s) => {
+      const t = engine.track
+      source.textContent = s.isPlaying && t ? `Listening — ${t.title}` : 'Idle — drop the needle'
+    })
+    const stop = whileVisible(host, () => {
+      if (reducedMotion()) return () => undefined
+      let last = 0
+      return subscribeFrames((f) => {
+        const now = performance.now()
+        if (now - last < 100) return
+        last = now
+        energy.textContent = f.energy.toFixed(2)
+        bass.textContent = f.bass.toFixed(2)
+      })
+    })
+    return () => {
+      offState()
+      stop()
+    }
+  })
+</script>
+
+<style>
+  .listens {
+    padding-block: clamp(4rem, 10vw, 8rem);
+  }
+  .listens__top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: end;
+    margin-top: clamp(2rem, 5vw, 4rem);
+  }
+  .ridges {
+    position: relative;
+    height: min(78svh, 820px);
+    margin: clamp(2rem, 5vw, 4rem) 0 0;
+  }
+  .ridges canvas {
+    width: 100%;
+    height: 100%;
+  }
+  .ridges.is-fallback {
+    background: repeating-linear-gradient(0deg, transparent 0 13px, var(--rule) 13px 14px);
+    mask: radial-gradient(ellipse 30% 60% at 50% 60%, #000, transparent);
+  }
+  .ridges__cap {
+    position: absolute;
+    inset: auto 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    color: var(--fg-2);
+  }
+  .ridges__meters {
+    display: flex;
+    gap: 1.5rem;
+  }
+  .ridges__meters b {
+    display: inline-block;
+    min-width: 4ch;
+    color: var(--signal);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .listens__code {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 4rem);
+    align-items: start;
+    margin-top: clamp(2rem, 5vw, 4rem);
+  }
+  .listens__code pre {
+    margin: 0;
+    padding: 1.4rem 1.5rem;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    background: var(--night-2);
+    overflow-x: auto;
+    font: 0.84rem/1.7 var(--mono);
+  }
+  .listens__code .c {
+    color: var(--fg-3);
+  }
+  .listens__code .k {
+    color: var(--signal);
+  }
+  .listens__code .f {
+    color: #f3c77b;
+  }
+  .listens__code p code {
+    font-family: var(--mono);
+    font-size: 0.9em;
+    color: var(--accent);
+  }
+  @media (max-width: 900px) {
+    .listens__top,
+    .listens__code {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .ridges {
+      height: 60svh;
+    }
+  }
+</style>

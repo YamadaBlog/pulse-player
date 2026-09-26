@@ -1,0 +1,208 @@
+---
+const base = import.meta.env.BASE_URL
+const sides = [
+  {
+    name: 'Side A',
+    note: 'The object',
+    tracks: [
+      { n: 'A1', title: 'Drop the needle', href: `${base}#top`, time: '0:40' },
+      { n: 'A2', title: 'Grows with the page', href: `${base}#grows`, time: '1:10' },
+      { n: 'A3', title: 'Nine moods', href: `${base}#moods`, time: '0:55' },
+    ],
+  },
+  {
+    name: 'Side B',
+    note: 'Under the hood',
+    tracks: [
+      { n: 'B1', title: 'Follows you', href: `${base}#follows`, time: '0:45' },
+      { n: 'B2', title: 'Listens back', href: `${base}#listens`, time: '1:05' },
+      { n: 'B3', title: 'Speaks every framework', href: `${base}#dialects`, time: '0:50' },
+      { n: 'B4', title: 'Built to be heard', href: `${base}#heard`, time: '1:00' },
+    ],
+  },
+  {
+    name: 'Bonus',
+    note: 'Extended play',
+    tracks: [
+      { n: 'C1', title: 'Pressings — open source', href: `${base}#pressed`, time: '0:35' },
+      { n: 'C2', title: 'The mixing desk', href: `${base}playground/`, time: '∞' },
+      { n: 'C3', title: 'Liner notes — specs', href: `${base}specs/`, time: '4:20' },
+    ],
+  },
+]
+---
+
+<dialog class="tl" data-tracklist aria-label="Tracklist" transition:persist="tracklist">
+  <div class="tl__inner">
+    <div class="tl__top">
+      <p class="label">Pulse — LP · 2026 · MIT</p>
+      <button class="tl__close label" type="button" data-tracklist-close>
+        Close <span aria-hidden="true">✕</span>
+      </button>
+    </div>
+    <nav class="tl__sides" aria-label="Tracklist">
+      {sides.map((side) => (
+        <section class="tl__side">
+          <h2 class="label">
+            {side.name} <span class="serif">— {side.note}</span>
+          </h2>
+          <ol>
+            {side.tracks.map((t, i) => (
+              <li style={`--i: ${i}`}>
+                <a href={t.href} data-tracklist-link>
+                  <span class="tl__n label">{t.n}</span>
+                  <span class="tl__title">{t.title}</span>
+                  <span class="tl__time label">{t.time}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
+    </nav>
+    <p class="tl__foot label">Reading times are approximate. Music: Kevin MacLeod, CC BY 4.0.</p>
+  </div>
+</dialog>
+
+<style>
+  .tl {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    color: var(--paper);
+    background: var(--night);
+  }
+  .tl::backdrop {
+    background: transparent;
+  }
+  .tl[open] {
+    animation: sleeve-in 0.8s var(--ease-out) both;
+  }
+  .tl.is-closing {
+    animation: sleeve-out 0.45s var(--ease-in-out) both;
+  }
+  .tl__inner {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 2rem;
+    height: 100%;
+    padding: calc(var(--header) * 0.5) var(--gutter) 2rem;
+    overflow-y: auto;
+  }
+  .tl__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .tl__close {
+    min-height: 44px;
+    padding: 0 1.1rem;
+    border: 1px solid var(--paper);
+    border-radius: 999px;
+    background: none;
+    cursor: pointer;
+  }
+  .tl__close:hover {
+    background: var(--signal);
+    color: var(--ink);
+    border-color: var(--signal);
+  }
+  .tl__sides {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--gutter);
+    align-content: center;
+  }
+  @media (max-width: 900px) {
+    .tl__sides {
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
+    }
+  }
+  .tl__side h2 {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgb(236 231 220 / 0.2);
+    color: rgb(236 231 220 / 0.7);
+  }
+  .tl__side .serif {
+    font-size: 1rem;
+  }
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  li {
+    border-bottom: 1px solid rgb(236 231 220 / 0.12);
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  .tl[open] li {
+    animation: row-in 0.7s var(--ease-out) both;
+    animation-delay: calc(0.18s + var(--i, 0) * 45ms);
+  }
+  li a {
+    display: grid;
+    grid-template-columns: 2.6rem 1fr auto;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.9rem 0;
+    text-decoration: none;
+  }
+  .tl__title {
+    font-family: var(--display);
+    font-weight: 760;
+    font-variation-settings: 'wdth' 78;
+    font-size: clamp(1.6rem, 1.1rem + 1.8vw, 2.6rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    transition:
+      font-variation-settings 0.6s var(--ease-out),
+      color 0.3s var(--ease-out);
+  }
+  li a:hover .tl__title,
+  li a:focus-visible .tl__title {
+    color: var(--signal);
+    font-variation-settings: 'wdth' 118;
+  }
+  .tl__n,
+  .tl__time {
+    color: rgb(236 231 220 / 0.6);
+  }
+  .tl__foot {
+    color: rgb(236 231 220 / 0.5);
+  }
+  @keyframes sleeve-in {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  @keyframes sleeve-out {
+    from {
+      clip-path: inset(0 0 0 0);
+    }
+    to {
+      clip-path: inset(100% 0 0 0);
+    }
+  }
+  @keyframes row-in {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    li {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>

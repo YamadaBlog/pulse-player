@@ -58,3 +58,6 @@ public/audio/*.webp
 packages/web-component/custom-elements.json
 *.tgz
 .expo/
+
+# Astro generated types
+.astro/

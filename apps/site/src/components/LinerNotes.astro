@@ -1,0 +1,153 @@
+---
+const base = import.meta.env.BASE_URL
+const repo = 'https://github.com/YamadaBlog/pulse-player'
+const credits = [
+  {
+    role: 'Design, code & words',
+    who: 'Loïc — @YamadaBlog',
+    href: 'https://github.com/YamadaBlog',
+  },
+  {
+    role: 'Music',
+    who: 'Kevin MacLeod · incompetech.com · CC BY 4.0',
+    href: 'https://incompetech.com',
+  },
+  { role: 'Type', who: 'Archivo · Geist Mono · Instrument Serif', href: null },
+  { role: 'Built with', who: 'Astro · GSAP · Lenis · raw WebGL2', href: null },
+]
+const links = [
+  { label: 'Mixing desk', href: `${base}playground/` },
+  { label: 'Liner notes (API)', href: `${base}specs/` },
+  { label: 'GitHub', href: repo },
+  { label: 'npm', href: 'https://www.npmjs.com/package/@pulse-music/web-component' },
+  { label: 'Changelog', href: `${repo}/blob/main/packages/web-component/CHANGELOG.md` },
+  { label: 'Security', href: `${repo}/blob/main/SECURITY.md` },
+]
+---
+
+<footer class="side-b notes" data-surface="b">
+  <div class="wrap">
+    <div class="notes__grid">
+      <dl class="notes__credits">
+        {credits.map((c) => (
+          <div>
+            <dt class="label">{c.role}</dt>
+            <dd>
+              {c.href ? (
+                <a href={c.href} rel="noopener">
+                  {c.who}
+                </a>
+              ) : (
+                c.who
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <nav class="notes__links" aria-label="Footer">
+        <ul>
+          {links.map((l) => (
+            <li>
+              <a href={l.href}>{l.label}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+
+    <p class="notes__word" aria-hidden="true">
+      <span data-breathe="96">Pulse</span>
+    </p>
+
+    <div class="notes__base label">
+      <span>℗ 2026 YamadaBlog · MIT</span>
+      <span>No cookies. No trackers. Just music.</span>
+      <a href="#top">Back to Side A ↑</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .notes {
+    padding-block: clamp(4rem, 8vw, 6rem) 7rem;
+    border-top: 1px solid var(--rule);
+    overflow: clip;
+  }
+  .notes__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 5rem);
+  }
+  .notes__credits {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.6rem 2rem;
+    margin: 0;
+  }
+  .notes__credits dt {
+    color: var(--fg-3);
+  }
+  .notes__credits dd {
+    margin: 0.3rem 0 0;
+    color: var(--fg-2);
+  }
+  .notes__credits a {
+    color: var(--fg);
+  }
+  .notes__links ul {
+    display: grid;
+    gap: 0.2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .notes__links a {
+    display: inline-block;
+    padding-block: 0.3rem;
+    font-family: var(--display);
+    font-weight: 700;
+    font-variation-settings: 'wdth' 82;
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition:
+      color 0.3s var(--ease-out),
+      font-variation-settings 0.5s var(--ease-out);
+  }
+  .notes__links a:hover {
+    color: var(--signal);
+    font-variation-settings: 'wdth' 112;
+  }
+  .notes__word {
+    margin-top: clamp(3rem, 7vw, 6rem);
+    font-family: var(--display);
+    font-weight: 820;
+    font-variation-settings: 'wdth' 72;
+    font-size: clamp(5rem, 25vw, 26rem);
+    line-height: 0.74;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    color: var(--signal);
+    text-align: center;
+  }
+  .notes__word span {
+    display: inline-block;
+  }
+  .notes__base {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.6rem 1.5rem;
+    margin-top: 2rem;
+    color: var(--fg-3);
+  }
+  .notes__base a {
+    color: var(--fg-2);
+  }
+  @media (max-width: 800px) {
+    .notes__grid,
+    .notes__credits {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

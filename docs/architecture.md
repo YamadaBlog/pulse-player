@@ -43,7 +43,7 @@
 
 ```
 packages/        published libraries (+ test-utils, private)
-apps/site        the showcase deployed to GitHub Pages (Vue, dogfoods @pulse-music/vue)
+apps/site        the showcase deployed to GitHub Pages (Astro, dogfoods the elements and @pulse-music/vue)
 apps/demo-*      minimal React, Svelte and plain-HTML apps; demo-vanilla/lab.html is the component lab
 e2e/             Playwright + axe-core tests for the site and the lab
 scripts/         package checks, consumer smoke test, asset provenance check

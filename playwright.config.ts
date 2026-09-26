@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 /**
  * End-to-end checks against real browsers:
- *  - `site`: the showcase (built, served by `vite preview`)
+ *  - `site`: the showcase (built, served by `astro preview`)
  *  - `lab`:  the component lab page of the plain-HTML example
  *
  * `PULSE_SITE_URL` points the site project at a deployed URL instead
@@ -40,7 +40,7 @@ export default defineConfig({
     ? undefined
     : [
         {
-          command: 'npm run preview -w @pulse-music/site -- --port 4174 --strictPort',
+          command: 'npm run preview -w @pulse-music/site -- --port 4174',
           url: 'http://localhost:4174/',
           reuseExistingServer: !process.env.CI,
         },

@@ -24,7 +24,10 @@ Changes made: loudness-normalised to −16 LUFS and re-encoded as ~110 kbps MP3.
 
 ## Fonts — SIL Open Font License 1.1
 
-`Geist-Variable.woff2` and `GeistMono-Variable.woff2` (Geist and Geist Mono by Vercel) are self-hosted by the showcase site under the [SIL OFL 1.1](./apps/site/public/fonts/OFL.txt); the licence text ships beside them.
+The showcase site self-hosts three typefaces, all under the SIL OFL 1.1:
+
+- `GeistMono-Variable.woff2` (Geist Mono by Vercel), with its [licence text](./apps/site/src/assets/fonts/OFL.txt) beside it;
+- Archivo (Omnibus-Type) and Instrument Serif (Instrument), bundled at build time from the [Fontsource](https://fontsource.org) packages `@fontsource-variable/archivo` and `@fontsource/instrument-serif`, which carry their licence texts.
 
 ## Trademarks
 

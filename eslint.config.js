@@ -1,5 +1,6 @@
 // @ts-check
 import js from '@eslint/js'
+import astro from 'eslint-plugin-astro'
 import prettier from 'eslint-config-prettier'
 import lit from 'eslint-plugin-lit'
 import reactHooks from 'eslint-plugin-react-hooks'
@@ -18,11 +19,13 @@ export default tseslint.config(
       'apps/demo-react-native/**',
       'packages/react-native/**',
       '**/custom-elements.json',
+      '**/.astro/**',
     ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   ...vue.configs['flat/recommended'],
+  ...astro.configs.recommended,
   {
     languageOptions: {
       ecmaVersion: 'latest',

@@ -23,16 +23,16 @@ const html = computed(() => highlight(props.code))
 <style scoped>
 .code {
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-3);
-  background: #0a0a10;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--night-2);
 }
 .code__bar {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 1rem;
   padding: 8px 8px 8px 16px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--rule);
   background: rgb(255 255 255 / 0.02);
 }
 .code__dots {
@@ -49,34 +49,34 @@ const html = computed(() => highlight(props.code))
   margin-right: auto;
   font-family: var(--mono);
   font-size: 12px;
-  color: var(--text-3);
+  color: var(--fg-3);
 }
 pre {
   margin: 0;
-  padding: var(--space-5);
+  padding: 1.4rem;
   overflow-x: auto;
   font-size: 13px;
   line-height: 1.7;
-  color: #d6d6e0;
+  color: var(--fg);
   tab-size: 2;
 }
 pre:focus-visible {
   outline-offset: -3px;
 }
 :deep(.tok-tag) {
-  color: #7dd3fc;
+  color: #ff8a5c;
 }
 :deep(.tok-attr) {
-  color: #c4b5fd;
+  color: #f3c77b;
 }
 :deep(.tok-string) {
-  color: #86efac;
+  color: #9fd8a4;
 }
 :deep(.tok-keyword) {
-  color: #f9a8d4;
+  color: var(--signal);
 }
 :deep(.tok-comment) {
-  color: #8b8b9c;
+  color: var(--fg-3);
   font-style: italic;
 }
 </style>

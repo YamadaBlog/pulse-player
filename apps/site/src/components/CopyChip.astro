@@ -1,0 +1,74 @@
+---
+interface Props {
+  text: string
+}
+const { text } = Astro.props
+---
+
+<div class="chip">
+  <code>
+    <span aria-hidden="true">$</span> {text}
+  </code>
+  <button class="chip__btn label" type="button" data-copy={text} aria-label={`Copy: ${text}`}>
+    <span data-copy-label>Copy</span>
+  </button>
+</div>
+
+<script>
+  document.addEventListener('click', async (e) => {
+    const btn = (e.target as Element).closest<HTMLButtonElement>('[data-copy]')
+    if (!btn) return
+    try {
+      await navigator.clipboard.writeText(btn.dataset.copy ?? '')
+    } catch {
+      /* clipboard blocked: the command stays selectable */
+    }
+    const label = btn.querySelector('[data-copy-label]')
+    if (!label) return
+    label.textContent = 'Copied'
+    btn.toggleAttribute('data-copied', true)
+    setTimeout(() => {
+      label.textContent = 'Copy'
+      btn.removeAttribute('data-copied')
+    }, 1600)
+  })
+</script>
+
+<style>
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: 100%;
+    padding: 0.35rem 0.35rem 0.35rem 1rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+  }
+  code {
+    min-width: 0;
+    overflow: hidden;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  code span {
+    color: var(--accent);
+  }
+  .chip__btn {
+    flex: none;
+    min-height: 36px;
+    min-width: 76px;
+    padding: 0 0.9rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--fg);
+    color: var(--bg);
+    cursor: pointer;
+    transition: background-color 0.3s var(--ease-out);
+  }
+  .chip__btn[data-copied] {
+    background: var(--signal);
+    color: var(--ink);
+  }
+</style>

@@ -1,0 +1,326 @@
+---
+import CopyChip from './CopyChip.astro'
+const base = import.meta.env.BASE_URL
+---
+
+<section id="top" class="hero" data-surface="a" tabindex="-1">
+  <div class="hero__stage wrap">
+    <div class="sleeve" data-sleeve>
+      <div class="sleeve__top label">
+        <span>PM—001</span>
+        <span>LP · 2026</span>
+      </div>
+      <h1 class="display sleeve__title">
+        <span class="sleeve__line">A music player</span>
+        <span class="sleeve__line">
+          that{' '}
+          <span class="breathe" data-breathe>
+            plays
+          </span>
+        </span>
+        <span class="sleeve__line">your page.</span>
+      </h1>
+      <div class="sleeve__foot">
+        <p class="sleeve__lede">
+          One Custom Element for every framework. It grows with its container, re-themes itself —
+          and listens to the music it plays.
+        </p>
+        <p class="label sleeve__rpm">33⅓</p>
+      </div>
+    </div>
+
+    <div class="record" data-record data-cursor="Drag to scratch · tap to play">
+      <canvas aria-hidden="true"></canvas>
+      <div class="record__fallback" aria-hidden="true"></div>
+      <svg class="arm" viewBox="0 0 200 200" aria-hidden="true">
+        <circle cx="170" cy="30" r="17" class="arm__base"></circle>
+        <circle cx="170" cy="30" r="6" class="arm__pin"></circle>
+        <g class="arm__swing">
+          <path d="M170 30 L150 128 L112 160" class="arm__tube"></path>
+          <rect
+            x="98"
+            y="152"
+            width="22"
+            height="14"
+            rx="2"
+            transform="rotate(-38 109 159)"
+            class="arm__head"
+          ></rect>
+        </g>
+      </svg>
+    </div>
+    <div class="console">
+      <div class="console__player">
+        <pulse-player data-mood-follow ambient-eq></pulse-player>
+      </div>
+      <div class="console__side">
+        <div class="console__actions">
+          <button class="btn" type="button" data-needle>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M8 5.5v13l10.5-6.5z"></path>
+            </svg>
+            <span data-needle-label>Drop the needle</span>
+          </button>
+          <a class="btn btn--ghost" href={`${base}playground/`}>
+            Mixing desk
+          </a>
+        </div>
+        <CopyChip text="npm i @pulse-music/web-component" />
+      </div>
+    </div>
+  </div>
+
+  <p class="hero__cue label" aria-hidden="true">
+    <span>Side A</span>
+    <span>Scroll</span>
+  </p>
+</section>
+
+<script>
+  import { engine } from '../scripts/audio'
+  import { $, onPage } from '../scripts/lifecycle'
+  import '../scripts/record'
+  import { gsap } from '../scripts/motion'
+
+  onPage(() => {
+    const btn = $('[data-needle]')
+    const label = $('[data-needle-label]')
+    if (!btn || !label) return
+    const sync = (): void => {
+      label.textContent = engine.state.isPlaying ? 'Lift the needle' : 'Drop the needle'
+    }
+    const onClick = (): void => engine.toggle()
+    btn.addEventListener('click', onClick)
+    const off = engine.onStateChange(sync)
+    sync()
+
+    // The opening: the record slides out of its sleeve.
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+    const ctx = gsap.context(() => {
+      if (reduce) return
+      const tl = gsap.timeline({ defaults: { ease: 'expo.out' } })
+      tl.from('.sleeve', { yPercent: 6, opacity: 0, duration: 1.2 })
+        .from('.sleeve__line', { yPercent: 105, duration: 1.1, stagger: 0.09 }, '<0.15')
+        .from('.record', { xPercent: -62, rotate: -40, duration: 1.8, ease: 'expo.inOut' }, '<0.1')
+        .from('.arm', { opacity: 0, rotate: -12, transformOrigin: '85% 15%', duration: 1 }, '-=0.5')
+        .from('.console > *', { y: 30, opacity: 0, duration: 1, stagger: 0.1 }, '-=0.9')
+    })
+    return () => {
+      btn.removeEventListener('click', onClick)
+      off()
+      ctx.revert()
+    }
+  })
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    display: grid;
+    align-items: center;
+    min-height: max(100svh, 640px);
+    padding-top: calc(var(--header) + 1rem);
+    padding-bottom: 3.5rem;
+    overflow: clip;
+    outline: none;
+  }
+  /* Sleeve | record sliding out of it | the console you play it with. */
+  .hero__stage {
+    --page: min(1720px, 100%);
+    --size: min(64svh, 36vw, 640px);
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--size) calc(var(--size) * 0.66) minmax(0, 1fr);
+    column-gap: var(--gutter);
+    align-items: center;
+  }
+
+  /* ─── Sleeve ─────────────────────────────────────────────────── */
+  .sleeve {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    width: var(--size);
+    aspect-ratio: 1;
+    padding: clamp(1rem, 2.2vw, 1.75rem);
+    background: #e4ddcf;
+    box-shadow:
+      0 0 0 1px rgb(19 18 16 / 0.2),
+      0 40px 80px -40px rgb(19 18 16 / 0.45),
+      inset 0 0 0 10px #e4ddcf,
+      inset 0 0 0 11px rgb(19 18 16 / 0.18);
+  }
+  .sleeve__top,
+  .sleeve__foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+  }
+  .sleeve__title {
+    align-self: center;
+    font-size: calc(var(--size) * 0.132);
+  }
+  .sleeve__line {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    padding-bottom: 0.04em;
+  }
+  .breathe {
+    display: inline-block;
+    color: var(--signal-large);
+    font-variation-settings: 'wdth' 72;
+    will-change: font-variation-settings;
+  }
+  .sleeve__lede {
+    max-width: 30ch;
+    font-size: clamp(0.8rem, 0.6rem + 0.45vw, 1rem);
+    line-height: 1.35;
+    color: var(--fg-2);
+  }
+  .sleeve__rpm {
+    font-size: 1.1rem;
+  }
+
+  /* ─── Record ─────────────────────────────────────────────────── */
+  .record {
+    position: relative;
+    z-index: 1;
+    width: calc(var(--size) * 1.02);
+    aspect-ratio: 1;
+    margin-left: calc(var(--size) * -0.36 - var(--gutter));
+    touch-action: none;
+    cursor: grab;
+  }
+  .record.is-scratching {
+    cursor: grabbing;
+  }
+  .record canvas {
+    width: 100%;
+    height: 100%;
+  }
+  .record__fallback {
+    position: absolute;
+    inset: 5%;
+    display: none;
+    border-radius: 50%;
+    background:
+      radial-gradient(
+        circle,
+        #131210 0 3%,
+        var(--signal) 3.5% 33%,
+        #151311 33.5% 36%,
+        transparent 36%
+      ),
+      repeating-radial-gradient(circle, #181614 0 1px, #0f0e0d 1px 3px);
+    box-shadow: 0 30px 60px -30px rgb(19 18 16 / 0.6);
+  }
+  .record.is-fallback canvas {
+    display: none;
+  }
+  .record.is-fallback .record__fallback {
+    display: block;
+  }
+  .arm {
+    position: absolute;
+    top: -2%;
+    right: -6%;
+    width: 42%;
+    pointer-events: none;
+    overflow: visible;
+  }
+  .arm__base {
+    fill: #d9d2c4;
+    stroke: rgb(19 18 16 / 0.35);
+  }
+  .arm__pin {
+    fill: var(--ink);
+  }
+  .arm__tube {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .arm__head {
+    fill: var(--ink);
+  }
+  .arm__swing {
+    transform-origin: 170px 30px;
+    transform: rotate(-24deg);
+    transition: transform 1.4s cubic-bezier(0.34, 1.3, 0.64, 1);
+  }
+  .record[data-playing] .arm__swing {
+    transform: rotate(calc(2deg + var(--progress, 0) * 18deg));
+    transition: transform 1s var(--ease-out);
+  }
+
+  /* ─── Console ────────────────────────────────────────────────── */
+  .console {
+    position: relative;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    align-content: center;
+    max-width: 520px;
+  }
+  .console__player pulse-player {
+    --pulse-shadow: 0 24px 50px -28px rgb(19 18 16 / 0.6);
+  }
+  .console__side {
+    display: grid;
+    grid-template-columns: minmax(0, auto);
+    gap: 1rem;
+    justify-items: start;
+    min-width: 0;
+  }
+  .console__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .hero__cue {
+    position: absolute;
+    left: var(--gutter);
+    bottom: 1rem;
+    display: flex;
+    gap: 2.5rem;
+    color: var(--fg-3);
+  }
+
+  @media (max-width: 1100px) {
+    .hero__stage {
+      --size: min(60svh, 50vw, 560px);
+      grid-template-columns: var(--size) minmax(0, 1fr);
+    }
+    .record {
+      width: calc(var(--size) * 0.96);
+    }
+    .console {
+      grid-column: 1 / -1;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      align-items: center;
+      max-width: none;
+      margin-top: 2rem;
+    }
+  }
+  @media (max-width: 760px) {
+    .hero__stage {
+      --size: min(88vw, 520px);
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: center;
+    }
+    .record {
+      width: calc(var(--size) * 0.9);
+      margin: calc(var(--size) * -0.34) 0 0 calc(var(--size) * 0.2);
+    }
+    .console {
+      grid-template-columns: minmax(0, 1fr);
+      width: 100%;
+    }
+  }
+</style>

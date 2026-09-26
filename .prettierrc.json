@@ -7,5 +7,14 @@
   "printWidth": 100,
   "endOfLine": "lf",
   "arrowParens": "always",
-  "vueIndentScriptAndStyle": false
+  "vueIndentScriptAndStyle": false,
+  "plugins": ["prettier-plugin-astro"],
+  "overrides": [
+    {
+      "files": "*.astro",
+      "options": {
+        "parser": "astro"
+      }
+    }
+  ]
 }

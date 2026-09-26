@@ -55,17 +55,17 @@ onBeforeUnmount(() => clearTimeout(timer))
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--rule);
   background: rgb(255 255 255 / 0.04);
-  color: var(--text-2);
+  color: var(--fg-2);
   cursor: pointer;
   transition:
-    color var(--pulse-dur-fast) var(--pulse-ease-out),
-    background-color var(--pulse-dur-fast) var(--pulse-ease-out),
-    scale var(--pulse-dur-spring) var(--pulse-ease-pop);
+    color 0.2s var(--ease-out),
+    background-color 0.2s var(--ease-out),
+    scale 0.45s cubic-bezier(0.34, 1.5, 0.64, 1);
 }
 .copy:hover {
-  color: var(--text);
+  color: var(--fg);
   background: rgb(255 255 255 / 0.08);
 }
 .copy:active {
@@ -84,13 +84,13 @@ svg {
 .copy__check {
   transform-origin: center;
   transition:
-    opacity var(--pulse-dur-fast) var(--pulse-ease-out),
-    scale var(--pulse-dur-spring) var(--pulse-ease-pop);
+    opacity 0.2s var(--ease-out),
+    scale 0.45s cubic-bezier(0.34, 1.5, 0.64, 1);
 }
 .copy__check {
   opacity: 0;
   scale: 0.4;
-  stroke: var(--brand);
+  stroke: var(--signal);
   stroke-width: 2.4;
   stroke-dasharray: 24;
   stroke-dashoffset: 24;
@@ -110,16 +110,16 @@ svg {
   bottom: calc(100% + 8px);
   padding: 3px 8px;
   border-radius: 6px;
-  background: var(--text);
-  color: #0b0b10;
+  background: var(--fg);
+  color: var(--ink);
   font-size: 11px;
   font-weight: 600;
   opacity: 0;
   translate: 0 4px;
   pointer-events: none;
   transition:
-    opacity var(--pulse-dur-fast) var(--pulse-ease-out),
-    translate var(--pulse-dur-spring) var(--pulse-ease-pop);
+    opacity 0.2s var(--ease-out),
+    translate 0.45s cubic-bezier(0.34, 1.5, 0.64, 1);
 }
 [data-copied] .copy__toast {
   opacity: 1;

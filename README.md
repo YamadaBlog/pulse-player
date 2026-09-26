@@ -14,7 +14,7 @@ One Custom Element — `<pulse-player>` — that works in Vue, React, Svelte, An
 
 [**Live demo & playground →**](https://yamadablog.github.io/pulse-player/)
 
-<img src="./docs/screenshots/hero.webp" alt="The Pulse showcase: a large music player card with a live equaliser under the headline “The music player that grows with your page.”" width="100%" />
+<img src="./docs/screenshots/hero.webp" alt="The Pulse showcase: an LP sleeve reading “A music player that plays your page”, a WebGL vinyl record sliding out of it under a tonearm, and a live player card next to a “Lift the needle” button." width="100%" />
 
 </div>
 

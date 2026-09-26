@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url'
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const NOTICE = readFileSync(join(ROOT, 'NOTICE.md'), 'utf8')
 const ASSET = /\.(webp|png|jpe?g|svg|gif|woff2?|ttf|otf|webm|mp3|ogg|wav|mp4)$/i
-const SCAN = ['apps/site/public', 'docs', 'packages']
+const SCAN = ['apps/site/public', 'apps/site/src/assets', 'docs', 'packages']
 
 const EXEMPT = [
   {

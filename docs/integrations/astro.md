@@ -13,7 +13,12 @@ const { variant = 'auto' } = Astro.props
 ---
 
 <pulse-player variant={variant} ambient-eq>
-  <pulse-track src="/audio/protofunk.mp3" title="Protofunk" artist="Kevin MacLeod" cover="/audio/protofunk.jpg"></pulse-track>
+  <pulse-track
+    src="/audio/protofunk.mp3"
+    title="Protofunk"
+    artist="Kevin MacLeod"
+    cover="/audio/protofunk.jpg"
+  ></pulse-track>
 </pulse-player>
 
 <script>
@@ -25,6 +30,7 @@ const { variant = 'auto' } = Astro.props
 ---
 // src/layouts/Base.astro — add the floating player once
 ---
+
 <slot />
 <pulse-fab pulso transition:persist></pulse-fab>
 
