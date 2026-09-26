@@ -52,3 +52,6 @@ public/audio/*.webp
 # — full rights chain, deterministic, needed by the Pages deploy.
 !public/audio/cover-blur.webp
 !public/audio/cover2-blur.webp
+
+# Local AI-assistant tooling (kept out of the public repo)
+.claude/

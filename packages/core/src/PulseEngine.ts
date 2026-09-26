@@ -1,435 +1,564 @@
-/**
- * PulseEngine — framework-agnostic audio engine + state machine.
- *
- * Pure TypeScript. No DOM library imports beyond `window` / `HTMLAudioElement`
- * / `AudioContext`. No reactivity primitive — framework adapters
- * subscribe via `onStateChange()` and project the state into their
- * own primitive (Vue refs, React state, RN reanimated values, …).
- *
- * Mirrors the validated Vue v2.3.4 `useAudioStore.ts` behaviour
- * bit-for-bit:
- *
- *   - Singleton `<audio>` + AudioContext + AnalyserNode (FFT 256).
- *   - safePlay() catches autoplay rejections, rolls UI state back,
- *     emits an 'error' event.
- *   - cancellable rAF EQ loop tied to play state.
- *   - Webkit AudioContext fallback for Safari < 14.1.
- *   - 4-bar FFT focal (eqBars) updated 60 fps via triggerRef pattern,
- *     mutated in place. No allocations per frame.
- *   - Typed event bus: 'play' | 'pause' | 'trackchange' | 'error'.
- *   - Privacy-friendly counters (playCount, pauseCount, trackChangeCount).
- *   - `track` getter clamps to a valid index so `setAudioTracks(shorter)`
- *     mid-playback can't crash consumers.
- *   - `dispose()` tear-down for SPA shells.
- */
-
 import type {
   AudioEvent,
-  ErrorReason,
+  AudioFrame,
   EventListener,
   EventMap,
   PulseState,
+  RepeatMode,
   Track,
   Unsubscribe,
 } from '@pulse-music/types'
+import { Emitter } from './emitter'
+import { clamp, formatTime } from './format'
+import { MediaSessionBridge } from './media-session'
+import { SpectrumAnalyser, isAnalysable } from './spectrum'
 
-const DEFAULT_TRACKS: Track[] = [
-  {
-    title: 'MIDNIGHT RUN',
-    src: '/audio/track1.webm',
-    cover: '/audio/cover.webp',
-    coverPos: '20% center',
-  },
-  {
-    title: 'DEEP FOCUS',
-    src: '/audio/track2.webm',
-    cover: '/audio/cover2.webp',
-    coverPos: '50% 60%',
-    coverScale: 1.25,
-  },
-]
-
-function createInitialState(): PulseState {
-  return {
-    currentTrack: 0,
-    isPlaying: false,
-    currentTime: 0,
-    duration: 0,
-    isVisible: false,
-    hasBeenOpened: false,
-    ambientEq: false,
-    playCount: 0,
-    pauseCount: 0,
-    trackChangeCount: 0,
-  }
+export interface PulseEngineOptions {
+  /** Initial playlist. Can be empty and filled later with `setTracks()`. */
+  tracks?: readonly Track[]
+  /** Initial volume, `0..1`. Default `0.8`. */
+  volume?: number
+  /** What happens when a track ends. Default `'all'` (loop the playlist). */
+  repeat?: RepeatMode
+  /**
+   * Set when your audio is served cross-origin **with** CORS headers.
+   * Required for the real spectrum on cross-origin sources — without it
+   * the engine plays them untouched and synthesises the visualiser.
+   */
+  crossOrigin?: 'anonymous' | 'use-credentials'
+  /** Route audio through an AnalyserNode for the FFT visualiser. Default `true`. */
+  visualizer?: boolean
+  /** Publish metadata + handle OS media keys via the Media Session API. Default `true`. */
+  mediaSession?: boolean
+  /** `<audio preload>` hint. Default `'metadata'` so durations show before playing. */
+  preload?: 'none' | 'metadata' | 'auto'
+  /** Number of visualiser bands in each `AudioFrame`. Default `24`. */
+  bands?: number
+  /** Factory for the media element — mainly a seam for tests. */
+  createAudio?: () => HTMLAudioElement
 }
 
-type StateListener = (state: Readonly<PulseState>) => void
+type StateListener = (state: PulseState) => void
+type FrameListener = (frame: AudioFrame) => void
 
+const RESTART_THRESHOLD = 3 // seconds — `prev()` restarts the track past this point
+
+const initialState = (volume: number, repeat: RepeatMode): PulseState => ({
+  currentTrack: 0,
+  isPlaying: false,
+  isLoading: false,
+  currentTime: 0,
+  duration: 0,
+  buffered: 0,
+  volume,
+  muted: false,
+  repeat,
+  error: null,
+  isVisible: false,
+  hasBeenOpened: false,
+  ambientEq: false,
+  playCount: 0,
+  pauseCount: 0,
+  trackChangeCount: 0,
+})
+
+const isAbortError = (error: unknown): boolean =>
+  typeof error === 'object' && error !== null && (error as { name?: string }).name === 'AbortError'
+
+/**
+ * PulseEngine — the framework-agnostic audio engine behind every Pulse
+ * player: one `<audio>` element, an optional Web Audio analyser, a
+ * typed event bus and an immutable state snapshot.
+ *
+ * The engine is SSR-safe: nothing touches the DOM until the first
+ * `prepare()` / `play()` call.
+ */
 export class PulseEngine {
-  // ─── State ───────────────────────────────────────────────────
-  private _state: PulseState = createInitialState()
-  private _tracks: Track[]
+  private _state: PulseState
+  private _tracks: readonly Track[]
+  private readonly options: Required<Omit<PulseEngineOptions, 'tracks' | 'crossOrigin' | 'createAudio'>> &
+    Pick<PulseEngineOptions, 'crossOrigin' | 'createAudio'>
 
-  // 4-bar FFT focal (NOW PLAYING + FAB chrome). Mutated in place every
-  // tick — zero allocations per frame.
-  private _eqBars: number[] = [0, 0, 0, 0]
-
-  // Stable shallow ref kept as a public hook for integrators wanting to
-  // drive their own ambient visualiser. Since v1.0.2 the built-in
-  // ambient EQ is a pure-CSS animation, so the engine does not mutate
-  // this array — it stays as 32 zeros.
-  private _eqAmbientBars: number[] = new Array(32).fill(0)
-
-  // ─── Audio internals (singleton, never re-assigned after init) ──
   private audio: HTMLAudioElement | null = null
-  private audioCtx: AudioContext | null = null
-  private analyser: AnalyserNode | null = null
-  private sourceNode: MediaElementAudioSourceNode | null = null
-  private eqRaf: number | null = null
+  private detachAudio: (() => void) | null = null
+  private readonly spectrum: SpectrumAnalyser
+  private readonly mediaSession: MediaSessionBridge
+  private readonly events = new Emitter<EventMap>()
+  private readonly stateListeners = new Set<StateListener>()
+  private readonly frameListeners = new Set<FrameListener>()
+  private frameHandle: number | null = null
+  private lastPositionSync = 0
 
-  // ─── Event bus (typed via discriminated union) ───────────────
-  private _listeners = new Map<AudioEvent, Set<EventListener<AudioEvent>>>()
-
-  // ─── State change subscribers (for framework adapters) ──────
-  private _stateListeners = new Set<StateListener>()
-
-  // ─── Ambient EQ registry (kept as a stable no-op for backward compat) ──
-  private ambientSubscribers = 0
-
-  constructor(tracks?: Track[]) {
-    this._tracks = tracks ?? DEFAULT_TRACKS
+  constructor(options: PulseEngineOptions | readonly Track[] = {}) {
+    const opts: PulseEngineOptions = Array.isArray(options)
+      ? { tracks: options as readonly Track[] }
+      : (options as PulseEngineOptions)
+    this.options = {
+      volume: clamp(opts.volume ?? 0.8, 0, 1),
+      repeat: opts.repeat ?? 'all',
+      visualizer: opts.visualizer ?? true,
+      mediaSession: opts.mediaSession ?? true,
+      preload: opts.preload ?? 'metadata',
+      bands: Math.max(1, Math.round(opts.bands ?? 24)),
+      crossOrigin: opts.crossOrigin,
+      createAudio: opts.createAudio,
+    }
+    this._tracks = [...(opts.tracks ?? [])]
+    this._state = Object.freeze(initialState(this.options.volume, this.options.repeat))
+    this.spectrum = new SpectrumAnalyser(this.options.bands)
+    this.mediaSession = new MediaSessionBridge({
+      play: () => void this.play(),
+      pause: () => this.pause(),
+      next: () => this.next(),
+      prev: () => this.prev(),
+      seekTo: (s) => this.seekTo(s),
+      seekBy: (d) => this.seekBy(d),
+    })
   }
 
-  // ─── Public read-only views ─────────────────────────────────
-  get state(): Readonly<PulseState> {
+  // ─── Read-only views ───────────────────────────────────────────────
+
+  /** Current immutable snapshot. A new object is created on every change. */
+  get state(): PulseState {
     return this._state
-  }
-
-  /**
-   * Active track. Clamped to a valid index so calling
-   * `setAudioTracks([smallerList])` after playback started never returns
-   * `undefined` — the consumer gets the first track instead.
-   */
-  get track(): Track {
-    const list = this._tracks
-    if (!list.length) {
-      throw new Error('PulseEngine: track list is empty — pass at least one track')
-    }
-    const i = this._state.currentTrack
-    if (i < 0 || i >= list.length) {
-      return list[Math.max(0, Math.min(list.length - 1, i))]
-    }
-    return list[i]
   }
 
   get tracks(): readonly Track[] {
     return this._tracks
   }
 
+  /** The active track, or `null` when the playlist is empty. */
+  get track(): Track | null {
+    const list = this._tracks
+    if (!list.length) return null
+    return list[clamp(this._state.currentTrack, 0, list.length - 1)]
+  }
+
+  /** Playback progress, `0..100`. */
   get progress(): number {
-    if (this._state.duration === 0) return 0
-    return (this._state.currentTime / this._state.duration) * 100
+    const { currentTime, duration } = this._state
+    return Number.isFinite(duration) && duration > 0 ? clamp((currentTime / duration) * 100, 0, 100) : 0
   }
 
-  /** 4-bar focal FFT (60 fps). Read-only — the engine mutates it in place. */
-  get eqBars(): readonly number[] {
-    return this._eqBars
+  /** `true` when visualiser frames carry real spectrum data (not synthesised). */
+  get hasLiveSpectrum(): boolean {
+    return this.spectrum.live
   }
 
-  /** 32-bar ambient FFT. Stable hook — not mutated by the engine since v1.0.2. */
-  get eqAmbientBars(): readonly number[] {
-    return this._eqAmbientBars
+  // ─── Subscriptions ─────────────────────────────────────────────────
+
+  /** Listen to a typed engine event. Returns the unsubscribe function. */
+  subscribe<E extends AudioEvent>(event: E, listener: EventListener<E>): Unsubscribe {
+    return this.events.on(event, listener)
   }
 
-  // ─── Configuration ──────────────────────────────────────────
-  setAudioTracks(tracks: Track[]): void {
-    if (!tracks.length) throw new Error('setAudioTracks: tracks must contain at least one entry')
-    this._tracks = tracks.slice()
-    this.notifyStateChange()
-  }
-
-  setAmbientEq(on: boolean): void {
-    this._state.ambientEq = on
-    this.notifyStateChange()
-  }
-
-  // ─── Event bus ──────────────────────────────────────────────
-  subscribe<E extends AudioEvent>(event: E, cb: EventListener<E>): Unsubscribe {
-    let set = this._listeners.get(event)
-    if (!set) {
-      set = new Set()
-      this._listeners.set(event, set)
-    }
-    set.add(cb as EventListener<AudioEvent>)
+  /** Listen to every state change — the hook framework adapters build on. */
+  onStateChange(listener: StateListener): Unsubscribe {
+    this.stateListeners.add(listener)
     return () => {
-      set!.delete(cb as EventListener<AudioEvent>)
-    }
-  }
-
-  private emit<E extends AudioEvent>(event: E, payload: EventMap[E]): void {
-    const set = this._listeners.get(event)
-    if (!set) return
-    set.forEach((cb) => {
-      try {
-        ;(cb as EventListener<E>)(payload)
-      } catch (e) {
-        /* eslint-disable-next-line no-console */ console.error(
-          `[PulseEngine] listener for "${event}" threw:`,
-          e,
-        )
-      }
-    })
-  }
-
-  // ─── State change subscription (framework adapters) ─────────
-  onStateChange(cb: StateListener): Unsubscribe {
-    this._stateListeners.add(cb)
-    return () => {
-      this._stateListeners.delete(cb)
-    }
-  }
-
-  private notifyStateChange(): void {
-    this._stateListeners.forEach((cb) => {
-      try {
-        cb(this._state)
-      } catch (e) {
-        /* eslint-disable-next-line no-console */ console.error(
-          '[PulseEngine] state listener threw:',
-          e,
-        )
-      }
-    })
-  }
-
-  // ─── Ambient registry (no-op since v1.0.2; kept for compat) ──
-  registerAmbientView(): Unsubscribe {
-    this.ambientSubscribers++
-    return () => {
-      this.ambientSubscribers = Math.max(0, this.ambientSubscribers - 1)
-    }
-  }
-
-  // ─── Lifecycle ──────────────────────────────────────────────
-  private initAudio(): void {
-    if (this.audio) return
-    const a = new Audio(this._tracks[this._state.currentTrack].src)
-    a.volume = 0.7
-    a.addEventListener('timeupdate', () => {
-      this._state.currentTime = a.currentTime
-      this.notifyStateChange()
-    })
-    a.addEventListener('loadedmetadata', () => {
-      this._state.duration = a.duration
-      this.notifyStateChange()
-    })
-    a.addEventListener('ended', () => {
-      this.next()
-    })
-    a.addEventListener('error', () => {
-      this._state.isPlaying = false
-      this.stopEqLoop()
-      this.notifyStateChange()
-      this.emit('error', { track: this.track, reason: 'media-error', detail: a.error })
-    })
-    a.addEventListener('stalled', () => {
-      this.emit('error', { track: this.track, reason: 'stalled' })
-    })
-    this.audio = a
-
-    try {
-      // Safari < 14.1 still needs the webkit prefix.
-      const AudioCtor: typeof AudioContext =
-        (
-          window as unknown as {
-            AudioContext?: typeof AudioContext
-            webkitAudioContext?: typeof AudioContext
-          }
-        ).AudioContext ??
-        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext!
-      this.audioCtx = new AudioCtor()
-      this.analyser = this.audioCtx.createAnalyser()
-      this.analyser.fftSize = 256
-      this.analyser.smoothingTimeConstant = 0.5
-      this.sourceNode = this.audioCtx.createMediaElementSource(a)
-      this.sourceNode.connect(this.analyser)
-      this.analyser.connect(this.audioCtx.destination)
-    } catch {
-      /* fallback: bars stay at 0 — AudioContext unavailable */
-    }
-  }
-
-  private startEqLoop(): void {
-    if (!this.analyser || this.eqRaf !== null) return
-    const data = new Uint8Array(this.analyser.frequencyBinCount)
-    const focal = this._eqBars
-    const tick = (): void => {
-      if (!this.analyser) {
-        this.eqRaf = null
-        return
-      }
-      this.analyser.getByteFrequencyData(data)
-      focal[0] = data[3] / 255
-      focal[1] = data[8] / 255
-      focal[2] = data[18] / 255
-      focal[3] = data[36] / 255
-      this.eqRaf = requestAnimationFrame(tick)
-    }
-    this.eqRaf = requestAnimationFrame(tick)
-  }
-
-  private stopEqLoop(): void {
-    if (this.eqRaf !== null) {
-      cancelAnimationFrame(this.eqRaf)
-      this.eqRaf = null
+      this.stateListeners.delete(listener)
     }
   }
 
   /**
-   * Catches autoplay rejections + rolls back the UI state, then emits
-   * a typed `'error'` event with reason `'play-rejected'`.
+   * Receive a visualiser frame on every animation frame while audio plays
+   * (and while the spectrum settles after a pause). The loop only runs
+   * while at least one listener is attached.
    */
-  private safePlay(): void {
-    if (!this.audio) return
-    const result = this.audio.play()
-    if (result && typeof result.then === 'function') {
-      result.catch((err: unknown) => {
-        this._state.isPlaying = false
-        this.stopEqLoop()
-        this.notifyStateChange()
-        this.emit('error', {
-          track: this.track,
-          reason: 'play-rejected' as ErrorReason,
-          detail: err,
-        })
-      })
+  onFrame(listener: FrameListener): Unsubscribe {
+    this.frameListeners.add(listener)
+    this.syncFrameLoop()
+    return () => {
+      this.frameListeners.delete(listener)
+      this.syncFrameLoop()
     }
   }
 
-  // ─── Actions ────────────────────────────────────────────────
+  // ─── Playback ──────────────────────────────────────────────────────
+
+  /**
+   * Create the media element and preload the current track's metadata
+   * without playing — call it when a UI mounts so durations show early.
+   */
+  prepare(): void {
+    this.ensureAudio()
+  }
+
+  async play(): Promise<void> {
+    const track = this.track
+    const audio = this.ensureAudio()
+    if (!track || !audio) return
+    if (this.options.visualizer && this.canAnalyse()) this.spectrum.connect(audio)
+    this.mediaSession.setTrack(track)
+    this.set({
+      isPlaying: true,
+      isVisible: true,
+      hasBeenOpened: true,
+      error: null,
+      isLoading: audio.readyState < 3,
+    })
+    try {
+      await audio.play()
+    } catch (error) {
+      // `play()` interrupted by `pause()` or a source swap is not a failure.
+      if (isAbortError(error) || this.track !== track) return
+      this.set({ isPlaying: false, isLoading: false, error: 'play-rejected' })
+      this.events.emit('error', { track, reason: 'play-rejected', detail: error })
+    }
+  }
+
+  pause(): void {
+    this.audio?.pause()
+    this.set({ isPlaying: false, isLoading: false })
+  }
+
   toggle(): void {
-    this.initAudio()
-    if (!this.audio) return
-    if (this._state.isPlaying) {
-      this.audio.pause()
-      this._state.isPlaying = false
-      this._state.pauseCount++
-      this.stopEqLoop()
-      this.emit('pause', { track: this.track, time: this._state.currentTime })
-    } else {
-      this._state.isPlaying = true
-      this._state.hasBeenOpened = true
-      this._state.isVisible = true
-      this._state.playCount++
-      this.startEqLoop()
-      this.emit('play', { track: this.track, time: this._state.currentTime })
-      this.safePlay()
-    }
-    this.notifyStateChange()
+    if (this._state.isPlaying) this.pause()
+    else void this.play()
   }
 
-  loadTrack(i: number): void {
-    if (i < 0 || i >= this._tracks.length) return
-    const from = this._state.currentTrack
-    if (from === i) return
-    this._state.currentTrack = i
-    this._state.trackChangeCount++
-    if (this.audio) {
-      this.audio.src = this._tracks[i].src
-      this.audio.load()
-      this._state.currentTime = 0
-      this._state.duration = 0
-      if (this._state.isPlaying) this.safePlay()
+  /**
+   * Switch to track `index`. Keeps playing if audio was playing, unless
+   * `autoplay` says otherwise. Out-of-range indices are ignored.
+   */
+  load(index: number, options: { autoplay?: boolean } = {}): void {
+    if (!Number.isInteger(index) || index < 0 || index >= this._tracks.length) return
+    const autoplay = options.autoplay ?? this._state.isPlaying
+    if (index === this._state.currentTrack) {
+      if (autoplay && !this._state.isPlaying) void this.play()
+      return
     }
-    this.notifyStateChange()
-    this.emit('trackchange', { from, to: i, track: this._tracks[i] })
+    this.switchTo(index, autoplay)
+  }
+
+  /** @deprecated Use `load(index)`. */
+  loadTrack(index: number): void {
+    this.load(index)
   }
 
   next(): void {
-    this.loadTrack((this._state.currentTrack + 1) % this._tracks.length)
+    const n = this._tracks.length
+    if (n) this.load((this._state.currentTrack + 1) % n)
   }
 
+  /** Restart the track when past 3 s, otherwise go to the previous one. */
   prev(): void {
-    if (this._state.currentTime > 3 && this.audio) {
-      this.audio.currentTime = 0
+    const n = this._tracks.length
+    if (!n) return
+    if (this._state.currentTime > RESTART_THRESHOLD) {
+      this.seekTo(0)
       return
     }
-    this.loadTrack(
-      (this._state.currentTrack - 1 + this._tracks.length) % this._tracks.length,
-    )
+    this.load((this._state.currentTrack - 1 + n) % n)
   }
 
+  /** Seek to a fraction (`0..1`) of the track. */
   seek(fraction: number): void {
-    if (!this.audio || this._state.duration === 0) return
-    this.audio.currentTime = Math.max(0, Math.min(1, fraction)) * this._state.duration
+    const { duration } = this._state
+    if (Number.isFinite(duration) && duration > 0) this.seekTo(clamp(fraction, 0, 1) * duration)
   }
 
-  open(): void {
-    this._state.isVisible = true
-    this.notifyStateChange()
+  /** Seek to an absolute position in seconds. */
+  seekTo(seconds: number): void {
+    const audio = this.audio
+    const { duration } = this._state
+    if (!audio || !Number.isFinite(duration) || duration <= 0) return
+    const time = clamp(seconds, 0, duration)
+    audio.currentTime = time
+    this.set({ currentTime: time })
+    this.mediaSession.setPosition(duration, time, audio.playbackRate)
   }
 
-  close(): void {
-    if (this.audio) {
-      this.audio.pause()
-    }
-    this._state.isPlaying = false
-    this._state.isVisible = false
-    this.stopEqLoop()
-    this.notifyStateChange()
+  /** Seek relative to the current position. */
+  seekBy(deltaSeconds: number): void {
+    this.seekTo(this._state.currentTime + deltaSeconds)
   }
 
-  fmt(s: number): string {
-    if (!s || isNaN(s)) return '0:00'
-    return `${Math.floor(s / 60)}:${Math.floor(s % 60)
-      .toString()
-      .padStart(2, '0')}`
+  setVolume(volume: number): void {
+    const v = clamp(volume, 0, 1)
+    if (this.audio) this.audio.volume = v
+    this.set({ volume: v, muted: v === 0 ? this._state.muted : false })
+    if (this.audio && v > 0) this.audio.muted = false
+  }
+
+  setMuted(muted: boolean): void {
+    if (this.audio) this.audio.muted = muted
+    this.set({ muted })
+  }
+
+  toggleMute(): void {
+    this.setMuted(!this._state.muted)
+  }
+
+  setRepeat(repeat: RepeatMode): void {
+    this.set({ repeat })
   }
 
   /**
-   * Tear down the audio graph and detach every internal reference.
-   * In a long-lived SPA the engine survives every navigation; in dev
-   * hot-reload or browser-extension popups, call this from the
-   * teardown hook to release the AudioContext + listeners. The next
-   * `toggle()` rebuilds the audio graph from scratch.
+   * Replace the playlist. If the playing track is still part of the new
+   * list it keeps playing uninterrupted; otherwise the engine loads
+   * `startIndex` (paused).
+   */
+  setTracks(tracks: readonly Track[], options: { startIndex?: number } = {}): void {
+    const currentSrc = this.track?.src
+    this._tracks = [...tracks]
+    if (!this.canAnalyse() && this.spectrum.live) this.rebuildAudio()
+    if (!tracks.length) {
+      this.pause()
+      if (this.audio) {
+        this.audio.removeAttribute('src')
+        this.audio.load()
+      }
+      this.set({ currentTrack: 0, currentTime: 0, duration: 0, buffered: 0, error: null })
+      this.mediaSession.setTrack(null)
+      return
+    }
+    const kept = currentSrc ? tracks.findIndex((t) => t.src === currentSrc) : -1
+    if (kept >= 0) {
+      this.set({ currentTrack: kept })
+      this.mediaSession.setTrack(tracks[kept])
+      return
+    }
+    // The source changed even if the index didn't: always reload.
+    this.switchTo(clamp(Math.round(options.startIndex ?? 0), 0, tracks.length - 1), false)
+  }
+
+  /** @deprecated Use `setTracks(tracks)`. */
+  setAudioTracks(tracks: readonly Track[]): void {
+    this.setTracks(tracks)
+  }
+
+  setAmbientEq(on: boolean): void {
+    this.set({ ambientEq: on })
+  }
+
+  /** Reveal the floating player without starting playback. */
+  open(): void {
+    this.set({ isVisible: true })
+  }
+
+  /** Stop playback and hide the floating player. */
+  close(): void {
+    this.pause()
+    this.set({ isVisible: false })
+  }
+
+  /** Format seconds as `m:ss`. Kept on the instance for template ergonomics. */
+  fmt(seconds: number): string {
+    return formatTime(seconds)
+  }
+
+  /**
+   * Release the media element, the audio graph, the OS media controls
+   * and every listener. The engine stays usable: the next `play()`
+   * rebuilds what it needs.
    */
   dispose(): void {
-    this.stopEqLoop()
-    if (this.audio) {
-      this.audio.pause()
-      this.audio.src = ''
-      this.audio.removeAttribute('src')
-      this.audio.load()
-    }
-    if (this.sourceNode) {
-      try {
-        this.sourceNode.disconnect()
-      } catch {
-        /* idem */
-      }
-    }
-    if (this.analyser) {
-      try {
-        this.analyser.disconnect()
-      } catch {
-        /* idem */
-      }
-    }
-    if (this.audioCtx && this.audioCtx.state !== 'closed') {
-      this.audioCtx.close().catch(() => {
-        /* closing an already-closed context is harmless */
-      })
-    }
-    this.audio = null
-    this.audioCtx = null
-    this.analyser = null
-    this.sourceNode = null
-    this._listeners.clear()
-    this._state.isPlaying = false
-    this._state.isVisible = false
-    this._state.currentTime = 0
-    this._state.duration = 0
-    this.notifyStateChange()
+    this.teardownAudio()
+    this.mediaSession.unbind()
+    if (this.frameHandle !== null) cancelAnimationFrame(this.frameHandle)
+    this.frameHandle = null
+    this.set({
+      isPlaying: false,
+      isLoading: false,
+      isVisible: false,
+      currentTime: 0,
+      duration: 0,
+      buffered: 0,
+    })
   }
+
+  // ─── Internals ─────────────────────────────────────────────────────
+
+  private switchTo(index: number, autoplay: boolean): void {
+    const from = this._state.currentTrack
+    const track = this._tracks[index]
+    const audio = this.audio
+    this.set({
+      currentTrack: index,
+      currentTime: 0,
+      duration: 0,
+      buffered: 0,
+      error: null,
+      isPlaying: autoplay && this._state.isPlaying,
+      isLoading: false,
+      trackChangeCount: this._state.trackChangeCount + (index === from ? 0 : 1),
+    })
+    if (audio) {
+      audio.src = track.src
+      audio.load()
+    }
+    this.mediaSession.setTrack(track)
+    if (index !== from) this.events.emit('trackchange', { from, to: index, track })
+    if (autoplay) void this.play()
+  }
+
+  private set(patch: Partial<PulseState>): void {
+    const prev = this._state
+    let changed = false
+    for (const key in patch) {
+      if (!Object.is(prev[key as keyof PulseState], patch[key as keyof PulseState])) {
+        changed = true
+        break
+      }
+    }
+    if (!changed) return
+    const next = Object.freeze({ ...prev, ...patch })
+    this._state = next
+    if (prev.isPlaying !== next.isPlaying) {
+      this.mediaSession.setPlaying(next.isPlaying)
+      this.syncFrameLoop()
+    }
+    for (const listener of [...this.stateListeners]) {
+      try {
+        listener(next)
+      } catch (error) {
+        console.error('[pulse] state listener threw:', error)
+      }
+    }
+  }
+
+  private canAnalyse(): boolean {
+    return this._tracks.every((t) => isAnalysable(t.src, this.options.crossOrigin))
+  }
+
+  private ensureAudio(): HTMLAudioElement | null {
+    if (this.audio) return this.audio
+    const factory = this.options.createAudio ?? (typeof Audio === 'undefined' ? null : () => new Audio())
+    if (!factory) return null
+    const audio = factory()
+    audio.preload = this.options.preload
+    if (this.options.crossOrigin) audio.crossOrigin = this.options.crossOrigin
+    audio.volume = this._state.volume
+    audio.muted = this._state.muted
+    this.audio = audio
+    this.detachAudio = this.listen(audio)
+    if (this.options.mediaSession) this.mediaSession.bind()
+    const track = this.track
+    if (track) {
+      audio.src = track.src
+      this.mediaSession.setTrack(track)
+    }
+    return audio
+  }
+
+  /** Mirror the element's real state — the source of truth for OS-level controls too. */
+  private listen(audio: HTMLAudioElement): () => void {
+    const on = <K extends keyof HTMLMediaElementEventMap>(type: K, fn: () => void): (() => void) => {
+      audio.addEventListener(type, fn)
+      return () => audio.removeEventListener(type, fn)
+    }
+    const offs = [
+      on('play', () => {
+        const track = this.track
+        this.set({ isPlaying: true, error: null, playCount: this._state.playCount + 1 })
+        if (track) this.events.emit('play', { track, time: audio.currentTime })
+      }),
+      on('pause', () => {
+        // A natural end fires `pause` right before `ended` — let `ended` decide.
+        if (audio.ended) return
+        const track = this.track
+        this.set({ isPlaying: false, isLoading: false, pauseCount: this._state.pauseCount + 1 })
+        if (track) this.events.emit('pause', { track, time: audio.currentTime })
+      }),
+      on('ended', () => this.handleEnded()),
+      on('waiting', () => this.set({ isLoading: true })),
+      on('seeking', () => this.set({ isLoading: this._state.isPlaying })),
+      on('playing', () => this.set({ isLoading: false, isPlaying: true })),
+      on('canplay', () => this.set({ isLoading: false })),
+      on('seeked', () => this.set({ isLoading: false, currentTime: audio.currentTime })),
+      on('timeupdate', () => {
+        this.set({ currentTime: audio.currentTime })
+        const now = Date.now()
+        if (now - this.lastPositionSync > 1000) {
+          this.lastPositionSync = now
+          this.mediaSession.setPosition(audio.duration, audio.currentTime, audio.playbackRate)
+        }
+      }),
+      on('durationchange', () => this.set({ duration: audio.duration || 0 })),
+      on('loadedmetadata', () => this.set({ duration: audio.duration || 0 })),
+      on('progress', () => this.set({ buffered: bufferedFraction(audio) })),
+      on('volumechange', () => this.set({ volume: audio.volume, muted: audio.muted })),
+      on('error', () => {
+        const track = this.track
+        this.set({ isPlaying: false, isLoading: false, error: 'media-error' })
+        this.events.emit('error', { track, reason: 'media-error', detail: audio.error })
+      }),
+    ]
+    return () => offs.forEach((off) => off())
+  }
+
+  private handleEnded(): void {
+    const track = this.track
+    if (track) this.events.emit('ended', { track })
+    const { repeat, currentTrack } = this._state
+    const last = currentTrack >= this._tracks.length - 1
+    if (repeat === 'one') {
+      this.seekTo(0)
+      void this.play()
+    } else if (repeat === 'all' || !last) {
+      if (this._tracks.length === 1) {
+        this.seekTo(0)
+        void this.play()
+      } else {
+        this.load((currentTrack + 1) % this._tracks.length, { autoplay: true })
+      }
+    } else {
+      this.set({ isPlaying: false, isLoading: false, currentTime: this._state.duration })
+    }
+  }
+
+  private teardownAudio(): void {
+    const audio = this.audio
+    if (!audio) return
+    this.detachAudio?.()
+    this.detachAudio = null
+    audio.pause()
+    audio.removeAttribute('src')
+    audio.load()
+    this.spectrum.dispose()
+    this.audio = null
+  }
+
+  /** Swap in a fresh element that is not captured by Web Audio. */
+  private rebuildAudio(): void {
+    const wasPlaying = this._state.isPlaying
+    this.teardownAudio()
+    this.set({ isPlaying: false })
+    if (wasPlaying) void this.play()
+  }
+
+  private syncFrameLoop(): void {
+    const wanted =
+      this.frameListeners.size > 0 && (this._state.isPlaying || !this.spectrum.settled)
+    if (wanted && this.frameHandle === null && typeof requestAnimationFrame !== 'undefined') {
+      const tick = (now: number): void => {
+        const frame = this.spectrum.sample(this._state.isPlaying, now)
+        for (const listener of [...this.frameListeners]) {
+          try {
+            listener(frame)
+          } catch (error) {
+            console.error('[pulse] frame listener threw:', error)
+          }
+        }
+        this.frameHandle = null
+        this.syncFrameLoop()
+      }
+      this.frameHandle = requestAnimationFrame(tick)
+    } else if (!wanted && this.frameHandle !== null) {
+      cancelAnimationFrame(this.frameHandle)
+      this.frameHandle = null
+    }
+  }
+}
+
+function bufferedFraction(audio: HTMLMediaElement): number {
+  const { buffered, duration, currentTime } = audio
+  if (!Number.isFinite(duration) || duration <= 0 || !buffered?.length) return 0
+  for (let i = 0; i < buffered.length; i++) {
+    if (buffered.start(i) <= currentTime && currentTime <= buffered.end(i)) {
+      return clamp(buffered.end(i) / duration, 0, 1)
+    }
+  }
+  return clamp(buffered.end(buffered.length - 1) / duration, 0, 1)
 }
