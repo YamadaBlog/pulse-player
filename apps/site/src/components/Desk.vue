@@ -233,6 +233,7 @@ function onTabKey(e: KeyboardEvent, index: number): void {
 <style scoped>
 .desk {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
 }
 .label {
@@ -483,6 +484,7 @@ input[type='radio'] {
 /* ─── Output ─────────────────────────────────────────────────────── */
 .output {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
   margin-top: 2rem;
 }
@@ -517,6 +519,7 @@ input[type='radio'] {
 }
 #desk-code {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
 }
 .install {
@@ -530,6 +533,7 @@ input[type='radio'] {
   font-size: 0.82rem;
 }
 .install code {
+  min-width: 0;
   overflow-x: auto;
   font-family: var(--mono);
   white-space: nowrap;
