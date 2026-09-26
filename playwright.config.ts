@@ -1,71 +1,53 @@
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * Playwright config for visual regression of the Vue v2.3.4 demo
- * (`src/App.vue` + `src/lib/*`).
+ * End-to-end checks against real browsers:
+ *  - `site`: the showcase (built, served by `astro preview`)
+ *  - `lab`:  the component lab page of the plain-HTML example
  *
- * Scope: capture a small set of high-signal screenshots from the
- * running Vue demo so future refactors (especially the alpha.9 Vue
- * migration `src/lib/` → `packages/vue/`) can be gated on
- * pixel-perfect parity. We don't snapshot every viewport — three
- * scenarios are enough to catch the regressions that would matter.
- *
- * Storage:
- *   - Baselines live at `tests/visual/__screenshots__/<test>-chromium-…png`
- *   - First run writes them; subsequent runs diff against them.
- *   - Commit the baselines so CI can verify them.
+ * `PULSE_SITE_URL` points the site project at a deployed URL instead
+ * (used by the post-deploy smoke test on GitHub Pages).
  */
+const deployed = process.env.PULSE_SITE_URL
+
 export default defineConfig({
-  testDir: './tests/visual',
-  fullyParallel: false,
+  testDir: './e2e',
+  fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
-  reporter: 'list',
+  retries: process.env.CI ? 2 : 0,
+  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: 'http://localhost:5174',
-    // The Vue demo runs ambient EQ + idle animations. Bump the
-    // action timeout so Playwright's stability heuristic has time
-    // to converge on a frame; `animations: 'disabled'` in the
-    // expect config below already snaps to the first frame, but
-    // the stability check still needs slack.
-    actionTimeout: 15000,
     trace: 'retain-on-failure',
-  },
-  timeout: 60_000,
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5174',
-    reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
-    stdout: 'ignore',
-    stderr: 'pipe',
   },
   projects: [
     {
-      name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        launchOptions: {
-          // Headless Chromium on CI runners rejects
-          // HTMLMediaElement.play() under the autoplay policy even
-          // after a force-click (synthetic gestures don't always count
-          // as "user activation" there). The pages-live "play actually
-          // plays" smoke needs play() to be allowed so the assertion
-          // tests OUR pipeline (file present + decodable + store state
-          // holds), not Chrome's gesture heuristics. Harmless for the
-          // visual / a11y / responsive suites — none of them autoplay.
-          args: ['--autoplay-policy=no-user-gesture-required'],
-        },
-      },
+      name: 'site',
+      testMatch: /site\..*\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], baseURL: deployed ?? 'http://localhost:4174/' },
+    },
+    {
+      name: 'site-mobile',
+      testMatch: /site\.smoke\.spec\.ts/,
+      use: { ...devices['Pixel 7'], baseURL: deployed ?? 'http://localhost:4174/' },
+    },
+    {
+      name: 'lab',
+      testMatch: /lab\..*\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4180/' },
     },
   ],
-  expect: {
-    toHaveScreenshot: {
-      // Allow tiny anti-aliasing differences across Chromium versions.
-      maxDiffPixelRatio: 0.005,
-      // Threshold for individual pixel comparison (0..1).
-      threshold: 0.15,
-      animations: 'disabled',
-    },
-  },
+  webServer: deployed
+    ? undefined
+    : [
+        {
+          command: 'npm run preview -w @pulse-music/site -- --port 4174',
+          url: 'http://localhost:4174/',
+          reuseExistingServer: !process.env.CI,
+        },
+        {
+          command: 'npm run preview -w @pulse-music/demo-vanilla -- --port 4180 --strictPort',
+          url: 'http://localhost:4180/lab.html',
+          reuseExistingServer: !process.env.CI,
+        },
+      ],
 })

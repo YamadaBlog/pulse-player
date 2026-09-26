@@ -1,28 +1,47 @@
-import { svg, type TemplateResult } from 'lit'
+import { svg, type SVGTemplateResult } from 'lit'
 
-/**
- * Inline SVG icons used by `<pulse-player>` and `<pulse-fab>`.
- *
- * All icons render at the `mp__icon` font-size and inherit `color`
- * from the chrome via `currentColor`. They're extracted into this
- * single file so the geometry stays one source of truth and the
- * `PulsePlayer.ts` element file stays focused on lifecycle + render
- * orchestration.
- *
- * Provenance:
- *
- *   - **GitHub Octocat** — silhouette borrowed from Lucide (MIT). Used
- *     when `github-url` is set on the host; renders an inert span
- *     with the same aria-label otherwise. Compliant with GitHub's
- *     logo policy for developer integrations (https://github.com/logos).
- *
- *   - **Streaming icon** — generic music-note geometry (Lucide MIT).
- *     Deliberately NOT the Spotify mark to avoid trademark exposure
- *     per Spotify's developer brand guidelines
- *     (https://developer.spotify.com/documentation/design). Consumers
- *     pass any streaming-provider URL via `spotify-url` (Apple Music,
- *     YouTube Music, Tidal, Deezer, self-hosted, etc.).
- */
-export const GITHUB_SVG: TemplateResult = svg`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.03c-3.2.69-3.87-1.38-3.87-1.38-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.24 3.34.95.1-.74.4-1.24.73-1.53-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.18.92-.26 1.91-.39 2.89-.39.98 0 1.97.13 2.89.39 2.21-1.49 3.18-1.18 3.18-1.18.62 1.58.23 2.75.11 3.04.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.06.78 2.14v3.18c0 .31.21.67.8.56C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/></svg>`
+/** 24 × 24 icons drawn for Pulse. They inherit `currentColor`. */
+const icon = (content: SVGTemplateResult, cls = ''): SVGTemplateResult =>
+  svg`<svg class="icon ${cls}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${content}</svg>`
 
-export const STREAM_SVG: TemplateResult = svg`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`
+export const playIcon = icon(
+  svg`<path fill="currentColor" d="M8.2 4.6c-.8-.5-1.7.1-1.7 1v12.8c0 .9 1 1.5 1.7 1l10.1-6.4a1.2 1.2 0 0 0 0-2L8.2 4.6Z"/>`,
+  'icon--play',
+)
+
+export const pauseIcon = icon(
+  svg`<rect fill="currentColor" x="6" y="4.8" width="4.2" height="14.4" rx="1.3"/><rect fill="currentColor" x="13.8" y="4.8" width="4.2" height="14.4" rx="1.3"/>`,
+  'icon--pause',
+)
+
+export const previousIcon = icon(
+  svg`<rect fill="currentColor" x="5" y="5.5" width="2.4" height="13" rx="1"/><path fill="currentColor" d="M18.2 6.3c0-.8-.9-1.3-1.6-.8l-7.6 5.6a1.1 1.1 0 0 0 0 1.8l7.6 5.6c.7.5 1.6 0 1.6-.8V6.3Z"/>`,
+)
+
+export const nextIcon = icon(
+  svg`<rect fill="currentColor" x="16.6" y="5.5" width="2.4" height="13" rx="1"/><path fill="currentColor" d="M5.8 6.3c0-.8.9-1.3 1.6-.8l7.6 5.6c.6.4.6 1.4 0 1.8l-7.6 5.6c-.7.5-1.6 0-1.6-.8V6.3Z"/>`,
+)
+
+export const volumeIcon = icon(
+  svg`<path fill="currentColor" d="M4 9.5v5c0 .6.4 1 1 1h2.6l3.8 3.2c.6.5 1.6.1 1.6-.8V6.1c0-.9-1-1.3-1.6-.8L7.6 8.5H5c-.6 0-1 .4-1 1Z"/><path d="M16 9a4.2 4.2 0 0 1 0 6M18.6 6.5a7.8 7.8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>`,
+)
+
+export const mutedIcon = icon(
+  svg`<path fill="currentColor" d="M4 9.5v5c0 .6.4 1 1 1h2.6l3.8 3.2c.6.5 1.6.1 1.6-.8V6.1c0-.9-1-1.3-1.6-.8L7.6 8.5H5c-.6 0-1 .4-1 1Z"/><path d="m16.5 9.5 5 5m0-5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>`,
+)
+
+export const closeIcon = icon(
+  svg`<path d="m7 7 10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`,
+)
+
+export const moreIcon = icon(
+  svg`<circle fill="currentColor" cx="6" cy="12" r="1.8"/><circle fill="currentColor" cx="12" cy="12" r="1.8"/><circle fill="currentColor" cx="18" cy="12" r="1.8"/>`,
+)
+
+export const gripIcon = icon(
+  svg`<path d="M20 11 11 20M20 16l-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`,
+)
+
+export const noteIcon = icon(
+  svg`<path d="M9 18V6.5l10-2V16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.5" fill="currentColor"/><circle cx="16.5" cy="16" r="2.5" fill="currentColor"/>`,
+)

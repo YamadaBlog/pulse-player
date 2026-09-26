@@ -1,44 +1,45 @@
 {
   "name": "@pulse-music/tokens",
   "version": "3.0.0-rc.3",
-  "description": "Design tokens for pulse-player — variant gradients, accent colours, animation keyframes, --pulse-scale system. Shared by every web renderer (CSS imports for plain DOM, TS exports for Shadow DOM).",
+  "description": "Design tokens for Pulse — nine theme variants and spring motion curves, as typed data and CSS.",
+  "keywords": [
+    "design-tokens",
+    "theme",
+    "pulse-player"
+  ],
   "license": "MIT",
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
-    "./variants.css": "./src/variants.css",
-    "./base.css": "./src/base.css",
-    "./animations.css": "./src/animations.css",
-    "./styles.css": "./src/index.css"
-  },
-  "files": [
-    "dist",
-    "src",
-    "README.md"
-  ],
-  "sideEffects": [
-    "**/*.css"
-  ],
-  "scripts": {
-    "build": "tsup",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "prepublishOnly": "npm run build"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "private": false,
+  "author": "YamadaBlog",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/YamadaBlog/pulse-player.git",
     "directory": "packages/tokens"
+  },
+  "homepage": "https://yamadablog.github.io/pulse-player/",
+  "bugs": {
+    "url": "https://github.com/YamadaBlog/pulse-player/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown"
+  },
+  "dependencies": {
+    "@pulse-music/types": "^3.0.0-rc.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

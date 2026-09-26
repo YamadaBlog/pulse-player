@@ -1,88 +1,60 @@
-import { useEffect, useRef } from 'react'
-import type { EventMap, PulseVariant } from '@pulse-music/types'
-import { useDomEvent } from './useDomEvent'
-
-/**
- * `<PulseFab />` — React wrapper around `<pulse-fab>`.
- *
- * Thin adapter (~60 LOC). Shares the singleton engine with
- * `<PulsePlayer />`, so toggling one toggles both.
- *
- * Example:
- *
- * ```tsx
- * <PulseFab variant="vinyl" pulso />
- * ```
- */
-
+import { createElement, useState, type CSSProperties } from 'react'
 import '@pulse-music/web-component'
+import type { PulseEngine } from '@pulse-music/core'
+import type { FabPlacement, PulseLabels } from '@pulse-music/web-component'
+import type { EventMap, PulseVariant } from '@pulse-music/types'
+import { useElementEvents, useElementProperties } from './element'
 
 export interface PulseFabProps {
   variant?: PulseVariant
+  accentColor?: string
+  placement?: FabPlacement
+  reveal?: 'on-play' | 'always'
+  size?: number
   pulso?: boolean
-  /** Show the radial menu (chevron toggle + popover with palette + Pulso/Fullscreen toggles). */
-  showMenu?: boolean
-  /** Allow drag-to-reposition. Position persists to localStorage. */
-  draggable?: boolean
-  /** localStorage key for the persisted FAB position. Default `pulse-fab-pos`. */
+  locked?: boolean
   persistKey?: string
-  onPlay?: (payload: EventMap['play']) => void
-  onPause?: (payload: EventMap['pause']) => void
-  onTrackChange?: (payload: EventMap['trackchange']) => void
-  onError?: (payload: EventMap['error']) => void
+  session?: string
+  engine?: PulseEngine
+  labels?: Partial<PulseLabels>
+  onPlay?: (detail: EventMap['play']) => void
+  onPause?: (detail: EventMap['pause']) => void
+  onTrackChange?: (detail: EventMap['trackchange']) => void
+  onEnded?: (detail: EventMap['ended']) => void
+  onError?: (detail: EventMap['error']) => void
   className?: string
-  style?: React.CSSProperties
+  style?: CSSProperties
 }
 
-export function PulseFab({
-  variant = 'auto',
-  pulso = false,
-  showMenu = false,
-  draggable = false,
-  persistKey,
-  onPlay,
-  onPause,
-  onTrackChange,
-  onError,
-  className,
-  style,
-}: PulseFabProps) {
-  const ref = useRef<HTMLElement>(null)
-
-  useDomEvent<EventMap['play']>(ref, 'pulse-play', onPlay)
-  useDomEvent<EventMap['pause']>(ref, 'pulse-pause', onPause)
-  useDomEvent<EventMap['trackchange']>(ref, 'pulse-trackchange', onTrackChange)
-  useDomEvent<EventMap['error']>(ref, 'pulse-error', onError)
-
-  // Boolean presence attributes. React 18 doesn't reliably serialise
-  // `false` to "remove the attribute" — we imperatively set / remove
-  // them for correctness across versions.
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    if (pulso) el.setAttribute('pulso', '')
-    else el.removeAttribute('pulso')
-  }, [pulso])
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    if (showMenu) el.setAttribute('show-menu', '')
-    else el.removeAttribute('show-menu')
-  }, [showMenu])
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    if (draggable) el.setAttribute('draggable', '')
-    else el.removeAttribute('draggable')
-  }, [draggable])
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || !persistKey) return
-    el.setAttribute('persist-key', persistKey)
-  }, [persistKey])
-
-  return <pulse-fab ref={ref} variant={variant} class={className} style={style} />
+/** `<PulseFab />` — the floating, draggable mini player (`<pulse-fab>`). */
+export function PulseFab(props: PulseFabProps) {
+  const [el, setEl] = useState<HTMLElement | null>(null)
+  useElementProperties(el, {
+    variant: props.variant,
+    accentColor: props.accentColor,
+    placement: props.placement,
+    reveal: props.reveal,
+    size: props.size,
+    pulso: props.pulso,
+    locked: props.locked,
+    persistKey: props.persistKey,
+    session: props.session,
+    engine: props.engine,
+    labels: props.labels,
+    className: props.className,
+  })
+  useElementEvents(el, {
+    'pulse-play': props.onPlay,
+    'pulse-pause': props.onPause,
+    'pulse-trackchange': props.onTrackChange,
+    'pulse-ended': props.onEnded,
+    'pulse-error': props.onError,
+  })
+  return createElement('pulse-fab', {
+    ref: setEl,
+    variant: props.variant,
+    placement: props.placement,
+    session: props.session,
+    style: props.style,
+  })
 }

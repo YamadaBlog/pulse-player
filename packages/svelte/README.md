@@ -1,11 +1,24 @@
 # @pulse-music/svelte
 
-Svelte 5 wrapper for pulse-player. Components + runes-based store on top of `@pulse-music/web-component`.
+Svelte 4 / 5 bindings for [Pulse](https://github.com/YamadaBlog/pulse-player). Svelte renders Custom Elements natively, so this package registers `<pulse-player>` / `<pulse-fab>` and adds `usePulseAudio()`, a readable store over the audio session.
 
-## Status
+```bash
+npm i @pulse-music/svelte
+```
 
-⏳ **Scaffold** — implementation lands in v3.0.0-alpha.5.
+```svelte
+<script lang="ts">
+  import { usePulseAudio } from '@pulse-music/svelte'
 
-## License
+  const tracks = [{ title: 'Protofunk', artist: 'Kevin MacLeod', src: '/protofunk.mp3' }]
+  const audio = usePulseAudio()
+</script>
 
-MIT.
+<pulse-player {tracks} variant="sunset" ambient-eq></pulse-player>
+<button on:click={audio.toggle}>{$audio.isPlaying ? 'Pause' : 'Play'} {$audio.track?.title}</button>
+<pulse-fab pulso></pulse-fab>
+```
+
+**Docs:** [Svelte guide](https://github.com/YamadaBlog/pulse-player/blob/main/docs/frameworks.md#svelte) · [element reference](https://github.com/YamadaBlog/pulse-player/blob/main/docs/reference/elements.md)
+
+MIT © YamadaBlog

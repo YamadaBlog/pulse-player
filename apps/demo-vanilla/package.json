@@ -2,9 +2,17 @@
   "name": "@pulse-music/demo-vanilla",
   "version": "0.0.0",
   "private": true,
-  "description": "Standalone HTML demo of @pulse-music/web-component — no framework, no bundler. Serve with any static server.",
+  "type": "module",
+  "description": "Plain HTML page using the <pulse-player> Custom Elements.",
   "scripts": {
-    "dev": "npx http-server -p 5180 -c-1 .",
-    "build": "echo 'No build step — vanilla HTML.'"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@pulse-music/web-component": "^3.0.0-rc.3"
+  },
+  "devDependencies": {
+    "vite": "^8.3.1"
   }
 }

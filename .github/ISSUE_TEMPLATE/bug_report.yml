@@ -1,0 +1,44 @@
+name: Bug report
+description: Something doesn't work as documented.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: A StackBlitz / CodeSandbox link or a minimal repository. Issues with a reproduction get fixed first.
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      options:
+        - '@pulse-music/web-component'
+        - '@pulse-music/vue'
+        - '@pulse-music/react'
+        - '@pulse-music/svelte'
+        - '@pulse-music/core'
+        - '@pulse-music/react-native'
+        - The showcase site
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: e.g. 3.0.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and OS
+      placeholder: e.g. Safari 19 on iOS 26
+    validations:
+      required: true

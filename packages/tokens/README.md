@@ -1,30 +1,23 @@
 # @pulse-music/tokens
 
-CSS design tokens for pulse-player. Shared by every web renderer.
+Design tokens for [Pulse](https://github.com/YamadaBlog/pulse-player): the nine theme variants and the spring motion curves, as typed data plus CSS generators.
 
-## What's in here
-
-- `variants.css` — the 4 mood gradients (sunset, midnight, aurora, vinyl) + accent RGB triplets, declared at the `[data-variant='X']` attribute level
-- `base.css` — base palette, `--pulse-scale` system, shadow tokens
-- `animations.css` — shared `@keyframes` (ambient EQ wave, pulso heartbeat, pulso lub/dub waves)
-
-## Import
-
-```css
-/* Everything */
-@import '@pulse-music/tokens';
-
-/* Or pick what you need */
-@import '@pulse-music/tokens/variants.css';
-@import '@pulse-music/tokens/animations.css';
+```bash
+npm i @pulse-music/tokens
 ```
 
-`sideEffects: ["**/*.css"]` is set, so tree-shaking-aware bundlers preserve the styles when only one consumer imports the package.
+```ts
+import { VARIANTS, EASING, createVariantCss, createMotionCss } from '@pulse-music/tokens'
 
-## Status
+VARIANTS.midnight.accent // '#a78bfa'
+EASING.pop // a damped spring sampled into a CSS linear() easing
 
-⏳ **Scaffold** — the actual tokens are extracted from the validated Vue v2.3.4 in v3.0.0-alpha.1. The shapes (file layout, `[data-variant]` selectors, variable naming) are stable.
+// Match your own UI to the player's motion:
+document.head.append(
+  Object.assign(document.createElement('style'), { textContent: createMotionCss(':root') }),
+)
+```
 
-## License
+The Web Components consume these tokens; the React Native renderer reads the same data.
 
-MIT.
+MIT © YamadaBlog

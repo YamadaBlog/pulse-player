@@ -1,9 +1,9 @@
 # @pulse-music/react-native
 
-React Native wrapper for [pulse-player](https://github.com/YamadaBlog/pulse-player). v3.0.0-rc.1 — first real renderer (was interface-only through alpha.21).
+> **Experimental.** A separate native renderer for [Pulse](https://github.com/YamadaBlog/pulse-player) that shares the `Track` and theme contract with the web packages. It is released independently of them, is not at feature parity, and still relies on `expo-av`, which Expo is replacing with `expo-audio` — a migration is planned. Test on a device before shipping.
 
 ```bash
-npm install @pulse-music/react-native @pulse-music/core
+npm install @pulse-music/react-native
 npx expo install expo-av react-native-reanimated react-native-gesture-handler react-native-svg @react-native-async-storage/async-storage
 ```
 
@@ -23,7 +23,7 @@ export default function App() {
 }
 ```
 
-## What ships in rc.1
+## What it includes
 
 - **Audio playback** via `expo-av` Audio.Sound — play / pause / next / prev / seek
 - **9 mood themes** mirrored from `@pulse-music/tokens`
@@ -33,7 +33,7 @@ export default function App() {
 - **Direct engine access** via `PulseEngineRN` / `getSharedEngineRN` / `setSharedEngineRN`
 - **Typed event bus** — `play` / `pause` / `trackchange` / `error`
 
-## Known limitations (deferred to rc.2 / rc.3)
+## Known limitations
 
 - FFT visualisation uses a pseudo-bar synth, not real audio FFT. Real FFT lands when `react-native-audio-api` (Swansion) reaches stable iOS support.
 - Backdrop blur not yet ported. `expo-blur` integration in the next patch.

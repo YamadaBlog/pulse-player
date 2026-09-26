@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pulse — component lab</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: system-ui, sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #0b0b10;
+        color: #f5f5f7;
+      }
+      h2 {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        opacity: 0.6;
+        margin: 32px 0 12px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 20px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 20px;
+      }
+      .photo {
+        padding: 24px;
+        border-radius: 20px;
+        background: center / cover url('/audio/protofunk.svg');
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Widths</h2>
+    <div class="row" id="widths"></div>
+    <h2>Variants</h2>
+    <div class="grid" id="variants"></div>
+    <h2>Transparent over an image</h2>
+    <div class="photo">
+      <pulse-player variant="transparent" style="max-width: 480px"></pulse-player>
+    </div>
+    <h2>Resizable</h2>
+    <pulse-player id="resizable" resizable style="width: 420px"></pulse-player>
+    <h2>Empty session</h2>
+    <pulse-player session="empty" style="max-width: 420px"></pulse-player>
+    <pulse-fab reveal="always" pulso></pulse-fab>
+
+    <script type="module">
+      import { getSharedEngine } from '@pulse-music/web-component'
+
+      getSharedEngine().setTracks([
+        {
+          src: '/audio/protofunk.mp3',
+          title: 'Protofunk',
+          artist: 'Kevin MacLeod',
+          cover: '/audio/protofunk.svg',
+        },
+        {
+          src: '/audio/lobby-time.mp3',
+          title: 'Lobby Time',
+          artist: 'Kevin MacLeod',
+          cover: '/audio/lobby-time.svg',
+        },
+        {
+          src: '/audio/deuces.mp3',
+          title: 'Deuces',
+          artist: 'Kevin MacLeod',
+          cover: '/audio/deuces.svg',
+        },
+      ])
+      for (const w of [720, 520, 400, 320, 240, 180, 110, 72]) {
+        const el = document.createElement('pulse-player')
+        el.style.width = `${w}px`
+        el.dataset.width = w
+        document.getElementById('widths').append(el)
+      }
+      for (const v of [
+        'auto',
+        'transparent',
+        'solid',
+        'dark',
+        'light',
+        'sunset',
+        'midnight',
+        'aurora',
+        'vinyl',
+      ]) {
+        const el = document.createElement('pulse-player')
+        el.setAttribute('variant', v)
+        el.dataset.variant = v
+        if (v === 'midnight') el.setAttribute('ambient-eq', '')
+        document.getElementById('variants').append(el)
+      }
+    </script>
+  </body>
+</html>

@@ -21,10 +21,7 @@ export function CoverArt({ src, size = 64, accent }: CoverArtProps) {
   if (!src) {
     return (
       <View
-        style={[
-          styles.fallback,
-          { width: size, height: size, backgroundColor: accent + '33' },
-        ]}
+        style={[styles.fallback, { width: size, height: size, backgroundColor: accent + '33' }]}
       />
     )
   }

@@ -1,19 +1,27 @@
 # @pulse-music/core
 
-Framework-agnostic audio engine for pulse-player. Pure TypeScript, no DOM, no framework imports.
+The framework-agnostic audio engine behind [Pulse](https://github.com/YamadaBlog/pulse-player): playback state that mirrors the real `<audio>` element, a Web Audio spectrum for visualisers, Media Session integration and typed events. Plain TypeScript, SSR-safe, no dependencies besides `@pulse-music/types`.
 
-## What it owns
+```bash
+npm i @pulse-music/core
+```
 
-- The singleton `<audio>` element
-- The `AudioContext` + `AnalyserNode` (Web Audio FFT pipeline)
-- The state machine (`PulseState`)
-- The typed event bus (`subscribe<E>(event, cb)` with discriminated payloads)
-- The actions (`toggle`, `next`, `prev`, `loadTrack`, `seek`, `setAudioTracks`, `dispose`)
+```ts
+import { PulseEngine } from '@pulse-music/core'
 
-## Status
+const engine = new PulseEngine({
+  tracks: [{ title: 'Protofunk', artist: 'Kevin MacLeod', src: '/protofunk.mp3' }],
+})
 
-⏳ **Scaffold** — implementation lands in v3.0.0-alpha.1. The current reference is `src/lib/useAudioStore.ts` in the validated Vue v2.3.4 implementation; the extraction strips Pinia / Vue refs and re-expresses everything as a plain class with subscriber callbacks.
+engine.onStateChange((state) => render(state)) // immutable snapshots
+engine.subscribe('trackchange', ({ track }) => console.log(track.title))
+engine.onFrame(({ bands, energy }) => draw(bands, energy)) // runs only while playing
 
-## License
+playButton.onclick = () => engine.toggle()
+```
 
-MIT.
+You usually get it through `@pulse-music/web-component` or a framework package; use it directly for custom UIs and page-level logic.
+
+**Docs:** [engine reference](https://github.com/YamadaBlog/pulse-player/blob/main/docs/reference/engine.md)
+
+MIT © YamadaBlog

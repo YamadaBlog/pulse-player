@@ -66,9 +66,7 @@ export function PulseFabRN({
           <Text style={[styles.fallback, { color: accent }]}>♪</Text>
         )}
         <View style={[styles.iconOverlay, { borderColor: accent }]}>
-          <Text style={[styles.iconText, { color: accent }]}>
-            {isPlaying ? '⏸' : '▶'}
-          </Text>
+          <Text style={[styles.iconText, { color: accent }]}>{isPlaying ? '⏸' : '▶'}</Text>
         </View>
       </Pressable>
     </View>

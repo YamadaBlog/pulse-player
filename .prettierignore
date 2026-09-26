@@ -1,12 +1,11 @@
 dist
 node_modules
 coverage
+playwright-report
+test-results
+package-lock.json
+CHANGELOG.md
+custom-elements.json
 *.min.*
-public/audio
-docs/screenshots
-# packages/ and apps/ workspaces ship their own formatting story
-# (each one gets its own .prettierrc when promoted out of scaffold).
-packages
-apps
-# Round-14 — pre-rendered player-shell captures (binary WebP + generated manifest)
-src/assets/shells
+apps/site/public/audio
+apps/demo-react-native

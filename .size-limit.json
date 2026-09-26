@@ -1,49 +1,31 @@
 [
   {
-    "name": "@pulse-music/types",
-    "path": "packages/types/dist/index.js",
-    "limit": "1 KB",
-    "gzip": true
-  },
-  {
-    "name": "@pulse-music/core (audio engine)",
+    "name": "@pulse-music/core",
     "path": "packages/core/dist/index.js",
-    "limit": "5 KB",
-    "gzip": true,
-    "ignore": ["@pulse-music/types"]
+    "import": "{ PulseEngine }",
+    "limit": "5 kB"
   },
   {
-    "name": "@pulse-music/tokens",
-    "path": "packages/tokens/dist/index.js",
-    "limit": "2 KB",
-    "gzip": true
-  },
-  {
-    "name": "@pulse-music/web-component (Lit + chrome)",
+    "name": "@pulse-music/web-component (with Lit and the engine)",
     "path": "packages/web-component/dist/index.js",
-    "limit": "20 KB",
-    "gzip": true,
-    "ignore": ["@pulse-music/core", "@pulse-music/tokens", "@pulse-music/types", "lit", "lit/decorators.js"]
+    "limit": "26 kB"
   },
   {
-    "name": "@pulse-music/react (wrapper, peer-React excluded)",
+    "name": "@pulse-music/react (wrapper only)",
     "path": "packages/react/dist/index.js",
-    "limit": "3 KB",
-    "gzip": true,
-    "ignore": ["@pulse-music/core", "@pulse-music/web-component", "@pulse-music/types", "react", "react-dom", "react/jsx-runtime"]
+    "ignore": ["@pulse-music/web-component", "@pulse-music/core", "react"],
+    "limit": "1.5 kB"
   },
   {
-    "name": "@pulse-music/svelte (wrapper)",
+    "name": "@pulse-music/vue (wrapper only)",
+    "path": "packages/vue/dist/index.js",
+    "ignore": ["@pulse-music/web-component", "@pulse-music/core", "vue"],
+    "limit": "1.5 kB"
+  },
+  {
+    "name": "@pulse-music/svelte (wrapper only)",
     "path": "packages/svelte/dist/index.js",
-    "limit": "1 KB",
-    "gzip": true,
-    "ignore": ["@pulse-music/core", "@pulse-music/web-component", "@pulse-music/types"]
-  },
-  {
-    "name": "Vue v2.3.4 lib (root build)",
-    "path": "dist/lib/pulse-player.es.js",
-    "limit": "11 KB",
-    "gzip": true,
-    "ignore": ["vue", "pinia", "lucide-vue-next"]
+    "ignore": ["@pulse-music/web-component", "@pulse-music/core"],
+    "limit": "1 kB"
   }
 ]

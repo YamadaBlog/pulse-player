@@ -1,39 +1,17 @@
 # @pulse-music/types
 
-Shared TypeScript types for every pulse-player framework wrapper.
-
-## What's in here
-
-- `Track` — the playlist entry shape
-- `PulseVariant` + `ALL_VARIANTS` — the canonical theme union
-- `EventMap` — discriminated union for the event bus
-- `AudioEvent`, `EventListener<E>`, `Unsubscribe` — pub/sub helpers
-- `PulseState` — the projection every wrapper turns into framework primitives (Vue refs, React state, RN reanimated values, …)
-
-## Install
-
-This package is a workspace dependency. Inside this monorepo:
+Shared TypeScript types for every [Pulse](https://github.com/YamadaBlog/pulse-player) package: `Track`, `PulseState`, `PulseVariant`, `EventMap`, `AudioFrame`, `RepeatMode`, plus the `ALL_VARIANTS` list.
 
 ```bash
-# Already linked via pnpm/npm workspaces. No install step needed.
+npm i -D @pulse-music/types
 ```
 
-Once published to npm:
+```ts
+import type { Track } from '@pulse-music/types'
 
-```bash
-npm install @pulse-music/types
-# or
-pnpm add @pulse-music/types
+const playlist: Track[] = [{ title: 'Protofunk', artist: 'Kevin MacLeod', src: '/protofunk.mp3' }]
 ```
 
-## Why
+Every other package re-exports these types, so you rarely need to install this one directly.
 
-The audio engine, the renderers and the framework wrappers all need to talk about the same shapes. Putting the types in one zero-runtime package makes drift impossible — touch a field here and TypeScript fails everywhere it's used.
-
-## Status
-
-✅ **Published shape** — these types are the stable contract that every other `@pulse-music/*` package depends on. Breaking changes here will bump the monorepo major.
-
-## License
-
-MIT. See [LICENSE](../../LICENSE) at the repo root.
+MIT © YamadaBlog

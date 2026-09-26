@@ -1,13 +1,15 @@
 /**
- * @pulse-music/tokens — TypeScript exports for design tokens.
+ * @pulse-music/tokens — design tokens shared by every Pulse renderer.
  *
- * For framework wrappers and Shadow DOM renderers that consume CSS
- * via JavaScript (Lit `unsafeCSS`, Constructable StyleSheets, etc.).
- *
- * For plain-CSS document-level consumers (Vue v2.3.4, vanilla HTML),
- * the `.css` files at `src/{variants,base,animations,index}.css` are
- * still the right import — they declare the same tokens at the
- * `[data-variant]` attribute level so they cascade naturally.
+ * Data first: the TypeScript objects are the single source of truth
+ * (React Native reads them directly); the CSS helpers generate the
+ * custom-property sheets the Web Components adopt.
  */
-export { variantsCss } from './variants'
-export { baseCss } from './base'
+export {
+  VARIANTS,
+  resolveVariant,
+  createVariantCss,
+  type VariantTokens,
+  type NamedVariant,
+} from './variants'
+export { EASING, DURATION, createMotionCss } from './motion'

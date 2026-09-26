@@ -1,0 +1,306 @@
+---
+const keys = [
+  { key: 'K', match: 'k', action: 'toggle', label: 'Play / pause' },
+  { key: 'J', match: 'j', action: 'back', label: 'Back 10 s' },
+  { key: 'L', match: 'l', action: 'forward', label: 'Forward 10 s' },
+  { key: 'M', match: 'm', action: 'mute', label: 'Mute' },
+  { key: '⇧ P', match: 'P', action: 'prev', label: 'Previous' },
+  { key: '⇧ N', match: 'N', action: 'next', label: 'Next' },
+]
+const facts = [
+  ['Keyboard first', 'Every control is reachable, shortcuts work from anywhere inside the player.'],
+  ['Screen readers', 'Real buttons and an ARIA slider with spoken time — “1:12 of 2:40”.'],
+  ['Lock screen', 'Media Session: title, artwork and controls on phones and keyboards.'],
+  ['Reduced motion', 'Spins, ripples and springs step aside when you ask the OS for calm.'],
+  ['Any language', 'Every label is replaceable through one `labels` property.'],
+  ['Checked in CI', 'axe-core runs WCAG 2.2 AA checks on every change.'],
+]
+---
+
+<section id="heard" class="side-b heard" data-surface="b" aria-labelledby="heard-title" data-heard>
+  <div class="wrap">
+    <div class="track-head">
+      <span class="label">B4</span>
+      <span class="label">Built to be heard</span>
+      <span class="label">1:00</span>
+    </div>
+
+    <div class="heard__grid">
+      <div class="heard__copy">
+        <h2 id="heard-title" class="headline" data-split>
+          Made for ears,
+          <br />
+          not only <span class="serif">eyes.</span>
+        </h2>
+        <p class="lede">
+          Focus the player and type. Or press a key below. Then watch what assistive technology is
+          told — read live from the player’s own accessibility attributes.
+        </p>
+      </div>
+
+      <div class="deck">
+        <div class="deck__player">
+          <pulse-player data-mood-follow data-heard-player></pulse-player>
+        </div>
+        <div class="keys" role="group" aria-label="Keyboard shortcuts">
+          {keys.map((k) => (
+            <button class="key" type="button" data-key={k.match} data-action={k.action}>
+              <kbd>{k.key}</kbd>
+              <span>{k.label}</span>
+            </button>
+          ))}
+        </div>
+        <div class="transcript" aria-hidden="true">
+          <p class="label transcript__head">
+            <span class="transcript__dot"></span>Accessibility tree, live
+          </p>
+          <ol class="transcript__log" data-transcript></ol>
+        </div>
+      </div>
+    </div>
+
+    <ul class="facts">
+      {facts.map(([title, text]) => (
+        <li data-reveal>
+          <h3 class="facts__title">{title}</h3>
+          <p class="muted" set:html={text!.replace(/`([^`]+)`/g, '<code>$1</code>')} />
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<script>
+  import { engine } from '../scripts/audio'
+  import { $, $$, onPage } from '../scripts/lifecycle'
+
+  const ACTIONS: Record<string, () => void> = {
+    toggle: () => engine.toggle(),
+    back: () => engine.seekBy(-10),
+    forward: () => engine.seekBy(10),
+    mute: () => engine.toggleMute(),
+    prev: () => engine.prev(),
+    next: () => engine.next(),
+  }
+
+  onPage(() => {
+    const root = $('[data-heard]')
+    const player = $('[data-heard-player]')
+    const log = $('[data-transcript]')
+    if (!root || !player || !log) return
+    const keys = $$<HTMLButtonElement>('[data-key]', root)
+
+    const flash = (btn: HTMLElement | undefined): void => {
+      if (!btn) return
+      btn.removeAttribute('data-hit')
+      void btn.offsetWidth
+      btn.setAttribute('data-hit', '')
+    }
+
+    // What a screen reader would hear, read from the rendered shadow DOM.
+    let last = ''
+    const write = (): void => {
+      const sr = player.shadowRoot
+      if (!sr) return
+      const main = sr.querySelector('.btn--main')?.getAttribute('aria-label') ?? ''
+      const slider = sr.querySelector('[role="slider"]')
+      const time = slider?.getAttribute('aria-valuetext') ?? ''
+      const mute = engine.state.muted ? ', muted' : ''
+      const t = engine.track
+      const line = `button “${main}” · slider “${slider?.getAttribute('aria-label') ?? ''}” ${time}${mute}${t ? ` · ${t.title}` : ''}`
+      if (line === last) return
+      last = line
+      const li = document.createElement('li')
+      li.textContent = line
+      log.prepend(li)
+      while (log.children.length > 5) log.lastElementChild?.remove()
+    }
+    let queued = 0
+    const schedule = (): void => {
+      cancelAnimationFrame(queued)
+      queued = requestAnimationFrame(() => requestAnimationFrame(write))
+    }
+
+    const onKeydown = (e: KeyboardEvent): void => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+      if (!(e.target as Element).closest('pulse-player')) return
+      flash(keys.find((k) => k.dataset.key === e.key || k.dataset.key === e.key.toLowerCase()))
+    }
+    const onClick = (e: Event): void => {
+      const btn = (e.target as Element).closest<HTMLButtonElement>('[data-action]')
+      if (!btn) return
+      ACTIONS[btn.dataset.action!]?.()
+      flash(btn)
+    }
+    root.addEventListener('keydown', onKeydown)
+    root.addEventListener('click', onClick)
+    let lastSecond = -1
+    const off = engine.onStateChange((s) => {
+      const second = Math.floor(s.currentTime / 5)
+      if (s.isPlaying && second === lastSecond) return
+      lastSecond = second
+      schedule()
+    })
+    schedule()
+    return () => {
+      root.removeEventListener('keydown', onKeydown)
+      root.removeEventListener('click', onClick)
+      off()
+    }
+  })
+</script>
+
+<style>
+  .heard {
+    padding-block: clamp(4rem, 10vw, 8rem);
+  }
+  .heard__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: start;
+    margin-top: clamp(2rem, 5vw, 4rem);
+  }
+  .heard__copy {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .deck {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .keys {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .key {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 0.8rem;
+    min-height: 56px;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: var(--night-2);
+    color: var(--fg-2);
+    font-size: 0.85rem;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      border-color 0.3s var(--ease-out),
+      color 0.3s var(--ease-out);
+  }
+  .key kbd {
+    display: grid;
+    place-items: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 0.4rem;
+    border-radius: 7px;
+    background: #24211e;
+    box-shadow:
+      inset 0 -3px 0 rgb(0 0 0 / 0.5),
+      inset 0 1px 0 rgb(255 255 255 / 0.08);
+    color: var(--fg);
+    font-size: 0.85rem;
+    transition:
+      transform 0.12s var(--ease-out),
+      background-color 0.4s var(--ease-out),
+      box-shadow 0.12s var(--ease-out);
+  }
+  .key:hover {
+    border-color: var(--fg-3);
+    color: var(--fg);
+  }
+  .key[data-hit] kbd {
+    animation: keyhit 0.9s var(--ease-out);
+  }
+  @keyframes keyhit {
+    0% {
+      transform: translateY(2px);
+      background: var(--signal);
+      color: var(--ink);
+      box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.4);
+    }
+  }
+  .transcript {
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+  }
+  .transcript__head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--fg-2);
+  }
+  .transcript__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--signal);
+    animation: blink 1.4s steps(2) infinite;
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0.2;
+    }
+  }
+  .transcript__log {
+    display: grid;
+    gap: 0.35rem;
+    min-height: 8.5em;
+    margin: 0.8rem 0 0;
+    padding: 0;
+    list-style: none;
+    font: 0.76rem/1.45 var(--mono);
+    color: var(--fg-3);
+  }
+  .transcript__log :global(li:first-child) {
+    color: var(--fg);
+  }
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin: clamp(3rem, 7vw, 6rem) 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--rule);
+  }
+  .facts li {
+    display: grid;
+    gap: 0.5rem;
+    align-content: start;
+    padding: 1.5rem 1.5rem 1.8rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .facts__title {
+    font-family: var(--display);
+    font-weight: 720;
+    font-variation-settings: 'wdth' 84;
+    font-size: 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+  }
+  .facts :global(code) {
+    font-family: var(--mono);
+    font-size: 0.9em;
+    color: var(--accent);
+  }
+  @media (max-width: 900px) {
+    .heard__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .facts {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 520px) {
+    .keys {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

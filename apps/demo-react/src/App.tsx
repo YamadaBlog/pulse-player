@@ -1,74 +1,53 @@
-import { useEffect, useState } from 'react'
-import { PulsePlayer, PulseFab, usePulseAudio, ALL_VARIANTS, type PulseVariant } from '@pulse-music/react'
+import { useState } from 'react'
+import {
+  ALL_VARIANTS,
+  PulseFab,
+  PulsePlayer,
+  usePulseAudio,
+  type PulseVariant,
+} from '@pulse-music/react'
+import { demoTracks } from '../../shared-tracks'
 
-/**
- * React demo for @pulse-music/react — proves the wrapper works in a real
- * React app, not just under vitest. Variant picker switches the
- * `variant` prop on both `<PulsePlayer />` and `<PulseFab />`,
- * `usePulseAudio()` drives a live transport row, and every
- * forwarded event is logged.
- *
- * Run:  npm install --workspace=@pulse-music/demo-react && npm run dev --workspace=@pulse-music/demo-react
- *       → http://localhost:5181
- */
+const tracks = demoTracks()
+
 export function App() {
   const [variant, setVariant] = useState<PulseVariant>('auto')
-  const [log, setLog] = useState<string[]>([])
-  const { isPlaying, track, currentTime, duration, fmt, toggle, next, prev } = usePulseAudio()
-
-  function append(line: string) {
-    setLog((prev) => [`[${new Date().toLocaleTimeString()}] ${line}`, ...prev].slice(0, 40))
-  }
-
-  useEffect(() => {
-    append('React mounted — variant=' + variant)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const [events, setEvents] = useState<string[]>([])
+  const { isPlaying, track, currentTime, duration, fmt, toggle } = usePulseAudio()
+  const log = (line: string) => setEvents((prev) => [line, ...prev].slice(0, 6))
 
   return (
-    <>
-      <h1>Pulse — React demo</h1>
-
-      <div className="picker" role="group" aria-label="Theme variant">
+    <main>
+      <h1>Pulse × React</h1>
+      <div className="picker" role="group" aria-label="Theme">
         {ALL_VARIANTS.filter((v) => v !== 'custom').map((v) => (
-          <button
-            key={v}
-            data-variant={v}
-            aria-pressed={variant === v}
-            onClick={() => setVariant(v)}
-          >
+          <button key={v} aria-pressed={variant === v} onClick={() => setVariant(v)}>
             {v}
           </button>
         ))}
       </div>
 
-      <div className="stage">
-        <PulsePlayer
-          variant={variant}
-          onPlay={({ track, time }) => append(`onPlay → ${track.title} @ ${fmt(time)}`)}
-          onPause={({ track, time }) => append(`onPause → ${track.title} @ ${fmt(time)}`)}
-          onTrackChange={({ from, to, track }) =>
-            append(`onTrackChange → ${from} → ${to} (${track.title})`)
-          }
-          onError={({ reason }) => append(`onError → ${reason}`)}
-        />
-      </div>
+      <PulsePlayer
+        variant={variant}
+        tracks={tracks}
+        ambientEq
+        onPlay={({ track }) => log(`play · ${track.title}`)}
+        onPause={({ time }) => log(`pause · ${fmt(time)}`)}
+        onTrackChange={({ track }) => log(`track · ${track.title}`)}
+      />
 
-      <div className="controls">
-        <button onClick={prev}>⏮ Prev</button>
-        <button onClick={toggle}>{isPlaying ? '⏸ Pause' : '▶ Play'}</button>
-        <button onClick={next}>Next ⏭</button>
-        <span className="stat">
-          {fmt(currentTime)} / {fmt(duration)} · {track.title}
-        </span>
-      </div>
+      <p className="status">
+        {/* Any component can read the shared session through the hook. */}
+        <button onClick={toggle}>{isPlaying ? 'Pause' : 'Play'}</button> {track?.title} ·{' '}
+        {fmt(currentTime)} / {fmt(duration)}
+      </p>
+      <ul className="log" aria-live="polite">
+        {events.map((e, i) => (
+          <li key={i}>{e}</li>
+        ))}
+      </ul>
 
       <PulseFab variant={variant} pulso />
-
-      <div className="log" aria-live="polite">
-        {log.map((line, i) => (
-          <div key={i}>{line}</div>
-        ))}
-      </div>
-    </>
+    </main>
   )
 }

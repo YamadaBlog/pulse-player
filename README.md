@@ -1,345 +1,179 @@
 <div align="center">
 
-<br>
+<img src="./docs/brand/logo.svg" alt="" width="72" height="72" />
 
-<img src="./docs/brand/logo.svg" alt="Pulse logo — heartbeat waveform with violet-to-teal gradient" width="96" height="96" />
+# Pulse
 
-# pulse-player
+**The music player that grows with your page.**<br />
+One Custom Element — `<pulse-player>` — that works in Vue, React, Svelte, Angular or plain HTML.
 
-### A premium drop-in music player — now on npm for Vue, React, Svelte, Angular, Web Components, and React Native.
+[![npm](https://img.shields.io/npm/v/@pulse-music/web-component?label=npm&color=3dbda7)](https://www.npmjs.com/package/@pulse-music/web-component)
+[![CI](https://img.shields.io/github/actions/workflow/status/YamadaBlog/pulse-player/ci.yml?branch=main&label=CI)](https://github.com/YamadaBlog/pulse-player/actions/workflows/ci.yml)
+[![Bundle size](https://img.shields.io/bundlejs/size/@pulse-music/web-component?label=gzip)](https://bundlejs.com/?q=@pulse-music/web-component)
+[![License: MIT](https://img.shields.io/badge/license-MIT-a78bfa)](./LICENSE)
 
-[![Watch the demo on YouTube](https://img.youtube.com/vi/q_FJ1GWaCc8/maxresdefault.jpg)](https://youtu.be/q_FJ1GWaCc8 'Watch the 3-minute Pulse demo on YouTube')
+[**Live demo & playground →**](https://yamadablog.github.io/pulse-player/)
 
-<sub>▶ [Watch the 3-minute demo on YouTube](https://youtu.be/q_FJ1GWaCc8) — 9 themes, ambient EQ, pulso heartbeat, drag-to-resize, FAB radial menu, keyboard shortcuts, multi-framework architecture.</sub>
-
-### 🟢 [**Open the live interactive demo →**](https://yamadablog.github.io/pulse-player/)
-
-<sub>Six-act cinematic scrollytelling, 3D product rotation, guided "Watch demo" tour, nine mood themes, drag-to-resize down to a FAB — responsive from 390 px mobile to 4K. Verified clean on every deploy by a post-deploy smoke job (zero console errors, zero broken assets).</sub>
-
-> **`v3.0.0-rc.3` is LIVE on npm.** All seven `@pulse-music/*` packages — `types`, `tokens`, `core`, `web-component`, `react`, `svelte`, `react-native` — ship at `rc.3` with **npm provenance** (sigstore-attested, built by GitHub Actions). The inter-package dependencies are now **pinned to the exact `3.0.0-rc.3`** (rc.2 used loose `*` ranges) so a consumer always resolves a consistent set. The earlier `rc.0`/`rc.1` of the wrappers are **deprecated** (they imported the pre-rename `@pulse/*` scope and failed consumer builds); `npm install` resolves the working `rc.3`, machine-verified end-to-end (`npm run test:consumer` — 4/4 clean-consumer builds, plus a live `npm install @pulse-music/web-component && vite build` that succeeds). The Vue 3 reference (`src/lib/`) stays source-available — vendor it directly or use the Web Component from any Vue template. The Angular wrapper stays source-available (`packages/angular/`). **Try it now:** `npm install @pulse-music/react @pulse-music/core`.
-> Architecture map: [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md). Cadence to v3.0.0 stable: [`docs/universal/VERSION_STRATEGY.md`](./docs/universal/VERSION_STRATEGY.md). Roadmap: [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md).
-
-### Originally a Vue 3 music player that grows with the page.
-
-### Now an audio component you can drop into any framework.
-
-| Framework                               | Package                                              | Status today                                                                                                                                                            | Chrome parity vs Vue v2.3.4              |
-| --------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| **Vue 3**                               | `pulse-player` v2.3.4 (source-available, not on npm) | ✅ **Reference implementation** (validated, 37+ alphas byte-identical — machine-enforced in CI via `npm run check:lib-identical`) — vendor via git or use Web Component | **100 %**                                |
-| **React 18 / 19**                       | `@pulse-music/react`                                 | ✅ wrapper + 16 RTL tests + apps/demo-react runnable                                                                                                                    | **~95 %**                                |
-| **Svelte 5**                            | `@pulse-music/svelte`                                | ✅ plain TS hook + 8 store tests + apps/demo-svelte runnable                                                                                                            | **~95 %**                                |
-| **Web Components**                      | `@pulse-music/web-component`                         | ✅ `<pulse-player>` + `<pulse-fab>` (Lit) + 22 element tests                                                                                                            | **~95 %**                                |
-| **Vanilla HTML / Solid / Astro / Qwik** | `@pulse-music/web-component`                         | ✅ apps/demo-vanilla runnable, inherits web-component chrome                                                                                                            | **~95 %**                                |
-| **Angular 17+**                         | `@pulse-music/angular` (private)                     | ⚠️ PulseModule + 5 smoke tests, **source-available only** — not on npm yet (peer floor decision deferred to rc.1)                                                       | **~95 %** (code), **0 %** (distribution) |
-| **React Native**                        | `@pulse-music/react-native`                          | ✅ **rc.1 LIVE on npm** (expo-av + Reanimated) + Expo demo Android-tested                                                                                               | **~60 %**                                |
-
-**Need the full premium chrome today (resize handle, three responsive states, social icons, prev / next, FAB drag, palette / menu, fullscreen)?** → use the Vue version.
-**Just need the audio engine + minimum card chrome (play / pause / variants / ambient EQ / pulso)?** → any framework wrapper works.
-
-### Try it in 30 seconds
-
-[![Open Vanilla in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/pulse-player-vanilla) &nbsp; [![Open React in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/pulse-player-react) &nbsp; [![Open Svelte in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/pulse-player-svelte)
-
-See [`docs/universal/SANDBOXES.md`](./docs/universal/SANDBOXES.md) for the per-framework playground templates.
-
-### Install from npm (published 2026-06-08)
-
-```bash
-# React 18 / 19
-npm install @pulse-music/react @pulse-music/core
-
-# Svelte 5
-npm install @pulse-music/svelte @pulse-music/core
-
-# Vanilla / Solid / Astro / Qwik (Web Component)
-npm install @pulse-music/web-component
-
-# React Native (Expo SDK 56+)
-npm install @pulse-music/react-native @pulse-music/core
-# then from your app dir:
-npx expo install expo-av react-native-reanimated react-native-gesture-handler react-native-svg @react-native-async-storage/async-storage
-
-# Vue 3 (reference build v2.3.4 — source-available, see Vue setup below)
-# Until the Vue rc.1 package ships at @pulse-music/vue, the Vue reference
-# is consumed directly from this repository (git clone or git submodule).
-# Tracking issue: https://github.com/YamadaBlog/pulse-player/issues
-```
-
-> **Vue 3 install path (honest):** the Vue v2.3.4 reference build at [`src/lib/`](./src/lib/) is **not yet published to npm** — it ships as the source-of-truth + visual regression baseline for the multi-framework wrappers. Vue consumers today either (a) use the Custom Element via `@pulse-music/web-component` from any Vue 3 template, or (b) vendor `src/lib/` into their app via git submodule. A published `@pulse-music/vue` package ships at v3.0.0 stable cut — see [`docs/universal/VERSION_STRATEGY.md`](./docs/universal/VERSION_STRATEGY.md) §"Vue publishing decision".
-
-| Package                      | Version    | Bundle gzip | Source                                                                             |
-| ---------------------------- | ---------- | ----------- | ---------------------------------------------------------------------------------- |
-| `@pulse-music/types`         | 3.0.0-rc.0 | 0.1 kB      | [npm](https://www.npmjs.com/package/@pulse-music/types)                            |
-| `@pulse-music/core`          | 3.0.0-rc.0 | 2 kB        | [npm](https://www.npmjs.com/package/@pulse-music/core)                             |
-| `@pulse-music/tokens`        | 3.0.0-rc.0 | 0.6 kB      | [npm](https://www.npmjs.com/package/@pulse-music/tokens)                           |
-| `@pulse-music/web-component` | 3.0.0-rc.1 | 8.5 kB      | [npm](https://www.npmjs.com/package/@pulse-music/web-component)                    |
-| `@pulse-music/react`         | 3.0.0-rc.0 | 1 kB        | [npm](https://www.npmjs.com/package/@pulse-music/react)                            |
-| `@pulse-music/svelte`        | 3.0.0-rc.0 | 0.4 kB      | [npm](https://www.npmjs.com/package/@pulse-music/svelte)                           |
-| `@pulse-music/react-native`  | 3.0.0-rc.1 | 12 kB       | [npm](https://www.npmjs.com/package/@pulse-music/react-native)                     |
-| `pulse-player` (Vue v2.3.4)  | 2.3.4      | 14 kB       | source-available at [`src/lib/`](./src/lib/), npm publish at v3.0.0 stable         |
-| `@pulse-music/angular`       | rc.0       | 1 kB        | source-available at [`packages/angular/`](./packages/angular/), private until rc.1 |
-
-### Production-framework integration snippets
-
-Copy-paste-ready integration patterns for the most-asked-about meta-frameworks. Each one is the smallest possible "Pulse is now in my app" sample — ~30-50 LOC, no extra abstractions.
-
-- [Next.js 14+ (App Router)](./examples/integrations/next-app-router.md) — client-component pattern + SSR-safe dynamic import
-- [Nuxt 3+](./examples/integrations/nuxt.md) — `.client.vue` + `<ClientOnly>` wrappers
-- [SvelteKit 2+](./examples/integrations/sveltekit.md) — `+page.svelte` + Vite `optimizeDeps` tweak
-- [Astro 4+](./examples/integrations/astro.md) — Custom Element + `client:load` directive
-- [Vanilla HTML + CDN](./examples/integrations/vanilla-cdn.md) — one `<script type="module">` line, no build step
-
-### How Pulse compares
-
-Honest, datapoint-by-datapoint comparison with [Plyr](https://github.com/sampotts/plyr), [Howler.js](https://howlerjs.com/), [WaveSurfer.js](https://wavesurfer.xyz/), [Vidstack Player](https://github.com/vidstack/player), and [react-player](https://www.npmjs.com/package/react-player). See [`docs/universal/COMPARISON.md`](./docs/universal/COMPARISON.md) for the full table — including when Pulse is **not** the right choice. Headline summary:
-
-| You build…                                                              | Use…                                                        |
-| ----------------------------------------------------------------------- | ----------------------------------------------------------- |
-| A content site / portfolio / landing page with polished audio           | **Pulse** (smallest scope, premium chrome, multi-framework) |
-| A media platform at scale (Netflix-clone, podcast app, music streaming) | Vidstack or Plyr (battle-tested, video + HLS)               |
-| A DAW / audio editor / podcast cutter (waveform UI)                     | WaveSurfer.js + Howler                                      |
-| A React-only app needing YouTube / Vimeo embed                          | react-player                                                |
-| A game with 3D spatial audio                                            | Howler.js                                                   |
-
-### Architecture & process docs
-
-[`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md) — dependency graph · [`docs/universal/FEATURE_MATRIX.md`](./docs/universal/FEATURE_MATRIX.md) — what works in each framework · [`docs/universal/API.md`](./docs/universal/API.md) — canonical API reference · [`docs/universal/LICENSING.md`](./docs/universal/LICENSING.md) — the MIT-and-why strategy · [`docs/universal/PRICING.md`](./docs/universal/PRICING.md) — business model locked · [`docs/universal/METRICS_TRACKING.md`](./docs/universal/METRICS_TRACKING.md) — adoption discipline · [`docs/universal/ROADMAP.md`](./docs/universal/ROADMAP.md) — per-alpha plan · [`docs/universal/COMPARISON.md`](./docs/universal/COMPARISON.md) — vs Plyr / Vidstack / Howler · [`docs/universal/SCREEN_READER_TEST_PLAN.md`](./docs/universal/SCREEN_READER_TEST_PLAN.md) — manual SR test plan · [`docs/universal/VERSION_STRATEGY.md`](./docs/universal/VERSION_STRATEGY.md) — alpha → rc → stable cadence · [`docs/_archive/`](./docs/_archive/) — superseded docs (RENAMING_DECISION, RN_RUNTIME_SETUP, PROTECTION_NOTES, PUBLISH_CHECKLIST, GIF_GUIDE).
-
-**Quality gates (every push / PR)** : type-check · ESLint 0-warning · 194 unit tests across 8 suites · 80.9 % coverage floor · production build · `npm audit` (0 runtime vulns) · **byte-identical guard** ([`scripts/check-lib-byte-identical.mjs`](./scripts/check-lib-byte-identical.mjs) proves `src/lib/` matches the `v2.3.4` tag SHA-for-SHA) · Axe-core WCAG 2.1 AA scan · multi-viewport responsive smoke (390 → 2560 px, zero horizontal overflow) · Playwright visual baselines · **post-deploy smoke against the live GitHub Pages URL** (zero console errors, zero failed assets, every image decoded).
-
-<br>
-
-[![npm @pulse-music/react](https://img.shields.io/npm/v/@pulse-music/react?label=%40pulse-music%2Freact&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@pulse-music/react)
-[![npm @pulse-music/svelte](https://img.shields.io/npm/v/@pulse-music/svelte?label=%40pulse-music%2Fsvelte&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@pulse-music/svelte)
-[![npm @pulse-music/web-component](https://img.shields.io/npm/v/@pulse-music/web-component?label=%40pulse-music%2Fweb-component&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@pulse-music/web-component)
-[![npm @pulse-music/react-native](https://img.shields.io/npm/v/@pulse-music/react-native?label=%40pulse-music%2Freact-native&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@pulse-music/react-native)
-[![npm @pulse-music/core](https://img.shields.io/npm/v/@pulse-music/core?label=%40pulse-music%2Fcore&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/@pulse-music/core)
-[![Vue 3](https://img.shields.io/badge/Vue-3.4+-42b883?logo=vue.js&logoColor=white)](https://vuejs.org/)
-[![React 18 / 19](https://img.shields.io/badge/React-18%20%2F%2019-61dafb?logo=react&logoColor=white)](https://react.dev/)
-[![Svelte 5](https://img.shields.io/badge/Svelte-5-ff3e00?logo=svelte&logoColor=white)](https://svelte.dev/)
-[![Web Components](https://img.shields.io/badge/Web%20Components-Lit-324fff?logo=lit&logoColor=white)](https://lit.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-3DBDA7.svg)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-194%20%2F%20194-3DBDA7.svg)](./CHANGELOG.md)
-[![Coverage](https://img.shields.io/badge/coverage-80.9%25-3DBDA7.svg)](./vitest.config.ts)
-[![CI](https://img.shields.io/github/actions/workflow/status/YamadaBlog/pulse-player/ci.yml?branch=main&label=CI&logo=github)](https://github.com/YamadaBlog/pulse-player/actions)
-[![Live demo](https://img.shields.io/badge/demo-live-3DBDA7?logo=github&logoColor=white)](https://yamadablog.github.io/pulse-player/)
-[![Watch demo](https://img.shields.io/badge/demo-YouTube-FF0000?logo=youtube&logoColor=white)](https://youtu.be/q_FJ1GWaCc8)
-
-<br>
-
-<img src="./docs/screenshots/hero.png" alt="pulse-player floating transparently over a blurred album-art backdrop" width="100%" />
-
-<br>
-
-**A drop-in inline card.** &nbsp;·&nbsp; **A floating draggable FAB.** &nbsp;·&nbsp; **One global audio session.**
-<br><sub>Every visible dimension scales from a single CSS variable.</sub>
+<img src="./docs/screenshots/hero.webp" alt="The Pulse showcase: an LP sleeve reading “A music player that plays your page”, a WebGL vinyl record sliding out of it under a tonearm, and a live player card next to a “Lift the needle” button." width="100%" />
 
 </div>
 
-<br>
+## Why Pulse
 
----
+- **Container-aware.** The player reads its own width with CSS container queries and scales continuously — full card, compact, down to a round disc. No breakpoints, no layout JavaScript.
+- **Every framework.** A standard Custom Element with thin, typed wrappers for Vue, React and Svelte. Angular and plain HTML use it natively.
+- **Alive, not busy.** A real FFT equaliser, an accent colour sampled from the cover art, spring-physics micro-interactions — and all of it stops for `prefers-reduced-motion`.
+- **One audio session.** Every player on the page — and the floating `<pulse-fab>` — shares the same playback, so music survives route changes.
+- **Accessible by default.** Real buttons, a keyboard-operable seek slider, media shortcuts, OS media keys and lock-screen controls (Media Session). Verified against WCAG 2.2 AA in CI.
+- **Small and SSR-safe.** About 23 kB brotli with Lit and the engine included; importing it on the server never touches the DOM.
 
-## 👥 &nbsp;Used by
-
-> **You're early.** Pulse v3.0.0-rc.0 went live on npm on 2026-06-08. We track real production users here as they come on board — see [`docs/universal/METRICS_TRACKING.md`](./docs/universal/METRICS_TRACKING.md) for the public adoption metrics.
->
-> Shipping Pulse in production? Open a PR adding your project + logo to this section. We honour requests to stay anonymous.
-
-## ✨ &nbsp;What it is
-
-**pulse-player** started as two Vue 3 components — **`MusicPlayer`** (inline
-card) + **`MiniPlayer`** (floating FAB) — backed by a Pinia store that owns
-the audio session. Drop them anywhere, they stay in sync. Mount the FAB at
-the app root, playback survives every route change.
-
-As of `v3.0.0-rc.0` (2026-06-08), the same chrome ships across **5 web
-frameworks** under the **`@pulse-music/*`** scope on npm:
-
-- **React 18 / 19** — `npm install @pulse-music/react @pulse-music/core`
-- **Svelte 5** — `npm install @pulse-music/svelte @pulse-music/core`
-- **Web Components / Vanilla / Solid / Astro / Qwik** — `npm install @pulse-music/web-component`
-- **Angular 17+** — `@pulse-music/angular` (NgModule, awaiting peer-dep floor bump)
-- **Vue 3** — `pulse-player` (v2.3.4 reference) or `@pulse-music/vue` (re-export)
-
-All wrappers share the same `@pulse-music/core` audio engine and
-`@pulse-music/tokens` variant tokens. See [`docs/universal/ARCHITECTURE.md`](./docs/universal/ARCHITECTURE.md).
-
-The unusual bit: **every visible dimension scales from one CSS variable.**
-A `ResizeObserver` watches the container, writes `--pulse-scale` inline, and
-the entire component — artwork, title, icons, buttons, padding, shadows, EQ
-bars, progress — breathes together. Three responsive states layer on top:
-**narrow** below 220 px (NOW PLAYING label hides, social icons stay),
-**compact** below 130 px (top row collapses), **FAB** below 110 px (the
-player morphs into a circular disc). No media queries. No layout breaks.
-
-<br>
-
-## 🎨 &nbsp;Themes
-
-Nine curated background presets ship in, including a true **transparent**
-variant with the original dashboard's gradient + noise texture intact. Pass
-`accentColor` to retune the EQ + progress hue.
-
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <img src="./docs/screenshots/variant-vinyl.png" alt="vinyl variant" width="100%" />
-      <br><sub><b>Vinyl</b> &nbsp;·&nbsp; warm analog, gold border</sub>
-    </td>
-    <td align="center" width="50%">
-      <img src="./docs/screenshots/variant-sunset.png" alt="sunset variant" width="100%" />
-      <br><sub><b>Sunset</b> &nbsp;·&nbsp; sepia / brown gradient</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <img src="./docs/screenshots/variant-midnight.png" alt="midnight variant" width="100%" />
-      <br><sub><b>Midnight</b> &nbsp;·&nbsp; deep navy → violet</sub>
-    </td>
-    <td align="center">
-      <img src="./docs/screenshots/variant-aurora.png" alt="aurora variant" width="100%" />
-      <br><sub><b>Aurora</b> &nbsp;·&nbsp; teal / cyan night</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" colspan="2">
-      <img src="./docs/screenshots/variant-light.png" alt="light variant" width="50%" />
-      <br><sub><b>Light</b> &nbsp;·&nbsp; inverted palette for light-mode apps</sub>
-    </td>
-  </tr>
-</table>
-
-Also available: **Auto** · **Transparent** (hero above) · **Dark** · **Solid** · **Custom**.
-&nbsp; → [Full customization guide](./docs/CUSTOMIZATION.md)
-
-<br>
-
-## 📐 &nbsp;Responsive — built in
-
-<table>
-  <tr>
-    <td align="center" valign="bottom" width="20%">
-      <img src="./docs/screenshots/compact.png" alt="compact" width="100%" />
-      <br><sub><b>Compact</b><br/>&lt; 130 px</sub>
-    </td>
-    <td align="center" valign="bottom" width="25%">
-      <img src="./docs/screenshots/responsive-mobile.png" alt="mobile" width="100%" />
-      <br><sub><b>Mobile</b><br/>≈ 390 px</sub>
-    </td>
-    <td align="center" valign="bottom" width="30%">
-      <img src="./docs/screenshots/responsive-tablet.png" alt="tablet" width="100%" />
-      <br><sub><b>Tablet</b><br/>≈ 820 px</sub>
-    </td>
-    <td align="center" valign="bottom" width="25%">
-      <img src="./docs/screenshots/responsive-desktop.png" alt="desktop" width="100%" />
-      <br><sub><b>Desktop</b><br/>≥ 1280 px</sub>
-    </td>
-  </tr>
-</table>
-
-Same component, four screens, zero breakpoints. → [Read the responsive guide](./docs/RESPONSIVE.md)
-
-<br>
-
-## ⚡ &nbsp;Quick start
+## Quick start
 
 ```bash
-git clone https://github.com/YamadaBlog/pulse-player.git
-cd pulse-player
-npm install && npm run dev       # http://localhost:5174
+npm i @pulse-music/web-component
 ```
 
-In your own app, copy [`src/lib/`](./src/lib) and:
+```html
+<script type="module">
+  import '@pulse-music/web-component'
+</script>
+
+<pulse-player variant="auto" ambient-eq>
+  <pulse-track
+    src="/song.mp3"
+    title="Protofunk"
+    artist="Kevin MacLeod"
+    cover="/cover.jpg"
+  ></pulse-track>
+</pulse-player>
+
+<!-- Optional: a floating mini player that appears once music starts -->
+<pulse-fab></pulse-fab>
+```
+
+<details>
+<summary><b>Vue</b> · <code>npm i @pulse-music/vue</code></summary>
 
 ```vue
-<MusicPlayer variant="vinyl" />
-<MiniPlayer />
+<script setup lang="ts">
+import { PulsePlayer, PulseFab } from '@pulse-music/vue'
+const tracks = [
+  { title: 'Protofunk', artist: 'Kevin MacLeod', src: '/song.mp3', cover: '/cover.jpg' },
+]
+</script>
+
+<template>
+  <PulsePlayer :tracks="tracks" variant="midnight" @trackchange="console.log" />
+  <PulseFab />
+</template>
 ```
 
-That's it. Pinia is the only setup step. → [Detailed install + usage](./docs/ADVANCED_USAGE.md)
+</details>
 
-<br>
+<details>
+<summary><b>React</b> · <code>npm i @pulse-music/react</code></summary>
 
-## 📚 &nbsp;Documentation
+```tsx
+import { PulsePlayer, PulseFab, usePulseAudio } from '@pulse-music/react'
 
-|                                                            |                                                                                               |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| 📖 &nbsp; [**API reference**](./docs/API.md)               | Props for `MusicPlayer`, `MiniPlayer`, the `useAudioStore` state + actions + keyboard surface |
-| 🏗️ &nbsp; [**Architecture**](./docs/ARCHITECTURE.md)       | How the store, audio element and FFT analyser fit together (with diagram)                     |
-| 🎨 &nbsp; [**Customization**](./docs/CUSTOMIZATION.md)     | Variants, accent colors, CSS variables, custom backgrounds                                    |
-| 📐 &nbsp; [**Responsive**](./docs/RESPONSIVE.md)           | The auto-scale curve, the four responsive states, drag-to-resize                              |
-| 🛠️ &nbsp; [**Advanced usage**](./docs/ADVANCED_USAGE.md)   | Replace playlist, custom controls, multiple players, hide on routes                           |
-| ▶️ &nbsp; [**Guided demo tour**](./docs/DEMO.md)           | The "Watch demo" feature — scenario, controls, fullscreen, custom steps                       |
-| 🔔 &nbsp; [**Events & telemetry**](./docs/EVENTS.md)       | Opt-in typed `subscribe()` API + per-session counters (no third-party tracking)               |
-| ⚡ &nbsp; [**Performance**](./docs/PERFORMANCE.md)         | Bundle map, runtime cost per hot path, integration guidelines, `prefers-reduced-motion` story |
-| 🆘 &nbsp; [**Troubleshooting**](./docs/TROUBLESHOOTING.md) | Autoplay rejection, 404s, EQ silent, FAB persistence, hydration mismatch                      |
-| 🧪 &nbsp; [**Examples**](./examples)                       | 3 ready-to-fork integrations: minimum SPA, custom playlist, event subscriptions               |
-| 🚀 &nbsp; [**Release procedure**](./RELEASING.md)          | Tag → GitHub Release → npm publish flow with release-notes templates                          |
-| 📝 &nbsp; [**Changelog**](./CHANGELOG.md)                  | Every version from 0.1.0 to today, with rationale                                             |
+const tracks = [
+  { title: 'Protofunk', artist: 'Kevin MacLeod', src: '/song.mp3', cover: '/cover.jpg' },
+]
 
-<br>
+export function Player() {
+  const { isPlaying, track } = usePulseAudio() // any component can read the session
+  return (
+    <>
+      <PulsePlayer
+        tracks={tracks}
+        variant="aurora"
+        onPlay={({ track }) => console.log(track.title)}
+      />
+      <PulseFab />
+      <p>{isPlaying ? `Now playing ${track?.title}` : 'Paused'}</p>
+    </>
+  )
+}
+```
 
-## 💎 &nbsp;Highlights
+</details>
 
-|                             |                                                                                                                          |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **Truly proportional**      | One CSS variable scales artwork, type, chrome and shadows together.                                                      |
-| **Container-aware**         | Sizes itself off its container, not the viewport.                                                                        |
-| **Three responsive states** | Narrow (≤ 220 px) → compact (≤ 130 px) → FAB (≤ 110 px). All driven by ResizeObserver, no media queries.                 |
-| **Drag-to-resize**          | Optional handle in the bottom-right corner. Pointer events. Mouse, touch, stylus.                                        |
-| **Persistent session**      | One Pinia store. Survives every route change.                                                                            |
-| **9 themes + custom**       | Includes a true transparent variant with gradient + noise.                                                               |
-| **Ambient EQ**              | 64-bar GPU-composited spectrum across the player. Globally toggleable.                                                   |
-| **Pulso ripple**            | Optional heartbeat ring around the FAB — only while music is playing.                                                    |
-| **Guided demo tour**        | ~50 s scripted walkthrough with pause / resume / step jump and fullscreen.                                               |
-| **Opt-in events**           | `store.subscribe('play', …)` returns an unsubscribe. Plus play / pause / track-change counters. No third-party tracking. |
-| **a11y**                    | `prefers-reduced-motion` honoured everywhere — tweens snap, scrolls jump, transitions disabled.                          |
-| **Tiny**                    | ~49 kB gzipped (JS + CSS combined). Three deps (Vue, Pinia, lucide-vue-next). Zero domain code.                          |
+<details>
+<summary><b>Svelte</b> · <code>npm i @pulse-music/svelte</code></summary>
 
-<br>
+```svelte
+<script>
+  import { usePulseAudio } from '@pulse-music/svelte'
+  const tracks = [{ title: 'Protofunk', src: '/song.mp3', cover: '/cover.jpg' }]
+  const audio = usePulseAudio()
+</script>
 
-## 🗺️ &nbsp;Roadmap
+<pulse-player {tracks} variant="sunset"></pulse-player>
+<p>{$audio.isPlaying ? 'Playing' : 'Paused'} — {$audio.track?.title}</p>
+```
 
-- [ ] Volume slider + mute on the inline card
-- [ ] Shuffle / repeat modes
-- [ ] Persist `currentTime` to `localStorage` (`persistKey` already covers FAB position)
-- [ ] Keyboard shortcuts (`Space`, `←`, `→`) in the demo tour
-- [ ] Media Session API (hardware media keys + lock-screen art)
-- [ ] Waveform variant (canvas alternative to the EQ bars)
-- [ ] Extract `src/lib/shared/` to deduplicate variant CSS between `MusicPlayer` and `MiniPlayer`
-- [ ] Publish as a standalone npm package
+</details>
 
-<br>
+<details>
+<summary><b>Angular</b> · <code>npm i @pulse-music/web-component</code></summary>
 
-## 📝 &nbsp;Changelog
+```ts
+import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core'
+import '@pulse-music/web-component'
 
-Every release is pinned to a signed git tag (`v1.0.0` … `v1.0.12`) and surfaced as a GitHub Release.
+@Component({
+  selector: 'app-player',
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  template: `<pulse-player [tracks]="tracks" variant="vinyl"></pulse-player>`,
+})
+export class PlayerComponent {
+  tracks = [{ title: 'Protofunk', src: '/song.mp3' }]
+}
+```
 
-| Latest         | One-line summary                                                                                                                                            |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **v1.0.12**    | Spotlight blur stays active during the Pulso demo step; boost to the FAB section is 1.5× slower for readability.                                            |
-| v1.0.11        | `Options` divider between the FAB colour palette and the action buttons.                                                                                    |
-| v1.0.10        | Stable `680 × 233` baseline for the demo stages — never shrinks, grows past the baseline if the player does.                                                |
-| v1.0.6 → 1.0.9 | Pick-a-mood demo step rewritten — precise framing, single continuous descent, title always in view; pulso ring + heartbeat aligned to the beat.             |
-| v1.0.1 → 1.0.5 | Ambient EQ moved to a pure-CSS animation (0 JS / frame), bullet-proof pulso centring, dem o tour pause / resume / step jump, distance-aware scroll easings. |
-| **v1.0.0**     | Production-ready: CI matrix, 30 unit tests, ESLint + Prettier + Husky, npm-publish-ready `package.json`, shared `PulseVariant` type, `CONTRIBUTING.md`.     |
+</details>
 
-Full history with rationale per release: [`CHANGELOG.md`](./CHANGELOG.md).
+More: [Next.js](./docs/integrations/next-app-router.md) · [Nuxt](./docs/integrations/nuxt.md) · [SvelteKit](./docs/integrations/sveltekit.md) · [Astro](./docs/integrations/astro.md) · [CDN, no build step](./docs/integrations/vanilla-cdn.md)
 
-<br>
+## Nine themes, every size
 
-## 📄 &nbsp;License
+<img src="./docs/screenshots/themes.webp" alt="The same player in nine themes: auto, transparent, solid, dark, light, sunset, midnight, aurora and vinyl." width="100%" />
 
-[MIT](./LICENSE). The two demo tracks under `public/audio/` are shipped
-for local testing only and are **not** part of the MIT-licensed source —
-replace them with content you own before redistributing.
+<img src="./docs/screenshots/sizes.webp" alt="The same player at eight widths, from a full card at 720 pixels down to a 72-pixel disc." width="100%" />
 
-<br>
+## Documentation
 
-<div align="center">
+|                                                          |                                                                |
+| -------------------------------------------------------- | -------------------------------------------------------------- |
+| [Getting started](./docs/getting-started.md)             | Install, playlists, sessions, SSR                              |
+| [Web Components reference](./docs/reference/elements.md) | Attributes, properties, events, slots, CSS parts and variables |
+| [Engine reference](./docs/reference/engine.md)           | `PulseEngine`: state, actions, events, visualiser frames       |
+| [Frameworks](./docs/frameworks.md)                       | Vue, React, Svelte, Angular and plain HTML in depth            |
+| [Theming](./docs/theming.md)                             | Variants, accent colours, custom properties, `::part()`        |
+| [Accessibility](./docs/accessibility.md)                 | Keyboard map, screen readers, motion, localisation             |
+| [Architecture](./docs/architecture.md)                   | How the packages fit together                                  |
+| [Migrating to 3.0](./docs/migration.md)                  | From 2.x (Vue + Pinia) and the 3.0 release candidates          |
+| [Troubleshooting](./docs/troubleshooting.md)             | Autoplay, CORS, silent visualiser, SSR                         |
 
-<sub>Built with Vue 3, Pinia, a ResizeObserver and a small amount of obsessive proportional tuning.</sub>
+## Packages
 
-</div>
+| Package                                                  | What it is                                                    |
+| -------------------------------------------------------- | ------------------------------------------------------------- |
+| [`@pulse-music/web-component`](./packages/web-component) | `<pulse-player>`, `<pulse-fab>`, `<pulse-track>` — start here |
+| [`@pulse-music/vue`](./packages/vue)                     | Vue 3 components and `usePulseAudio()` composable             |
+| [`@pulse-music/react`](./packages/react)                 | React 18/19 components and `usePulseAudio()` hook             |
+| [`@pulse-music/svelte`](./packages/svelte)               | Svelte store over the audio session                           |
+| [`@pulse-music/core`](./packages/core)                   | The framework-agnostic audio engine                           |
+| [`@pulse-music/tokens`](./packages/tokens)               | Theme and motion design tokens                                |
+| [`@pulse-music/types`](./packages/types)                 | Shared TypeScript types                                       |
+| [`@pulse-music/react-native`](./packages/react-native)   | Experimental native renderer (Expo), released separately      |
+
+Browser support: the last two versions of Chrome, Edge, Firefox and Safari (container queries, `:state()` and View Transitions degrade gracefully).
+
+## Contributing
+
+Issues and pull requests are welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md). Security reports: [SECURITY.md](./SECURITY.md).
+
+## License
+
+[MIT](./LICENSE). Demo music by Kevin MacLeod (CC BY 4.0) — see [NOTICE.md](./NOTICE.md) for every third-party asset.

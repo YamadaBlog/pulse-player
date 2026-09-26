@@ -141,10 +141,7 @@ export class PulseEngineRN {
 
   // ─── Event bus ─────────────────────────────────────────────
 
-  subscribe<E extends AudioEvent>(
-    event: E,
-    cb: EventListener<E>,
-  ): Unsubscribe {
+  subscribe<E extends AudioEvent>(event: E, cb: EventListener<E>): Unsubscribe {
     let set = this._listeners.get(event)
     if (!set) {
       set = new Set()

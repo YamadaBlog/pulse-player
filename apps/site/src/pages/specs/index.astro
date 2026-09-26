@@ -1,0 +1,16 @@
+---
+import Base from '../../layouts/Base.astro'
+import LinerNotes from '../../components/LinerNotes.astro'
+import Specs from '../../components/Specs.astro'
+import { Content, getHeadings } from '../../../../../docs/reference/elements.md'
+---
+
+<Base
+  title="Elements reference — Pulse liner notes"
+  description="Attributes, properties, events, slots, CSS parts and keyboard map of <pulse-player>, <pulse-fab> and <pulse-track>."
+>
+  <Specs current="elements" headings={getHeadings()}>
+    <Content />
+  </Specs>
+  <LinerNotes />
+</Base>

@@ -1,95 +1,51 @@
 #!/usr/bin/env node
 /**
- * assets-license-check.mjs — machine-verified asset provenance.
- *
- * Every binary/media asset that ships (in the npm tarball or on the
- * deployed demo) must have a documented licence. This script enumerates
- * them and fails if any is neither (a) referenced by filename in
- * NOTICE.md, nor (b) a recognised licence file, nor (c) on the allow-
- * list of self-generated artefacts (covers/backdrops derived from the
- * MIT SVGs, demo screenshots rendered from the component itself).
- *
- * It also prints a weight manifest so asset bloat is visible in CI.
- *
- *   node scripts/assets-license-check.mjs
- *
- * Exit 0 = every shipped asset has documented provenance.
- * Exit 1 = an asset has no licence trail (prints which).
+ * Every media asset that ships (in a package or on the public site) must
+ * have documented provenance: either a mention in NOTICE.md or a rule
+ * below explaining why it is exempt. Prints a weight manifest as well.
  */
-
 import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, basename, relative } from 'node:path'
+import { basename, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const ROOT = join(fileURLToPath(import.meta.url), '..', '..')
-const NOTICE = readFileSync(join(ROOT, 'NOTICE.md'), 'utf-8')
+const ROOT = fileURLToPath(new URL('..', import.meta.url))
+const NOTICE = readFileSync(join(ROOT, 'NOTICE.md'), 'utf8')
+const ASSET = /\.(webp|png|jpe?g|svg|gif|woff2?|ttf|otf|webm|mp3|ogg|wav|mp4)$/i
+const SCAN = ['apps/site/public', 'apps/site/src/assets', 'docs', 'packages']
 
-const ASSET_RE = /\.(webp|png|jpe?g|svg|gif|woff2?|ttf|otf|webm|mp3|ogg|wav|mp4)$/i
-const SCAN_DIRS = ['public', 'src/lib', 'src/assets']
-
-// Self-generated, in-repo-derived, or licence-carrying files that don't
-// need a per-file NOTICE line. Each entry states WHY it is exempt.
-const ALLOW = [
-  { test: /OFL\.txt$/, why: 'SIL OFL licence text itself (ships beside the fonts)' },
+const EXEMPT = [
   {
-    test: /Geist.*\.woff2$/,
-    why: 'Geist (OFL) — documented in NOTICE §3ter, licence at fonts/OFL.txt',
+    test: /^apps\/site\/public\/(favicon\.(svg|png)|og-banner\.png)$/,
+    why: 'project mark / banner (MIT)',
   },
-  { test: /favicon\.(svg|png)$/, why: 'project mark, MIT (rendered from the repo)' },
-  { test: /og-banner\.png$/, why: 'OG banner rendered from the component, MIT (NOTICE §5)' },
-  {
-    test: /cover2?-blur\.webp$/,
-    why: 'hero backdrop baked from the MIT cover SVGs (generate:backdrop)',
-  },
-  {
-    test: /assets[\\/]shells[\\/].*\.webp$/,
-    why: 'PlayerShell captures rendered from the component itself, MIT',
-  },
-  {
-    test: /track[12]\.webm$/,
-    why: 'demo music — Kevin MacLeod CC BY 3.0, documented NOTICE §3bis',
-  },
-  { test: /cover2?\.(webp|svg)$/, why: 'demo cover placeholder, documented NOTICE §3/§5' },
+  { test: /^docs\/(brand|screenshots)\//, why: 'rendered from this repository (MIT)' },
 ]
 
-function walk(dir, out = []) {
-  let entries
-  try {
-    entries = readdirSync(join(ROOT, dir))
-  } catch {
-    return out
+function* walk(dir) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'node_modules' || entry.name === 'dist') continue
+    const full = join(dir, entry.name)
+    if (entry.isDirectory()) yield* walk(full)
+    else if (ASSET.test(entry.name)) yield full
   }
-  for (const e of entries) {
-    const rel = join(dir, e)
-    const abs = join(ROOT, rel)
-    if (statSync(abs).isDirectory()) walk(rel, out)
-    else if (ASSET_RE.test(e)) out.push(rel)
-  }
-  return out
 }
 
-const assets = SCAN_DIRS.flatMap((d) => walk(d))
-const undocumented = []
-let totalBytes = 0
-
-console.log('Asset provenance + weight manifest\n')
-for (const rel of assets) {
-  const bytes = statSync(join(ROOT, rel)).size
-  totalBytes += bytes
-  const name = basename(rel)
-  const allow = ALLOW.find((a) => a.test.test(rel))
-  const inNotice = NOTICE.includes(name)
-  const ok = allow || inNotice
-  const tag = allow ? `allow: ${allow.why}` : inNotice ? 'NOTICE.md' : 'UNDOCUMENTED'
-  console.log(`  ${ok ? '✅' : '❌'} ${(bytes / 1024).toFixed(1).padStart(7)} kB  ${rel}  — ${tag}`)
-  if (!ok) undocumented.push(rel)
+let missing = 0
+let total = 0
+for (const root of SCAN) {
+  for (const file of walk(join(ROOT, root))) {
+    const rel = relative(ROOT, file).replaceAll('\\', '/')
+    const size = statSync(file).size
+    total += size
+    const exempt = EXEMPT.find((e) => e.test.test(rel))
+    const documented = NOTICE.includes(basename(file))
+    const status = documented ? 'NOTICE' : exempt ? exempt.why : 'UNDOCUMENTED'
+    if (!documented && !exempt) missing++
+    console.log(`${(size / 1024).toFixed(0).padStart(6)} kB  ${rel}  — ${status}`)
+  }
 }
-console.log(`\n  total: ${(totalBytes / 1024).toFixed(1)} kB across ${assets.length} assets`)
-
-if (undocumented.length) {
-  console.error(`\n✗ ${undocumented.length} asset(s) with no documented provenance:`)
-  for (const a of undocumented) console.error(`  - ${relative(ROOT, join(ROOT, a))}`)
-  console.error('\nAdd a NOTICE.md entry (by filename) or an ALLOW rule with a stated reason.')
+console.log(`\n${(total / 1024 / 1024).toFixed(2)} MB of assets scanned.`)
+if (missing) {
+  console.error(`${missing} asset(s) without documented provenance — add them to NOTICE.md.`)
   process.exit(1)
 }
-console.log('\n✅ every shipped asset has documented provenance.')

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
+  "changelog": ["@changesets/changelog-github", { "repo": "YamadaBlog/pulse-player" }],
+  "commit": false,
+  "fixed": [
+    [
+      "@pulse-music/types",
+      "@pulse-music/core",
+      "@pulse-music/tokens",
+      "@pulse-music/web-component",
+      "@pulse-music/react",
+      "@pulse-music/svelte",
+      "@pulse-music/vue"
+    ]
+  ],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [],
+  "privatePackages": { "version": false, "tag": false }
+}

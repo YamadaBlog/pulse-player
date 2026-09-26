@@ -1,46 +1,70 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
-import vue from '@vitejs/plugin-vue'
+
+const src = (pkg: string): string =>
+  fileURLToPath(new URL(`./packages/${pkg}/src/index.ts`, import.meta.url))
+
+// Tests always run against the TypeScript sources, never against dist/.
+const alias = {
+  '@pulse-music/types': src('types'),
+  '@pulse-music/core': src('core'),
+  '@pulse-music/tokens': src('tokens'),
+  '@pulse-music/web-component': src('web-component'),
+  '@pulse-music/react': src('react'),
+  '@pulse-music/svelte': src('svelte'),
+  '@pulse-music/vue': src('vue'),
+  '@pulse-music/test-utils': src('test-utils'),
+}
+
+const dom = (name: string, setup?: string) => ({
+  extends: true as const,
+  test: {
+    name,
+    include: [`packages/${name}/tests/**/*.test.{ts,tsx}`],
+    environment: 'happy-dom',
+    setupFiles: setup ? [setup] : [],
+  },
+})
 
 export default defineConfig({
-  plugins: [vue()],
+  resolve: { alias },
   test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: ['./tests/setup.ts'],
-    include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
+    projects: [
+      dom('core', 'packages/core/tests/setup.ts'),
+      dom('tokens'),
+      dom('web-component', 'packages/test-utils/src/setup-dom.ts'),
+      dom('react', 'packages/test-utils/src/setup-dom.ts'),
+      dom('svelte', 'packages/test-utils/src/setup-dom.ts'),
+      dom('vue', 'packages/test-utils/src/setup-dom.ts'),
+      {
+        test: {
+          name: 'react-native',
+          root: 'packages/react-native',
+          include: ['tests/**/*.test.ts'],
+          environment: 'node',
+          alias: {
+            '@pulse-music/types': src('types'),
+            'expo-av': fileURLToPath(
+              new URL('./packages/react-native/tests/__mocks__/expo-av.ts', import.meta.url),
+            ),
+            'react-native': fileURLToPath(
+              new URL('./packages/react-native/tests/__mocks__/react-native.ts', import.meta.url),
+            ),
+            'react-native-reanimated': fileURLToPath(
+              new URL(
+                './packages/react-native/tests/__mocks__/react-native-reanimated.ts',
+                import.meta.url,
+              ),
+            ),
+          },
+        },
+      },
+    ],
     coverage: {
       provider: 'v8',
-      // Scope = the library + the two demo composables with TESTABLE
-      // logic (tour state machine, responsive sizing curve).
-      //
-      // The four motion composables (useAdvancedMotion, usePremiumMotion,
-      // useCinematicEffects, useDemoSpotlight) are deliberately OUT of
-      // scope : they wire GSAP ScrollTrigger / rAF / canvas pipelines
-      // whose observable effects live in the compositor — jsdom can't
-      // see any of it, so "covering" them would only execute wiring
-      // without asserting behaviour. They're exercised end-to-end by
-      // the Playwright suites (visual / responsive / a11y) instead.
-      //
-      // Audit round-4 note : the previous `src/composables/**` glob
-      // pulled those four files (1 390 LOC at 0 %) into the metric,
-      // which made the 60 % floor arithmetically unreachable and kept
-      // the Coverage workflow red on main since alpha.29.
-      include: [
-        'src/lib/**',
-        'src/composables/useDemoTour.ts',
-        'src/composables/useResponsiveWidth.ts',
-        'src/composables/useAutoFab.ts',
-      ],
-      exclude: ['**/*.vue', '**/index.ts'],
-      reporter: ['text', 'html'],
-      thresholds: {
-        // Modest floors — tests focus on the high-leverage store + tour
-        // composable. Vue SFCs are covered by smoke tests in the demo.
-        lines: 60,
-        functions: 60,
-        branches: 50,
-        statements: 60,
-      },
+      include: ['packages/{core,tokens,web-component,react,svelte,vue}/src/**'],
+      reporter: ['text-summary', 'html', 'lcov'],
+      thresholds: { lines: 90, functions: 85, branches: 77, statements: 87 },
     },
   },
 })

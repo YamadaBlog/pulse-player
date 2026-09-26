@@ -1,0 +1,24 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "verbatimModuleSyntax": true,
+    "paths": {
+      "@pulse-music/types": ["../../packages/types/src/index.ts"],
+      "@pulse-music/core": ["../../packages/core/src/index.ts"],
+      "@pulse-music/tokens": ["../../packages/tokens/src/index.ts"],
+      "@pulse-music/web-component": ["../../packages/web-component/src/index.ts"],
+      "@pulse-music/vue": ["../../packages/vue/src/index.ts"]
+    }
+  },
+  "include": [
+    ".astro/types.d.ts",
+    "src",
+    "astro.config.mjs",
+    "../workspace-aliases.ts",
+    "../shared-tracks.ts"
+  ],
+  "exclude": ["dist"]
+}
