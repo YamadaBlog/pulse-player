@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { get } from 'svelte/store'
-import { createFakeAudio } from '@pulse-music/test-utils'
+import { createFakeAudio, ENGINE_ACTIONS, expectActionsForwarded } from '@pulse-music/test-utils'
 import { PulseEngine, usePulseAudio } from '../src/index'
 
 const makeEngine = (): PulseEngine =>
@@ -35,6 +35,16 @@ describe('usePulseAudio (Svelte store)', () => {
     expect(snapshot.track?.title).toBe('Two')
     expect(snapshot.progress).toBe(0)
     expect(snapshot.tracks).toHaveLength(2)
+  })
+
+  it('forwards every action to the engine', () => {
+    const engine = makeEngine()
+    const audio = usePulseAudio({ engine })
+    expectActionsForwarded(
+      engine,
+      audio as unknown as Record<string, unknown>,
+      ENGINE_ACTIONS.filter((n) => n !== 'subscribe'),
+    )
   })
 
   it('registers the custom elements', () => {

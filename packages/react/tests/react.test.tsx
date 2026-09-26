@@ -1,6 +1,6 @@
 import { act, cleanup, render, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createFakeAudio } from '@pulse-music/test-utils'
+import { createFakeAudio, ENGINE_ACTIONS, expectActionsForwarded } from '@pulse-music/test-utils'
 import { PulseEngine, PulseFab, PulsePlayer, usePulseAudio, type Track } from '../src/index'
 
 const TRACKS: Track[] = [
@@ -29,6 +29,18 @@ describe('usePulseAudio', () => {
     expect(result.current.track?.title).toBe('Two')
     expect(result.current.toggle).toBe(firstToggle)
     expect(result.current.fmt(75)).toBe('1:15')
+  })
+})
+
+describe('usePulseAudio actions', () => {
+  it('forward to the engine', () => {
+    const engine = makeEngine()
+    const { result } = renderHook(() => usePulseAudio({ engine }))
+    expectActionsForwarded(engine, result.current as unknown as Record<string, unknown>, [
+      ...ENGINE_ACTIONS,
+      'setMuted',
+      'open',
+    ])
   })
 })
 

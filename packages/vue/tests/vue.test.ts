@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { defineComponent, effectScope, h, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
-import { createFakeAudio } from '@pulse-music/test-utils'
+import { createFakeAudio, ENGINE_ACTIONS, expectActionsForwarded } from '@pulse-music/test-utils'
 import { PulseEngine, PulseFab, PulsePlayer, usePulseAudio } from '../src/index'
 
 const makeEngine = (): PulseEngine =>
@@ -30,6 +30,17 @@ describe('usePulseAudio (Vue)', () => {
   })
 })
 
+describe('usePulseAudio actions (Vue)', () => {
+  it('forward to the engine', () => {
+    const engine = makeEngine()
+    const audio = effectScope().run(() => usePulseAudio({ engine }))!
+    expectActionsForwarded(engine, audio as unknown as Record<string, unknown>, [
+      ...ENGINE_ACTIONS,
+      'open',
+    ])
+  })
+})
+
 describe('<PulsePlayer>', () => {
   it('sets element properties and re-emits events', async () => {
     const engine = makeEngine()
@@ -45,8 +56,14 @@ describe('<PulsePlayer>', () => {
     expect(el.ambientEq).toBe(true)
     expect(el.getAttribute('variant')).toBe('vinyl')
     engine.next()
+    await engine.play()
+    engine.pause()
     await nextTick()
     expect(wrapper.emitted('trackchange')?.[0]?.[0]).toMatchObject({ from: 0, to: 1 })
+    expect(wrapper.emitted('play')).toHaveLength(1)
+    expect(wrapper.emitted('pause')).toHaveLength(1)
+    el.dispatchEvent(new CustomEvent('pulse-resize', { detail: { width: 300 } }))
+    expect(wrapper.emitted('resize')?.[0]?.[0]).toEqual({ width: 300 })
     wrapper.unmount()
   })
 

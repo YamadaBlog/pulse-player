@@ -18,7 +18,7 @@ import {
 import { mergeLabels, type PulseLabels } from './labels'
 import { baseStyles, motionStyles, variantStyles } from './styles/shared'
 import { playerStyles } from './styles/player'
-import { hueFrom, sampleAccent } from './utils/color'
+import { cssUrl, hueFrom, sampleAccent } from './utils/color'
 import { registerAnimatableAccent } from './utils/motion'
 import { readTracks, TRACK_ATTRIBUTES } from './PulseTrack'
 
@@ -494,7 +494,7 @@ export class PulsePlayerElement extends LitElement {
                   track.cover,
                   html`<div
                     class="backdrop__cover"
-                    style=${styleMap({ backgroundImage: `url("${encodeURI(track.cover)}")` })}
+                    style=${styleMap({ backgroundImage: cssUrl(track.cover) })}
                   ></div>`,
                 )
               : nothing

@@ -307,3 +307,5 @@ export function installResizeObserverStub(): void {
 
 /** Microtask flush — lets promise chains inside the engine settle. */
 export const tick = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0))
+
+export { expectActionsForwarded, ENGINE_ACTIONS } from './forwarding'

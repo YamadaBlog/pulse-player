@@ -64,7 +64,7 @@ export default defineConfig({
       provider: 'v8',
       include: ['packages/{core,tokens,web-component,react,svelte,vue}/src/**'],
       reporter: ['text-summary', 'html', 'lcov'],
-      thresholds: { lines: 85, functions: 85, branches: 75, statements: 85 },
+      thresholds: { lines: 90, functions: 85, branches: 77, statements: 87 },
     },
   },
 })

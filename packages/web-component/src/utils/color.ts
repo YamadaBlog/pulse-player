@@ -83,3 +83,12 @@ export function hueFrom(text: string): number {
   for (let i = 0; i < text.length; i++) h = (h * 31 + text.charCodeAt(i)) >>> 0
   return h % 360
 }
+
+/**
+ * Wrap a URL in a CSS `url()` as a quoted string. Only the characters that
+ * could end the string are escaped, so already-encoded URLs stay intact.
+ */
+export function cssUrl(url: string): string {
+  const escaped = url.replace(/["\\\n\r\f]/g, (c) => (c === '"' || c === '\\' ? `\\${c}` : ''))
+  return `url("${escaped}")`
+}
