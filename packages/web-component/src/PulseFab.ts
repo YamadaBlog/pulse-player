@@ -90,6 +90,11 @@ export class PulseFabElement extends LitElement {
   private press: { x: number; y: number; origin: Offset; id: number } | null = null
   private longPress: ReturnType<typeof setTimeout> | null = null
   private swallowClick = false
+  private snapTimer: ReturnType<typeof setTimeout> | undefined
+  private nodes: { bars: HTMLCollection | null; halo: HTMLElement | null } = {
+    bars: null,
+    halo: null,
+  }
 
   constructor() {
     super()
@@ -127,6 +132,10 @@ export class PulseFabElement extends LitElement {
     window.removeEventListener('resize', this.onViewportResize)
     document.removeEventListener('pointerdown', this.onOutside, true)
     this.clearLongPress()
+    clearTimeout(this.snapTimer)
+    this.removeAttribute('data-snapping')
+    this.press = null
+    this.dragging = false
   }
 
   protected override willUpdate(changed: PropertyValues): void {
@@ -143,6 +152,11 @@ export class PulseFabElement extends LitElement {
 
   protected override updated(changed: PropertyValues): void {
     if (changed.has('variant') || changed.has('accentColor')) this.refreshAccent()
+    // Cache what the visualiser writes to, so frames never query the DOM.
+    this.nodes = {
+      bars: this.renderRoot.querySelector('.eq')?.children ?? null,
+      halo: this.renderRoot.querySelector<HTMLElement>('.halo'),
+    }
     if (changed.has('menuOpen') && this.menuOpen) {
       this.renderRoot.querySelector<HTMLElement>('.item')?.focus()
     }
@@ -164,15 +178,13 @@ export class PulseFabElement extends LitElement {
   }
 
   private draw(frame: AudioFrame | null): void {
-    const root = this.renderRoot as ShadowRoot | undefined
-    const bars = root?.querySelector('.eq')?.children
+    const { bars, halo } = this.nodes
     if (bars) {
       for (let i = 0; i < bars.length; i++) {
         const v = frame ? frame.bands[Math.floor((i / bars.length) * frame.bands.length * 0.7)] : 0
         ;(bars[i] as HTMLElement).style.transform = frame ? `scaleY(${0.2 + v * 0.8})` : ''
       }
     }
-    const halo = root?.querySelector<HTMLElement>('.halo')
     if (halo) halo.style.transform = frame ? `scale(${0.9 + frame.energy * 0.35})` : ''
   }
 
@@ -187,6 +199,8 @@ export class PulseFabElement extends LitElement {
   private snap(persist: boolean): void {
     if (!this.movable) return
     const rect = this.getBoundingClientRect()
+    // Not laid out (detached, or inside display: none): nothing sensible to snap to.
+    if (!this.isConnected || !rect.width) return
     const baseLeft = rect.left - this.offset.x
     const baseTop = rect.top - this.offset.y
     const toLeft = rect.left + rect.width / 2 < window.innerWidth / 2
@@ -195,7 +209,8 @@ export class PulseFabElement extends LitElement {
     const next = { x: Math.round(left - baseLeft), y: Math.round(top - baseTop) }
     if (!prefersReducedMotion()) {
       this.toggleAttribute('data-snapping', true)
-      setTimeout(() => this.removeAttribute('data-snapping'), 700)
+      clearTimeout(this.snapTimer)
+      this.snapTimer = setTimeout(() => this.removeAttribute('data-snapping'), 700)
     }
     this.applyOffset(next)
     if (persist && this.persistKey) {
@@ -235,6 +250,8 @@ export class PulseFabElement extends LitElement {
 
   private onDown = (e: PointerEvent): void => {
     if (e.button !== 0) return
+    // A cancelled gesture never produces a click: never carry a stale swallow over.
+    this.swallowClick = false
     this.press = { x: e.clientX, y: e.clientY, origin: { ...this.offset }, id: e.pointerId }
     ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
     this.clearLongPress()
@@ -268,7 +285,8 @@ export class PulseFabElement extends LitElement {
     if (target.hasPointerCapture(e.pointerId)) target.releasePointerCapture(e.pointerId)
     if (this.dragging) {
       this.dragging = false
-      this.swallowClick = true
+      // A click follows pointerup (not pointercancel): swallow it so a drag never toggles.
+      this.swallowClick = e.type === 'pointerup'
       this.snap(true)
     }
   }
@@ -300,12 +318,18 @@ export class PulseFabElement extends LitElement {
   // ─── Menu ─────────────────────────────────────────────────────────
 
   private onOutside = (e: PointerEvent): void => {
-    if (!e.composedPath().includes(this)) this.menuOpen = false
+    if (!e.composedPath().includes(this)) this.closeMenu(false)
   }
 
+  /**
+   * Every way of closing the menu goes through here, so focus is never
+   * left on a hidden menu item: it returns to the disc, or is released.
+   */
   private closeMenu(focusDisc = true): void {
     this.menuOpen = false
+    const active = this.shadowRoot?.activeElement as HTMLElement | null
     if (focusDisc) this.renderRoot.querySelector<HTMLElement>('.disc')?.focus()
+    else if (active?.classList.contains('item')) active.blur()
   }
 
   private onMenuKey = (e: KeyboardEvent): void => {
@@ -318,7 +342,8 @@ export class PulseFabElement extends LitElement {
       return
     }
     if (e.key === 'Tab') {
-      this.menuOpen = false
+      e.preventDefault()
+      this.closeMenu()
       return
     }
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = (index + 1) % items.length
@@ -337,7 +362,7 @@ export class PulseFabElement extends LitElement {
     else if (action === 'next') engine.next()
     else {
       engine.close()
-      this.menuOpen = false
+      this.closeMenu(false)
       return
     }
     this.closeMenu()

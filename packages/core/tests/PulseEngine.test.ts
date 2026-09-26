@@ -350,6 +350,20 @@ describe('setTracks()', () => {
     expect(audio().src).toBe('http://localhost/y.mp3')
   })
 
+  it('plays the right track when a cross-origin source forces a new element', async () => {
+    const engine = make()
+    await engine.play()
+    expect(engine.hasLiveSpectrum).toBe(true)
+    const remote: Track = { title: 'Remote', src: 'https://cdn.example.com/r.mp3' }
+    engine.setTracks([remote, TRACKS[0]])
+    await tick()
+    expect(engine.state.currentTrack).toBe(1)
+    expect(engine.track?.title).toBe('One')
+    expect(audio().src).toBe('http://localhost/audio/one.mp3')
+    expect(engine.state.isPlaying).toBe(true)
+    expect(engine.hasLiveSpectrum).toBe(false)
+  })
+
   it('accepts an empty list', async () => {
     const engine = make()
     await engine.play()
@@ -465,6 +479,17 @@ describe('Media Session', () => {
     expect(session.playbackState).toBe('paused')
     engine.dispose()
     expect(session.handlers.get('play')).toBeNull()
+  })
+})
+
+describe('Media Session ownership', () => {
+  it('leaves the OS media controls alone with mediaSession: false', async () => {
+    const session = installMediaSessionStub()
+    const engine = make({ mediaSession: false })
+    await engine.play()
+    engine.next()
+    expect(session.metadata).toBeNull()
+    expect(session.playbackState).toBe('none')
   })
 })
 

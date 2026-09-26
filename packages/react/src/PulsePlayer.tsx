@@ -61,7 +61,8 @@ export function PulsePlayer(props: PulsePlayerProps) {
   })
   return createElement(
     'pulse-player',
-    { ref: setEl, variant: props.variant, style: props.style },
+    // variant/session as attributes too: correct from the first render (and in SSR HTML).
+    { ref: setEl, variant: props.variant, session: props.session, style: props.style },
     props.children,
   )
 }

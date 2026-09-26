@@ -32,20 +32,20 @@ Give the element a width in flex/grid layouts (it is a size container, so it doe
 
 ### Attributes and properties
 
-| Attribute           | Property           | Type                        | Default              | Description                                                                               |
-| ------------------- | ------------------ | --------------------------- | -------------------- | ----------------------------------------------------------------------------------------- |
-| `variant`           | `variant`          | [`PulseVariant`](#variants) | `'auto'`             | Theme. Reflected.                                                                         |
-| `accent-color`      | `accentColor`      | CSS colour                  | —                    | Accent for progress, equaliser, focus rings. `auto` samples it from the cover when unset. |
-| `custom-background` | `customBackground` | CSS `background`            | —                    | Background used by `variant="custom"`.                                                    |
-| `ambient-eq`        | `ambientEq`        | boolean                     | engine's `ambientEq` | Live equaliser drawn behind the card.                                                     |
-| `grain`             | `grain`            | boolean                     | `true`               | Film-grain overlay; `grain="false"` removes it.                                           |
-| `resizable`         | `resizable`        | boolean                     | `false`              | Corner handle to resize the player (pointer drag, arrow keys, double-click resets).       |
-| `resize-min`        | `resizeMin`        | number (px)                 | `64`                 | Minimum width while resizing.                                                             |
-| `resize-max`        | `resizeMax`        | number (px)                 | `760`                | Maximum width while resizing (also bounded by the parent).                                |
-| `session`           | `session`          | string                      | `'default'`          | [Audio session](#sessions) to join.                                                       |
-| —                   | `engine`           | `PulseEngine`               | —                    | Bind to an explicit engine instead of a named session.                                    |
-| —                   | `tracks`           | `Track[]`                   | —                    | Replace the session's playlist.                                                           |
-| —                   | `labels`           | `Partial<PulseLabels>`      | —                    | [Localised strings](#labels).                                                             |
+| Attribute           | Property           | Type                        | Default              | Description                                                                                                                                                                       |
+| ------------------- | ------------------ | --------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `variant`           | `variant`          | [`PulseVariant`](#variants) | `'auto'`             | Theme. Reflected.                                                                                                                                                                 |
+| `accent-color`      | `accentColor`      | CSS colour                  | —                    | Accent for progress, equaliser, focus rings. `auto` samples it from the cover when unset.                                                                                         |
+| `custom-background` | `customBackground` | CSS `background`            | —                    | Background used by `variant="custom"`.                                                                                                                                            |
+| `ambient-eq`        | `ambientEq`        | boolean                     | engine's `ambientEq` | Live equaliser drawn behind the card.                                                                                                                                             |
+| `grain`             | `grain`            | boolean                     | `true`               | Film-grain overlay; `grain="false"` removes it.                                                                                                                                   |
+| `resizable`         | `resizable`        | boolean                     | `false`              | Corner handle to resize the player: pointer drag, or arrow keys / <kbd>Home</kbd> / <kbd>End</kbd> when focused; <kbd>Enter</kbd> or a double-click restores the automatic width. |
+| `resize-min`        | `resizeMin`        | number (px)                 | `64`                 | Minimum width while resizing.                                                                                                                                                     |
+| `resize-max`        | `resizeMax`        | number (px)                 | `760`                | Maximum width while resizing (also bounded by the parent).                                                                                                                        |
+| `session`           | `session`          | string                      | `'default'`          | [Audio session](#sessions) to join.                                                                                                                                               |
+| —                   | `engine`           | `PulseEngine`               | —                    | Bind to an explicit engine instead of a named session.                                                                                                                            |
+| —                   | `tracks`           | `Track[]`                   | —                    | Replace the session's playlist.                                                                                                                                                   |
+| —                   | `labels`           | `Partial<PulseLabels>`      | —                    | [Localised strings](#labels).                                                                                                                                                     |
 
 ### Slots
 
@@ -220,17 +220,17 @@ The defaults are exported as `DEFAULT_LABELS`.
 
 Shortcuts apply while focus is inside a player:
 
-| Keys                                                                 | Action                                                         |
-| -------------------------------------------------------------------- | -------------------------------------------------------------- |
-| <kbd>Space</kbd>, <kbd>K</kbd>                                       | Play / pause (Space is left to the focused button when on one) |
-| <kbd>J</kbd> / <kbd>L</kbd>                                          | Back / forward 10 s                                            |
-| <kbd>M</kbd>                                                         | Mute / unmute                                                  |
-| <kbd>Shift</kbd>+<kbd>N</kbd> / <kbd>Shift</kbd>+<kbd>P</kbd>        | Next / previous track                                          |
-| <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> on the seek bar  | ∓ 5 s (with <kbd>Shift</kbd>: 1 s)                             |
-| <kbd>PageUp</kbd> / <kbd>PageDown</kbd> on the seek bar              | ± 30 s                                                         |
-| <kbd>Home</kbd> / <kbd>End</kbd> on the seek bar                     | Start / end                                                    |
-| Arrows on the resize handle                                          | ± 16 px (with <kbd>Shift</kbd>: 64 px)                         |
-| <kbd>Shift</kbd>+<kbd>F10</kbd> or <kbd>ContextMenu</kbd> on the FAB | Open the menu; arrows move, <kbd>Esc</kbd> closes              |
+| Keys                                                                              | Action                                                                       |
+| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| <kbd>Space</kbd>, <kbd>K</kbd>                                                    | Play / pause (Space is left to the focused button when on one)               |
+| <kbd>J</kbd> / <kbd>L</kbd>                                                       | Back / forward 10 s                                                          |
+| <kbd>M</kbd>                                                                      | Mute / unmute                                                                |
+| <kbd>Shift</kbd>+<kbd>N</kbd> / <kbd>Shift</kbd>+<kbd>P</kbd>                     | Next / previous track                                                        |
+| <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> on the seek bar               | ∓ 5 s (with <kbd>Shift</kbd>: 1 s)                                           |
+| <kbd>PageUp</kbd> / <kbd>PageDown</kbd> on the seek bar                           | ± 30 s                                                                       |
+| <kbd>Home</kbd> / <kbd>End</kbd> on the seek bar                                  | Start / end                                                                  |
+| Arrows / <kbd>Home</kbd> / <kbd>End</kbd> / <kbd>Enter</kbd> on the resize handle | ± 16 px (with <kbd>Shift</kbd>: 64 px) / minimum / maximum / automatic width |
+| <kbd>Shift</kbd>+<kbd>F10</kbd> or <kbd>ContextMenu</kbd> on the FAB              | Open the menu; arrows move, <kbd>Esc</kbd> closes                            |
 
 ## Variants
 

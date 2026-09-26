@@ -34,6 +34,7 @@ describe('MediaSessionBridge', () => {
   it('publishes metadata with absolute artwork URLs, and clears it', () => {
     const session = installMediaSessionStub()
     const bridge = new MediaSessionBridge(handlers())
+    bridge.bind()
     bridge.setTrack({ title: 'T', src: '/t.mp3', artist: 'A', album: 'B', cover: '/c.png' })
     expect(session.metadata).toMatchObject({
       title: 'T',
@@ -48,9 +49,21 @@ describe('MediaSessionBridge', () => {
   it('reports a clamped position only for finite durations', () => {
     const session = installMediaSessionStub()
     const bridge = new MediaSessionBridge(handlers())
+    bridge.bind()
     bridge.setPosition(Infinity, 3, 1)
     bridge.setPosition(100, 250, 0)
     expect(session.positions).toEqual([{ duration: 100, position: 100, playbackRate: 1 }])
+  })
+
+  it('never publishes unless it owns the session', () => {
+    const session = installMediaSessionStub()
+    const bridge = new MediaSessionBridge(handlers())
+    bridge.setTrack({ title: 'Other player', src: '/x.mp3' })
+    bridge.setPlaying(true)
+    bridge.setPosition(100, 1, 1)
+    expect(session.metadata).toBeNull()
+    expect(session.playbackState).toBe('none')
+    expect(session.positions).toEqual([])
   })
 
   it('is a no-op without the Media Session API', () => {

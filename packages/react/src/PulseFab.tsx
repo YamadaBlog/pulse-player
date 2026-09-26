@@ -54,6 +54,7 @@ export function PulseFab(props: PulseFabProps) {
     ref: setEl,
     variant: props.variant,
     placement: props.placement,
+    session: props.session,
     style: props.style,
   })
 }

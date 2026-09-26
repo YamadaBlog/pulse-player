@@ -15,7 +15,11 @@ const steps = [
 // Only the tiers the stage can actually show (small screens drop the widest).
 const available = ref(720)
 const stageEl = ref<HTMLElement | null>(null)
-const visibleSteps = computed(() => steps.filter((s) => s.width <= available.value))
+const visibleSteps = computed(() => {
+  const fitting = steps.filter((s) => s.width <= available.value)
+  // Always keep the smallest tier, however narrow the stage.
+  return fitting.length ? fitting : steps.slice(-1)
+})
 const index = ref(0)
 const playing = ref(true)
 const visible = ref(false)

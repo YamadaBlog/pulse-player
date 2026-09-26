@@ -106,6 +106,18 @@ describe('<pulse-fab>', () => {
       '<pulse-fab reveal="always" persist-key="test-fab"></pulse-fab>',
       engine,
     )
+    // happy-dom doesn't lay out: give the FAB a real box so it can snap.
+    el.getBoundingClientRect = () =>
+      ({
+        left: 300,
+        top: 300,
+        width: 64,
+        height: 64,
+        right: 364,
+        bottom: 364,
+        x: 300,
+        y: 300,
+      }) as DOMRect
     const disc = $(el, '.disc')
     disc.dispatchEvent(
       new PointerEvent('pointerdown', { button: 0, pointerId: 2, clientX: 100, clientY: 100 }),
@@ -120,6 +132,44 @@ describe('<pulse-fab>', () => {
     await settle(el)
     expect(engine.state.isPlaying).toBe(false)
     expect(localStorage.getItem('test-fab')).toMatch(/"x":/)
+  })
+
+  it('a cancelled drag never swallows the next tap', async () => {
+    const engine = makeEngine()
+    const el = await mount<PulseFabElement>(
+      '<pulse-fab reveal="always" persist-key=""></pulse-fab>',
+      engine,
+    )
+    const disc = $(el, '.disc')
+    const fire = (type: string, id: number, x = 0) =>
+      disc.dispatchEvent(
+        new PointerEvent(type, { button: 0, pointerId: id, clientX: x, clientY: x }),
+      )
+    fire('pointerdown', 4)
+    fire('pointermove', 4, 50)
+    fire('pointercancel', 4, 50)
+    fire('pointerdown', 5)
+    fire('pointerup', 5)
+    disc.click()
+    await settle(el)
+    expect(engine.state.isPlaying).toBe(true)
+  })
+
+  it('never leaves focus on a hidden menu item', async () => {
+    const el = await mount<PulseFabElement>('<pulse-fab reveal="always"></pulse-fab>', makeEngine())
+    const isItem = () => el.shadowRoot!.activeElement?.classList.contains('item') ?? false
+    $<HTMLButtonElement>(el, '.more').click()
+    await settle(el)
+    expect(isItem()).toBe(true)
+    document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }))
+    await settle(el)
+    expect(isItem()).toBe(false)
+
+    $<HTMLButtonElement>(el, '.more').click()
+    await settle(el)
+    key(el.shadowRoot!.activeElement!, 'Tab')
+    await settle(el)
+    expect(el.shadowRoot!.activeElement?.classList.contains('disc')).toBe(true)
   })
 
   it('does not move when locked or inline', async () => {

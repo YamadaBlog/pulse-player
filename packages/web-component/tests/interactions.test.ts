@@ -111,6 +111,53 @@ describe('<pulse-player> visualiser', () => {
   })
 })
 
+describe('regressions', () => {
+  it('hands its playlist to a new session when the session changes', async () => {
+    const el = await mount<PulsePlayerElement>(
+      '<pulse-player session="reg-a"><pulse-track src="/x.mp3" title="X"></pulse-track></pulse-player>',
+    )
+    el.session = 'reg-b'
+    await settle(el)
+    expect($(el, '.title').textContent).toBe('X')
+  })
+
+  it('clears the playlist when every <pulse-track> is removed', async () => {
+    const engine = makeEngine([])
+    const el = await mount<PulsePlayerElement>(
+      '<pulse-player><pulse-track src="/x.mp3" title="X"></pulse-track></pulse-player>',
+      engine,
+    )
+    expect(engine.tracks).toHaveLength(1)
+    el.querySelector('pulse-track')!.remove()
+    await new Promise((r) => setTimeout(r, 0))
+    expect(engine.tracks).toHaveLength(0)
+  })
+
+  it('can grow past its current width, and exposes a keyboard splitter', async () => {
+    const el = await mount<PulsePlayerElement>(
+      '<pulse-player resizable resize-min="100" resize-max="600" style="width: 300px"></pulse-player>',
+      makeEngine(),
+    )
+    stubRect(el, 300)
+    const handle = $(el, '.resize')
+    expect(handle.getAttribute('role')).toBe('separator')
+    handle.setPointerCapture = vi.fn()
+    handle.hasPointerCapture = () => false
+    handle.dispatchEvent(pointer('pointerdown', { clientX: 300 }))
+    handle.dispatchEvent(pointer('pointermove', { clientX: 500 }))
+    handle.dispatchEvent(pointer('pointerup', { clientX: 500 }))
+    expect(el.style.width).toBe('500px')
+    const press = (k: string) =>
+      handle.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }))
+    press('End')
+    expect(el.style.width).toBe('600px')
+    press('Home')
+    expect(el.style.width).toBe('100px')
+    press('Enter')
+    expect(el.style.width).toBe('')
+  })
+})
+
 describe('engine binding', () => {
   it('rebinds when the engine property changes', async () => {
     const a = makeEngine()

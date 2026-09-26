@@ -306,7 +306,6 @@ export class PulseEngine {
   setTracks(tracks: readonly Track[], options: { startIndex?: number } = {}): void {
     const currentSrc = this.track?.src
     this._tracks = [...tracks]
-    if (!this.canAnalyse() && this.spectrum.live) this.rebuildAudio()
     // The playlist isn't part of the snapshot: publish a new one regardless.
     this.set({}, true)
     if (!tracks.length) {
@@ -323,10 +322,13 @@ export class PulseEngine {
     if (kept >= 0) {
       this.set({ currentTrack: kept })
       this.mediaSession.setTrack(tracks[kept])
-      return
+    } else {
+      // The source changed even if the index didn't: always reload.
+      this.switchTo(clamp(Math.round(options.startIndex ?? 0), 0, tracks.length - 1), false)
     }
-    // The source changed even if the index didn't: always reload.
-    this.switchTo(clamp(Math.round(options.startIndex ?? 0), 0, tracks.length - 1), false)
+    // A captured element can't play the new (cross-origin) sources audibly:
+    // swap it only now, once the index points at the right track.
+    if (!this.canAnalyse() && this.spectrum.live) this.rebuildAudio()
   }
 
   /** @deprecated Use `setTracks(tracks)`. */

@@ -222,6 +222,23 @@
             },
             {
               "kind": "field",
+              "name": "snapTimer",
+              "type": {
+                "text": "ReturnType<typeof setTimeout> | undefined"
+              },
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "nodes",
+              "type": {
+                "text": "{ bars: HTMLCollection | null; halo: HTMLElement | null }"
+              },
+              "privacy": "private",
+              "default": "{ bars: null, halo: null, }"
+            },
+            {
+              "kind": "field",
               "name": "movable",
               "type": {
                 "text": "boolean"
@@ -368,7 +385,8 @@
                   "name": "focusDisc",
                   "default": "true"
                 }
-              ]
+              ],
+              "description": "Every way of closing the menu goes through here, so focus is never\nleft on a hidden menu item: it returns to the disc, or is released."
             },
             {
               "kind": "field",
@@ -744,13 +762,12 @@
             },
             {
               "kind": "field",
-              "name": "hoverFraction",
+              "name": "widthNow",
               "privacy": "private",
               "type": {
-                "text": "number"
+                "text": "number | undefined"
               },
-              "default": "0",
-              "attribute": "hoverFraction"
+              "attribute": "widthNow"
             },
             {
               "kind": "field",
@@ -835,6 +852,33 @@
               },
               "privacy": "private",
               "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "widthObserver",
+              "type": {
+                "text": "ResizeObserver | null"
+              },
+              "privacy": "private",
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "hadLightTracks",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "nodes",
+              "type": {
+                "text": "{\n    eqs: HTMLElement[]\n    ambient: HTMLElement | null\n    glow: HTMLElement | null\n    progress: HTMLElement | null\n    tip: HTMLElement | null\n  }"
+              },
+              "privacy": "private",
+              "default": "{ eqs: [], ambient: null, glow: null, progress: null, tip: null }"
             },
             {
               "kind": "field",
@@ -964,6 +1008,25 @@
               ]
             },
             {
+              "kind": "method",
+              "name": "showHover",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "fraction",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ],
+              "description": "Hover feedback is written straight to the DOM: no re-render per pointer move."
+            },
+            {
               "kind": "field",
               "name": "onProgressDown",
               "privacy": "private"
@@ -1025,6 +1088,27 @@
               ]
             },
             {
+              "kind": "method",
+              "name": "resetWidth",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "observeWidth",
+              "privacy": "private",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "description": "Keep `aria-valuenow` of the resize separator in sync with the real width."
+            },
+            {
               "kind": "field",
               "name": "onResizeDown",
               "privacy": "private"
@@ -1042,7 +1126,8 @@
             {
               "kind": "field",
               "name": "onResizeKey",
-              "privacy": "private"
+              "privacy": "private",
+              "description": "Window-splitter keyboard model: arrows resize, Home/End jump, Enter restores."
             },
             {
               "kind": "method",
@@ -1173,12 +1258,11 @@
               "fieldName": "scrubbing"
             },
             {
-              "name": "hoverFraction",
+              "name": "widthNow",
               "type": {
-                "text": "number"
+                "text": "number | undefined"
               },
-              "default": "0",
-              "fieldName": "hoverFraction"
+              "fieldName": "widthNow"
             },
             {
               "name": "previousCover",

@@ -69,6 +69,8 @@ export class MediaSessionBridge {
   }
 
   setTrack(track: Track | null): void {
+    // Only an engine that owns the session (mediaSession: true) may publish to it.
+    if (!this.bound) return
     const ms = session()
     if (!ms || typeof MediaMetadata === 'undefined') return
     if (!track) {
@@ -84,11 +86,13 @@ export class MediaSessionBridge {
   }
 
   setPlaying(playing: boolean): void {
+    if (!this.bound) return
     const ms = session()
     if (ms) ms.playbackState = playing ? 'playing' : 'paused'
   }
 
   setPosition(duration: number, position: number, playbackRate: number): void {
+    if (!this.bound) return
     const ms = session()
     if (!ms?.setPositionState || !Number.isFinite(duration) || duration <= 0) return
     try {

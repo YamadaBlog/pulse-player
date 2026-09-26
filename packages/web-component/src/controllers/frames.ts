@@ -26,6 +26,8 @@ export class FrameController implements ReactiveController {
   }
 
   hostConnected(): void {
+    // The preference may have changed while the element was detached.
+    this.reduced = prefersReducedMotion()
     if (typeof IntersectionObserver !== 'undefined') {
       this.observer = new IntersectionObserver(([entry]) => {
         this.visible = entry?.isIntersecting ?? true

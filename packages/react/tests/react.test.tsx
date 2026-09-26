@@ -72,6 +72,21 @@ describe('<PulsePlayer />', () => {
     expect(second).toHaveBeenCalledWith(expect.objectContaining({ from: 0, to: 1 }))
   })
 
+  it('restores the element default when a prop goes back to undefined', async () => {
+    const engine = makeEngine()
+    const { container, rerender } = render(<PulsePlayer engine={engine} accentColor="#ff0066" />)
+    const el = element(container, 'pulse-player')
+    expect(el.accentColor).toBe('#ff0066')
+    rerender(<PulsePlayer engine={engine} />)
+    expect(el.accentColor).toBeUndefined()
+  })
+
+  it('joins its session from the first connection', () => {
+    const { container } = render(<PulsePlayer session="react-podcast" />)
+    // React 19 sets it as a property before insertion; React 18 as an attribute.
+    expect(element(container, 'pulse-player').session).toBe('react-podcast')
+  })
+
   it('passes children through (declarative tracks, actions slot)', () => {
     const { container } = render(
       <PulsePlayer engine={makeEngine()}>

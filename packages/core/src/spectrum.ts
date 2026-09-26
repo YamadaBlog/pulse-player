@@ -80,7 +80,8 @@ export class SpectrumAnalyser {
     this.ctx = ctx
     this.connecting = true
     const wire = (): void => {
-      this.connecting = false
+      // Ignore a stale attempt: a newer one may already be in flight.
+      if (this.ctx === ctx) this.connecting = false
       if (this.ctx !== ctx || ctx.state !== 'running') {
         // Never route audio into a context that can't run: it would be silent.
         void ctx.close().catch(() => undefined)

@@ -8,6 +8,7 @@ export const playerStyles = css`
   :host {
     display: block;
     width: 100%;
+    max-width: 100%;
     min-width: 64px;
     position: relative;
     container: pulse / inline-size;

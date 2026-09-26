@@ -47,7 +47,7 @@ test('the seek slider follows the keyboard', async ({ page }) => {
 test('the resize handle works with the keyboard', async ({ page }) => {
   const player = page.locator('#resizable')
   const before = (await player.boundingBox())!.width
-  await player.getByRole('button', { name: 'Resize player' }).focus()
+  await player.getByRole('separator', { name: 'Resize player' }).focus()
   await page.keyboard.press('Shift+ArrowLeft')
   await expect.poll(async () => (await player.boundingBox())!.width).toBeLessThan(before)
 })

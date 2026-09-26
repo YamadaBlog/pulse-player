@@ -82,7 +82,7 @@ export class PulsePlayerElement extends LitElement {
     tracks: { attribute: false },
     labels: { attribute: false },
     scrubbing: { state: true },
-    hoverFraction: { state: true },
+    widthNow: { state: true },
     previousCover: { state: true },
     sampledAccent: { state: true },
     resizing: { state: true },
@@ -112,7 +112,7 @@ export class PulsePlayerElement extends LitElement {
   declare labels: Partial<PulseLabels> | undefined
 
   declare private scrubbing: boolean
-  declare private hoverFraction: number
+  declare private widthNow: number | undefined
   declare private previousCover: string | undefined
   declare private sampledAccent: string | undefined
   declare private resizing: boolean
@@ -123,6 +123,15 @@ export class PulsePlayerElement extends LitElement {
   private trackObserver: MutationObserver | null = null
   private scrubFraction = 0
   private resizeStart: { x: number; width: number } | null = null
+  private widthObserver: ResizeObserver | null = null
+  private hadLightTracks = false
+  private nodes: {
+    eqs: HTMLElement[]
+    ambient: HTMLElement | null
+    glow: HTMLElement | null
+    progress: HTMLElement | null
+    tip: HTMLElement | null
+  } = { eqs: [], ambient: null, glow: null, progress: null, tip: null }
 
   constructor() {
     super()
@@ -133,7 +142,6 @@ export class PulsePlayerElement extends LitElement {
     this.resizeMax = 760
     this.session = 'default'
     this.scrubbing = false
-    this.hoverFraction = 0
     this.resizing = false
     this.audio = new EngineController(this, (state, prev) => this.onEngineState(state, prev))
     this.frames = new FrameController(
@@ -153,6 +161,7 @@ export class PulsePlayerElement extends LitElement {
     // Resolve the engine before anything (tracks, controllers) touches it.
     this.audio.use(this.engine, this.session)
     super.connectedCallback()
+    this.observeWidth()
     this.syncLightTracks()
     this.trackObserver = new MutationObserver(() => this.syncLightTracks())
     this.trackObserver.observe(this, {
@@ -168,6 +177,8 @@ export class PulsePlayerElement extends LitElement {
     super.disconnectedCallback()
     this.trackObserver?.disconnect()
     this.trackObserver = null
+    this.widthObserver?.disconnect()
+    this.widthObserver = null
     this.removeEventListener('keydown', this.onKeydown)
   }
 
@@ -175,12 +186,27 @@ export class PulsePlayerElement extends LitElement {
     if (changed.has('engine') || changed.has('session')) {
       this.audio.use(this.engine, this.session)
       this.frames.refresh()
+      // A new engine starts without our playlist: hand it over.
+      if (this.hasUpdated && !changed.has('tracks')) {
+        if (this.tracks) this.audio.engine.setTracks(this.tracks)
+        else this.syncLightTracks()
+      }
     }
     if (changed.has('tracks') && this.tracks) this.audio.engine.setTracks(this.tracks)
+    if (changed.has('resizable')) this.observeWidth()
   }
 
   protected override updated(changed: PropertyValues<this>): void {
     if (changed.has('variant') || changed.has('accentColor')) this.refreshAccent()
+    // Cache what the visualiser writes to, so frames never query the DOM.
+    const root = this.renderRoot
+    this.nodes = {
+      eqs: Array.from(root.querySelectorAll<HTMLElement>('.eq')),
+      ambient: root.querySelector<HTMLElement>('.ambient'),
+      glow: root.querySelector<HTMLElement>('.backdrop__glow'),
+      progress: root.querySelector<HTMLElement>('.progress'),
+      tip: root.querySelector<HTMLElement>('.progress__tip'),
+    }
   }
 
   // ─── Engine bridge ────────────────────────────────────────────────
@@ -230,16 +256,17 @@ export class PulsePlayerElement extends LitElement {
 
   private syncLightTracks(): void {
     const tracks = readTracks(this)
-    if (tracks.length) this.audio.engine.setTracks(tracks)
+    // Only clear the session if this player had supplied its playlist.
+    if (tracks.length || this.hadLightTracks) this.audio.engine.setTracks(tracks)
+    this.hadLightTracks = tracks.length > 0
   }
 
   // ─── Visualiser ───────────────────────────────────────────────────
 
   private draw(frame: AudioFrame | null): void {
-    const root = this.renderRoot as ShadowRoot | undefined
-    if (!root) return
+    const { eqs, ambient, glow } = this.nodes
     const bands = frame?.bands
-    root.querySelectorAll<HTMLElement>('.eq').forEach((eq) => {
+    eqs.forEach((eq) => {
       eq.toggleAttribute('data-live', !!frame)
       const bars = eq.children
       for (let i = 0; i < bars.length; i++) {
@@ -251,7 +278,6 @@ export class PulsePlayerElement extends LitElement {
         ;(bars[i] as HTMLElement).style.transform = frame ? `scaleY(${0.18 + v * 0.82})` : ''
       }
     })
-    const ambient = root.querySelector<HTMLElement>('.ambient')
     if (ambient) {
       ambient.toggleAttribute('data-live', !!frame)
       const bars = ambient.children
@@ -260,7 +286,6 @@ export class PulsePlayerElement extends LitElement {
         ;(bars[i] as HTMLElement).style.transform = frame ? `scaleY(${0.06 + v * 0.94})` : ''
       }
     }
-    const glow = root.querySelector<HTMLElement>('.backdrop__glow')
     if (glow) {
       const e = frame?.energy ?? 0
       glow.style.opacity = frame ? String(0.2 + e * 0.55) : ''
@@ -275,19 +300,29 @@ export class PulsePlayerElement extends LitElement {
     return rect.width ? Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)) : 0
   }
 
+  /** Hover feedback is written straight to the DOM: no re-render per pointer move. */
+  private showHover(fraction: number): void {
+    const { progress, tip } = this.nodes
+    progress?.style.setProperty('--hover', String(fraction))
+    if (tip) tip.textContent = formatTime(fraction * (this.state.duration || 0))
+  }
+
   private onProgressDown = (e: PointerEvent): void => {
     if (e.button !== 0 || !this.state.duration) return
     const target = e.currentTarget as HTMLElement
     target.setPointerCapture(e.pointerId)
     this.scrubbing = true
     this.scrubFraction = this.fractionAt(e)
-    this.hoverFraction = this.scrubFraction
+    this.showHover(this.scrubFraction)
   }
 
   private onProgressMove = (e: PointerEvent): void => {
     const f = this.fractionAt(e)
-    this.hoverFraction = f
-    if (this.scrubbing) this.scrubFraction = f
+    this.showHover(f)
+    if (this.scrubbing) {
+      this.scrubFraction = f
+      this.requestUpdate()
+    }
   }
 
   private onProgressUp = (e: PointerEvent): void => {
@@ -364,14 +399,35 @@ export class PulsePlayerElement extends LitElement {
   // ─── Resizing ─────────────────────────────────────────────────────
 
   private clampWidth(width: number): number {
-    const parent = this.parentElement?.clientWidth || Infinity
-    return Math.round(Math.max(this.resizeMin, Math.min(this.resizeMax, parent, width)))
+    // `max-width: 100%` on the host keeps it inside its container.
+    return Math.round(Math.max(this.resizeMin, Math.min(this.resizeMax, width)))
   }
 
   private applyWidth(width: number): void {
     const w = this.clampWidth(width)
     this.style.width = `${w}px`
     this.dispatchEvent(new CustomEvent('pulse-resize', { detail: { width: w } }))
+  }
+
+  private resetWidth(): void {
+    this.style.width = ''
+    this.dispatchEvent(
+      new CustomEvent('pulse-resize', { detail: { width: this.getBoundingClientRect().width } }),
+    )
+  }
+
+  /** Keep `aria-valuenow` of the resize separator in sync with the real width. */
+  private observeWidth(): void {
+    this.widthObserver?.disconnect()
+    this.widthObserver = null
+    if (!this.resizable || typeof ResizeObserver === 'undefined') return
+    this.widthObserver = new ResizeObserver(([entry]) => {
+      const width = Math.round(
+        entry?.borderBoxSize?.[0]?.inlineSize ?? entry?.contentRect.width ?? 0,
+      )
+      if (width !== this.widthNow) this.widthNow = width
+    })
+    this.widthObserver.observe(this)
   }
 
   private onResizeDown = (e: PointerEvent): void => {
@@ -395,12 +451,17 @@ export class PulsePlayerElement extends LitElement {
     if (target.hasPointerCapture(e.pointerId)) target.releasePointerCapture(e.pointerId)
   }
 
+  /** Window-splitter keyboard model: arrows resize, Home/End jump, Enter restores. */
   private onResizeKey = (e: KeyboardEvent): void => {
+    const width = this.getBoundingClientRect().width
     const delta = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[e.key]
-    if (!delta) return
+    if (delta) this.applyWidth(width + delta * (e.shiftKey ? 64 : 16))
+    else if (e.key === 'Home') this.applyWidth(this.resizeMin)
+    else if (e.key === 'End') this.applyWidth(this.resizeMax)
+    else if (e.key === 'Enter') this.resetWidth()
+    else return
     e.preventDefault()
     e.stopPropagation()
-    this.applyWidth(this.getBoundingClientRect().width + delta * (e.shiftKey ? 64 : 16))
   }
 
   // ─── Render ───────────────────────────────────────────────────────
@@ -591,7 +652,6 @@ export class PulsePlayerElement extends LitElement {
           style=${styleMap({
             '--progress': String(progress),
             '--buffered': String(state.buffered),
-            '--hover': String(this.hoverFraction),
           })}
           @pointerdown=${this.onProgressDown}
           @pointermove=${this.onProgressMove}
@@ -604,9 +664,8 @@ export class PulsePlayerElement extends LitElement {
             <div class="progress__fill"></div>
             <div class="progress__thumb"></div>
           </div>
-          <div class="progress__tip" aria-hidden="true">
-            ${formatTime(this.hoverFraction * duration)}
-          </div>
+          <!-- Filled in directly by showHover(): no re-render per pointer move. -->
+          <div class="progress__tip" aria-hidden="true"></div>
         </div>
 
         <div class="disc" aria-hidden="true" style=${styleMap({ '--progress': String(progress) })}>
@@ -628,27 +687,25 @@ export class PulsePlayerElement extends LitElement {
 
         ${
           this.resizable
-            ? html`<button
+            ? html`<div
                 class="resize"
-                type="button"
+                role="separator"
+                tabindex="0"
+                aria-orientation="vertical"
                 aria-label=${labels.resize}
+                aria-valuemin=${this.resizeMin}
+                aria-valuemax=${this.resizeMax}
+                aria-valuenow=${this.widthNow ?? this.resizeMin}
                 title=${labels.resize}
                 @pointerdown=${this.onResizeDown}
                 @pointermove=${this.onResizeMove}
                 @pointerup=${this.onResizeUp}
                 @pointercancel=${this.onResizeUp}
                 @keydown=${this.onResizeKey}
-                @dblclick=${() => {
-                  this.style.width = ''
-                  this.dispatchEvent(
-                    new CustomEvent('pulse-resize', {
-                      detail: { width: this.getBoundingClientRect().width },
-                    }),
-                  )
-                }}
+                @dblclick=${() => this.resetWidth()}
               >
                 ${gripIcon}
-              </button>`
+              </div>`
             : nothing
         }
       </div>

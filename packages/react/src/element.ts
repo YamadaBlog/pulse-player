@@ -3,26 +3,37 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 // `useLayoutEffect` warns during SSR; properties only matter in the browser.
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
-type Element = (HTMLElement & Record<string, unknown>) | null
+type Target = HTMLElement & Record<string, unknown>
 
 /**
  * Assign values as DOM *properties* (not attributes) so objects, arrays
  * and booleans reach the custom element intact — on React 18 and 19.
+ *
+ * When a prop goes back to `undefined`, the element's own default (read
+ * before we first wrote the property) is restored instead of keeping the
+ * last value.
  */
+/* eslint-disable react-hooks/immutability -- writing DOM properties on the element is this hook's whole purpose */
 export function useElementProperties(
   el: HTMLElement | null,
   properties: Record<string, unknown>,
 ): void {
+  const defaults = useRef(new Map<string, unknown>())
   useIsomorphicLayoutEffect(() => {
-    const target = el as Element
+    const target = el as Target | null
     if (!target) return
     for (const [key, value] of Object.entries(properties)) {
-      // Writing DOM properties on the element is this effect's whole purpose.
-      // eslint-disable-next-line react-hooks/immutability
-      if (value !== undefined && target[key] !== value) target[key] = value
+      const known = defaults.current.has(key)
+      if (value === undefined) {
+        if (known) target[key] = defaults.current.get(key)
+        continue
+      }
+      if (!known) defaults.current.set(key, target[key])
+      if (target[key] !== value) target[key] = value
     }
   })
 }
+/* eslint-enable react-hooks/immutability */
 
 type Handlers = Record<string, ((detail: never) => void) | undefined>
 
