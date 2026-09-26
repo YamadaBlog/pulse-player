@@ -729,7 +729,7 @@ The dry-run produces a valid tarball at version 3.0.0-rc.0 with the correct inte
 Running the env audit on this Windows machine surfaced a **partial RN dev environment**:
 
 - Java 17 OpenJDK ✅
-- Android SDK ✅ at `C:\Users\loicm\AppData\Local\Android\Sdk`
+- Android SDK ✅ at `%LOCALAPPDATA%\Android\Sdk`
 - Android emulator AVD ✅ (`Pixel_8a`)
 - Expo CLI installed ✅
 - Xcode ❌ (Windows host — iOS dev impossible from this machine)
