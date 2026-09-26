@@ -128,6 +128,8 @@ const stats = [
     color: var(--fg-2);
   }
   .matrix__repo {
+    display: inline-block;
+    padding-block: 4px;
     font-family: var(--mono);
     font-size: 0.85rem;
     color: var(--fg);
@@ -184,6 +186,7 @@ const stats = [
     overflow: hidden;
     font-family: var(--mono);
     font-size: 0.82rem;
+    line-height: 24px;
     text-overflow: ellipsis;
     white-space: nowrap;
     text-decoration: none;
@@ -239,6 +242,10 @@ const stats = [
     }
     .matrix__pkgs .muted {
       display: none;
+    }
+    .matrix__pkgs a {
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
   }
 </style>

@@ -3,11 +3,16 @@ interface Props {
   text: string
 }
 const { text } = Astro.props
+// Long commands wrap after "/" (npm scopes) on narrow screens instead of
+// being cut off: the text is escaped first, then given break opportunities.
+const escape = (s: string): string =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+const breakable = escape(text).replaceAll('/', '/<wbr />')
 ---
 
 <div class="chip">
   <code>
-    <span aria-hidden="true">$</span> {text}
+    <span aria-hidden="true">$</span> <Fragment set:html={breakable} />
   </code>
   <button class="chip__btn label" type="button" data-copy={text} aria-label={`Copy: ${text}`}>
     <span data-copy-label>Copy</span>
@@ -42,15 +47,14 @@ const { text } = Astro.props
     max-width: 100%;
     padding: 0.35rem 0.35rem 0.35rem 1rem;
     border: 1px solid var(--rule);
-    border-radius: 999px;
+    border-radius: 1.4rem;
   }
   code {
     min-width: 0;
-    overflow: hidden;
     font-family: var(--mono);
     font-size: 0.8rem;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
   }
   code span {
     color: var(--accent);

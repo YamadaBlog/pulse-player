@@ -239,12 +239,12 @@ const moods = Object.entries(VARIANTS) as [NamedVariant, (typeof VARIANTS)[Named
     font-family: var(--display);
     font-weight: 760;
     font-variation-settings: 'wdth' 78;
-    font-size: min(1.4rem, 12.5cqi);
+    font-size: clamp(0.75rem, 13cqi, 1.4rem);
     letter-spacing: -0.02em;
     text-transform: uppercase;
   }
   .swatch__desc {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     line-height: 1.3;
     opacity: 0.78;
   }
@@ -278,6 +278,7 @@ const moods = Object.entries(VARIANTS) as [NamedVariant, (typeof VARIANTS)[Named
     }
     .swatch {
       aspect-ratio: 1;
+      padding: 0.6rem;
     }
     .swatch__desc {
       display: none;

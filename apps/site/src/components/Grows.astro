@@ -77,7 +77,10 @@ const MAX = 760
 
 <script>
   import { $, onPage, reducedMotion } from '../scripts/lifecycle'
-  import { ScrollTrigger } from '../scripts/motion'
+  import { gsap, ScrollTrigger } from '../scripts/motion'
+
+  // Keep in sync with the pinned-scene media query in the styles below.
+  const PINNED = '(min-height: 561px) and (prefers-reduced-motion: no-preference)'
 
   const TIERS: [number, string, string][] = [
     [460, 'Full', 'Everything, mute included'],
@@ -127,10 +130,11 @@ const MAX = 760
     range.addEventListener('input', onInput)
     set(MAX)
 
-    // One scene on the whole site is scrubbed by scroll: this one.
-    let trigger: ScrollTrigger | undefined
-    if (!reducedMotion()) {
-      trigger = ScrollTrigger.create({
+    // One scene on the whole site is scrubbed by scroll: this one. It needs
+    // room to breathe, so short screens (landscape phones) keep the slider.
+    const mm = gsap.matchMedia()
+    mm.add(PINNED, () => {
+      const trigger = ScrollTrigger.create({
         trigger: section,
         start: 'top top',
         end: 'bottom bottom',
@@ -143,10 +147,11 @@ const MAX = 760
           set(width)
         },
       })
-    }
+      return () => trigger.kill()
+    })
     return () => {
       range.removeEventListener('input', onInput)
-      trigger?.kill()
+      mm.revert()
     }
   })
 </script>
@@ -155,19 +160,21 @@ const MAX = 760
   .grows {
     position: relative;
   }
-  :global(html.js:not(.reduced)) .grows {
-    height: 320svh;
-  }
   .grows__sticky {
     padding-block: clamp(3rem, 8vh, 6rem);
   }
-  :global(html.js:not(.reduced)) .grows__sticky {
-    position: sticky;
-    top: 0;
-    display: flex;
-    align-items: center;
-    min-height: 100svh;
-    padding-block: calc(var(--header) + 1rem) 2rem;
+  @media (min-height: 561px) {
+    :global(html.js:not(.reduced)) .grows {
+      height: 320svh;
+    }
+    :global(html.js:not(.reduced)) .grows__sticky {
+      position: sticky;
+      top: 0;
+      display: flex;
+      align-items: center;
+      min-height: 100svh;
+      padding-block: calc(var(--header) + 1rem) 2rem;
+    }
   }
   .grows__inner {
     display: grid;
@@ -243,7 +250,7 @@ const MAX = 760
     top: 16px;
     left: 0;
     translate: -50% 0;
-    font: 400 0.68rem/1 var(--mono);
+    font: 400 0.75rem/1 var(--mono);
     color: var(--fg-2);
   }
   .ruler__cursor {
@@ -269,6 +276,7 @@ const MAX = 760
   }
   .grows__slider input {
     width: min(240px, 50vw);
+    height: 32px;
     accent-color: var(--signal-ink);
   }
   .grows__drops {
