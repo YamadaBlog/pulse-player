@@ -92,7 +92,7 @@
     "vue-tsc": "^3.3.11"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,mjs,vue}": [
+    "*.{ts,tsx,js,mjs,vue,astro}": [
       "eslint --fix --max-warnings=0 --no-warn-ignored",
       "prettier --write"
     ],
