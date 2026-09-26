@@ -401,7 +401,7 @@ input[type='radio'] {
   padding: 0 0.8rem;
   background: rgb(236 231 220 / 0.06);
   color: var(--fg-2);
-  font: 500 0.72rem var(--mono);
+  font: 500 0.75rem var(--mono);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -437,7 +437,7 @@ input[type='radio'] {
 .fader__scale {
   display: flex;
   justify-content: space-between;
-  font: 0.7rem var(--mono);
+  font: 0.75rem var(--mono);
   color: var(--fg-3);
 }
 .switches {

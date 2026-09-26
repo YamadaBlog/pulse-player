@@ -65,7 +65,9 @@ const base = import.meta.env.BASE_URL
             Mixing desk
           </a>
         </div>
-        <CopyChip text="npm i @pulse-music/web-component" />
+        <div class="console__chip">
+          <CopyChip text="npm i @pulse-music/web-component" />
+        </div>
       </div>
     </div>
   </div>
@@ -82,6 +84,10 @@ const base = import.meta.env.BASE_URL
   import '../scripts/record'
   import { gsap } from '../scripts/motion'
 
+  // Keep in sync with the compact layout media query in the styles below.
+  const COMPACT =
+    '(max-width: 760px), (max-width: 1100px) and (max-height: 520px) and (orientation: landscape)'
+
   onPage(() => {
     const btn = $('[data-needle]')
     const label = $('[data-needle-label]')
@@ -96,12 +102,19 @@ const base = import.meta.env.BASE_URL
 
     // The opening: the record slides out of its sleeve.
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+    const compact = matchMedia(COMPACT).matches
     const ctx = gsap.context(() => {
       if (reduce) return
       const tl = gsap.timeline({ defaults: { ease: 'expo.out' } })
       tl.from('.sleeve', { yPercent: 6, opacity: 0, duration: 1.2 })
         .from('.sleeve__line', { yPercent: 105, duration: 1.1, stagger: 0.09 }, '<0.15')
-        .from('.record', { xPercent: -62, rotate: -40, duration: 1.8, ease: 'expo.inOut' }, '<0.1')
+        .from(
+          '.record',
+          compact
+            ? { yPercent: -38, rotate: -40, duration: 1.6, ease: 'expo.inOut' }
+            : { xPercent: -62, rotate: -40, duration: 1.8, ease: 'expo.inOut' },
+          '<0.1',
+        )
         .from('.arm', { opacity: 0, rotate: -12, transformOrigin: '85% 15%', duration: 1 }, '-=0.5')
         .from('.console > *', { y: 30, opacity: 0, duration: 1, stagger: 0.1 }, '-=0.9')
     })
@@ -196,6 +209,13 @@ const base = import.meta.env.BASE_URL
   }
   .record.is-scratching {
     cursor: grabbing;
+  }
+  /* Phones and tablets: a swipe that starts on the record still scrolls the
+     page; horizontal drags keep scratching. */
+  @media (pointer: coarse) {
+    .record {
+      touch-action: pan-y;
+    }
   }
   .record canvas {
     width: 100%;
@@ -308,19 +328,115 @@ const base = import.meta.env.BASE_URL
       margin-top: 2rem;
     }
   }
-  @media (max-width: 760px) {
+  /* ─── Compact: phones (portrait) and short landscape screens ─────
+     The sleeve becomes a card that carries the call to action, and the
+     record slides out from under its bottom edge. The card itself is drawn
+     by ::before so it can span the title and the buttons. */
+  @media (max-width: 760px),
+    (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+    .hero {
+      align-items: start;
+      min-height: 0;
+      padding-bottom: 4.5rem;
+    }
     .hero__stage {
-      --size: min(88vw, 520px);
+      --pad: clamp(1rem, 4.5vw, 1.5rem);
+      --disc: min(88vw, 440px);
       grid-template-columns: minmax(0, 1fr);
-      justify-items: center;
+      grid-template-rows: auto auto auto;
+      column-gap: var(--gutter);
+      align-items: start;
+      justify-items: stretch;
+    }
+    .hero__stage::before {
+      content: '';
+      z-index: 2;
+      align-self: stretch;
+      grid-row: 1 / 3;
+      grid-column: 1;
+      background: #e4ddcf;
+      box-shadow:
+        0 0 0 1px rgb(19 18 16 / 0.2),
+        0 40px 80px -40px rgb(19 18 16 / 0.45),
+        inset 0 0 0 8px #e4ddcf,
+        inset 0 0 0 9px rgb(19 18 16 / 0.18);
+    }
+    .sleeve {
+      z-index: 3;
+      grid-row: 1;
+      grid-column: 1;
+      width: auto;
+      aspect-ratio: auto;
+      gap: 1.25rem;
+      padding: var(--pad) var(--pad) 1.25rem;
+      background: none;
+      box-shadow: none;
+    }
+    .sleeve__title {
+      font-size: clamp(2.1rem, 11.2vw, 3.6rem);
+      margin-block: 0.75rem 0.25rem;
+    }
+    .sleeve__lede {
+      font-size: 0.9rem;
+    }
+    .console,
+    .console__side {
+      display: contents;
+    }
+    .console__actions {
+      z-index: 3;
+      grid-row: 2;
+      grid-column: 1;
+      padding: 0 var(--pad) var(--pad);
     }
     .record {
-      width: calc(var(--size) * 0.9);
-      margin: calc(var(--size) * -0.34) 0 0 calc(var(--size) * 0.2);
+      grid-row: 3;
+      grid-column: 1;
+      justify-self: center;
+      width: var(--disc);
+      margin: calc(var(--disc) * -0.3) 0 0;
     }
-    .console {
-      grid-template-columns: minmax(0, 1fr);
-      width: 100%;
+    .arm {
+      display: none;
+    }
+    .console__player {
+      z-index: 3;
+      grid-row: 4;
+      grid-column: 1 / -1;
+      margin-top: 1.25rem;
+    }
+    .console__chip {
+      z-index: 3;
+      grid-row: 5;
+      grid-column: 1 / -1;
+      margin-top: 1rem;
+    }
+  }
+  /* Landscape phones: card on the left, record beside it. */
+  @media (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+    .hero__stage {
+      --disc: min(62svh, 40vw);
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .sleeve {
+      gap: 0.5rem;
+    }
+    .sleeve__title {
+      font-size: clamp(1.9rem, 10svh, 3rem);
+      margin-block: 0.25rem 0;
+    }
+    /* Too short for the paragraph: it is repeated right below the hero. */
+    .sleeve__lede {
+      display: none;
+    }
+    .sleeve__rpm {
+      margin-left: auto;
+    }
+    .record {
+      grid-row: 1 / 3;
+      grid-column: 2;
+      align-self: center;
+      margin: 0 0 0 calc(var(--disc) * -0.22);
     }
   }
 </style>

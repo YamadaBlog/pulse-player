@@ -112,7 +112,7 @@ svg {
   border-radius: 6px;
   background: var(--fg);
   color: var(--ink);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   opacity: 0;
   translate: 0 4px;

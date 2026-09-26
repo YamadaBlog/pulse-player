@@ -56,6 +56,12 @@ test('never scrolls horizontally', async ({ page }) => {
   }
 })
 
+test('the call to action is visible without scrolling', async ({ page }) => {
+  await page.goto('./')
+  const cta = page.getByRole('button', { name: 'Drop the needle' })
+  await expect(cta).toBeInViewport({ ratio: 1 })
+})
+
 test('dropping the needle plays, reveals the floating player, and lifts again', async ({
   page,
 }) => {
