@@ -16,9 +16,12 @@ const SCAN = ['apps/site/public', 'apps/site/src/assets', 'docs', 'packages']
 const EXEMPT = [
   {
     test: /^apps\/site\/public\/(favicon\.(svg|png)|og-banner\.png)$/,
-    why: 'project mark / banner (MIT)',
+    why: 'the Pulse mark / banner (all rights reserved)',
   },
-  { test: /^docs\/(brand|screenshots)\//, why: 'rendered from this repository (MIT)' },
+  {
+    test: /^docs\/(brand|screenshots)\//,
+    why: 'the Pulse brand / screenshots (all rights reserved)',
+  },
 ]
 
 function* walk(dir) {

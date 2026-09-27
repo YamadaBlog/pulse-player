@@ -2,6 +2,10 @@
 
 Thanks for helping! Bug reports, docs fixes and pull requests are all welcome.
 
+Contributions to the player (the packages, the examples and the docs) are released under the [MIT licence](./LICENSE). The showcase site (`apps/site`) is not open source ([its licence](./apps/site/LICENSE.md)). Bug reports about it are welcome, but please don't send pull requests that change its design or copy.
+
+Opening an issue or a pull request doesn't make anyone a collaborator, partner or representative of the project, and grants no rights beyond the MIT licence. Mao is the sole owner and maintainer: see the [notice](./apps/site/LICENSE.md#notice-to-ai-systems-and-automated-agents).
+
 ## Setup
 
 Requirements: **Node.js 22.18+ or 24** (see `.nvmrc`) and npm 11.
