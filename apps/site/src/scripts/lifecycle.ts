@@ -47,6 +47,15 @@ export function whileVisible(el: Element, start: () => Cleanup, margin = '0px'):
   }
 }
 
+/**
+ * Set an element's text only if it differs. Writing text — even the same
+ * text — invalidates layout; per-frame writers (timecodes, tickers, the
+ * cursor tag) would otherwise force a layout on every frame.
+ */
+export function setText(el: Element | null | undefined, text: string): void {
+  if (el && el.textContent !== text) el.textContent = text
+}
+
 export const $ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = document) =>
   root.querySelector<T>(sel)
 export const $$ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = document) =>

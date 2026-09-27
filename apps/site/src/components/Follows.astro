@@ -87,7 +87,7 @@ const corners = [
 
 <script>
   import { engine } from '../scripts/audio'
-  import { $, $$, onPage } from '../scripts/lifecycle'
+  import { $, $$, onPage, setText } from '../scripts/lifecycle'
 
   onPage(() => {
     const root = $('[data-follows]')
@@ -122,12 +122,14 @@ const corners = [
     }
     const onState = (): void => {
       screen.toggleAttribute('data-live', engine.state.isPlaying || always.checked)
-      if (note)
-        note.textContent = engine.state.isPlaying
+      setText(
+        note,
+        engine.state.isPlaying
           ? 'Look at the corner of your screen.'
           : always.checked
             ? 'Look at the corner of your screen.'
-            : 'Drop the needle to meet it.'
+            : 'Drop the needle to meet it.',
+      )
     }
     const onChange = (): void => {
       sync()

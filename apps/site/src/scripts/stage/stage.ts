@@ -73,6 +73,9 @@ let canvas: HTMLCanvasElement | null = null
 let running = false
 let cam: Camera | null = null
 let labelsReady: Promise<void> | null = null
+let sizeObserver: ResizeObserver | null = null
+let cssSize: [number, number] = [1, 1]
+let dirty = true
 const listeners = new Set<(now: number) => void>()
 
 /** Mount the stage on a canvas. Returns false when WebGL2 is not there. */
@@ -80,7 +83,7 @@ export function mountStage(el: HTMLCanvasElement): boolean {
   if (surface && canvas === el) return true
   unmountStage()
   try {
-    surface = createSurface(el, STAGE_FRAG, 2, true)
+    surface = createSurface(el, STAGE_FRAG, 1.5, true)
   } catch (error) {
     console.warn('[pulse-site] stage disabled:', error)
     surface = null
@@ -89,16 +92,34 @@ export function mountStage(el: HTMLCanvasElement): boolean {
   canvas = el
   const { gl } = surface
   const s = surface
-  gl.uniform3fv(s.u('uInk'), NIGHT)
-  gl.uniform3fv(s.u('uAccent'), SIGNAL)
-  gl.uniform3fv(s.u('uLight'), KEY)
-  gl.uniform1i(s.u('uLabel'), 0)
-  gl.uniform1i(s.u('uLabelB'), 1)
-  labelsReady = Promise.all([drawLabel(), drawLabelB()]).then(([a, b]) => {
-    if (surface !== s) return
-    uploadTexture(gl, a, 0)
-    uploadTexture(gl, b, 1)
+  // The program compiles in parallel (gl.ts): the constants and the labels
+  // go in once it is linked. Until then nothing is drawn — and the loading
+  // sleeve counts the wait instead of the page freezing.
+  labelsReady = Promise.all([s.ready, drawLabel(), drawLabelB()])
+    .then(([, a, b]) => {
+      if (surface !== s) return
+      gl.uniform3fv(s.u('uInk'), NIGHT)
+      gl.uniform3fv(s.u('uAccent'), SIGNAL)
+      gl.uniform3fv(s.u('uLight'), KEY)
+      gl.uniform1i(s.u('uLabel'), 0)
+      gl.uniform1i(s.u('uLabelB'), 1)
+      gl.uniform1i(s.u('uSamples'), 4)
+      uploadTexture(gl, a, 0)
+      uploadTexture(gl, b, 1)
+      dirty = true
+    })
+    .catch((error: unknown) => {
+      console.warn('[pulse-site] stage disabled:', error)
+      el.style.visibility = 'hidden'
+    })
+  // The canvas's size in CSS px, observed rather than read every frame.
+  sizeObserver = new ResizeObserver(([entry]) => {
+    if (!entry) return
+    cssSize = [entry.contentRect.width, entry.contentRect.height]
+    dirty = true
   })
+  sizeObserver.observe(el)
+  cssSize = [el.clientWidth, el.clientHeight]
   // ?stage-debug: the state on window, to frame shots from the console.
   if (location.search.includes('stage-debug'))
     (window as unknown as { __stage: StageState }).__stage = stage
@@ -107,6 +128,8 @@ export function mountStage(el: HTMLCanvasElement): boolean {
 
 export function unmountStage(): void {
   stop()
+  sizeObserver?.disconnect()
+  sizeObserver = null
   surface?.dispose()
   surface = null
   canvas = null
@@ -121,28 +144,99 @@ export function onStageFrame(fn: (now: number) => void): () => void {
   return () => listeners.delete(fn)
 }
 
-// ─── Adaptive resolution: a frame over budget steps the density down ──
-let budget = { frames: 0, slow: 0 }
+// ─── Render on demand ─────────────────────────────────────────────
+// Every frame the physics and the director update `stage`; the picture is
+// drawn only if something it shows has changed (or the music moves it).
+// At rest the page costs nothing on the GPU.
+const last = new Float64Array(40)
+const next = new Float64Array(40)
+function changed(): boolean {
+  const { shot, arm, ring, room, tilt } = stage
+  const v = [
+    shot.x,
+    shot.y,
+    shot.r,
+    shot.az,
+    shot.el,
+    shot.dist,
+    stage.rot + stage.roll,
+    tilt.x,
+    tilt.y,
+    stage.flip,
+    stage.lift,
+    arm.swing,
+    arm.lift,
+    arm.on,
+    ring.x,
+    ring.z,
+    ring.r,
+    ring.a,
+    stage.sheen,
+    stage.depth,
+    stage.flood,
+    stage.night,
+    ...room.floor,
+    ...room.fog,
+    ...room.light,
+    room.glow,
+    cssSize[0],
+    cssSize[1],
+    scale,
+  ]
+  let diff = false
+  for (let i = 0; i < v.length; i++) {
+    next[i] = v[i]!
+    if (Math.abs(next[i]! - last[i]!) > 1e-6) diff = true
+  }
+  if (diff) last.set(next)
+  return diff
+}
+
+// ─── Adaptive density: the frame rate, not a guess ────────────────
+// GPU time can't be read from JavaScript, so the interval between frames
+// that drew is the signal: sustained drops step the density down (never
+// below 60 %), a long clean run steps it back up.
+const STEPS = [1, 0.85, 0.72, 0.6]
+let step = 0
 let scale = 1
+let lastFrame = 0
+const intervals: number[] = []
+function adapt(now: number): void {
+  const dt = now - lastFrame
+  lastFrame = now
+  if (dt <= 0 || dt > 250) return // a pause, not a slow frame
+  intervals.push(dt)
+  if (intervals.length < 45) return
+  const sorted = [...intervals].sort((a, b) => a - b)
+  const median = sorted[Math.floor(sorted.length / 2)]!
+  intervals.length = 0
+  if (median > 21 && step < STEPS.length - 1) step++
+  else if (median < 15 && step > 0 && ++calm > 6) {
+    step--
+    calm = 0
+  }
+  scale = STEPS[step]!
+}
+let calm = 0
 
 function tick(): void {
-  if (!surface || !canvas) return
+  if (!surface || !canvas || !surface.isReady()) return
   const now = performance.now()
   for (const fn of listeners) fn(now)
-  const t0 = performance.now()
-  render(now)
-  const cost = performance.now() - t0
-  budget.frames++
-  if (cost > 12) budget.slow++
-  if (budget.frames >= 60) {
-    if (budget.slow > 20 && scale > 0.6) scale -= 0.15
-    budget = { frames: 0, slow: 0 }
+  const animated = engine.state.isPlaying || stage.demo > 0
+  if (!changed() && !animated && !dirty) {
+    lastFrame = 0
+    return
   }
+  dirty = false
+  adapt(now)
+  render(now)
 }
 
 export function start(): void {
   if (running || !surface) return
   running = true
+  dirty = true // the canvas was hidden: draw the current state first
   gsap.ticker.add(tick)
   // Never a frame with a blank label: the canvas shows once they are in,
   // and the first time it lights up (a sixteenth), like a lamp.
@@ -163,7 +257,7 @@ export function stop(): void {
 
 /** Draw one frame now (reduced motion, or a still). */
 export function renderOnce(): void {
-  if (!surface) return
+  if (!surface?.isReady()) return
   for (const fn of listeners) fn(performance.now())
   render(performance.now())
 }
@@ -228,7 +322,7 @@ function render(now: number): void {
   fit(s, el)
   const W = el.width
   const H = el.height
-  const k = W / Math.max(1, el.clientWidth)
+  const k = W / Math.max(1, cssSize[0])
   const c = recordCentre()
   cam = cameraFor(stage.shot, c)
   gl.uniform2f(s.u('uRes'), W, H)
@@ -242,6 +336,8 @@ function render(now: number): void {
   gl.uniform2f(s.u('uArm'), (stage.arm.swing * Math.PI) / 180, stage.arm.lift)
   gl.uniform3f(s.u('uPivot'), PIVOT[0], 0, PIVOT[1])
   gl.uniform1f(s.u('uArmOn'), stage.arm.on)
+  const box = armBox(cam)
+  gl.uniform3f(s.u('uArmBox'), box.x * k, box.y * k, box.r * k)
   // The light the grooves catch turns with the hand; it leans 40° off the
   // vertical so the bow-tie keeps the flat record's width.
   const e = 0.7
@@ -271,13 +367,49 @@ function render(now: number): void {
   gl.drawArrays(gl.TRIANGLES, 0, 3)
 }
 
-// Density: the screen's, capped (1.75 with a mouse, 1.25 on touch screens),
-// times the adaptive scale.
+// Where the tonearm can be on screen (CSS px): a circle around its joints,
+// padded for its thickness — the shader skips the arm everywhere else.
+// Same geometry as buildArm() in the shader.
+function armBox(c: Camera): { x: number; y: number; r: number } {
+  const a = (stage.arm.swing * Math.PI) / 180
+  const cs = Math.cos(a)
+  const sn = Math.sin(a)
+  const rot = (x: number, z: number): [number, number] => [cs * x - sn * z, sn * x + cs * z]
+  const top = stage.lift + 0.05
+  const head = stage.lift + THICK * 0.5 + HEAD_HALF_H + 0.004 + stage.arm.lift * 0.06
+  const e = rot(-0.093, 0.457)
+  const h = rot(-0.285, 0.602)
+  const pts: Vec3[] = [
+    [PIVOT[0], 0, PIVOT[1]],
+    [PIVOT[0], top, PIVOT[1]],
+    [PIVOT[0] + e[0], (top + head) / 2, PIVOT[1] + e[1]],
+    [PIVOT[0] + h[0], head, PIVOT[1] + h[1]],
+  ]
+  let x0 = Infinity
+  let y0 = Infinity
+  let x1 = -Infinity
+  let y1 = -Infinity
+  let pad = 0
+  for (const p of pts) {
+    const q = project(c, p)
+    if (q.depth <= 0.05) return { x: 0, y: 0, r: 1e6 } // behind or at the lens: no bound
+    x0 = Math.min(x0, q.x)
+    y0 = Math.min(y0, q.y)
+    x1 = Math.max(x1, q.x)
+    y1 = Math.max(y1, q.y)
+    pad = Math.max(pad, (c.focal * 0.14) / q.depth)
+  }
+  return { x: (x0 + x1) / 2, y: (y0 + y1) / 2, r: Math.hypot(x1 - x0, y1 - y0) / 2 + pad + 2 }
+}
+
+// Density: the screen's, capped (1.5 with a mouse, 1.25 on touch screens —
+// the scene is soft light and paper; beyond that the pixels cost more than
+// they show), times the adaptive scale.
 const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches
 function fit(s: Surface, el: HTMLCanvasElement): void {
-  const d = Math.min(devicePixelRatio || 1, coarse ? 1.25 : 1.75) * scale
-  const w = Math.max(1, Math.round(el.clientWidth * d))
-  const h = Math.max(1, Math.round(el.clientHeight * d))
+  const d = Math.min(devicePixelRatio || 1, coarse ? 1.25 : 1.5) * scale
+  const w = Math.max(1, Math.round(cssSize[0] * d))
+  const h = Math.max(1, Math.round(cssSize[1] * d))
   if (el.width === w && el.height === h) return
   el.width = w
   el.height = h

@@ -56,12 +56,18 @@ onPage(() => {
       const target = playing ? PLAY_SPEED * deck.speed : -stage.drift
       const ramping = playing && deck.speed < 0.999
       vel += (target - vel) * (1 - Math.exp(-dt * (ramping ? 40 : playing ? 1.6 : 2.4)))
+      // Settle for real: an exponential approach never arrives, and the
+      // stage redraws for any change — so land once it can't be seen.
+      if (Math.abs(target - vel) < 2e-4) vel = target
     }
     stage.rot += vel * dt
     const k = 1 - Math.exp(-dt * 5)
-    stage.tilt.x += (tiltTarget.x - stage.tilt.x) * k
-    stage.tilt.y += (tiltTarget.y - stage.tilt.y) * k
-    stage.sheen += wrap(lightTarget - stage.sheen) * k
+    const ease = (from: number, to: number): number =>
+      Math.abs(to - from) < 1e-4 ? to : from + (to - from) * k
+    stage.tilt.x = ease(stage.tilt.x, tiltTarget.x)
+    stage.tilt.y = ease(stage.tilt.y, tiltTarget.y)
+    const dl = wrap(lightTarget - stage.sheen)
+    stage.sheen = Math.abs(dl) < 1e-4 ? stage.sheen + dl : stage.sheen + dl * k
   }
   const offFrame = onStageFrame(step)
   // The analyser runs while the record is on screen (the grooves listen).

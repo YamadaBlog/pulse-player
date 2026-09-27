@@ -95,6 +95,11 @@ const facts = [
     const player = $('[data-heard-player]')
     const log = $('[data-transcript]')
     if (!root || !player || !log) return
+    // The cursor blinks only while the section is on screen.
+    const seen = new IntersectionObserver(([e]) =>
+      root.classList.toggle('is-seen', !!e?.isIntersecting),
+    )
+    seen.observe(root)
     const keys = $$<HTMLButtonElement>('[data-key]', root)
 
     const flash = (btn: HTMLElement | undefined): void => {
@@ -150,6 +155,7 @@ const facts = [
     })
     schedule()
     return () => {
+      seen.disconnect()
       root.removeEventListener('keydown', onKeydown)
       root.removeEventListener('click', onClick)
       off()
@@ -243,12 +249,15 @@ const facts = [
     gap: 0.6rem;
     color: var(--fg-2);
   }
+  .heard.is-seen .transcript__dot {
+    animation-play-state: running;
+  }
   .transcript__dot {
     width: 7px;
     height: 7px;
     border-radius: 50%;
     background: var(--signal);
-    animation: blink calc(var(--beat) * 2) steps(2) infinite;
+    animation: blink calc(var(--beat) * 2) steps(2) infinite paused;
   }
   @keyframes blink {
     50% {

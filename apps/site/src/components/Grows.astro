@@ -83,7 +83,7 @@ const MAX = 760
 </section>
 
 <script>
-  import { $, onPage, reducedMotion } from '../scripts/lifecycle'
+  import { $, onPage, reducedMotion, setText } from '../scripts/lifecycle'
   import { gsap, ScrollTrigger } from '../scripts/motion'
 
   // Keep in sync with the pinned-scene media query in the styles below.
@@ -115,14 +115,14 @@ const MAX = 760
       const room = frame.parentElement?.clientWidth ?? MAX
       const w = Math.round(Math.min(width, room))
       frame.style.width = `${w}px`
-      px.textContent = String(w)
+      setText(px, String(w))
       cursor.style.setProperty('--x', String(w / MAX))
       const [, name, text] = TIERS.find(([at]) => w >= at) ?? TIERS[TIERS.length - 1]
       range.setAttribute('aria-valuetext', `${w} pixels, ${name}`)
       if (name !== lastTier) {
         lastTier = name
-        tier.textContent = name
-        drops.textContent = text
+        setText(tier, name)
+        setText(drops, text)
         tier.animate?.(
           [
             { opacity: 0, transform: 'translateY(40%)' },

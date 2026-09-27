@@ -319,6 +319,10 @@ export const playerStyles = css`
   .player[data-error] .btn--main {
     animation: shake 480ms var(--pulse-ease-out);
   }
+  /* The spinner turns only while loading. It turns as a whole (the <svg>,
+     which the compositor can animate); a CSS animation on the <circle>
+     inside would restyle and re-lay out the page on every frame, even
+     while invisible. */
   .spinner {
     position: absolute;
     inset: -4px;
@@ -327,6 +331,7 @@ export const playerStyles = css`
     opacity: 0;
     transition: opacity var(--pulse-dur-base) var(--pulse-ease-out);
     pointer-events: none;
+    animation: spin 900ms linear infinite paused;
   }
   .spinner circle {
     fill: none;
@@ -334,11 +339,10 @@ export const playerStyles = css`
     stroke-width: 2.5;
     stroke-linecap: round;
     stroke-dasharray: 40 200;
-    transform-origin: center;
-    animation: spin 900ms linear infinite;
   }
   .player[data-loading] .spinner {
     opacity: 1;
+    animation-play-state: running;
   }
   .time {
     margin-left: auto;

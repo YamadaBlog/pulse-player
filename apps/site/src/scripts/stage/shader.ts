@@ -33,6 +33,8 @@ uniform float uRot;      // spin
 uniform vec2 uArm;       // x: swing (rad, clockwise seen from above), y: lift 0..1
 uniform vec3 uPivot;     // tonearm base, on the floor
 uniform float uArmOn;
+uniform int uSamples;    // 4: a uniform, so the compiler keeps one copy of the loop
+uniform vec3 uArmBox;   // the tonearm on screen: centre (device px, from the top left), radius
 uniform vec3 uLight;     // direction to the key light (shading, shadows)
 uniform vec3 uSheenL;    // the light the grooves catch (follows the hand)
 uniform vec3 uPaper;
@@ -225,7 +227,8 @@ float shadowOf(vec3 p, bool fromRecord) {
   }
   // The arm: post, tube and headshell, as soft capsules. Its shadow stays
   // light and close — the flat arm had none.
-  if (uArmOn > 0.0) {
+  // Only near the arm: its shadow can't reach further than this.
+  if (uArmOn > 0.0 && length(p.xz - uPivot.xz) < 0.95 + uRecPos.y * 0.9) {
     float k = 0.0;
     vec2 dp = raySeg(p, uLight, uPivot, armPts[0]);
     if (dp.y > 0.0) k = max(k, 1.0 - smoothstep(0.0, 0.008 + dp.y * 0.12, dp.x - POST_R));
@@ -414,7 +417,8 @@ void main() {
   float tArm = 1e9;
   vec3 armCol = vec3(0.0);
   float armCover = 0.0;
-  if (uArmOn > 0.0) {
+  // Only inside the arm's screen bounds (computed in JS each frame).
+  if (uArmOn > 0.0 && length(frag - uArmBox.xy) < uArmBox.z) {
     float near = 1e9;
     for (int i = 0; i < 2; i++) {
       vec2 d = raySeg(ro, rd, armPts[i], armPts[i + 1]);
@@ -424,7 +428,7 @@ void main() {
     near = min(near, (dp.x - BASE_R - 0.01) / max(dp.y * pxScale, 1e-6));
     if (near < 2.0) {
       vec2 offs[4] = vec2[4](vec2(-0.125, -0.375), vec2(0.375, -0.125), vec2(0.125, 0.375), vec2(-0.375, 0.125));
-      for (int i = 0; i < 4; i++) {
+      for (int i = 0; i < uSamples; i++) {
         vec2 so = (frag + offs[i] - uPP) / uFocal;
         vec3 rdo = normalize(uCam[0] * so.x - uCam[1] * so.y + uCam[2]);
         vec3 an;
@@ -454,7 +458,8 @@ void main() {
   vec2 uv = frag / uRes;
   float vig = 1.0 - uDepth * 0.22 * pow(length((uv - 0.5) * vec2(1.1, 1.0)), 2.2);
   col *= vig;
-  col += uDepth * (hash(frag + fract(uTime) * 91.7) - 0.5) * 0.02;
+  // Static grain: a moving one would redraw the whole screen every frame.
+  col += uDepth * (hash(frag) - 0.5) * 0.02;
   outColor = vec4(col, 1.0);
 }
 `
