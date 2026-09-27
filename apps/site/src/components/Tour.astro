@@ -157,7 +157,7 @@ const chapters = [
 
 <script>
   import { engine } from '../scripts/audio'
-  import { $, $$, onPage, reducedMotion } from '../scripts/lifecycle'
+  import { $, $$, onPage, reducedMotion, setText } from '../scripts/lifecycle'
   import { gsap, ScrollTrigger } from '../scripts/motion'
   import { createRoll } from '../scripts/roll'
   import { PAPER_ROOM, setTour, type Key, type Room } from '../scripts/stage/director'
@@ -434,7 +434,7 @@ const chapters = [
     const update = (p: number): void => {
       // Timecode: A1 lasts 0:40 on the tracklist.
       const t = p * 40
-      if (tcEl) tcEl.textContent = `00:00:${pad(Math.floor(t))}:${pad(Math.floor((t % 1) * 30))}`
+      setText(tcEl, `00:00:${pad(Math.floor(t))}:${pad(Math.floor((t % 1) * 30))}`)
       let now = -1
       BEATS.forEach(([a, b], i) => {
         if (p >= a && p <= b) now = i
@@ -522,6 +522,10 @@ const chapters = [
   .tour.is-live .tour__hud {
     opacity: 1;
   }
+  /* The recording light blinks only while the HUD is up. */
+  .tour.is-live .tour__rec {
+    animation-play-state: running;
+  }
   .tour__corner {
     position: absolute;
     width: 22px;
@@ -575,7 +579,7 @@ const chapters = [
     border-radius: 50%;
     background: currentColor;
     vertical-align: 0.05em;
-    animation: rec calc(var(--beat) * 2) steps(2, jump-none) infinite;
+    animation: rec calc(var(--beat) * 2) steps(2, jump-none) infinite paused;
   }
   @keyframes rec {
     50% {

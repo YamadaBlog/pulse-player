@@ -1,5 +1,5 @@
 import { engine } from './audio'
-import { $, $$, onPage, reducedMotion } from './lifecycle'
+import { $, $$, onPage, reducedMotion, setText } from './lifecycle'
 import { getLenis, gsap } from './motion'
 import { applyMood, currentMood } from './mood-store'
 import { createRoll } from './roll'
@@ -13,11 +13,14 @@ engine.onStateChange((s) => {
   const now = $('[data-now]')
   const t = engine.track
   if (!now || !t) return
-  now.textContent = s.isPlaying
-    ? `Now playing — ${t.title} · ${t.artist ?? ''}`
-    : s.hasBeenOpened
-      ? `Paused — ${t.title}`
-      : 'Side A · ready'
+  setText(
+    now,
+    s.isPlaying
+      ? `Now playing — ${t.title} · ${t.artist ?? ''}`
+      : s.hasBeenOpened
+        ? `Paused — ${t.title}`
+        : 'Side A · ready',
+  )
 })
 
 // ─── Tracklist dialog ─────────────────────────────────────────────
@@ -98,8 +101,8 @@ if (matchMedia('(pointer: fine)').matches) {
     const tag = $('.cursor-tag')
     const host = target?.closest?.<HTMLElement>('[data-cursor]')
     if (!tag) return
-    tag.toggleAttribute('data-on', !!host)
-    if (host) tag.firstElementChild!.textContent = host.dataset.cursor ?? ''
+    if (tag.hasAttribute('data-on') !== !!host) tag.toggleAttribute('data-on', !!host)
+    if (host) setText(tag.firstElementChild, host.dataset.cursor ?? '')
   }
   let seen = false
   document.addEventListener('pointermove', (e) => {
@@ -109,17 +112,19 @@ if (matchMedia('(pointer: fine)').matches) {
     retarget(e.target as Element)
     if (!raf) raf = requestAnimationFrame(move)
   })
-  // The page can move under a still pointer (the wheel, the keyboard): ask
-  // again what is under it, once per frame.
-  let pending = 0
+  // The page can move under a still pointer (the wheel, the keyboard). While
+  // it scrolls, the tag steps aside (hit-testing the point on every frame
+  // would force a layout each time); once the scroll settles, it asks once
+  // what is under the pointer.
+  let settle = 0
   addEventListener(
     'scroll',
     () => {
-      if (!seen || pending) return
-      pending = requestAnimationFrame(() => {
-        pending = 0
-        retarget(document.elementFromPoint(x, y))
-      })
+      if (!seen) return
+      const tag = $('.cursor-tag')
+      if (tag?.hasAttribute('data-on')) tag.removeAttribute('data-on')
+      clearTimeout(settle)
+      settle = window.setTimeout(() => retarget(document.elementFromPoint(x, y)), 120)
     },
     { passive: true },
   )

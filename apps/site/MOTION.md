@@ -78,6 +78,20 @@ The curves are the component's `EASING` tokens (`@pulse-music/tokens`), the ones
 
    The page never shows a final state and then takes it away. The stage shows nothing until its labels are painted. A page being swapped out is stopped (`kill()`), not restored.
 
+## Performance: what keeps it fluid
+
+These rules came out of a measured audit: Chrome with the GPU, CPU profiles, traces and GPU timers.
+
+- **Shaders compile in parallel** (`KHR_parallel_shader_compile`, `gl.ts`). Nothing touches a program — no uniforms, attributes or draws — before `surface.ready`. A synchronous compile of the stage blocked the main thread for 2.2 s.
+- **Loops in shaders take a uniform bound.** The Direct3D compiler (ANGLE on Windows) unrolls constant-bound loops, so the ridges' 42-row loop compiled in half a second.
+- **Heavy things are created late.** The ridges get their context and program at the first idle moment after the opening, or on approach; the reel's video buffers on approach and its poster loads lazily.
+- **The stage draws only when something changes.** Every uniform it shows is compared frame to frame, and at rest it costs nothing on the GPU. Physics settle for real, so an exponential approach ends. Nothing time-based (grain, shimmer) animates without music.
+- **The pixel budget is capped.** The stage renders at 1.5× density with a mouse and 1.25× on touch screens. It steps down if frames run late: the interval between drawn frames is the signal, because GPU time can't be read.
+- **Pixels that can't show something don't compute it.** The tonearm is only evaluated inside its screen bounds (computed in JavaScript each frame), and its shadow only near it.
+- **No layout reads in the frame loop.** Boxes are measured on load, resize, font swaps and ScrollTrigger refreshes; each frame only adds the scroll that Lenis already knows. Canvas sizes come from `ResizeObserver`. `elementFromPoint` runs once a scroll settles, never during it.
+- **Text is written only when it changes** (`setText`), because a write invalidates layout even when the text is the same.
+- **Infinite animations are compositor-only and run only when seen.** That means `transform` and `opacity`. No CSS animation on SVG children (Chrome restyles and re-lays out the page on every frame for those), no `box-shadow` pulses, and paused while off screen or not relevant.
+
 ## Reduced motion
 
 With reduced motion, everything is complete and still:

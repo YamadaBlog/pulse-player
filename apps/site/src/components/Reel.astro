@@ -60,6 +60,7 @@ const poster = file('reel-poster-1920.webp')
           height="1080"
           alt=""
           decoding="async"
+          loading="lazy"
         />
         <video
           class="reel__video"
@@ -149,7 +150,7 @@ const poster = file('reel-poster-1920.webp')
 
 <script>
   import { engine } from '../scripts/audio'
-  import { $, onPage, reducedMotion } from '../scripts/lifecycle'
+  import { $, onPage, reducedMotion, setText } from '../scripts/lifecycle'
   import { gsap } from '../scripts/motion'
   import { createRoll } from '../scripts/roll'
   import { BEAT, EASE, EIGHTH } from '../scripts/tempo'
@@ -218,7 +219,7 @@ const poster = file('reel-poster-1920.webp')
         rollNow?.(`${pad(i)} — ${seeks[i]!.dataset.title}`)
       }
       seeks[i]?.setAttribute('data-current', '')
-      if (tcEl) tcEl.textContent = tc(t)
+      setText(tcEl, tc(t))
     }
     let frameReq = 0
     let rewinding = false

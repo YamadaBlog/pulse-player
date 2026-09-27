@@ -124,6 +124,7 @@ const base = import.meta.env.BASE_URL
     text-overflow: ellipsis;
   }
   .head__dot {
+    position: relative;
     flex: none;
     width: 7px;
     height: 7px;
@@ -134,7 +135,18 @@ const base = import.meta.env.BASE_URL
   :global(html[data-playing]) .head__dot {
     background: var(--signal);
     opacity: 1;
-    box-shadow: 0 0 0 0 var(--signal);
+  }
+  /* The ping is a ring that grows and fades — transform and opacity, so
+     the compositor runs it (a box-shadow would repaint every frame). */
+  .head__dot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--signal);
+    opacity: 0;
+  }
+  :global(html[data-playing]) .head__dot::after {
     animation: ping calc(var(--beat) * 2) var(--ease-out) infinite;
   }
   .head__nav {
@@ -244,8 +256,13 @@ const base = import.meta.env.BASE_URL
     }
   }
   @keyframes ping {
+    from {
+      opacity: 0.55;
+      transform: scale(1);
+    }
     to {
-      box-shadow: 0 0 0 7px transparent;
+      opacity: 0;
+      transform: scale(3);
     }
   }
   @keyframes bars {

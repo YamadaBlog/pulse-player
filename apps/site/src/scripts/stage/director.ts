@@ -1,5 +1,5 @@
 import { $, $$, onPage, reducedMotion } from '../lifecycle'
-import { gsap, type ScrollTrigger } from '../motion'
+import { getLenis, gsap, ScrollTrigger } from '../motion'
 import type { Shot, Vec3 } from './camera'
 import { mountStage, onStageFrame, stage, start, stop, unmountStage } from './stage'
 
@@ -87,28 +87,67 @@ onPage(() => {
     return
   }
 
+  // ─── Geometry, measured once — never read in the frame loop ───────
+  // Reading layout after ScrollTrigger and Lenis have written this frame
+  // would force a synchronous layout on every frame of every scroll. The
+  // boxes are measured on load, resize, font swaps and every ScrollTrigger
+  // refresh, in page coordinates; each frame only adds the scroll.
+  const geo = { anchor: box0(), flip: box0(), pinH: 0, pinW: 0, dockW: 0, vw: 0, vh: 0 }
+  const measure = (): void => {
+    const y = window.scrollY
+    geo.anchor = pageBox(anchor, y)
+    if (flip.dock) geo.flip = pageBox(flip.dock, y)
+    const pin = tour?.dock.parentElement
+    if (pin) {
+      geo.pinH = pin.offsetHeight
+      geo.pinW = pin.offsetWidth
+    }
+    geo.dockW = tour?.dock.offsetWidth ?? 0
+    geo.vw = innerWidth
+    geo.vh = innerHeight
+  }
+  measure()
+  const resize = new ResizeObserver(() => measure())
+  resize.observe(document.documentElement)
+  resize.observe(anchor)
+  ScrollTrigger.addEventListener('refresh', measure)
+  void document.fonts.ready.then(measure)
+  const scrollNow = (): number => getLenis()?.scroll ?? window.scrollY
+  const at = (b: PageBox, y: number, fill = 0.45): Shot => ({
+    x: b.cx,
+    y: b.cy - y,
+    r: b.w * fill,
+    ...FLAT,
+  })
+  // The dock sits in the middle of the pinned tour: fixed while pinned,
+  // then leaving with the page.
+  const dockShot = (t: Tour, y: number): Shot => {
+    const pinTop =
+      y < t.trigger.start ? t.trigger.start - y : y > t.trigger.end ? t.trigger.end - y : 0
+    return { x: geo.pinW / 2, y: pinTop + geo.pinH / 2, r: geo.dockW * 0.45, ...FLAT }
+  }
+  setDock = dockShot
+  remeasure = measure
+
   const frame = (): void => {
     if ((window as unknown as { __stageHold?: boolean }).__stageHold) return
     stage.roll = (-Number(gsap.getProperty(anchor, 'rotation')) * Math.PI) / 180
     const t = tour
-    const vw = innerWidth
-    const vh = innerHeight
+    const vw = geo.vw
+    const vh = geo.vh
+    const sy = scrollNow()
     // The interlude, once its box is near (the stage is hidden in between:
     // no window shows it, so the change of place is never seen).
     const f = flip.dock
-    if (
-      f &&
-      (!t || t.trigger.scroll() > t.trigger.end) &&
-      f.getBoundingClientRect().top < vh * 1.4
-    ) {
-      Object.assign(stage.shot, { ...docked(f, 0.5), el: flip.el })
+    if (f && (!t || sy > t.trigger.end) && geo.flip.cy - geo.flip.h / 2 - sy < vh * 1.4) {
+      Object.assign(stage.shot, { ...at(geo.flip, sy, 0.5), el: flip.el })
       stage.depth = flip.depth
       stage.drift = 0
       Object.assign(stage.room, PAPER_ROOM)
       return
     }
     if (!t || reducedMotion()) {
-      let shot = docked(anchor)
+      let shot = at(geo.anchor, sy)
       if (intro.k > 0 && intro.shot) shot = mixShot(shot, intro.shot(vw, vh), intro.k)
       Object.assign(stage.shot, shot)
       stage.depth = intro.k
@@ -116,7 +155,7 @@ onPage(() => {
       Object.assign(stage.room, PAPER_ROOM)
       return
     }
-    const y = t.trigger.scroll()
+    const y = sy
     const { start: pinStart, end: pinEnd } = t.trigger
     const first = t.keys[0]!
     let shot: Shot
@@ -124,10 +163,10 @@ onPage(() => {
     if (y <= pinStart) {
       // Detach: from the hero's box to the first mark, flat all the way.
       const k = EASE_IN_OUT(clamp(y / Math.max(1, pinStart), 0, 1))
-      shot = mixShot(docked(anchor), first.shot(vw, vh), k)
+      shot = mixShot(at(geo.anchor, y), first.shot(vw, vh), k)
       depth = first.depth * k
     } else if (y >= pinEnd) {
-      shot = docked(t.dock)
+      shot = dockShot(t, y)
     } else {
       ;({ shot, depth } = sample(t.keys, (y - pinStart) / (pinEnd - pinStart), vw, vh, t.dock))
     }
@@ -163,6 +202,10 @@ onPage(() => {
   $$('[data-stage-window]').forEach((el) => io.observe(el))
 
   return () => {
+    resize.disconnect()
+    ScrollTrigger.removeEventListener('refresh', measure)
+    setDock = null
+    remeasure = null
     io.disconnect()
     offFrame()
     unmountStage()
@@ -171,13 +214,34 @@ onPage(() => {
 })
 
 /**
- * A docked shot: flat, the disc's radius 45 % of the box (the flat
- * record's proportions). The box may be moved (and turned) by the
- * opening: its centre follows the transform, its size is the layout's.
+ * A docked shot: flat, the disc's radius 45 % of its box (the flat
+ * record's proportions). Boxes are kept in page coordinates.
  */
-function docked(el: HTMLElement, fill = 0.45): Shot {
+interface PageBox {
+  cx: number
+  cy: number
+  w: number
+  h: number
+}
+const box0 = (): PageBox => ({ cx: 0, cy: 0, w: 0, h: 0 })
+function pageBox(el: HTMLElement, scrollY: number): PageBox {
   const r = el.getBoundingClientRect()
-  return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: el.offsetWidth * fill, ...FLAT }
+  return {
+    cx: r.left + r.width / 2,
+    cy: r.top + r.height / 2 + scrollY,
+    w: el.offsetWidth,
+    h: r.height,
+  }
+}
+// The tour's dock, as a shot at the current scroll (set by the director).
+let setDock: ((t: Tour, y: number) => Shot) | null = null
+let remeasure: (() => void) | null = null
+/** Measure the boxes again (a section changed its layout). */
+export const measureStage = (): void => remeasure?.()
+function dockAt(_dock: HTMLElement): Shot {
+  const t = tour
+  const y = getLenis()?.scroll ?? window.scrollY
+  return t && setDock ? setDock(t, y) : { x: 0, y: 0, r: 1, ...FLAT }
 }
 
 // ─── Interpolation ─────────────────────────────────────────────────
@@ -212,7 +276,7 @@ function sample(
   dock: HTMLElement,
 ): { shot: Shot; depth: number } {
   const last = keys.length - 1
-  const at = (i: number): Shot => (i === last ? docked(dock) : keys[i]!.shot(vw, vh))
+  const at = (i: number): Shot => (i === last ? dockAt(dock) : keys[i]!.shot(vw, vh))
   let i = 0
   while (i < last - 1 && p > keys[i + 1]!.at) i++
   const a = keys[i]!

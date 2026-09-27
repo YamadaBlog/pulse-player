@@ -96,7 +96,7 @@ const base = import.meta.env.BASE_URL
   import { engine } from '../scripts/audio'
   import { deck } from '../scripts/deck'
   import { eqSelfTest } from '../scripts/eq-word'
-  import { $, onPage, reducedMotion } from '../scripts/lifecycle'
+  import { $, onPage, reducedMotion, setText } from '../scripts/lifecycle'
   import { gsap } from '../scripts/motion'
   import { setupNeedle } from '../scripts/needle'
   import '../scripts/stage/director'
@@ -119,7 +119,7 @@ const base = import.meta.env.BASE_URL
       // While the platter runs down the music still plays, but the needle is
       // up; while the arm travels the needle is down, before the music starts.
       const down = (engine.state.isPlaying && !deck.braking) || deck.cueing
-      label.textContent = down ? 'Lift the needle' : 'Drop the needle'
+      setText(label, down ? 'Lift the needle' : 'Drop the needle')
     }
     const onClick = (): void => {
       hero.dispatchEvent(new CustomEvent('needle:toggle'))

@@ -59,7 +59,7 @@
 <script>
   import { engine } from '../scripts/audio'
   import { subscribeFrames } from '../scripts/audio'
-  import { $, onPage, reducedMotion, whileVisible } from '../scripts/lifecycle'
+  import { $, onPage, reducedMotion, setText, whileVisible } from '../scripts/lifecycle'
   import { gsap } from '../scripts/motion'
   import '../scripts/ridges'
 
@@ -71,7 +71,7 @@
     if (!host || !energy || !bass || !source) return
     const offState = engine.onStateChange((s) => {
       const t = engine.track
-      source.textContent = s.isPlaying && t ? `Listening — ${t.title}` : 'Idle — drop the needle'
+      setText(source, s.isPlaying && t ? `Listening — ${t.title}` : 'Idle — drop the needle')
     })
     const stop = whileVisible(host, () => {
       if (reducedMotion()) return () => undefined
@@ -80,8 +80,8 @@
         const now = performance.now()
         if (now - last < 100) return
         last = now
-        energy.textContent = f.energy.toFixed(2)
-        bass.textContent = f.bass.toFixed(2)
+        setText(energy, f.energy.toFixed(2))
+        setText(bass, f.bass.toFixed(2))
       })
     })
     // The camera: the landscape is first seen at a grazing angle and
