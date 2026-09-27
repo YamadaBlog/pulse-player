@@ -109,9 +109,21 @@ test('keyboard shortcuts work inside a player', async ({ page }) => {
 
 test('live repository metrics fill the matrix', async ({ page }) => {
   await page.goto('./')
+  // The counted cells count up once the matrix comes into view.
+  await page.locator('.matrix').scrollIntoViewIfNeeded()
   await expect(page.locator('.matrix [data-metric="stars"]')).toHaveText('12')
   await expect(page.locator('.matrix [data-metric="version"]')).toHaveText('3.0.0')
   await expect(page.locator('.head__gh [data-metric]')).toHaveText('★ 12')
+})
+
+test('the reel is a chapter with its own controls', async ({ page }) => {
+  await page.goto('./')
+  const reel = page.locator('#reel')
+  await reel.scrollIntoViewIfNeeded()
+  await expect(reel.getByRole('button', { name: 'Play the reel, with sound' })).toBeVisible()
+  const chapters = reel.getByRole('list', { name: 'Chapters' }).getByRole('button')
+  await expect(chapters).toHaveCount(8)
+  await expect(chapters.nth(3)).toHaveAccessibleName('Play from 0:05: Morph')
 })
 
 test('a mood retints every following player and is remembered', async ({ page }) => {

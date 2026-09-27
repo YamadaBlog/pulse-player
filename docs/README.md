@@ -21,5 +21,5 @@
 
 **Project**
 
-- [Contributing](../CONTRIBUTING.md) · [Releasing](../RELEASING.md) · [Security](../SECURITY.md) · [Asset licences](../NOTICE.md)
+- [Contributing](../CONTRIBUTING.md) · [Releasing](../RELEASING.md) · [Security](../SECURITY.md) · [Asset licences](../NOTICE.md) · [The showcase's motion system](../apps/site/MOTION.md)
 - [History before 3.0](./history/changelog-before-3.0.md)

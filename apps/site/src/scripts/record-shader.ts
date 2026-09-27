@@ -22,6 +22,9 @@ uniform vec3 uAccent;
 uniform float uProgress;
 uniform float uPlaying;
 uniform sampler2D uLabel;
+uniform sampler2D uLabelB;
+uniform float uFlip; // extra turn around the vertical axis: 0 = side A, PI = side B
+uniform float uScale; // disc radius as a fraction of the canvas (0.9 by default)
 
 const float PI = 3.14159265;
 const float LABEL_R = 0.335;
@@ -46,16 +49,19 @@ mat3 rotY(float a) { float c = cos(a), s = sin(a); return mat3(c, 0, -s, 0, 1, 0
 
 void main() {
   float m = min(uRes.x, uRes.y);
-  vec2 p = (gl_FragCoord.xy - 0.5 * uRes) / (0.5 * m) / 0.9;
+  vec2 p = (gl_FragCoord.xy - 0.5 * uRes) / (0.5 * m) / (uScale > 0.0 ? uScale : 0.9);
 
   // Ray / tilted-plane intersection (camera on +z, gentle perspective).
   float D = 3.4;
   vec3 ro = vec3(0.0, 0.0, D);
   vec3 rd = normalize(vec3(p, -D));
-  mat3 R = rotY(uTilt.x) * rotX(uTilt.y);
+  mat3 R = rotY(uTilt.x + uFlip) * rotX(uTilt.y);
   vec3 n = R * vec3(0.0, 0.0, 1.0);
   float t = -dot(ro, n) / dot(rd, n);
   vec2 q = (transpose(R) * (ro + t * rd)).xy;
+  // Turned over: we see side B, mirrored so its label reads the right way.
+  bool back = n.z < 0.0;
+  if (back) q.x = -q.x;
   float r = length(q);
   float px = fwidth(r);
 
@@ -77,7 +83,8 @@ void main() {
     // Paper label, rotating with the disc.
     float c = cos(-uRot), s = sin(-uRot);
     vec2 lq = mat2(c, s, -s, c) * q;
-    vec4 label = texture(uLabel, lq / LABEL_R * 0.5 + 0.5);
+    vec2 luv = lq / LABEL_R * 0.5 + 0.5;
+    vec4 label = back ? texture(uLabelB, luv) : texture(uLabel, luv);
     col = mix(vec3(0.07), label.rgb, label.a);
     // Spindle hole.
     col = mix(vec3(0.04), col, smoothstep(0.018, 0.024, r));
@@ -128,7 +135,7 @@ void main() {
   }
 
   // Slight shading from the tilt, and a soft anti-aliased edge.
-  col *= 0.9 + 0.1 * dot(n, normalize(vec3(-0.4, 0.6, 1.0)));
+  col *= 0.9 + 0.1 * dot(back ? -n : n, normalize(vec3(-0.4, 0.6, 1.0)));
   float edge = smoothstep(1.0 + px, 1.0 - px, r);
   outColor = vec4(col * edge, edge) + vec4(0.0, 0.0, 0.0, shadow * (1.0 - edge));
 }

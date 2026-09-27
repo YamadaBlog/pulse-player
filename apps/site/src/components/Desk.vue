@@ -278,7 +278,7 @@ function onTabKey(e: KeyboardEvent, index: number): void {
 }
 .monitor__frame {
   max-width: 100%;
-  transition: width 420ms cubic-bezier(0.34, 1.2, 0.64, 1);
+  transition: width var(--beat-2) var(--ease-gentle);
 }
 .monitor__frame[data-dragging] {
   transition: none;
@@ -336,8 +336,8 @@ input[type='radio'] {
   font-size: 0.8rem;
   cursor: pointer;
   transition:
-    background-color 0.3s var(--ease-out),
-    color 0.3s var(--ease-out);
+    background-color var(--beat-4) var(--ease-out),
+    color var(--beat-4) var(--ease-out);
 }
 .mood:hover {
   color: var(--fg);
@@ -357,7 +357,7 @@ input[type='radio'] {
   height: 14px;
   border-radius: 50%;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.25);
-  transition: box-shadow 0.3s var(--ease-out);
+  transition: box-shadow var(--beat-4) var(--ease-out);
 }
 .mood:has(:checked) .mood__led {
   box-shadow:
@@ -386,8 +386,8 @@ input[type='radio'] {
   border-radius: 50%;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2);
   transition:
-    box-shadow 0.3s var(--ease-out),
-    scale 0.4s cubic-bezier(0.34, 1.5, 0.64, 1);
+    box-shadow var(--beat-4) var(--ease-out),
+    scale var(--beat-2) var(--ease-pop);
 }
 .accent:hover .accent__dot {
   scale: 1.1;
@@ -458,8 +458,8 @@ input[type='radio'] {
   text-align: left;
   cursor: pointer;
   transition:
-    background-color 0.3s var(--ease-out),
-    color 0.3s var(--ease-out);
+    background-color var(--beat-4) var(--ease-out),
+    color var(--beat-4) var(--ease-out);
 }
 .switch:hover {
   color: var(--fg);
@@ -470,8 +470,8 @@ input[type='radio'] {
   border-radius: 50%;
   background: rgb(236 231 220 / 0.2);
   transition:
-    background-color 0.3s var(--ease-out),
-    box-shadow 0.3s var(--ease-out);
+    background-color var(--beat-4) var(--ease-out),
+    box-shadow var(--beat-4) var(--ease-out);
 }
 .switch[aria-checked='true'] {
   color: var(--fg);
@@ -506,8 +506,8 @@ input[type='radio'] {
   text-transform: uppercase;
   cursor: pointer;
   transition:
-    color 0.3s var(--ease-out),
-    background-color 0.3s var(--ease-out);
+    color var(--beat-4) var(--ease-out),
+    background-color var(--beat-4) var(--ease-out);
 }
 .tab:hover {
   color: var(--fg);

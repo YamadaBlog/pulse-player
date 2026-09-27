@@ -3,22 +3,28 @@ import CopyChip from './CopyChip.astro'
 const base = import.meta.env.BASE_URL
 ---
 
-<section id="top" class="hero" data-surface="a" tabindex="-1">
+<section data-track="A1" id="top" class="hero" data-surface="a" tabindex="-1">
   <div class="hero__stage wrap">
     <div class="sleeve" data-sleeve>
       <div class="sleeve__top label">
         <span>PM—001</span>
         <span>LP · 2026</span>
       </div>
-      <h1 class="display sleeve__title">
-        <span class="sleeve__line">A music player</span>
-        <span class="sleeve__line">
-          that{' '}
-          <span class="breathe" data-breathe>
-            plays
+      <h1 class="display sleeve__title" aria-label="A music player that plays your page.">
+        <span class="sleeve__line" aria-hidden="true">
+          <span class="sleeve__ink">A music player</span>
+        </span>
+        <span class="sleeve__line" aria-hidden="true">
+          <span class="sleeve__ink">
+            that{' '}
+            <span class="eq" data-eq>
+              plays
+            </span>
           </span>
         </span>
-        <span class="sleeve__line">your page.</span>
+        <span class="sleeve__line" aria-hidden="true">
+          <span class="sleeve__ink">your page.</span>
+        </span>
       </h1>
       <div class="sleeve__foot">
         <p class="sleeve__lede">
@@ -32,6 +38,13 @@ const base = import.meta.env.BASE_URL
     <div class="record" data-record data-cursor="Drag to scratch · tap to play">
       <canvas aria-hidden="true"></canvas>
       <div class="record__fallback" aria-hidden="true"></div>
+      <svg class="record__fx" viewBox="0 0 200 200" aria-hidden="true">
+        <!-- The landing ripple travels through the vinyl only, never over the page. -->
+        <clipPath id="record-disc">
+          <circle cx="100" cy="100" r="89"></circle>
+        </clipPath>
+        <circle class="record__ring" cx="100" cy="100" r="0" clip-path="url(#record-disc)"></circle>
+      </svg>
       <svg class="arm" viewBox="0 0 200 200" aria-hidden="true">
         <circle cx="170" cy="30" r="17" class="arm__base"></circle>
         <circle cx="170" cy="30" r="6" class="arm__pin"></circle>
@@ -80,48 +93,86 @@ const base = import.meta.env.BASE_URL
 
 <script>
   import { engine } from '../scripts/audio'
-  import { $, onPage } from '../scripts/lifecycle'
-  import '../scripts/record'
+  import { deck } from '../scripts/deck'
+  import { eqSelfTest } from '../scripts/eq-word'
+  import { $, onPage, reducedMotion } from '../scripts/lifecycle'
   import { gsap } from '../scripts/motion'
+  import { setupNeedle } from '../scripts/needle'
+  import '../scripts/record'
+  import { BEAT, EASE, EIGHTH, SIXTEENTH, THIRTY_SECOND } from '../scripts/tempo'
 
   // Keep in sync with the compact layout media query in the styles below.
   const COMPACT =
     '(max-width: 760px), (max-width: 1100px) and (max-height: 520px) and (orientation: landscape)'
 
   onPage(() => {
+    const hero = $('.hero')
     const btn = $('[data-needle]')
     const label = $('[data-needle-label]')
-    if (!btn || !label) return
+    if (!hero || !btn || !label) return
     const sync = (): void => {
-      label.textContent = engine.state.isPlaying ? 'Lift the needle' : 'Drop the needle'
+      // While the platter runs down the music still plays, but the needle is
+      // up; while the arm travels the needle is down, before the music starts.
+      const down = (engine.state.isPlaying && !deck.braking) || deck.cueing
+      label.textContent = down ? 'Lift the needle' : 'Drop the needle'
     }
-    const onClick = (): void => engine.toggle()
+    const onClick = (): void => {
+      hero.dispatchEvent(new CustomEvent('needle:toggle'))
+      // Say what the button will do next, now, not when the platter stops.
+      label.textContent =
+        label.textContent === 'Drop the needle' ? 'Lift the needle' : 'Drop the needle'
+    }
     btn.addEventListener('click', onClick)
-    const off = engine.onStateChange(sync)
+    const offState = engine.onStateChange(sync)
     sync()
+    const offNeedle = setupNeedle(hero)
 
-    // The opening: the record slides out of its sleeve.
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
-    const compact = matchMedia(COMPACT).matches
+    // The opening, on side A's beat grid. The sleeve never moves: it is the
+    // anchor, and it stays opaque so the record is hidden behind it until it
+    // slides out — no frame shows one through the other.
+    //   0            title lines rise out of their masks, a 32nd apart
+    //   16th         the record slides out of the sleeve (one beat)
+    //   8th × ¾      the console rises: the call to action is there by ~0.6 s
+    //   beat × ¾     the tonearm swings in on a spring
+    //   8th + 3/32   the equaliser word sweeps once, like a meter waking up
+    const html = document.documentElement
+    const intro = html.classList.contains('intro')
     const ctx = gsap.context(() => {
-      if (reduce) return
-      const tl = gsap.timeline({ defaults: { ease: 'expo.out' } })
-      tl.from('.sleeve', { yPercent: 6, opacity: 0, duration: 1.2 })
-        .from('.sleeve__line', { yPercent: 105, duration: 1.1, stagger: 0.09 }, '<0.15')
-        .from(
-          '.record',
-          compact
-            ? { yPercent: -38, rotate: -40, duration: 1.6, ease: 'expo.inOut' }
-            : { xPercent: -62, rotate: -40, duration: 1.8, ease: 'expo.inOut' },
-          '<0.1',
+      if (!intro || reducedMotion()) return
+      const compact = matchMedia(COMPACT).matches
+      const inks = gsap.utils.toArray<HTMLElement>('.sleeve__ink')
+      const rise = ['.console__player', '.console__actions', '.console__chip', '.hero__cue']
+      // Take over from the CSS starting state within the same frame: drop
+      // the class first so GSAP reads clean transforms, then set its own.
+      html.classList.remove('intro')
+      gsap.set(inks, { yPercent: 112 })
+      gsap.set(
+        '.record',
+        compact ? { yPercent: -42, rotation: -40 } : { xPercent: -62, rotation: -40 },
+      )
+      gsap.set('.arm', { opacity: 0 })
+      gsap.set('.arm__swing', { rotation: -44, svgOrigin: '170 30' })
+      gsap.set(rise, { y: 24, opacity: 0 })
+
+      gsap
+        .timeline({ defaults: { ease: EASE.out } })
+        .to(inks, { yPercent: 0, duration: EIGHTH * 1.5, stagger: THIRTY_SECOND }, 0)
+        .to('.record', { xPercent: 0, yPercent: 0, rotation: 0, duration: BEAT }, SIXTEENTH)
+        .to(rise, { y: 0, opacity: 1, duration: EIGHTH, stagger: THIRTY_SECOND }, EIGHTH * 0.75)
+        .to('.arm', { opacity: 1, duration: THIRTY_SECOND }, BEAT * 0.75)
+        .to(
+          '.arm__swing',
+          { rotation: -24, duration: EIGHTH * 1.25, ease: EASE.gentle },
+          BEAT * 0.75,
         )
-        .from('.arm', { opacity: 0, rotate: -12, transformOrigin: '85% 15%', duration: 1 }, '-=0.5')
-        .from('.console > *', { y: 30, opacity: 0, duration: 1, stagger: 0.1 }, '-=0.9')
-    })
+        .add(() => eqSelfTest(hero), EIGHTH + THIRTY_SECOND * 3)
+    }, hero)
+    if (!intro) html.classList.remove('intro')
     return () => {
       btn.removeEventListener('click', onClick)
-      off()
-      ctx.revert()
+      offState()
+      offNeedle()
+      ctx.kill() // swapped out: stop, don't restore
     }
   })
 </script>
@@ -181,11 +232,39 @@ const base = import.meta.env.BASE_URL
     white-space: nowrap;
     padding-bottom: 0.04em;
   }
-  .breathe {
+  .sleeve__ink {
+    display: block;
+  }
+  /* The equaliser word: at rest, full height and fully orange. */
+  .eq {
     display: inline-block;
-    color: var(--signal-large);
-    font-variation-settings: 'wdth' 72;
-    will-change: font-variation-settings;
+  }
+  .eq :global(.eq__l) {
+    --fill: 100%;
+    display: inline-block;
+    transform-origin: 50% 88%;
+    color: transparent;
+    background-image: linear-gradient(
+      to top,
+      var(--signal-large) var(--fill),
+      var(--ink) var(--fill)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  /* Starting state before the opening takes over (hard loads only). */
+  :global(html.intro) .sleeve__ink {
+    transform: translateY(112%);
+  }
+  :global(html.intro) .record {
+    transform: translateX(-62%) rotate(-40deg);
+  }
+  :global(html.intro) .arm,
+  :global(html.intro) .console__player,
+  :global(html.intro) .console__actions,
+  :global(html.intro) .console__chip,
+  :global(html.intro) .hero__cue {
+    opacity: 0;
   }
   .sleeve__lede {
     max-width: 30ch;
@@ -268,14 +347,19 @@ const base = import.meta.env.BASE_URL
   .arm__head {
     fill: var(--ink);
   }
-  .arm__swing {
-    transform-origin: 170px 30px;
-    transform: rotate(-24deg);
-    transition: transform 1.4s cubic-bezier(0.34, 1.3, 0.64, 1);
+  .record__fx {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
   }
-  .record[data-playing] .arm__swing {
-    transform: rotate(calc(2deg + var(--progress, 0) * 18deg));
-    transition: transform 1s var(--ease-out);
+  .record__ring {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 2;
+    opacity: 0;
   }
 
   /* ─── Console ────────────────────────────────────────────────── */
@@ -398,6 +482,9 @@ const base = import.meta.env.BASE_URL
     }
     .arm {
       display: none;
+    }
+    :global(html.intro) .record {
+      transform: translateY(-42%) rotate(-40deg);
     }
     .console__player {
       z-index: 3;

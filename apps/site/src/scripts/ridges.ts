@@ -25,12 +25,25 @@ uniform float uTime;
 const int N = ${ROWS - 6};
 
 float hash(float n) { return fract(sin(n) * 43758.5453); }
+// Continuous value noise: a stepped hash turns each line into a staircase.
+float vnoise(float x, float seed) {
+  float i = floor(x);
+  float f = fract(x);
+  return mix(hash(i + seed), hash(i + 1.0 + seed), f * f * (3.0 - 2.0 * f));
+}
 
 float sampleRow(float x, float age) {
   float row = mod(uHead - age + ${ROWS}.0, ${ROWS}.0);
   float f = abs(x - 0.5) * 2.0;
   float band = (1.0 - f) * ${BANDS - 1}.0;
   return texture(uHist, vec2((band + 0.5) / ${BANDS}.0, (row + 0.5) / ${ROWS}.0)).r;
+}
+
+float ridge(float x, float fi, float base) {
+  float env = exp(-pow((x - 0.5) / 0.19, 2.0));
+  float v = sampleRow(x, fi);
+  float jitter = (vnoise(x * 140.0, fi * 13.0) - 0.5) * 0.012 * env;
+  return base + (v * 0.22 + jitter + 0.004) * env * (0.4 + 0.6 * smoothstep(0.0, 0.06, v + 0.02));
 }
 
 void main() {
@@ -40,16 +53,19 @@ void main() {
   float px = 1.0 / uRes.y;
   vec3 col = uBg;
   if (x > 0.06 && x < 0.94) {
-    float env = exp(-pow((x - 0.5) / 0.19, 2.0));
     float spacing = 0.76 / float(N);
+    // x → screen pixels, for slopes measured on screen.
+    float dx = 0.0015;
+    float toPx = dx * min(aspect, 1.6);
     for (int i = 0; i < N; i++) {
       float fi = float(i);
       float base = 0.1 + fi * spacing;
-      float v = sampleRow(x, fi);
-      float jitter = (hash(floor(x * 140.0) + fi * 13.0) - 0.5) * 0.012 * env;
-      float y = base + (v * 0.22 + jitter + 0.004) * env * (0.4 + 0.6 * smoothstep(0.0, 0.06, v + 0.02));
+      float y = ridge(x, fi, base);
       if (uv.y < y - 1.4 * px) break;               // hidden under this ridge's fill
-      float d = abs(uv.y - y);
+      // Distance across the line, not just vertically: steep flanks keep
+      // their width instead of breaking into dashes.
+      float slope = (ridge(x + dx, fi, base) - y) / toPx;
+      float d = abs(uv.y - y) / sqrt(1.0 + slope * slope);
       if (d < 1.4 * px) {
         float fade = 1.0 - fi / float(N) * 0.72;
         vec3 ink = mix(uAccent, uInk, smoothstep(0.0, 4.0, fi));

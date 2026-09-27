@@ -37,8 +37,18 @@
   --page: min(1440px, 100%);
   --header: 72px;
 
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  /* Motion. Curves are the player component's own (packages/tokens, injected
+     as --pulse-ease-* by the layout); durations are fractions of side A's
+     beat — "Projector Screen", 70.06 BPM — so the page keeps the music's time. */
+  --beat: 856ms;
+  --beat-2: 428ms;
+  --beat-4: 214ms;
+  --beat-8: 107ms;
+  --ease-out: var(--pulse-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+  --ease-in-out: var(--pulse-ease-in-out, cubic-bezier(0.65, 0, 0.35, 1));
+  --ease-in: cubic-bezier(0.64, 0, 0.78, 0);
+  --ease-pop: var(--pulse-ease-pop, cubic-bezier(0.34, 1.56, 0.64, 1));
+  --ease-gentle: var(--pulse-ease-gentle, cubic-bezier(0.34, 1.2, 0.64, 1));
 }
 
 .side-b {
@@ -173,12 +183,46 @@ p {
   margin: 0;
 }
 .track-head {
+  position: relative;
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: var(--gutter);
   align-items: baseline;
   padding-block: 1.25rem;
-  border-top: 1px solid var(--rule);
+}
+/* Every chapter opens the same way: the needle line is drawn across, then
+   the labels land a thirty-second apart — the reel's HUD, on the page. */
+.track-head::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: var(--rule);
+  transform-origin: 0 50%;
+  transition: transform var(--beat) var(--ease-out);
+}
+.track-head > * {
+  transition:
+    opacity var(--beat-2) var(--ease-out),
+    transform var(--beat-2) var(--ease-out);
+  transition-delay: calc(var(--beat-8) * (var(--i, 0) + 1));
+}
+.track-head > :nth-child(2) {
+  --i: 1;
+}
+.track-head > :nth-child(3) {
+  --i: 2;
+}
+html.js:not(.reduced):not(.static) .track-head:not(.is-cued)::before {
+  transform: scaleX(0);
+}
+html.js:not(.reduced):not(.static) .track-head:not(.is-cued) > * {
+  opacity: 0;
+  transform: translateY(0.6em);
+}
+/* Headlines wait for their split (motion.ts) instead of flashing in first. */
+html.js:not(.reduced):not(.static) [data-split]:not(.is-split) {
+  visibility: hidden;
 }
 .track-head .label:last-child {
   color: var(--fg-3);
@@ -217,8 +261,8 @@ p {
   overflow: hidden;
   isolation: isolate;
   transition:
-    color 0.35s var(--ease-out),
-    transform 0.5s var(--ease-out);
+    color var(--beat-4) var(--ease-out),
+    transform var(--beat-2) var(--ease-out);
 }
 .btn::before {
   content: '';
@@ -227,7 +271,7 @@ p {
   z-index: -1;
   background: var(--signal);
   transform: translateY(101%);
-  transition: transform 0.5s var(--ease-out);
+  transition: transform var(--beat-2) var(--ease-out);
 }
 .btn:hover::before {
   transform: translateY(0);
@@ -261,25 +305,27 @@ kbd {
   }
 }
 
-/* ─── Page transitions (Astro ClientRouter + View Transitions) ───── */
+/* ─── Page transitions (Astro ClientRouter + View Transitions) ─────
+   The new page spreads out from where you acted: the same radial reveal
+   as the mood wipes. The old page stays still underneath; no cross-fade,
+   so no frame ever shows both pages at half opacity. */
 ::view-transition-old(root) {
-  animation: 420ms var(--ease-in-out) both vt-out;
+  animation: none;
 }
 ::view-transition-new(root) {
-  animation: 620ms var(--ease-out) both vt-in;
+  animation: vt-reveal var(--beat) var(--ease-out) both;
 }
-@keyframes vt-out {
-  to {
-    opacity: 0;
-    transform: translateY(-2%);
-  }
-}
-@keyframes vt-in {
+@keyframes vt-reveal {
   from {
-    clip-path: inset(100% 0 0 0);
+    clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 50%));
   }
   to {
-    clip-path: inset(0 0 0 0);
+    clip-path: circle(var(--vt-r, 150vmax) at var(--vt-x, 50%) var(--vt-y, 50%));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root) {
+    animation: none;
   }
 }
 

@@ -10,19 +10,25 @@ const packages = [
   { name: '@pulse-music/types', role: 'Shared types' },
 ]
 const stats = [
-  { key: 'stars', label: 'Stars' },
-  { key: 'forks', label: 'Forks' },
-  { key: 'issues', label: 'Open issues' },
-  { key: 'downloads', label: 'npm / month' },
+  { key: 'stars', label: 'Stars', count: true },
+  { key: 'forks', label: 'Forks', count: true },
+  { key: 'issues', label: 'Open issues', count: true },
+  { key: 'downloads', label: 'npm / month', count: true },
   { key: 'version', label: 'Latest' },
   { key: 'pushed', label: 'Last pressed' },
 ]
 ---
 
-<section id="pressed" class="side-b pressed" data-surface="b" aria-labelledby="pressed-title">
+<section
+  data-track="C2"
+  id="pressed"
+  class="side-b pressed"
+  data-surface="b"
+  aria-labelledby="pressed-title"
+>
   <div class="wrap">
     <div class="track-head">
-      <span class="label">C1</span>
+      <span class="label">C2</span>
       <span class="label">Pressings</span>
       <span class="label">0:35</span>
     </div>
@@ -65,7 +71,9 @@ const stats = [
           {stats.map((s) => (
             <div>
               <dt class="label">{s.label}</dt>
-              <dd data-metric={s.key}>—</dd>
+              <dd data-metric={s.key} data-count={s.count ? '' : undefined}>
+                —
+              </dd>
             </div>
           ))}
         </dl>
@@ -92,6 +100,62 @@ const stats = [
     </p>
   </div>
 </section>
+
+<script>
+  import { metrics } from '../scripts/chrome'
+  import { $$, onPage, reducedMotion } from '../scripts/lifecycle'
+  import { gsap, ScrollTrigger } from '../scripts/motion'
+  import { BEAT, EASE, THIRTY_SECOND } from '../scripts/tempo'
+
+  // The matrix counts up when it comes into view (the reel's callouts):
+  // one beat, a thirty-second apart. Values come from the live metrics.
+  onPage(() => {
+    const cells = $$('.matrix [data-count]')
+    if (!cells.length) return
+    let st: ScrollTrigger | undefined
+    let tweens: gsap.core.Tween[] = []
+    let alive = true
+    void metrics.then((m) => {
+      if (!alive) return
+      const values = cells.map((el) => m[el.dataset.metric as keyof typeof m])
+      // Numbers wait at the count's start, zero (or show at once, calmly);
+      // "—" only ever means "no data".
+      const calm = reducedMotion()
+      cells.forEach((el, i) => {
+        const v = values[i]
+        el.textContent = typeof v === 'number' ? (calm ? String(v) : '0') : '—'
+      })
+      if (calm) return
+      const show = (): void => {
+        tweens = cells.flatMap((el, i) => {
+          const v = values[i]
+          if (typeof v !== 'number') return []
+          const n = { v: 0 }
+          return [
+            gsap.to(n, {
+              v,
+              duration: BEAT,
+              delay: i * THIRTY_SECOND,
+              ease: EASE.out,
+              onUpdate: () => (el.textContent = String(Math.round(n.v))),
+            }),
+          ]
+        })
+      }
+      st = ScrollTrigger.create({
+        trigger: cells[0]!.closest('.matrix'),
+        start: 'top 85%',
+        once: true,
+        onEnter: show,
+      })
+    })
+    return () => {
+      alive = false
+      st?.kill()
+      tweens.forEach((t) => t.kill())
+    }
+  })
+</script>
 
 <style>
   .pressed {
@@ -215,7 +279,7 @@ const stats = [
     letter-spacing: -0.04em;
     text-transform: uppercase;
     text-decoration: none;
-    transition: color 0.4s var(--ease-out);
+    transition: color var(--beat-2) var(--ease-out);
   }
   .signature__name .serif {
     font-size: 0.42em;

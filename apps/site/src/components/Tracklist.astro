@@ -24,9 +24,10 @@ const sides = [
     name: 'Bonus',
     note: 'Extended play',
     tracks: [
-      { n: 'C1', title: 'Pressings — open source', href: `${base}#pressed`, time: '0:35' },
-      { n: 'C2', title: 'The mixing desk', href: `${base}playground/`, time: '∞' },
-      { n: 'C3', title: 'Liner notes — specs', href: `${base}specs/`, time: '4:20' },
+      { n: 'C1', title: 'The reel', href: `${base}#reel`, time: '0:15' },
+      { n: 'C2', title: 'Pressings — open source', href: `${base}#pressed`, time: '0:35' },
+      { n: 'C3', title: 'The mixing desk', href: `${base}playground/`, time: '∞' },
+      { n: 'C4', title: 'Liner notes — specs', href: `${base}specs/`, time: '4:20' },
     ],
   },
 ]
@@ -82,10 +83,10 @@ const sides = [
     background: transparent;
   }
   .tl[open] {
-    animation: sleeve-in 0.8s var(--ease-out) both;
+    animation: sleeve-in var(--beat) var(--ease-out) both;
   }
   .tl.is-closing {
-    animation: sleeve-out 0.45s var(--ease-in-out) both;
+    animation: sleeve-out var(--beat-2) var(--ease-in-out) both;
   }
   .tl__inner {
     display: grid;
@@ -144,8 +145,8 @@ const sides = [
     transform: translateY(18px);
   }
   .tl[open] li {
-    animation: row-in 0.7s var(--ease-out) both;
-    animation-delay: calc(0.18s + var(--i, 0) * 45ms);
+    animation: row-in var(--beat) var(--ease-out) both;
+    animation-delay: calc(var(--beat-4) + var(--i, 0) * var(--beat-8) / 2);
   }
   li a {
     display: grid;
@@ -164,8 +165,8 @@ const sides = [
     letter-spacing: -0.02em;
     text-transform: uppercase;
     transition:
-      font-variation-settings 0.6s var(--ease-out),
-      color 0.3s var(--ease-out);
+      font-variation-settings calc(var(--beat-2) * 1.5) var(--ease-out),
+      color var(--beat-4) var(--ease-out);
   }
   li a:hover .tl__title,
   li a:focus-visible .tl__title {
