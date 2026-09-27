@@ -37,13 +37,21 @@ export function createSurface(
   canvas: HTMLCanvasElement,
   fragment: string,
   maxDpr = 2,
+  // A full-screen surface refuses a slow context (software rendering: no
+  // GPU, some VMs and remote desktops) — the page falls back instead.
+  needsGpu = false,
 ): Surface | null {
   const gl = canvas.getContext('webgl2', {
     alpha: true,
     antialias: false,
     premultipliedAlpha: true,
+    failIfMajorPerformanceCaveat: needsGpu,
   })
   if (!gl) return null
+  if (needsGpu && softwareRenderer(gl)) {
+    gl.getExtension('WEBGL_lose_context')?.loseContext()
+    return null
+  }
   const program = gl.createProgram()!
   gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, VERT))
   gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, fragment))
@@ -120,4 +128,14 @@ export function uploadTexture(
 export function hexToRgb(hex: string): [number, number, number] {
   const n = Number.parseInt(hex.replace('#', ''), 16)
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]
+}
+
+/**
+ * Is this context drawn by the CPU? Chrome may hand out SwiftShader without
+ * flagging a performance caveat. Unknown renderers count as GPUs.
+ */
+function softwareRenderer(gl: WebGL2RenderingContext): boolean {
+  const info = gl.getExtension('WEBGL_debug_renderer_info')
+  const name = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : ''
+  return /swiftshader|llvmpipe|softpipe|software|basic render/i.test(name)
 }

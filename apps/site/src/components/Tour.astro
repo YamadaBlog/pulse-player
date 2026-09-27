@@ -1,0 +1,739 @@
+---
+// A1, the object. The page lifts off: the record leaves the hero, the
+// camera tours it in four shots, and it lands back on the page. Every shot
+// is one line of what Pulse is; the frame is the reel's (its HUD, its
+// timecode), so the motion design is what you scroll through.
+const shots = [
+  {
+    n: '01',
+    name: 'One element',
+    place: 'left',
+    title: ['One element.'],
+    lede: 'A Custom Element that renders itself — in any framework, or none.',
+  },
+  {
+    n: '02',
+    name: 'Every size',
+    place: 'left',
+    title: ['Every size.', 'No breakpoints.'],
+    lede: 'It reads its own width: a disc at 96 px, a hero card at 760 px.',
+  },
+  {
+    n: '03',
+    name: 'Nine moods',
+    place: 'left',
+    title: ['Nine moods.'],
+    lede: 'One attribute re-lights the room — and every player in it.',
+  },
+  {
+    n: '04',
+    name: 'It listens',
+    place: 'right',
+    title: ['It listens', 'back.'],
+    lede: 'The real spectrum, sixty times a second, written into the groove.',
+  },
+]
+const chapters = [
+  {
+    n: 'A2',
+    title: 'Grows with the page',
+    line: 'Card, compact, disc — no breakpoints.',
+    href: '#grows',
+  },
+  { n: 'A3', title: 'Nine moods', line: 'Themes that retint the room.', href: '#moods' },
+  { n: 'B1', title: 'Follows you', line: 'A mini player that never gets lost.', href: '#follows' },
+  {
+    n: 'B2',
+    title: 'Listens back',
+    line: 'The real spectrum, sixty times a second.',
+    href: '#listens',
+  },
+  {
+    n: 'B3',
+    title: 'Speaks every framework',
+    line: 'One element, five dialects.',
+    href: '#dialects',
+  },
+  {
+    n: 'B4',
+    title: 'Built to be heard',
+    line: 'Keyboard, screen readers, lock screens.',
+    href: '#heard',
+  },
+]
+---
+
+<section
+  data-track="A1"
+  id="tour"
+  class="tour"
+  data-surface="a"
+  data-stage-window
+  data-tour
+  aria-labelledby="tour-title"
+>
+  <h2 id="tour-title" class="sr-only">
+    What Pulse is
+  </h2>
+  <p class="sr-only">
+    Pulse is one Custom Element for every framework. It reads its own width — a disc at 96 px, a
+    hero card at 760 — wears nine moods that re-light every player on the page, and listens to the
+    music it plays: the real spectrum, sixty times a second.
+  </p>
+
+  <!-- The reel's HUD: a fixed layer that inverts over the scene. -->
+  <div class="tour__hud" aria-hidden="true">
+    <i class="tour__corner" data-c="tl"></i>
+    <i class="tour__corner" data-c="tr"></i>
+    <i class="tour__corner" data-c="bl"></i>
+    <i class="tour__corner" data-c="br"></i>
+    <p class="label tour__slate">
+      A1 <span>— The object</span>
+    </p>
+    <p class="label tour__tc">
+      <i class="tour__rec"></i> TC <span data-tour-tc>00:00:00:00</span>
+    </p>
+    <p class="label tour__shot">
+      <span data-tour-shot>
+        {shots[0]!.n} — {shots[0]!.name}
+      </span>
+    </p>
+    <p class="label tour__meter">
+      <span class="tour__squares">
+        {shots.map(() => (
+          <i data-tour-square />
+        ))}
+      </span>
+      <span class="tour__bpm">70 BPM · 33⅓ RPM</span>
+    </p>
+  </div>
+
+  <div class="tour__pin" data-tour-pin>
+    {shots.map((s, i) => (
+      <div
+        class="tour__beat"
+        data-beat={i}
+        data-place={s.place}
+        data-name={`${s.n} — ${s.name}`}
+        aria-hidden="true"
+      >
+        <p class="label tour__kicker">Shot {s.n}</p>
+        <h3 class="headline tour__title">
+          {s.title.map((line) => (
+            <span class="tour__line">
+              <span>{line}</span>
+            </span>
+          ))}
+        </h3>
+        <p class="lede tour__lede">{s.lede}</p>
+      </div>
+    ))}
+    <div class="tour__cta" data-tour-cta inert>
+      <button class="btn" type="button" data-tour-needle>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M8 5.5v13l10.5-6.5z"></path>
+        </svg>
+        <span>Hear it, watch the groove</span>
+      </button>
+    </div>
+
+    <div class="tour__dock" data-stage-dock></div>
+  </div>
+
+  <div class="wrap">
+    <ol class="chapters">
+      {chapters.map((c, i) => (
+        <li data-reveal={i}>
+          <a href={c.href}>
+            <span class="label">{c.n}</span>
+            <span class="chapters__title">{c.title}</span>
+            <span class="chapters__line">{c.line}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<script>
+  import { engine } from '../scripts/audio'
+  import { $, $$, onPage, reducedMotion } from '../scripts/lifecycle'
+  import { gsap, ScrollTrigger } from '../scripts/motion'
+  import { createRoll } from '../scripts/roll'
+  import { PAPER_ROOM, setTour, type Key, type Room } from '../scripts/stage/director'
+  import { stage, stageLive } from '../scripts/stage/stage'
+  import { EASE, EIGHTH, THIRTY_SECOND } from '../scripts/tempo'
+
+  const hex = (h: string): [number, number, number] => {
+    const n = Number.parseInt(h.slice(1), 16)
+    return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]
+  }
+  // The moods' rooms: their dark ground and the colour of their light.
+  const room = (floor: string, light: string, fog = 0.62): Room => {
+    const f = hex(floor)
+    return { floor: f, fog: f.map((v) => v * fog) as Room['fog'], light: hex(light), glow: 0.9 }
+  }
+  const SUNSET = room('#2d140c', '#ff8a4c')
+  const MIDNIGHT = room('#0e0c2a', '#8b5cf6')
+  const AURORA = room('#052a30', '#06b6d4')
+
+  // Where each shot's text is on screen, as progress windows of the pin.
+  const BEATS: Array<[number, number]> = [
+    [0.04, 0.24],
+    [0.28, 0.5],
+    [0.55, 0.77],
+    [0.82, 0.9],
+  ]
+  // The moods' names, while their rooms are lit.
+  const MOODS: Array<[number, string]> = [
+    [0.5625, 'Sunset'],
+    [0.6275, 'Midnight'],
+    [0.6975, 'Aurora'],
+    [0.77, ''],
+  ]
+
+  onPage(() => {
+    const section = $('[data-tour]')
+    const pin = $('[data-tour-pin]')
+    const dock = $('[data-stage-dock]')
+    if (!section || !pin || !dock) return
+    // Without the stage (no WebGL2) or with reduced motion, the tour is a
+    // quiet page: its lines, one after the other, and no pinning.
+    if (!stageLive() || reducedMotion()) {
+      section.classList.add('is-still')
+      return
+    }
+
+    const portrait = (vw: number, vh: number): boolean => vw < vh * 0.9
+    const m = (vw: number, vh: number): number => Math.min(vw, vh)
+    const keys: Key[] = [
+      // 0 — the first mark, still flat: where the record glides from the hero.
+      {
+        at: 0,
+        depth: 0,
+        shot: (vw, vh) => ({
+          x: portrait(vw, vh) ? vw * 0.5 : vw * 0.64,
+          y: portrait(vw, vh) ? vh * 0.64 : vh * 0.55,
+          r: m(vw, vh) * 0.3,
+          az: 0,
+          el: Math.PI / 2,
+          dist: 8,
+        }),
+      },
+      // 01 — lift-off: the page becomes a floor, the record a thing on it.
+      {
+        at: 0.1,
+        depth: 1,
+        shot: (vw, vh) => ({
+          x: portrait(vw, vh) ? vw * 0.5 : vw * 0.64,
+          y: portrait(vw, vh) ? vh * 0.66 : vh * 0.58,
+          r: m(vw, vh) * 0.3,
+          az: -0.55,
+          el: 0.62,
+          dist: 5.2,
+        }),
+      },
+      {
+        at: 0.24,
+        depth: 1,
+        shot: (vw, vh) => ({
+          x: portrait(vw, vh) ? vw * 0.5 : vw * 0.63,
+          y: portrait(vw, vh) ? vh * 0.66 : vh * 0.57,
+          r: m(vw, vh) * 0.32,
+          az: -0.22,
+          el: 0.5,
+          dist: 4.6,
+        }),
+      },
+      // 02 — every size: high above, a disc on a sheet of paper…
+      {
+        at: 0.36,
+        depth: 1,
+        shot: (vw, vh) => ({
+          x: vw * 0.5,
+          y: portrait(vw, vh) ? vh * 0.64 : vh * 0.54,
+          r: m(vw, vh) * 0.045,
+          az: 0.1,
+          el: 1.46,
+          dist: 16,
+        }),
+      },
+      // …then down to the rim, where it fills the frame.
+      {
+        at: 0.48,
+        depth: 1,
+        shot: (vw, vh) => ({
+          x: vw * 0.56,
+          y: vh * 0.9,
+          r: m(vw, vh) * (portrait(vw, vh) ? 1.2 : 0.92),
+          az: 0.35,
+          el: 0.22,
+          dist: 2.6,
+        }),
+      },
+      // 03 — nine moods: the room changes its light as the camera turns.
+      {
+        at: 0.55,
+        depth: 1,
+        shot: (vw, vh) => ({
+          x: portrait(vw, vh) ? vw * 0.5 : vw * 0.64,
+          y: portrait(vw, vh) ? vh * 0.66 : vh * 0.57,
+          r: m(vw, vh) * 0.3,
+          az: 0.2,
+          el: 0.58,
+          dist: 5,
+        }),
+      },
+      {
+        at: 0.75,
+        depth: 1,
+        shot: (vw, vh) => ({
+          x: portrait(vw, vh) ? vw * 0.5 : vw * 0.63,
+          y: portrait(vw, vh) ? vh * 0.66 : vh * 0.57,
+          r: m(vw, vh) * 0.3,
+          az: 1.3,
+          el: 0.52,
+          dist: 5,
+        }),
+      },
+      // 04 — it listens: down into the grooves.
+      {
+        at: 0.84,
+        depth: 1,
+        shot: (vw, vh) => ({
+          x: portrait(vw, vh) ? vw * 0.2 : vw * 0.28,
+          y: vh * 1.1,
+          r: m(vw, vh) * 1.55,
+          az: 0.35,
+          el: 0.36,
+          dist: 2.1,
+        }),
+      },
+      // …held (a slow orbit) while its words leave; then the record lands.
+      {
+        at: 0.94,
+        depth: 1,
+        shot: (vw, vh) => ({
+          x: portrait(vw, vh) ? vw * 0.2 : vw * 0.28,
+          y: vh * 1.1,
+          r: m(vw, vh) * 1.55,
+          az: 0.5,
+          el: 0.36,
+          dist: 2.1,
+        }),
+      },
+      // Down on the page again: the dock (the director lands it).
+      { at: 1, depth: 0, shot: () => ({ x: 0, y: 0, r: 0, az: 0, el: Math.PI / 2, dist: 8 }) },
+    ]
+    const rooms = [
+      { at: 0, room: PAPER_ROOM },
+      { at: 0.53, room: PAPER_ROOM },
+      { at: 0.57, room: SUNSET },
+      { at: 0.61, room: SUNSET },
+      { at: 0.645, room: MIDNIGHT },
+      { at: 0.68, room: MIDNIGHT },
+      { at: 0.715, room: AURORA },
+      { at: 0.75, room: AURORA },
+      { at: 0.79, room: PAPER_ROOM },
+      { at: 1, room: PAPER_ROOM },
+    ]
+
+    // ─── The HUD and the lines follow the pin's progress ─────────────
+    const tcEl = $('[data-tour-tc]', section)
+    const shotEl = $('[data-tour-shot]', section)
+    const rollShot = shotEl ? createRoll(shotEl) : null
+    const squares = $$('[data-tour-square]', section)
+    const beats = $$('[data-beat]', section)
+    const cta = $('[data-tour-cta]', section)
+    const names = beats.map((b) => b.dataset.name ?? '')
+    const pad = (n: number): string => String(n).padStart(2, '0')
+
+    // Starting states first (set by GSAP itself, so it never stacks its
+    // transforms on a CSS one), then the words may be shown.
+    const lines = beats.map((b) => [...b.querySelectorAll<HTMLElement>('.tour__line > span')])
+    const extras = beats.map((b) => [
+      ...b.querySelectorAll<HTMLElement>('.tour__kicker, .tour__lede'),
+    ])
+    gsap.set(lines.flat(), { yPercent: 130 })
+    gsap.set(extras.flat(), { opacity: 0, y: 14 })
+    section.classList.add('is-ready')
+    // A shot's words roll out the top, then the next shot's roll in from
+    // below — the tape counter again: never two shots' words at once.
+    const EXIT = THIRTY_SECOND * 2
+    let busyUntil = 0
+    const hide = (i: number): void => {
+      gsap.killTweensOf([...lines[i]!, ...extras[i]!])
+      gsap.to(lines[i]!, {
+        yPercent: -130,
+        duration: EXIT,
+        ease: EASE.in,
+        onComplete: () => void gsap.set(lines[i]!, { yPercent: 130 }),
+      })
+      gsap.to(extras[i]!, { opacity: 0, duration: EXIT, ease: EASE.in })
+      busyUntil = performance.now() + EXIT * 1000
+    }
+    const show = (i: number): void => {
+      gsap.killTweensOf([...lines[i]!, ...extras[i]!])
+      const delay = Math.max(0, (busyUntil - performance.now()) / 1000)
+      // From below — or, if it was still leaving, back from where it is.
+      gsap.to(lines[i]!, {
+        yPercent: 0,
+        duration: EIGHTH * 1.5,
+        stagger: THIRTY_SECOND,
+        ease: EASE.out,
+        delay,
+      })
+      gsap.to(extras[i]!, {
+        opacity: 1,
+        y: 0,
+        duration: EIGHTH,
+        stagger: THIRTY_SECOND,
+        ease: EASE.out,
+        delay: delay + THIRTY_SECOND * 2,
+      })
+    }
+    let active = -1
+    let moodName = ''
+
+    const update = (p: number): void => {
+      // Timecode: A1 lasts 0:40 on the tracklist.
+      const t = p * 40
+      if (tcEl) tcEl.textContent = `00:00:${pad(Math.floor(t))}:${pad(Math.floor((t % 1) * 30))}`
+      let now = -1
+      BEATS.forEach(([a, b], i) => {
+        if (p >= a && p <= b) now = i
+      })
+      if (now !== active) {
+        if (active >= 0) hide(active)
+        if (now >= 0) {
+          show(now)
+          rollShot?.(names[now]!)
+        }
+        active = now
+        squares.forEach((sq, i) => sq.toggleAttribute('data-on', i === now))
+        section.dataset.shot = String(now)
+      }
+      // The moods' names, as the room changes key.
+      const mood = p < MOODS[0]![0] ? '' : (MOODS.findLast(([at]) => p >= at)?.[1] ?? '')
+      if (mood !== moodName && active === 2) {
+        moodName = mood
+        if (mood) rollShot?.(`03 — ${mood}`)
+      }
+      // The groove shimmers for the last shot even without music; the
+      // button offers the real thing.
+      const listening = active === 3
+      stage.demo = listening && !engine.state.isPlaying ? 1 : 0
+      if (cta) cta.inert = !listening || engine.state.isPlaying
+      section.classList.toggle('is-listening', listening && !engine.state.isPlaying)
+      section.classList.toggle('is-live', p > 0.01 && p < 0.985)
+    }
+
+    const trigger = ScrollTrigger.create({
+      trigger: section,
+      pin,
+      start: 'top top',
+      end: () => `+=${innerHeight * 4.5}`,
+      anticipatePin: 1,
+      onUpdate: (self) => update(self.progress),
+      onRefresh: (self) => update(self.progress),
+    })
+    setTour({ trigger, keys, rooms, dock, section, drift: 0.28 })
+    update(trigger.progress)
+
+    const needle = $('[data-tour-needle]', section)
+    const onNeedle = (): void => {
+      $('.hero')?.dispatchEvent(new CustomEvent('needle:toggle'))
+    }
+    needle?.addEventListener('click', onNeedle)
+    const offState = engine.onStateChange(() => update(trigger.progress))
+
+    return () => {
+      setTour(null)
+      stage.demo = 0
+      offState()
+      needle?.removeEventListener('click', onNeedle)
+      trigger.kill()
+      gsap.killTweensOf([...lines.flat(), ...extras.flat()])
+    }
+  })
+</script>
+
+<style>
+  .tour {
+    position: relative;
+  }
+  .tour__pin {
+    position: relative;
+    height: 100svh;
+    overflow: clip;
+  }
+
+  /* ─── The reel's HUD, framing the shots ─────────────────────────── */
+  /* A fixed layer in the page's own stacking context (not inside the pin,
+     which isolates): with difference blending every glyph inverts over
+     whatever the scene shows behind it — ink on paper, paper on vinyl,
+     both across an edge. So it is one colour: the paper. */
+  .tour__hud {
+    position: fixed;
+    inset: calc(var(--header) + 0.75rem) var(--gutter) 1.25rem;
+    z-index: 70;
+    color: var(--paper);
+    mix-blend-mode: difference;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--beat-2) var(--ease-out);
+  }
+  .tour.is-live .tour__hud {
+    opacity: 1;
+  }
+  .tour__corner {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border: 0 solid currentColor;
+  }
+  .tour__corner[data-c='tl'] {
+    top: 0;
+    left: 0;
+    border-width: 1.5px 0 0 1.5px;
+  }
+  .tour__corner[data-c='tr'] {
+    top: 0;
+    right: 0;
+    border-width: 1.5px 1.5px 0 0;
+  }
+  .tour__corner[data-c='bl'] {
+    bottom: 0;
+    left: 0;
+    border-width: 0 0 1.5px 1.5px;
+  }
+  .tour__corner[data-c='br'] {
+    right: 0;
+    bottom: 0;
+    border-width: 0 1.5px 1.5px 0;
+  }
+  .tour__slate,
+  .tour__tc,
+  .tour__shot,
+  .tour__meter {
+    position: absolute;
+    margin: 0;
+    white-space: nowrap;
+  }
+  .tour__slate {
+    top: 0.2rem;
+    left: 2.2rem;
+  }
+
+  .tour__tc {
+    top: 0.2rem;
+    right: 2.2rem;
+    font-variant-numeric: tabular-nums;
+  }
+  /* The recording light blinks on the beat. */
+  .tour__rec {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 0.4rem;
+    border-radius: 50%;
+    background: currentColor;
+    vertical-align: 0.05em;
+    animation: rec calc(var(--beat) * 2) steps(2, jump-none) infinite;
+  }
+  @keyframes rec {
+    50% {
+      opacity: 0.2;
+    }
+  }
+  .tour__shot {
+    bottom: 0.2rem;
+    left: 2.2rem;
+    overflow: hidden;
+  }
+  .tour__shot span {
+    display: inline-block;
+  }
+  .tour__meter {
+    right: 2.2rem;
+    bottom: 0.2rem;
+  }
+  .tour__squares {
+    display: inline-flex;
+    gap: 3px;
+    margin-right: 0.6rem;
+    vertical-align: -0.05em;
+  }
+  .tour__squares i {
+    width: 9px;
+    height: 9px;
+    border: 1.5px solid currentColor;
+  }
+  .tour__squares i[data-on] {
+    background: currentColor;
+  }
+
+  /* ─── The lines of each shot ────────────────────────────────────── */
+  .tour__beat {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--gutter) + 2.2rem);
+    width: min(34rem, 40vw);
+    translate: 0 -50%;
+    pointer-events: none;
+  }
+  .tour__beat[data-place='right'] {
+    right: calc(var(--gutter) + 2.2rem);
+    left: auto;
+    text-align: right;
+  }
+  .tour__beat[data-place='right'] .tour__lede {
+    margin-left: auto;
+  }
+  .tour__title {
+    margin: 0.6rem 0 1rem;
+    font-size: clamp(2.6rem, 1.4rem + 4.2vw, 6.2rem);
+  }
+  .tour__line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.06em;
+  }
+  .tour__line > span {
+    display: block;
+  }
+  /* Until the script has set the words' starting states. */
+  html.js:not(.reduced) .tour:not(.is-still):not(.is-ready) .tour__beat {
+    visibility: hidden;
+  }
+  .tour__lede {
+    max-width: 28ch;
+    margin: 0;
+  }
+  /* The room goes dark for the moods: the words follow its light. */
+  .tour[data-surface='b'] .tour__pin {
+    color: var(--paper);
+    --fg-2: rgb(236 231 220 / 0.72);
+  }
+  .tour__cta {
+    position: absolute;
+    right: calc(var(--gutter) + 2.2rem);
+    bottom: 4.5rem;
+    opacity: 0;
+    translate: 0 12px;
+    transition:
+      opacity var(--beat-2) var(--ease-out),
+      translate var(--beat-2) var(--ease-out);
+  }
+  .tour.is-listening .tour__cta {
+    opacity: 1;
+    translate: none;
+  }
+  .tour__dock {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: min(62vmin, 520px);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    pointer-events: none;
+  }
+
+  /* ─── Still (reduced motion, or no WebGL): the lines, in order ──── */
+  .tour.is-still .tour__pin {
+    height: auto;
+    padding-block: clamp(4rem, 9vw, 7rem) 0;
+  }
+  .tour.is-still .tour__hud,
+  .tour.is-still .tour__cta,
+  .tour.is-still .tour__dock {
+    display: none;
+  }
+  .tour.is-still .tour__beat {
+    position: static;
+    width: auto;
+    max-width: 40rem;
+    margin: 0 var(--gutter) 3rem;
+    translate: none;
+    text-align: left;
+  }
+
+  /* ─── The chapter index ─────────────────────────────────────────── */
+  .chapters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: clamp(3rem, 7vw, 6rem) 0 clamp(4rem, 9vw, 7rem);
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--rule);
+  }
+  .chapters li {
+    border-bottom: 1px solid var(--rule);
+  }
+  .chapters li:not(:nth-child(3n)) {
+    border-right: 1px solid var(--rule);
+  }
+  .chapters a {
+    display: grid;
+    gap: 0.4rem;
+    min-height: 100%;
+    padding: 1.4rem 1.2rem 1.6rem;
+    text-decoration: none;
+    transition: background-color var(--beat-2) var(--ease-out);
+  }
+  .chapters a:hover {
+    background: var(--paper-2);
+  }
+  .chapters__title {
+    font-family: var(--display);
+    font-weight: 740;
+    font-variation-settings: 'wdth' 80;
+    font-size: clamp(1.4rem, 1rem + 1vw, 2rem);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    transition: font-variation-settings calc(var(--beat-2) * 1.5) var(--ease-out);
+  }
+  .chapters a:hover .chapters__title {
+    font-variation-settings: 'wdth' 110;
+  }
+  .chapters__line {
+    color: var(--fg-2);
+  }
+
+  @media (max-width: 900px) {
+    .chapters {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .chapters li:not(:nth-child(3n)) {
+      border-right: 0;
+    }
+  }
+  /* Portrait: the words above, the record below. */
+  @media (max-aspect-ratio: 9 / 10) {
+    .tour__beat,
+    .tour__beat[data-place='right'] {
+      top: calc(var(--header) + 3.5rem);
+      right: auto;
+      left: calc(var(--gutter) + 1rem);
+      width: calc(100% - 2 * var(--gutter) - 2rem);
+      translate: none;
+      text-align: left;
+    }
+    .tour__beat[data-place='right'] .tour__lede {
+      margin-left: 0;
+    }
+    .tour__title {
+      font-size: clamp(2.4rem, 1.2rem + 7vw, 4rem);
+    }
+    .tour__slate span,
+    .tour__bpm {
+      display: none;
+    }
+    .tour__cta {
+      top: 50%;
+      right: auto;
+      bottom: auto;
+      left: calc(var(--gutter) + 1rem);
+    }
+  }
+</style>

@@ -3,7 +3,7 @@ import CopyChip from './CopyChip.astro'
 const base = import.meta.env.BASE_URL
 ---
 
-<section data-track="A1" id="top" class="hero" data-surface="a" tabindex="-1">
+<section data-track="A1" id="top" class="hero" data-surface="a" data-stage-window tabindex="-1">
   <div class="hero__stage wrap">
     <div class="sleeve" data-sleeve>
       <div class="sleeve__top label">
@@ -36,7 +36,8 @@ const base = import.meta.env.BASE_URL
     </div>
 
     <div class="record" data-record data-cursor="Drag to scratch · tap to play">
-      <canvas aria-hidden="true"></canvas>
+      <!-- The disc itself is drawn by the stage (scripts/stage); what follows
+           is the flat record for browsers without WebGL2. -->
       <div class="record__fallback" aria-hidden="true"></div>
       <svg class="record__fx" viewBox="0 0 200 200" aria-hidden="true">
         <!-- The landing ripple travels through the vinyl only, never over the page. -->
@@ -98,8 +99,11 @@ const base = import.meta.env.BASE_URL
   import { $, onPage, reducedMotion } from '../scripts/lifecycle'
   import { gsap } from '../scripts/motion'
   import { setupNeedle } from '../scripts/needle'
+  import '../scripts/stage/director'
   import '../scripts/record'
-  import { BEAT, EASE, EIGHTH, SIXTEENTH, THIRTY_SECOND } from '../scripts/tempo'
+  import { intro as introShot } from '../scripts/stage/director'
+  import { stage, stageLive, stageReady } from '../scripts/stage/stage'
+  import { BEAT, EASE, EIGHTH, THIRTY_SECOND } from '../scripts/tempo'
 
   // Keep in sync with the compact layout media query in the styles below.
   const COMPACT =
@@ -127,18 +131,23 @@ const base = import.meta.env.BASE_URL
     sync()
     const offNeedle = setupNeedle(hero)
 
-    // The opening, on side A's beat grid. The sleeve never moves: it is the
-    // anchor, and it stays opaque so the record is hidden behind it until it
-    // slides out — no frame shows one through the other.
-    //   0            title lines rise out of their masks, a 32nd apart
-    //   16th         the record slides out of the sleeve (one beat)
-    //   8th × ¾      the console rises: the call to action is there by ~0.6 s
-    //   beat × ¾     the tonearm swings in on a spring
-    //   8th + 3/32   the equaliser word sweeps once, like a meter waking up
+    // The opening, on side A's beat grid — a camera move, before anything
+    // else: the page is first a room, the record a thing in it, and the
+    // camera cranes up until the room is a page again.
+    //   0            a low, close shot; the record turns in the paper room
+    //   0 → 1½ beat  the camera orbits and cranes up to straight above
+    //   1 beat       the tonearm swings in on a spring
+    //   ~1 beat      the sleeve lands on the table (on phones: its card
+    //                wipes in), a beat and a half later the title rises
+    //   1½ beat      the console rises; the record slows and settles
+    //   ~2 beats     the equaliser word sweeps once, like a meter waking up
+    // Any input skips to the end. Without the stage (no WebGL2) the hero is
+    // shown as it is.
     const html = document.documentElement
     const intro = html.classList.contains('intro')
+    let skip: (() => void) | null = null
     const ctx = gsap.context(() => {
-      if (!intro || reducedMotion()) return
+      if (!intro || reducedMotion() || !stageLive()) return
       const compact = matchMedia(COMPACT).matches
       const inks = gsap.utils.toArray<HTMLElement>('.sleeve__ink')
       const rise = ['.console__player', '.console__actions', '.console__chip', '.hero__cue']
@@ -146,32 +155,63 @@ const base = import.meta.env.BASE_URL
       // the class first so GSAP reads clean transforms, then set its own.
       html.classList.remove('intro')
       gsap.set(inks, { yPercent: 112 })
-      gsap.set(
-        '.record',
-        compact ? { yPercent: -42, rotation: -40 } : { xPercent: -62, rotation: -40 },
-      )
-      gsap.set('.arm', { opacity: 0 })
-      gsap.set('.arm__swing', { rotation: -44, svgOrigin: '170 30' })
       gsap.set(rise, { y: 24, opacity: 0 })
+      if (compact) gsap.set('.hero__stage', { '--card-p': 0 })
+      else gsap.set('.sleeve', { xPercent: -118 })
+      gsap.set(stage.arm, { swing: -44, on: 1 })
+      introShot.shot = (vw, vh) => {
+        const m = Math.min(vw, vh)
+        return compact
+          ? { x: vw * 0.5, y: vh * 0.54, r: m * 0.46, az: -0.75, el: 0.36, dist: 3.1 }
+          : { x: vw * 0.5, y: vh * 0.6, r: m * 0.4, az: -0.75, el: 0.34, dist: 3.2 }
+      }
+      introShot.k = 1
+      introShot.drift = 0.9
 
-      gsap
-        .timeline({ defaults: { ease: EASE.out } })
-        .to(inks, { yPercent: 0, duration: EIGHTH * 1.5, stagger: THIRTY_SECOND }, 0)
-        .to('.record', { xPercent: 0, yPercent: 0, rotation: 0, duration: BEAT }, SIXTEENTH)
-        .to(rise, { y: 0, opacity: 1, duration: EIGHTH, stagger: THIRTY_SECOND }, EIGHTH * 0.75)
-        .to('.arm', { opacity: 1, duration: THIRTY_SECOND }, BEAT * 0.75)
+      const tl = gsap.timeline({
+        paused: true,
+        defaults: { ease: EASE.out },
+        onComplete: () => void (introShot.shot = null),
+      })
+      tl.to(introShot, { k: 0, duration: BEAT * 1.5, ease: EASE.inOut }, 0)
+        .to(stage.arm, { swing: -24, duration: EIGHTH * 1.25, ease: EASE.gentle }, BEAT)
         .to(
-          '.arm__swing',
-          { rotation: -24, duration: EIGHTH * 1.25, ease: EASE.gentle },
-          BEAT * 0.75,
+          compact ? '.hero__stage' : '.sleeve',
+          compact
+            ? { '--card-p': 1, duration: BEAT * 0.75, ease: EASE.inOut }
+            : { xPercent: 0, duration: BEAT * 0.75, ease: EASE.out },
+          BEAT * 0.9,
         )
-        .add(() => eqSelfTest(hero), EIGHTH + THIRTY_SECOND * 3)
+        .to(inks, { yPercent: 0, duration: EIGHTH * 1.5, stagger: THIRTY_SECOND }, BEAT * 1.3)
+        .to(rise, { y: 0, opacity: 1, duration: EIGHTH, stagger: THIRTY_SECOND }, BEAT * 1.5)
+        .to(introShot, { drift: 0, duration: BEAT, ease: EASE.out }, BEAT * 1.5)
+        .add(() => eqSelfTest(hero), BEAT * 1.9)
+      // Start with the labels on the disc (not waiting more than 1.2 s for
+      // them); any input jumps to the end.
+      void Promise.race([stageReady(), new Promise((r) => setTimeout(r, 1200))]).then(() =>
+        tl.play(),
+      )
+      const events = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const
+      skip = () => {
+        events.forEach((e) => removeEventListener(e, skipNow, true))
+        skip = null
+      }
+      const skipNow = (): void => {
+        tl.progress(1)
+        skip?.()
+      }
+      events.forEach((e) => addEventListener(e, skipNow, { capture: true, passive: true }))
     }, hero)
-    if (!intro) html.classList.remove('intro')
+    // Nothing to open (no stage, reduced motion, a return visit): as it is.
+    html.classList.remove('intro')
     return () => {
       btn.removeEventListener('click', onClick)
       offState()
       offNeedle()
+      skip?.()
+      introShot.k = 0
+      introShot.drift = 0
+      introShot.shot = null
       ctx.kill() // swapped out: stop, don't restore
     }
   })
@@ -252,14 +292,14 @@ const base = import.meta.env.BASE_URL
     -webkit-background-clip: text;
     background-clip: text;
   }
-  /* Starting state before the opening takes over (hard loads only). */
+  /* Starting state before the opening takes over (hard loads only): an
+     empty table — the sleeve not yet on it, the words not yet written. */
   :global(html.intro) .sleeve__ink {
     transform: translateY(112%);
   }
-  :global(html.intro) .record {
-    transform: translateX(-62%) rotate(-40deg);
+  :global(html.intro) .sleeve {
+    transform: translateX(-118%);
   }
-  :global(html.intro) .arm,
   :global(html.intro) .console__player,
   :global(html.intro) .console__actions,
   :global(html.intro) .console__chip,
@@ -296,10 +336,6 @@ const base = import.meta.env.BASE_URL
       touch-action: pan-y;
     }
   }
-  .record canvas {
-    width: 100%;
-    height: 100%;
-  }
   .record__fallback {
     position: absolute;
     inset: 5%;
@@ -316,11 +352,13 @@ const base = import.meta.env.BASE_URL
       repeating-radial-gradient(circle, #181614 0 1px, #0f0e0d 1px 3px);
     box-shadow: 0 30px 60px -30px rgb(19 18 16 / 0.6);
   }
-  .record.is-fallback canvas {
-    display: none;
-  }
   .record.is-fallback .record__fallback {
     display: block;
+  }
+  /* With the stage live, the arm and the ripple are part of the scene. */
+  :global(html.staged) .arm,
+  :global(html.staged) .record__fx {
+    display: none;
   }
   .arm {
     position: absolute;
@@ -438,6 +476,8 @@ const base = import.meta.env.BASE_URL
       align-self: stretch;
       grid-row: 1 / 3;
       grid-column: 1;
+      /* The opening wipes the card in from its left edge. */
+      clip-path: inset(-60px calc((1 - var(--card-p, 1)) * (100% + 120px) - 60px) -60px -60px);
       background: #e4ddcf;
       box-shadow:
         0 0 0 1px rgb(19 18 16 / 0.2),
@@ -455,6 +495,8 @@ const base = import.meta.env.BASE_URL
       padding: var(--pad) var(--pad) 1.25rem;
       background: none;
       box-shadow: none;
+      /* Its words arrive with its card. */
+      clip-path: inset(-60px calc((1 - var(--card-p, 1)) * (100% + 120px) - 60px) -60px -60px);
     }
     .sleeve__title {
       font-size: clamp(2.1rem, 11.2vw, 3.6rem);
@@ -483,8 +525,11 @@ const base = import.meta.env.BASE_URL
     .arm {
       display: none;
     }
-    :global(html.intro) .record {
-      transform: translateY(-42%) rotate(-40deg);
+    :global(html.intro) .sleeve {
+      transform: none;
+    }
+    :global(html.intro) .hero__stage {
+      --card-p: 0;
     }
     .console__player {
       z-index: 3;

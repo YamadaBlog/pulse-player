@@ -88,7 +88,9 @@ body {
   font-size: clamp(1rem, 0.94rem + 0.2vw, 1.125rem);
   line-height: 1.55;
   color: var(--fg);
-  background: var(--bg);
+  /* Transparent: <html> carries the paper, and the stage (a fixed canvas at
+     z-index -1) must show through the transparent sections above it. */
+  background: transparent;
   font-variation-settings: 'wdth' 100;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -331,4 +333,22 @@ kbd {
 
 [hidden] {
   display: none !important;
+}
+
+/* ─── The stage: one scene under the page (scripts/stage) ────────── */
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.stage canvas {
+  width: 100%;
+  height: 100lvh;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity var(--beat-4) var(--ease-out);
+}
+.stage canvas.is-on {
+  opacity: 1;
 }

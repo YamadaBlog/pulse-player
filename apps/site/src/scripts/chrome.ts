@@ -94,17 +94,35 @@ if (matchMedia('(pointer: fine)').matches) {
     if (tag) tag.style.transform = `translate3d(${cx}px, ${cy}px, 0)`
     raf = Math.abs(x - cx) + Math.abs(y - cy) > 0.3 ? requestAnimationFrame(move) : 0
   }
+  const retarget = (target: Element | null): void => {
+    const tag = $('.cursor-tag')
+    const host = target?.closest?.<HTMLElement>('[data-cursor]')
+    if (!tag) return
+    tag.toggleAttribute('data-on', !!host)
+    if (host) tag.firstElementChild!.textContent = host.dataset.cursor ?? ''
+  }
+  let seen = false
   document.addEventListener('pointermove', (e) => {
     x = e.clientX
     y = e.clientY
-    const tag = $('.cursor-tag')
-    const host = (e.target as Element).closest?.<HTMLElement>('[data-cursor]')
-    if (tag) {
-      tag.toggleAttribute('data-on', !!host)
-      if (host) tag.firstElementChild!.textContent = host.dataset.cursor ?? ''
-    }
+    seen = true
+    retarget(e.target as Element)
     if (!raf) raf = requestAnimationFrame(move)
   })
+  // The page can move under a still pointer (the wheel, the keyboard): ask
+  // again what is under it, once per frame.
+  let pending = 0
+  addEventListener(
+    'scroll',
+    () => {
+      if (!seen || pending) return
+      pending = requestAnimationFrame(() => {
+        pending = 0
+        retarget(document.elementFromPoint(x, y))
+      })
+    },
+    { passive: true },
+  )
 }
 
 // ─── Live repository metrics (GitHub + npm), cached for 30 min ────

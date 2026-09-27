@@ -116,11 +116,25 @@ test('live repository metrics fill the matrix', async ({ page }) => {
   await expect(page.locator('.head__gh [data-metric]')).toHaveText('★ 12')
 })
 
-test('the reel is a chapter with its own controls', async ({ page }) => {
+test('the reel plays itself, muted, in view — and offers its sound', async ({ page }) => {
   await page.goto('./')
   const reel = page.locator('#reel')
   await reel.scrollIntoViewIfNeeded()
-  await expect(reel.getByRole('button', { name: 'Play the reel, with sound' })).toBeVisible()
+  const video = reel.locator('video')
+  const decodable = await video.evaluate(
+    (v: HTMLVideoElement) => !!v.canPlayType('video/mp4; codecs="avc1.640028"'),
+  )
+  if (decodable) {
+    // The preview: playing, muted; the button offers the film with its sound.
+    await expect(
+      reel.getByRole('button', { name: 'Play the reel from the start, with sound' }),
+    ).toBeVisible()
+    await expect
+      .poll(() => video.evaluate((v: HTMLVideoElement) => v.muted && !v.paused))
+      .toBe(true)
+  } else {
+    await expect(reel.getByRole('button', { name: 'Play the reel, with sound' })).toBeVisible()
+  }
   const chapters = reel.getByRole('list', { name: 'Chapters' }).getByRole('button')
   await expect(chapters).toHaveCount(8)
   await expect(chapters.nth(3)).toHaveAccessibleName('Play from 0:05: Morph')
