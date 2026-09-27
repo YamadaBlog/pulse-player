@@ -176,4 +176,8 @@ Issues and pull requests are welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md
 
 ## License
 
-[MIT](./LICENSE). Demo music by HoliznaCC0 (CC0, public domain) — see [NOTICE.md](./NOTICE.md) for every third-party asset.
+The player (the packages, the examples and the docs) is [MIT](./LICENSE). Use it freely, in any project, commercial or not.
+
+The showcase site ([`apps/site`](./apps/site/LICENSE.md)) and the Pulse brand (name, logo and reel) are © Mao, all rights reserved. Their source is here to read and learn from, but please don't republish the site's design, copy, reel or brand as your own.
+
+Demo music by HoliznaCC0 (CC0, public domain). [NOTICE.md](./NOTICE.md) lists every third-party asset.

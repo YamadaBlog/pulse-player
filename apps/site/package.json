@@ -2,6 +2,7 @@
   "name": "@pulse-music/site",
   "version": "0.0.0",
   "private": true,
+  "license": "UNLICENSED",
   "type": "module",
   "description": "The Pulse showcase — a record-sleeve product launch (Astro, GitHub Pages).",
   "scripts": {

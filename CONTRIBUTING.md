@@ -2,6 +2,8 @@
 
 Thanks for helping! Bug reports, docs fixes and pull requests are all welcome.
 
+Contributions to the player (the packages, the examples and the docs) are released under the [MIT licence](./LICENSE). The showcase site (`apps/site`) is not open source ([its licence](./apps/site/LICENSE.md)). Bug reports about it are welcome, but please don't send pull requests that change its design or copy.
+
 ## Setup
 
 Requirements: **Node.js 22.18+ or 24** (see `.nvmrc`) and npm 11.
