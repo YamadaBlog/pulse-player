@@ -177,20 +177,30 @@ const chapters = [
   const MIDNIGHT = room('#0e0c2a', '#8b5cf6')
   const AURORA = room('#052a30', '#06b6d4')
 
-  // Where each shot's text is on screen, as progress windows of the pin.
-  const BEATS: Array<[number, number]> = [
-    [0.04, 0.24],
-    [0.28, 0.5],
-    [0.55, 0.77],
-    [0.82, 0.9],
-  ]
+  // The pace. Everything on the tour is placed in screens of scroll (one
+  // screen = one viewport height): the camera moves to a shot, then holds
+  // on it — a slow drift — while its words are read, then moves on.
+  const LENGTH = 7.8
+  const at = (screens: number): number => screens / LENGTH
+
+  // Where each shot's words are on screen.
+  const BEATS: Array<[number, number]> = (
+    [
+      [0.2, 1.6],
+      [1.85, 3.45],
+      [3.95, 5.6],
+      [6.0, 6.95],
+    ] as Array<[number, number]>
+  ).map(([a, b]) => [at(a), at(b)])
   // The moods' names, while their rooms are lit.
-  const MOODS: Array<[number, string]> = [
-    [0.5625, 'Sunset'],
-    [0.6275, 'Midnight'],
-    [0.6975, 'Aurora'],
-    [0.77, ''],
-  ]
+  const MOODS: Array<[number, string]> = (
+    [
+      [4.05, 'Sunset'],
+      [4.6, 'Midnight'],
+      [5.15, 'Aurora'],
+      [5.6, ''],
+    ] as Array<[number, string]>
+  ).map(([a, name]) => [at(a), name])
 
   onPage(() => {
     const section = $('[data-tour]')
@@ -209,7 +219,7 @@ const chapters = [
     const keys: Key[] = [
       // 0 — the first mark, still flat: where the record glides from the hero.
       {
-        at: 0,
+        at: at(0),
         depth: 0,
         shot: (vw, vh) => ({
           x: portrait(vw, vh) ? vw * 0.5 : vw * 0.64,
@@ -222,7 +232,7 @@ const chapters = [
       },
       // 01 — lift-off: the page becomes a floor, the record a thing on it.
       {
-        at: 0.1,
+        at: at(0.55),
         depth: 1,
         shot: (vw, vh) => ({
           x: portrait(vw, vh) ? vw * 0.5 : vw * 0.64,
@@ -234,7 +244,7 @@ const chapters = [
         }),
       },
       {
-        at: 0.24,
+        at: at(1.6),
         depth: 1,
         shot: (vw, vh) => ({
           x: portrait(vw, vh) ? vw * 0.5 : vw * 0.63,
@@ -247,7 +257,7 @@ const chapters = [
       },
       // 02 — every size: high above, a disc on a sheet of paper…
       {
-        at: 0.36,
+        at: at(2.3),
         depth: 1,
         shot: (vw, vh) => ({
           x: vw * 0.5,
@@ -258,9 +268,21 @@ const chapters = [
           dist: 16,
         }),
       },
+      {
+        at: at(2.75),
+        depth: 1,
+        shot: (vw, vh) => ({
+          x: vw * 0.5,
+          y: portrait(vw, vh) ? vh * 0.64 : vh * 0.54,
+          r: m(vw, vh) * 0.042,
+          az: 0.3,
+          el: 1.46,
+          dist: 17,
+        }),
+      },
       // …then down to the rim, where it fills the frame.
       {
-        at: 0.48,
+        at: at(3.4),
         depth: 1,
         shot: (vw, vh) => ({
           x: vw * 0.56,
@@ -271,9 +293,21 @@ const chapters = [
           dist: 2.6,
         }),
       },
+      {
+        at: at(3.6),
+        depth: 1,
+        shot: (vw, vh) => ({
+          x: vw * 0.56,
+          y: vh * 0.9,
+          r: m(vw, vh) * (portrait(vw, vh) ? 1.2 : 0.92),
+          az: 0.45,
+          el: 0.22,
+          dist: 2.6,
+        }),
+      },
       // 03 — nine moods: the room changes its light as the camera turns.
       {
-        at: 0.55,
+        at: at(4.05),
         depth: 1,
         shot: (vw, vh) => ({
           x: portrait(vw, vh) ? vw * 0.5 : vw * 0.64,
@@ -285,7 +319,7 @@ const chapters = [
         }),
       },
       {
-        at: 0.75,
+        at: at(5.6),
         depth: 1,
         shot: (vw, vh) => ({
           x: portrait(vw, vh) ? vw * 0.5 : vw * 0.63,
@@ -298,7 +332,7 @@ const chapters = [
       },
       // 04 — it listens: down into the grooves.
       {
-        at: 0.84,
+        at: at(6.15),
         depth: 1,
         shot: (vw, vh) => ({
           x: portrait(vw, vh) ? vw * 0.2 : vw * 0.28,
@@ -311,7 +345,7 @@ const chapters = [
       },
       // …held (a slow orbit) while its words leave; then the record lands.
       {
-        at: 0.94,
+        at: at(7.15),
         depth: 1,
         shot: (vw, vh) => ({
           x: portrait(vw, vh) ? vw * 0.2 : vw * 0.28,
@@ -325,16 +359,18 @@ const chapters = [
       // Down on the page again: the dock (the director lands it).
       { at: 1, depth: 0, shot: () => ({ x: 0, y: 0, r: 0, az: 0, el: Math.PI / 2, dist: 8 }) },
     ]
+    // Each room is lit for about a third of a screen, with a fifth of a
+    // screen from one light to the next.
     const rooms = [
       { at: 0, room: PAPER_ROOM },
-      { at: 0.53, room: PAPER_ROOM },
-      { at: 0.57, room: SUNSET },
-      { at: 0.61, room: SUNSET },
-      { at: 0.645, room: MIDNIGHT },
-      { at: 0.68, room: MIDNIGHT },
-      { at: 0.715, room: AURORA },
-      { at: 0.75, room: AURORA },
-      { at: 0.79, room: PAPER_ROOM },
+      { at: at(3.95), room: PAPER_ROOM },
+      { at: at(4.15), room: SUNSET },
+      { at: at(4.5), room: SUNSET },
+      { at: at(4.7), room: MIDNIGHT },
+      { at: at(5.05), room: MIDNIGHT },
+      { at: at(5.25), room: AURORA },
+      { at: at(5.6), room: AURORA },
+      { at: at(5.85), room: PAPER_ROOM },
       { at: 1, room: PAPER_ROOM },
     ]
 
@@ -432,7 +468,7 @@ const chapters = [
       trigger: section,
       pin,
       start: 'top top',
-      end: () => `+=${innerHeight * 4.5}`,
+      end: () => `+=${innerHeight * LENGTH}`,
       anticipatePin: 1,
       onUpdate: (self) => update(self.progress),
       onRefresh: (self) => update(self.progress),
