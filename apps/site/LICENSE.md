@@ -9,7 +9,7 @@ Unlike the rest of the repository, it is **not** open source. Its source is publ
 ## What this does not cover
 
 - **The Pulse player.** The packages in [`packages/`](../../packages), the examples and the documentation are MIT-licensed ([LICENSE](../../LICENSE)). Use them freely, in any project, commercial or not.
-- **Third-party content keeps its own licence.** The demo music (CC0), the typefaces (SIL Open Font License 1.1) and the demo covers (MIT) are all listed in [NOTICE.md](../../NOTICE.md).
+- **Third-party content keeps its own licence.** The demo music (CC0), the typefaces (SIL Open Font License 1.1) and the demo covers (public-domain prints by Hiroshige) are all listed in [NOTICE.md](../../NOTICE.md).
 - **Versions published before this notice** stay under the MIT licence they were released with.
 
 Viewing this repository and forking it on GitHub, as [GitHub's terms](https://docs.github.com/site-policy/github-terms/github-terms-of-service#5-license-grant-to-other-users) allow, is fine. Nothing else is granted, and there is no procedure to obtain any other permission.

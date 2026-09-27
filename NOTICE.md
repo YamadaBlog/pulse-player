@@ -18,9 +18,17 @@ Shipped with the showcase site only (`apps/site/public/audio/`), never in the np
 
 Sourced from the Free Music Archive, where the album is published under CC0 1.0 Universal. Changes made: loudness-normalised to −16 LUFS and re-encoded as ~112 kbps MP3. No attribution is required; the artist is credited anyway in the site's footer and on the record label.
 
-## Demo artwork — original, MIT
+## Demo covers — public domain
 
-`projector-screen.svg`, `warm-fuzz.svg` and `summer-break.svg` are original covers drawn for this repository. The examples and the tests use them as well as the site, so they are released under the MIT licence with the player.
+The covers are woodblock prints by Utagawa Hiroshige (1797–1858) from _One Hundred Famous Views of Edo_ (1856–1859). They are in the public domain worldwide: the artist died more than 100 years ago, and the works were published in the 1850s. The scans are the Brooklyn Museum's. The site, the examples and the tests all use them.
+
+| File                    | Print                                                    | Artist            | Source                                                                                                                         | Licence       |
+| ----------------------- | -------------------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------- |
+| `projector-screen.webp` | _Fireworks at Ryōgoku_ (1858)                            | Utagawa Hiroshige | [Brooklyn Museum, via Wikimedia Commons](https://commons.wikimedia.org/wiki/File:100_views_edo_098.jpg)                        | Public domain |
+| `warm-fuzz.webp`        | _Asakusa Ricefields and Torinomachi Festival_ (1857)     | Utagawa Hiroshige | [Brooklyn Museum, via Wikimedia Commons](https://commons.wikimedia.org/wiki/File:100_views_edo_101.jpg)                        | Public domain |
+| `summer-break.webp`     | _Sudden Shower over Shin-Ōhashi Bridge and Atake_ (1857) | Utagawa Hiroshige | [Brooklyn Museum, via Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Hiroshige_Atake_sous_une_averse_soudaine.jpg) | Public domain |
+
+Changes made: cropped square and re-encoded as 720 px WebP.
 
 ## The Pulse brand and the showcase — © Mao, all rights reserved
 
@@ -35,7 +43,7 @@ The reel is a 15-second motion piece rendered from code for this repository. Its
 
 - The soundtrack is “Projector Screen” (HoliznaCC0, CC0 1.0, see above), mixed with procedurally generated sound design.
 - The type is set in the three OFL typefaces listed below.
-- The artwork is the demo covers above (MIT) and the Pulse mark and record labels (this section).
+- The artwork is the original Pulse mark and record labels (this section), and the reel's earlier demo covers, which were original.
 - The animation was authored with GSAP. It is rendered to video, so no GSAP code ships with these files.
 
 ## Fonts — SIL Open Font License 1.1

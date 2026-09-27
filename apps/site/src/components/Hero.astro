@@ -102,6 +102,7 @@ const base = import.meta.env.BASE_URL
   import '../scripts/stage/director'
   import '../scripts/record'
   import { intro as introShot } from '../scripts/stage/director'
+  import { loaderLift } from '../scripts/loader'
   import { stage, stageLive, stageReady } from '../scripts/stage/stage'
   import { BEAT, EASE, EIGHTH, THIRTY_SECOND } from '../scripts/tempo'
 
@@ -187,20 +188,25 @@ const base = import.meta.env.BASE_URL
         .to(introShot, { drift: 0, duration: BEAT, ease: EASE.out }, BEAT * 1.5)
         .add(() => eqSelfTest(hero), BEAT * 1.9)
       // Start with the labels on the disc (not waiting more than 1.2 s for
-      // them); any input jumps to the end.
-      void Promise.race([stageReady(), new Promise((r) => setTimeout(r, 1200))]).then(() =>
-        tl.play(),
-      )
+      // them) and, on a first visit, as the loading sleeve rises. Once it
+      // runs, any input jumps to the end.
       const events = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const
-      skip = () => {
-        events.forEach((e) => removeEventListener(e, skipNow, true))
-        skip = null
-      }
       const skipNow = (): void => {
         tl.progress(1)
         skip?.()
       }
-      events.forEach((e) => addEventListener(e, skipNow, { capture: true, passive: true }))
+      skip = () => {
+        events.forEach((e) => removeEventListener(e, skipNow, true))
+        skip = null
+      }
+      void Promise.all([
+        Promise.race([stageReady(), new Promise((r) => setTimeout(r, 1200))]),
+        loaderLift,
+      ]).then(() => {
+        if (!skip) return // the page was left meanwhile
+        tl.play()
+        events.forEach((e) => addEventListener(e, skipNow, { capture: true, passive: true }))
+      })
     }, hero)
     // Nothing to open (no stage, reduced motion, a return visit): as it is.
     html.classList.remove('intro')
