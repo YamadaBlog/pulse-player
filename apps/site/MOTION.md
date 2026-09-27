@@ -68,7 +68,7 @@ The curves are the component's `EASING` tokens (`@pulse-music/tokens`), the ones
 
 6. **Sound and picture together.** The music starts when the stylus touches the groove, not at the click. The platter and the pitch spin up and run down together (`deck.ts`). The grooves carry the live spectrum. When no music plays in the tour's last shot, they show a made-up one, and a button offers the real thing. The word “plays” is an equaliser.
 
-7. **Scroll.** Continuous things follow the scrollbar: the camera, A2's width and B2's camera. Events play once, and the interlude reverses when you scroll back above it. Words don't linger when the camera moves: a shot holds while its words leave, and only then does the camera move on.
+7. **Scroll.** Continuous things follow the scrollbar: the camera, A2's width and B2's camera. Events play once, and the interlude reverses when you scroll back above it. Words don't linger when the camera moves: a shot holds while its words leave, and only then does the camera move on. The tour's pace is set in one place: `Tour.astro` places every key, room and line in screens of scroll (`LENGTH`, 7.8 screens). Each shot gets about a screen and a half: the camera moves, then holds with a slow drift while the words are read.
 
 8. **Every frame is composed.** Starting states exist before the first paint:
    - `html.intro` for the hero: an empty table, then the opening;
