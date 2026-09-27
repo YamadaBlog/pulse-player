@@ -17,7 +17,14 @@ const facts = [
 ]
 ---
 
-<section id="heard" class="side-b heard" data-surface="b" aria-labelledby="heard-title" data-heard>
+<section
+  data-track="B4"
+  id="heard"
+  class="side-b heard"
+  data-surface="b"
+  aria-labelledby="heard-title"
+  data-heard
+>
   <div class="wrap">
     <div class="track-head">
       <span class="label">B4</span>
@@ -189,8 +196,8 @@ const facts = [
     text-align: left;
     cursor: pointer;
     transition:
-      border-color 0.3s var(--ease-out),
-      color 0.3s var(--ease-out);
+      border-color var(--beat-4) var(--ease-out),
+      color var(--beat-4) var(--ease-out);
   }
   .key kbd {
     display: grid;
@@ -206,16 +213,16 @@ const facts = [
     color: var(--fg);
     font-size: 0.85rem;
     transition:
-      transform 0.12s var(--ease-out),
-      background-color 0.4s var(--ease-out),
-      box-shadow 0.12s var(--ease-out);
+      transform var(--beat-8) var(--ease-out),
+      background-color var(--beat-2) var(--ease-out),
+      box-shadow var(--beat-8) var(--ease-out);
   }
   .key:hover {
     border-color: var(--fg-3);
     color: var(--fg);
   }
   .key[data-hit] kbd {
-    animation: keyhit 0.9s var(--ease-out);
+    animation: keyhit var(--beat) var(--ease-out);
   }
   @keyframes keyhit {
     0% {
@@ -241,7 +248,7 @@ const facts = [
     height: 7px;
     border-radius: 50%;
     background: var(--signal);
-    animation: blink 1.4s steps(2) infinite;
+    animation: blink calc(var(--beat) * 2) steps(2) infinite;
   }
   @keyframes blink {
     50% {

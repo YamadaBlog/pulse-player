@@ -1,54 +1,14 @@
 import { engine, subscribeFrames, frame } from './audio'
+import { deck } from './deck'
 import { createSurface, hexToRgb, uploadTexture } from './gl'
 import { $, onPage, reducedMotion, whileVisible } from './lifecycle'
+import { drawLabel } from './record-label'
 import { RECORD_FRAG } from './record-shader'
 
 const RPM = 33.333
 const PLAY_SPEED = -(RPM / 60) * Math.PI * 2 // clockwise, rad/s
 const SECONDS_PER_TURN = 1.8 // how much music one full hand-turn scrubs
 const SIGNAL = '#ff4f1a'
-
-/** Paint the paper label with the site's real fonts. */
-async function drawLabel(): Promise<HTMLCanvasElement> {
-  await Promise.allSettled([
-    document.fonts.load('800 120px "Archivo Variable"'),
-    document.fonts.load('500 20px "Geist Mono"'),
-  ])
-  const size = 1024
-  const c = document.createElement('canvas')
-  c.width = c.height = size
-  const ctx = c.getContext('2d')!
-  const mid = size / 2
-  const grad = ctx.createRadialGradient(mid * 0.8, mid * 0.7, 40, mid, mid, mid)
-  grad.addColorStop(0, '#ff6a3d')
-  grad.addColorStop(1, '#e8410f')
-  ctx.fillStyle = grad
-  ctx.beginPath()
-  ctx.arc(mid, mid, mid, 0, Math.PI * 2)
-  ctx.fill()
-
-  ctx.fillStyle = '#131210'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'alphabetic'
-  ;(ctx as CanvasRenderingContext2D & { fontStretch?: string }).fontStretch = 'condensed'
-  ctx.font = '800 188px "Archivo Variable", "Archivo", sans-serif'
-  ctx.fillText('PULSE', mid, mid - 60)
-
-  ctx.font = '500 30px "Geist Mono", monospace'
-  ctx.fillText('SIDE A  ·  33⅓ RPM', mid, mid - 250)
-  ctx.font = '500 25px "Geist Mono", monospace'
-  const lines = ['A1  PROJECTOR SCREEN', 'A2  WARM FUZZ', 'A3  SUMMER BREAK']
-  lines.forEach((line, i) => ctx.fillText(line, mid, mid + 150 + i * 38))
-  ctx.font = '500 20px "Geist Mono", monospace'
-  ctx.fillText('HOLIZNACC0 · PUBLIC DOMAIN', mid, mid + 300)
-  ctx.fillText('℗ 2026 YAMADABLOG · MIT', mid, mid + 332)
-  ctx.lineWidth = 3
-  ctx.strokeStyle = 'rgb(19 18 16 / 0.35)'
-  ctx.beginPath()
-  ctx.arc(mid, mid, mid - 26, 0, Math.PI * 2)
-  ctx.stroke()
-  return c
-}
 
 onPage(() => {
   const stage = $('[data-record]')
@@ -118,8 +78,11 @@ onPage(() => {
     const dt = Math.min(0.05, (now - last) / 1000)
     last = now
     if (!drag) {
-      const target = playing ? PLAY_SPEED : 0
-      vel += (target - vel) * (1 - Math.exp(-dt * (playing ? 1.6 : 2.4)))
+      // The platter follows the turntable: while the deck ramps (spin-up,
+      // run-down) picture and pitch move together; otherwise it has inertia.
+      const target = playing ? PLAY_SPEED * deck.speed : 0
+      const ramping = playing && deck.speed < 0.999
+      vel += (target - vel) * (1 - Math.exp(-dt * (ramping ? 40 : playing ? 1.6 : 2.4)))
     }
     rot += vel * dt
     const k = 1 - Math.exp(-dt * 5)
@@ -220,7 +183,7 @@ onPage(() => {
     drag = null
     stage.classList.remove('is-scratching')
     if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId)
-    if (tap && e.type === 'pointerup') engine.toggle()
+    if (tap && e.type === 'pointerup') hero.dispatchEvent(new CustomEvent('needle:toggle'))
   }
   hero.addEventListener('pointermove', onMove)
   hero.addEventListener('pointerleave', onLeave)

@@ -60,9 +60,9 @@ onBeforeUnmount(() => clearTimeout(timer))
   color: var(--fg-2);
   cursor: pointer;
   transition:
-    color 0.2s var(--ease-out),
-    background-color 0.2s var(--ease-out),
-    scale 0.45s cubic-bezier(0.34, 1.5, 0.64, 1);
+    color var(--beat-4) var(--ease-out),
+    background-color var(--beat-4) var(--ease-out),
+    scale var(--beat-2) var(--ease-pop);
 }
 .copy:hover {
   color: var(--fg);
@@ -84,8 +84,8 @@ svg {
 .copy__check {
   transform-origin: center;
   transition:
-    opacity 0.2s var(--ease-out),
-    scale 0.45s cubic-bezier(0.34, 1.5, 0.64, 1);
+    opacity var(--beat-4) var(--ease-out),
+    scale var(--beat-2) var(--ease-pop);
 }
 .copy__check {
   opacity: 0;
@@ -118,8 +118,8 @@ svg {
   translate: 0 4px;
   pointer-events: none;
   transition:
-    opacity 0.2s var(--ease-out),
-    translate 0.45s cubic-bezier(0.34, 1.5, 0.64, 1);
+    opacity var(--beat-4) var(--ease-out),
+    translate var(--beat-2) var(--ease-pop);
 }
 [data-copied] .copy__toast {
   opacity: 1;

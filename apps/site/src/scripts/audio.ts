@@ -5,11 +5,18 @@ import { demoTracks } from '../../../shared-tracks'
  * The single audio session of the site. The module is evaluated once and
  * survives client-side navigation, so the music never stops between pages.
  */
+let media: HTMLAudioElement | null = null
 export const engine = new PulseEngine({
   tracks: demoTracks(import.meta.env.BASE_URL),
   volume: 0.85,
+  // Keep a hand on the <audio> element: the turntable (deck.ts) bends its
+  // playback rate the way a real platter spins up and runs down.
+  createAudio: () => (media = new Audio()),
 })
 setSharedEngine(engine)
+
+/** The engine's <audio> element, once created. */
+export const getMedia = (): HTMLAudioElement | null => media
 
 /** Latest visualiser frame, shared by every visual on the page. */
 export const frame: { bands: Float32Array; energy: number; bass: number; live: boolean } = {

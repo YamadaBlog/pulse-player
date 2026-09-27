@@ -1,4 +1,10 @@
-<section id="listens" class="side-b listens" data-surface="b" aria-labelledby="listens-title">
+<section
+  data-track="B2"
+  id="listens"
+  class="side-b listens"
+  data-surface="b"
+  aria-labelledby="listens-title"
+>
   <div class="wrap">
     <div class="track-head">
       <span class="label">B2</span>
@@ -54,6 +60,7 @@
   import { engine } from '../scripts/audio'
   import { subscribeFrames } from '../scripts/audio'
   import { $, onPage, reducedMotion, whileVisible } from '../scripts/lifecycle'
+  import { gsap } from '../scripts/motion'
   import '../scripts/ridges'
 
   onPage(() => {
@@ -77,9 +84,28 @@
         bass.textContent = f.bass.toFixed(2)
       })
     })
+    // The camera: the landscape is first seen at a grazing angle and
+    // straightens as it arrives — the reel's 3D move, tied to the reader's
+    // own scrolling (never on its own, and not at all under reduced motion).
+    const canvas = host.querySelector('canvas')
+    const cam =
+      canvas && !reducedMotion()
+        ? gsap.fromTo(
+            canvas,
+            { rotateX: 38, y: 60, transformOrigin: '50% 85%' },
+            {
+              rotateX: 8,
+              y: 0,
+              ease: 'none',
+              scrollTrigger: { trigger: host, start: 'top bottom', end: 'center 60%', scrub: true },
+            },
+          )
+        : null
     return () => {
       offState()
       stop()
+      cam?.scrollTrigger?.kill()
+      cam?.kill()
     }
   })
 </script>
@@ -99,6 +125,11 @@
     position: relative;
     height: min(78svh, 820px);
     margin: clamp(2rem, 5vw, 4rem) 0 0;
+    perspective: 1600px;
+    perspective-origin: 50% 30%;
+    /* In perspective the near edge of the landscape grows wider than the
+       page: clip it sideways (it is only background there), never below. */
+    overflow-x: clip;
   }
   .ridges canvas {
     width: 100%;

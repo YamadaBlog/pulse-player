@@ -1,0 +1,612 @@
+---
+const base = import.meta.env.BASE_URL
+const file = (f: string): string => `${base}reel/${f}`
+const DURATION = 15
+// Cut on the soundtrack's half-bars ("Projector Screen", 70.06 BPM): the
+// reel's chapters start where its music turns a corner. `ref` is where the
+// same motion lives on this page.
+const chapters = [
+  { t: 0, title: 'Needle drop', ref: 'A1' },
+  { t: 2.213, title: 'Kinetic type', ref: 'A1' },
+  { t: 3.926, title: 'The word plays', ref: 'A1' },
+  { t: 5.639, title: 'Morph', ref: 'A2' },
+  { t: 7.351, title: 'Moods', ref: 'A3' },
+  { t: 9.064, title: 'Ridgelines', ref: 'B2' },
+  { t: 10.777, title: 'Flip', ref: 'A/B' },
+  { t: 12.49, title: 'End card', ref: 'C1' },
+].map((c, i, all) => ({
+  ...c,
+  n: String(i).padStart(2, '0'),
+  len: (all[i + 1]?.t ?? DURATION) - c.t,
+  at: `0:${String(Math.floor(c.t)).padStart(2, '0')}`,
+}))
+const poster = file('reel-poster-1920.webp')
+---
+
+<section
+  data-track="C1"
+  id="reel"
+  class="side-b reel"
+  data-surface="b"
+  aria-labelledby="reel-title"
+>
+  <div class="wrap">
+    <div class="track-head">
+      <span class="label">C1</span>
+      <span class="label">The reel</span>
+      <span class="label">0:15</span>
+    </div>
+
+    <div class="reel__intro">
+      <h2 id="reel-title" class="headline" data-split>
+        Fifteen seconds,
+        <br />
+        cut to the <span class="serif">beat.</span>
+      </h2>
+      <p class="lede">
+        This page’s motion as a film, rendered frame by frame from code to “Projector Screen”. No
+        editing software, no stock footage. Sound on.
+      </p>
+    </div>
+
+    <figure class="reel__screen" data-reel>
+      <div class="reel__frame" data-reel-frame data-cursor="Play · sound on">
+        <img
+          class="reel__poster"
+          src={poster}
+          srcset={`${file('reel-poster-1280.webp')} 1280w, ${poster} 1920w`}
+          sizes="(min-width: 1440px) 1352px, 94vw"
+          width="1920"
+          height="1080"
+          alt=""
+          decoding="async"
+        />
+        <video
+          class="reel__video"
+          playsinline
+          preload="none"
+          controls
+          poster={poster}
+          aria-label="Pulse — the reel"
+          aria-describedby="reel-desc"
+          data-reel-video
+        >
+          <source src={file('pulse-reel-720.mp4')} type="video/mp4" media="(max-width: 900px)" />
+          <source src={file('pulse-reel-1080.mp4')} type="video/mp4" />
+        </video>
+      </div>
+
+      <figcaption class="reel__bar">
+        <button
+          class="reel__toggle"
+          type="button"
+          data-reel-toggle
+          data-state="idle"
+          aria-label="Play the reel, with sound"
+        >
+          <span class="reel__icons" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M8 5.5v13l11-6.5z" fill="currentColor"></path>
+            </svg>
+            <svg viewBox="0 0 24 24">
+              <path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"></path>
+            </svg>
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 5a7 7 0 1 1-6.93 8h2.02A5 5 0 1 0 12 7v3L7.5 6 12 2z"
+                fill="currentColor"
+              ></path>
+            </svg>
+          </span>
+        </button>
+        <span class="reel__now" aria-hidden="true">
+          <span class="label" data-reel-chapter>
+            00 — Needle drop
+          </span>
+        </span>
+        <span class="reel__tc label" aria-hidden="true">
+          TC <span data-reel-tc>00:00:00:00</span>
+        </span>
+      </figcaption>
+
+      <ol class="reel__chapters" aria-label="Chapters">
+        {chapters.map((c) => (
+          <li style={`--len: ${c.len.toFixed(3)}`}>
+            <button
+              type="button"
+              data-seek={c.t}
+              data-title={c.title}
+              aria-label={`Play from ${c.at}: ${c.title}`}
+            >
+              <span class="reel__fill" aria-hidden="true" />
+              <span class="label">{c.n}</span>
+              <span class="reel__title">{c.title}</span>
+              <span class="reel__ref label">{c.ref}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </figure>
+
+    <p class="grid-note label">
+      <span>The grid this page moves on</span>
+      <span>70.06 BPM</span>
+      <span>Beat · 856 ms</span>
+      <span>Eighth · 428</span>
+      <span>Sixteenth · 214</span>
+      <span>Thirty-second · 107</span>
+    </p>
+
+    <p id="reel-desc" class="sr-only">
+      A tonearm swings in and drops onto a spinning record. The headline slams in word by word; the
+      letters of “plays” rise and fall with the music. The player card opens from the full stop and
+      folds from 760 to 96 pixels wide, then four moods wipe across it. The spectrum turns into a
+      ridgeline landscape, curls into the grooves of a record that flips to side B, and the reel
+      ends on the Pulse logo as the turntable brakes.
+    </p>
+  </div>
+</section>
+
+<script>
+  import { engine } from '../scripts/audio'
+  import { $, onPage, reducedMotion } from '../scripts/lifecycle'
+  import { gsap } from '../scripts/motion'
+  import { createRoll } from '../scripts/roll'
+  import { BEAT, EASE, EIGHTH } from '../scripts/tempo'
+
+  const FPS = 30
+  // Frame-accurate where supported (the timeline paints with each video frame).
+  const FRAME_CB = 'requestVideoFrameCallback' in HTMLVideoElement.prototype
+  const pad = (n: number): string => String(n).padStart(2, '0')
+  const tc = (t: number): string =>
+    `00:00:${pad(Math.floor(t))}:${pad(Math.min(FPS - 1, Math.floor((t % 1) * FPS)))}`
+
+  type State = 'idle' | 'playing' | 'paused' | 'ended'
+  const CURSOR: Record<State, string> = {
+    idle: 'Play · sound on',
+    playing: 'Pause',
+    paused: 'Play',
+    ended: 'Replay · sound on',
+  }
+  const LABEL: Record<State, string> = {
+    idle: 'Play the reel, with sound',
+    playing: 'Pause the reel',
+    paused: 'Resume the reel',
+    ended: 'Replay the reel',
+  }
+
+  onPage(() => {
+    const root = $('[data-reel]')
+    const frame = root?.querySelector<HTMLElement>('[data-reel-frame]')
+    const video = root?.querySelector<HTMLVideoElement>('[data-reel-video]')
+    const toggle = root?.querySelector<HTMLButtonElement>('[data-reel-toggle]')
+    if (!root || !frame || !video || !toggle) return
+    const seeks = [...root.querySelectorAll<HTMLButtonElement>('[data-seek]')]
+    const starts = seeks.map((b) => Number(b.dataset.seek))
+    const fills = seeks.map((b) => b.querySelector<HTMLElement>('.reel__fill'))
+    const tcEl = root.querySelector<HTMLElement>('[data-reel-tc]')
+    const nowEl = root.querySelector<HTMLElement>('[data-reel-chapter]')
+    const rollNow = nowEl ? createRoll(nowEl) : null
+    const duration = (): number => (Number.isFinite(video.duration) ? video.duration : 15)
+
+    // Script present: the page's own controls replace the native ones, and
+    // the film sits under its poster until it is played.
+    video.controls = false
+    let state: State = 'idle'
+    let covered = true
+    gsap.set(video, { clipPath: 'circle(0px at 50% 50%)' })
+
+    // ─── The timeline follows the film, frame by frame ──────────────
+    let chapter = 0
+    const paint = (t: number): void => {
+      let i = starts.length - 1
+      while (i > 0 && t < starts[i]!) i--
+      fills.forEach((f, k) => {
+        const a = starts[k]!
+        const b = starts[k + 1] ?? duration()
+        const p = Math.min(1, Math.max(0, (t - a) / (b - a)))
+        if (f) f.style.transform = `scaleX(${p.toFixed(4)})`
+      })
+      if (i !== chapter) {
+        seeks[chapter]?.removeAttribute('data-current')
+        chapter = i
+        rollNow?.(`${pad(i)} — ${seeks[i]!.dataset.title}`)
+      }
+      seeks[i]?.setAttribute('data-current', '')
+      if (tcEl) tcEl.textContent = tc(t)
+    }
+    let frameReq = 0
+    let rewinding = false
+    const follow = (): void => {
+      if (video.paused) return
+      if (FRAME_CB)
+        frameReq = video.requestVideoFrameCallback((_, m) => {
+          if (!rewinding) paint(m.mediaTime)
+          follow()
+        })
+      else
+        frameReq = requestAnimationFrame(() => {
+          if (!rewinding) paint(video.currentTime)
+          follow()
+        })
+    }
+    const unfollow = (): void => {
+      if (FRAME_CB) video.cancelVideoFrameCallback(frameReq)
+      cancelAnimationFrame(frameReq)
+    }
+
+    const setState = (s: State): void => {
+      state = s
+      toggle.dataset.state = s
+      toggle.setAttribute('aria-label', LABEL[s])
+      frame.dataset.cursor = CURSOR[s]
+      // The cursor tag reads its text on pointer moves; refresh it in place.
+      const tag = document.querySelector('.cursor-tag[data-on] span')
+      if (tag && frame.matches(':hover')) tag.textContent = CURSOR[s]
+    }
+
+    // ─── The reveal: the film opens from where you asked for it ─────
+    let origin = { x: 0, y: 0 }
+    const originFrom = (e: MouseEvent, control?: Element): void => {
+      const r = frame.getBoundingClientRect()
+      if (!control && (e.clientX || e.clientY))
+        origin = { x: e.clientX - r.left, y: e.clientY - r.top }
+      else {
+        // From a control below the frame: the point of the frame's lower
+        // edge right above it.
+        const b = (control ?? toggle).getBoundingClientRect()
+        origin = { x: Math.min(r.width, Math.max(0, b.left + b.width / 2 - r.left)), y: r.height }
+      }
+    }
+    const uncover = (): void => {
+      covered = false
+      const { width: w, height: h } = frame.getBoundingClientRect()
+      const { x, y } = origin
+      const radius = Math.hypot(Math.max(x, w - x), Math.max(y, h - y))
+      gsap.killTweensOf(video)
+      if (reducedMotion()) {
+        gsap.set(video, { clipPath: 'none' })
+        return
+      }
+      gsap.fromTo(
+        video,
+        { clipPath: `circle(0px at ${x}px ${y}px)` },
+        {
+          clipPath: `circle(${radius.toFixed(1)}px at ${x}px ${y}px)`,
+          duration: BEAT,
+          ease: EASE.out,
+          onComplete: () => void gsap.set(video, { clipPath: 'none' }),
+        },
+      )
+    }
+    // Reveal on the first frame actually presented while playing — never on
+    // the poster. Each play request supersedes the previous one.
+    let request = 0
+    const uncoverOnFirstFrame = (): void => {
+      const mine = ++request
+      const go = (): void => {
+        if (mine !== request || !covered) return
+        if (video.paused) video.addEventListener('playing', go, { once: true })
+        else uncover()
+      }
+      if (FRAME_CB) video.requestVideoFrameCallback(go)
+      else video.addEventListener('playing', go, { once: true })
+    }
+
+    // ─── Rewind: the timeline runs back like tape before a replay ───
+    const rewind = (from: number, to: number): void => {
+      if (reducedMotion()) return paint(to)
+      const t = { v: from }
+      rewinding = true
+      gsap.to(t, {
+        v: to,
+        duration: EIGHTH,
+        ease: EASE.inOut,
+        onUpdate: () => paint(t.v),
+        onComplete: () => {
+          rewinding = false
+          paint(video.currentTime)
+        },
+      })
+    }
+
+    const play = (from?: number): void => {
+      if (engine.state.isPlaying) engine.pause() // one source at a time
+      if (covered || state === 'ended') {
+        // The ended film shows its last frame, which is the poster: covering
+        // it again changes nothing on screen, and the reveal can run anew.
+        gsap.set(video, { clipPath: `circle(0px at ${origin.x}px ${origin.y}px)` })
+        covered = true
+        const at = from ?? 0
+        const was = state === 'ended' ? duration() : video.currentTime
+        if (was !== at) rewind(was, at)
+        video.currentTime = at
+        uncoverOnFirstFrame()
+      } else if (from !== undefined) {
+        video.currentTime = from
+        paint(from)
+      }
+      void video.play().catch(() => setState(covered ? 'idle' : 'paused'))
+    }
+
+    const onToggle = (e: MouseEvent): void => {
+      if (state === 'playing') return video.pause()
+      originFrom(e, toggle)
+      play()
+    }
+    const onFrame = (e: MouseEvent): void => {
+      if (state === 'playing') return video.pause()
+      originFrom(e)
+      play()
+    }
+    const onSeek = (e: MouseEvent): void => {
+      const btn = (e.target as Element).closest<HTMLButtonElement>('[data-seek]')
+      if (!btn) return
+      originFrom(e, btn)
+      play(Number(btn.dataset.seek))
+    }
+
+    const onPlay = (): void => {
+      setState('playing')
+      follow()
+    }
+    const onPause = (): void => {
+      unfollow()
+      if (!video.ended) setState(covered ? 'idle' : 'paused')
+      paint(video.currentTime)
+    }
+    const onEnded = (): void => {
+      unfollow()
+      paint(duration())
+      setState('ended')
+    }
+    video.addEventListener('play', onPlay)
+    video.addEventListener('pause', onPause)
+    video.addEventListener('ended', onEnded)
+    toggle.addEventListener('click', onToggle)
+    frame.addEventListener('click', onFrame)
+    root.addEventListener('click', onSeek)
+
+    // The site's music and the film never talk over each other.
+    const offEngine = engine.onStateChange((s) => {
+      if (s.isPlaying && !video.paused) video.pause()
+    })
+
+    // Buffer the start as the section approaches (unless data is precious);
+    // pause if the film is scrolled away.
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
+    let primed = false
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry) return
+        if (entry.isIntersecting && !primed && !conn?.saveData) {
+          primed = true
+          video.preload = 'auto'
+          if (video.readyState === 0 && video.paused) video.load()
+        }
+        if (!entry.isIntersecting && !video.paused && entry.intersectionRatio === 0) video.pause()
+      },
+      { rootMargin: '60% 0px' },
+    )
+    io.observe(frame)
+
+    paint(0)
+    setState('idle')
+
+    return () => {
+      io.disconnect()
+      offEngine()
+      unfollow()
+      gsap.killTweensOf(video)
+      video.pause()
+      toggle.removeEventListener('click', onToggle)
+      frame.removeEventListener('click', onFrame)
+      root.removeEventListener('click', onSeek)
+    }
+  })
+</script>
+
+<style>
+  .reel {
+    padding-block: clamp(4rem, 9vw, 7.5rem);
+  }
+  .reel__intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    align-items: end;
+    gap: clamp(1.5rem, 4vw, 4rem);
+    margin: clamp(2rem, 5vw, 4rem) 0 clamp(2.5rem, 5vw, 4rem);
+  }
+  .reel__intro .lede {
+    margin: 0;
+  }
+
+  /* ─── The screen ────────────────────────────────────────────────── */
+  .reel__screen {
+    margin: 0;
+  }
+  .reel__frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 10px;
+    /* The poster's own paper, in case the image is still on its way. */
+    background: #e8e3d9;
+    box-shadow: 0 0 0 1px var(--rule);
+    cursor: pointer;
+  }
+  .reel__poster,
+  .reel__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .reel__video {
+    background: var(--night);
+  }
+
+  .reel__bar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0 0.9rem;
+  }
+  .reel__toggle {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 50%;
+    background: var(--fg);
+    color: var(--bg);
+    cursor: pointer;
+    transition: background-color var(--beat-4) var(--ease-out);
+  }
+  .reel__toggle:hover {
+    background: var(--signal);
+    color: var(--ink);
+  }
+  .reel__toggle:active {
+    transform: scale(0.94);
+  }
+  /* Play, pause and replay sit in one column behind the button's mask: the
+     state rolls through it, the way every changing label on this page does. */
+  .reel__icons {
+    display: grid;
+    grid-auto-rows: 48px;
+    transition: transform var(--beat-4) var(--ease-out);
+  }
+  .reel__icons svg {
+    width: 20px;
+    height: 20px;
+    margin: auto;
+  }
+  .reel__toggle[data-state='playing'] .reel__icons {
+    transform: translateY(-48px);
+  }
+  .reel__toggle[data-state='ended'] .reel__icons {
+    transform: translateY(-96px);
+  }
+  .reel__now {
+    display: block;
+    overflow: hidden;
+    min-width: 0;
+    white-space: nowrap;
+  }
+  .reel__now .label {
+    display: inline-block;
+  }
+  .reel__tc {
+    color: var(--fg-3);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .reel__tc span {
+    color: var(--fg);
+  }
+
+  /* The chapters are the timeline: each segment as long as its part. */
+  .reel__chapters {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .reel__chapters li {
+    flex: var(--len) 1 0;
+    min-width: 0;
+  }
+  .reel__chapters button {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    gap: 0.2rem 0.55rem;
+    width: 100%;
+    padding: 0.85rem 0.8rem 0.4rem 0;
+    border: 0;
+    background: none;
+    color: var(--fg-3);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: color var(--beat-4) var(--ease-out);
+  }
+  .reel__chapters button::before,
+  .reel__fill {
+    content: '';
+    position: absolute;
+    inset: 0 2px auto 0;
+    height: 2px;
+  }
+  .reel__chapters button::before {
+    background: var(--rule);
+    transition: background-color var(--beat-4) var(--ease-out);
+  }
+  .reel__fill {
+    display: block;
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+  .reel__chapters button:hover,
+  .reel__chapters button[data-current] {
+    color: var(--fg);
+  }
+  .reel__chapters button:hover::before {
+    background: var(--fg-3);
+  }
+  .reel__title {
+    overflow: hidden;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .reel__ref {
+    grid-column: 2;
+    color: var(--fg-3);
+    font-size: 0.65rem;
+  }
+
+  .grid-note {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.6rem;
+    margin: clamp(2.5rem, 5vw, 4rem) 0 0;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--rule);
+    color: var(--fg-3);
+  }
+  .grid-note span:first-child {
+    color: var(--fg);
+    margin-right: auto;
+  }
+
+  @media (max-width: 860px) {
+    .reel__intro {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 720px) {
+    .reel__chapters button {
+      grid-template-columns: minmax(0, 1fr);
+      padding-right: 0.3rem;
+    }
+    .reel__title,
+    .reel__ref {
+      display: none;
+    }
+    .grid-note span:first-child {
+      width: 100%;
+    }
+  }
+  html.reduced .reel__icons {
+    transition: none;
+  }
+</style>

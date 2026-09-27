@@ -10,7 +10,14 @@ const tiers = [
 const MAX = 760
 ---
 
-<section id="grows" class="grows" data-surface="a" aria-labelledby="grows-title" data-grows>
+<section
+  data-track="A2"
+  id="grows"
+  class="grows"
+  data-surface="a"
+  aria-labelledby="grows-title"
+  data-grows
+>
   <div class="grows__sticky">
     <div class="wrap grows__inner">
       <div class="track-head">
@@ -151,7 +158,7 @@ const MAX = 760
     })
     return () => {
       range.removeEventListener('input', onInput)
-      mm.revert()
+      mm.kill() // swapped out: stop, don't restore
     }
   })
 </script>

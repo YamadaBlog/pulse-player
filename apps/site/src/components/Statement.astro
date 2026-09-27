@@ -33,7 +33,7 @@ const chapters = [
 ]
 ---
 
-<section class="statement" data-surface="a" aria-labelledby="statement-title">
+<section data-track="A1" class="statement" data-surface="a" aria-labelledby="statement-title">
   <div class="wrap">
     <div class="track-head">
       <span class="label">A1</span>
@@ -139,7 +139,7 @@ const chapters = [
     min-height: 100%;
     padding: 1.4rem 1.2rem 1.6rem;
     text-decoration: none;
-    transition: background-color 0.4s var(--ease-out);
+    transition: background-color var(--beat-2) var(--ease-out);
   }
   .chapters a:hover {
     background: var(--paper-2);
@@ -151,7 +151,7 @@ const chapters = [
     font-size: clamp(1.4rem, 1rem + 1vw, 2rem);
     letter-spacing: -0.02em;
     text-transform: uppercase;
-    transition: font-variation-settings 0.6s var(--ease-out);
+    transition: font-variation-settings calc(var(--beat-2) * 1.5) var(--ease-out);
   }
   .chapters a:hover .chapters__title {
     font-variation-settings: 'wdth' 110;

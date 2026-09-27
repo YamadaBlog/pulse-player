@@ -4,7 +4,14 @@ import CopyChip from './CopyChip.astro'
 const moods = Object.entries(VARIANTS) as [NamedVariant, (typeof VARIANTS)[NamedVariant]][]
 ---
 
-<section id="moods" class="room" data-surface="b" aria-labelledby="moods-title" data-room>
+<section
+  data-track="A3"
+  id="moods"
+  class="room"
+  data-surface="b"
+  aria-labelledby="moods-title"
+  data-room
+>
   <div class="wrap">
     <div class="track-head">
       <span class="label">A3</span>
@@ -38,6 +45,9 @@ const moods = Object.entries(VARIANTS) as [NamedVariant, (typeof VARIANTS)[Named
 
       <div class="room__stage">
         <pulse-player data-mood-follow ambient-eq></pulse-player>
+        <p class="room__name serif" aria-hidden="true">
+          <span data-mood-name>Auto</span>
+        </p>
         <div class="room__code">
           <CopyChip text={'<pulse-player variant="auto">'} />
         </div>
@@ -70,6 +80,8 @@ const moods = Object.entries(VARIANTS) as [NamedVariant, (typeof VARIANTS)[Named
   import { VARIANTS, type NamedVariant } from '@pulse-music/tokens'
   import { $, $$, onPage, reducedMotion } from '../scripts/lifecycle'
   import { applyMood, currentMood, moodsHeard } from '../scripts/mood-store'
+  import { createRoll } from '../scripts/roll'
+  import { EIGHTH } from '../scripts/tempo'
 
   onPage(() => {
     const room = $('[data-room]')
@@ -94,6 +106,16 @@ const moods = Object.entries(VARIANTS) as [NamedVariant, (typeof VARIANTS)[Named
         copy.setAttribute('aria-label', `Copy: ${text}`)
       }
       if (code) code.innerHTML = `<span aria-hidden="true">$</span> ${text.replace(/</g, '&lt;')}`
+      rollName(VARIANTS[name].label)
+    }
+
+    // The mood's name rolls through a mask: out the top, in from below.
+    const nameEl = $('[data-mood-name]', room)
+    const roll = nameEl ? createRoll(nameEl, { duration: EIGHTH, gap: 0.05 }) : null
+    let named = false
+    const rollName = (label: string): void => {
+      roll?.(label, !named)
+      named = true
     }
 
     const choose = (btn: HTMLButtonElement, e: MouseEvent): void => {
@@ -109,9 +131,8 @@ const moods = Object.entries(VARIANTS) as [NamedVariant, (typeof VARIANTS)[Named
       html.style.setProperty('--vt-x', `${x}px`)
       html.style.setProperty('--vt-y', `${y}px`)
       html.style.setProperty('--vt-r', `${radius}px`)
-      html.classList.add('vt-mood')
-      const vt = document.startViewTransition(commit)
-      void vt.finished.finally(() => html.classList.remove('vt-mood'))
+      // The shared reveal (global.css): the new mood spreads from the click.
+      document.startViewTransition(commit)
     }
 
     const onClick = (e: MouseEvent): void => {
@@ -136,7 +157,6 @@ const moods = Object.entries(VARIANTS) as [NamedVariant, (typeof VARIANTS)[Named
     padding-block: clamp(4rem, 10vw, 8rem);
     color: var(--fg);
     background: var(--mood-bg, var(--night));
-    transition: color 0.6s var(--ease-out);
   }
   :global(html[data-mood='transparent']) .room {
     background: var(--night);
@@ -171,7 +191,10 @@ const moods = Object.entries(VARIANTS) as [NamedVariant, (typeof VARIANTS)[Named
     height: 8px;
     border: 1px solid var(--fg-3);
     border-radius: 50%;
-    transition: background-color 0.4s var(--ease-out);
+    /* A newly heard mood fills its dot once the wipe has passed. */
+    transition:
+      background-color var(--beat-4) var(--ease-out) var(--beat-2),
+      border-color var(--beat-4) var(--ease-out) var(--beat-2);
   }
   .room__dots i[data-on] {
     border-color: var(--accent);
@@ -186,6 +209,17 @@ const moods = Object.entries(VARIANTS) as [NamedVariant, (typeof VARIANTS)[Named
   .room__code {
     min-width: 0;
     max-width: 100%;
+  }
+  .room__name {
+    overflow: hidden;
+    margin: -0.1em 0 -0.2em;
+    padding-bottom: 0.08em;
+    font-size: clamp(3.2rem, 2rem + 4vw, 6.5rem);
+    line-height: 1;
+    color: var(--accent);
+  }
+  .room__name span {
+    display: inline-block;
   }
   .room__stage pulse-player {
     width: 100%;
@@ -219,8 +253,8 @@ const moods = Object.entries(VARIANTS) as [NamedVariant, (typeof VARIANTS)[Named
     overflow: hidden;
     box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
     transition:
-      transform 0.6s cubic-bezier(0.34, 1.4, 0.64, 1),
-      box-shadow 0.3s var(--ease-out);
+      transform calc(var(--beat-2) * 1.5) var(--ease-pop),
+      box-shadow var(--beat-4) var(--ease-out);
   }
   .swatch:hover {
     transform: translateY(-6px);
@@ -282,23 +316,6 @@ const moods = Object.entries(VARIANTS) as [NamedVariant, (typeof VARIANTS)[Named
     }
     .swatch__desc {
       display: none;
-    }
-  }
-</style>
-
-<style is:global>
-  html.vt-mood::view-transition-old(root) {
-    animation: none;
-  }
-  html.vt-mood::view-transition-new(root) {
-    animation: mood-in 900ms cubic-bezier(0.65, 0, 0.35, 1) both;
-  }
-  @keyframes mood-in {
-    from {
-      clip-path: circle(0 at var(--vt-x) var(--vt-y));
-    }
-    to {
-      clip-path: circle(var(--vt-r) at var(--vt-x) var(--vt-y));
     }
   }
 </style>

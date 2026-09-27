@@ -1,7 +1,9 @@
 import { engine } from './audio'
-import { $, $$, onPage } from './lifecycle'
-import { getLenis } from './motion'
+import { $, $$, onPage, reducedMotion } from './lifecycle'
+import { getLenis, gsap } from './motion'
 import { applyMood, currentMood } from './mood-store'
+import { createRoll } from './roll'
+import { BEAT, EASE } from './tempo'
 
 const root = document.documentElement
 
@@ -52,7 +54,12 @@ document.addEventListener('click', (e) => {
         const el = document.querySelector(url.hash)
         if (!el) return
         const lenis = getLenis()
-        if (lenis) lenis.scrollTo(el as HTMLElement, { offset: 0, duration: 1.6 })
+        if (lenis)
+          lenis.scrollTo(el as HTMLElement, {
+            offset: 0,
+            duration: BEAT * 2,
+            easing: gsap.parseEase(EASE.inOut),
+          })
         else el.scrollIntoView()
         ;(el as HTMLElement).focus?.({ preventScroll: true })
       })
@@ -157,7 +164,7 @@ async function loadMetrics(): Promise<Metrics> {
   return m
 }
 
-const metrics = loadMetrics()
+export const metrics = loadMetrics()
 
 function formatMetric(key: string, m: Metrics): string {
   switch (key) {
@@ -180,25 +187,128 @@ function formatMetric(key: string, m: Metrics): string {
   }
 }
 
+// ─── Page transitions: the new page spreads from where you acted ──
+// Same grammar as the mood wipes. The origin is the pointer, or the link
+// itself when navigating from the keyboard; it is re-applied after the swap
+// (the new document's <html> replaces the old one's attributes).
+let vtOrigin: { x: number; y: number } | null = null
+document.addEventListener(
+  'click',
+  (e) => {
+    const a = (e.target as Element).closest?.('a[href]')
+    if (!a) return
+    if (e.detail === 0 || (e.clientX === 0 && e.clientY === 0)) {
+      const r = a.getBoundingClientRect()
+      vtOrigin = { x: r.left + r.width / 2, y: r.top + r.height / 2 }
+    } else vtOrigin = { x: e.clientX, y: e.clientY }
+  },
+  true,
+)
+function applyVtOrigin(): void {
+  const { x, y } = vtOrigin ?? { x: innerWidth / 2, y: innerHeight / 2 }
+  const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
+  const st = document.documentElement.style
+  st.setProperty('--vt-x', `${x}px`)
+  st.setProperty('--vt-y', `${y}px`)
+  st.setProperty('--vt-r', `${Math.ceil(r)}px`)
+}
+document.addEventListener('astro:before-preparation', applyVtOrigin)
+// The swap replaces <html>'s attributes with the new document's (the head
+// script doesn't run again): put back what this visit has established before
+// the new page's first frame — the reveal is already running over it.
+document.addEventListener('astro:after-swap', () => {
+  cut() // the new page brings its own side: no fade under the reveal
+  root.classList.add('js')
+  root.classList.toggle('reduced', reducedMotion())
+  root.toggleAttribute('data-playing', engine.state.isPlaying)
+  applyMood(currentMood(), { silent: true })
+  applyVtOrigin()
+  vtOrigin = null
+})
+
+// ─── The header's side: a cut, not a fade ─────────────────────────
+let uncut = 0
+function cut(): void {
+  cancelAnimationFrame(uncut)
+  root.classList.add('side-cut')
+  // Transitions come back once the new side has been painted.
+  uncut = requestAnimationFrame(() => {
+    uncut = requestAnimationFrame(() => root.classList.remove('side-cut'))
+  })
+}
+function setSide(side: string): void {
+  if (root.dataset.side === side) return
+  cut()
+  root.dataset.side = side
+}
+
+// ─── Where the needle is: current track + playhead ────────────────
+const playheadFallback = !CSS.supports?.('animation-timeline: scroll()')
+function syncPlayhead(): void {
+  const bar = $('[data-playhead]')
+  if (!bar || !playheadFallback) return
+  const max = document.documentElement.scrollHeight - innerHeight
+  bar.style.transform = `scaleX(${max > 0 ? Math.min(1, scrollY / max) : 0})`
+}
+if (playheadFallback) addEventListener('scroll', syncPlayhead, { passive: true })
+
+// The header's track code rolls like the counter on a tape deck. (The
+// header persists across pages, so one roll serves the whole visit.)
+let rollTrack: ReturnType<typeof createRoll> | null = null
+let knownTrack = false
+function showTrack(code: string): void {
+  const slot = $('[data-now-track]')
+  if (!slot || !code) return
+  rollTrack ??= createRoll(slot)
+  rollTrack(code, !knownTrack)
+  knownTrack = true
+}
+
 onPage(() => {
-  // Which side of the record is under the header?
+  syncPlayhead()
+  // The chapter crossing the middle of the screen is the current track.
+  const tracks = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries)
+        if (e.isIntersecting) showTrack((e.target as HTMLElement).dataset.track ?? '')
+    },
+    { rootMargin: '-50% 0px -49% 0px' },
+  )
+  $$('[data-track]').forEach((el) => tracks.observe(el))
+  const first = $('[data-track]')
+  if (first && scrollY < 10) showTrack(first.dataset.track ?? '')
+
+  // Which side of the record is under the header? A section can also change
+  // side while it sits there (the interlude's flip): it says so.
+  let under: HTMLElement | null = null
   const io = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
-        if (entry.isIntersecting)
-          root.dataset.side = (entry.target as HTMLElement).dataset.surface ?? 'a'
+        if (!entry.isIntersecting) continue
+        under = entry.target as HTMLElement
+        setSide(under.dataset.surface ?? 'a')
       }
     },
     { rootMargin: '0px 0px -96% 0px' },
   )
   $$('[data-surface]').forEach((el) => io.observe(el))
+  const onSurface = (e: Event): void => {
+    if (under && e.target === under) setSide(under.dataset.surface ?? 'a')
+  }
+  document.addEventListener('surface:change', onSurface)
 
   void metrics.then((m) => {
-    for (const el of $$('[data-metric]')) el.textContent = formatMetric(el.dataset.metric!, m)
+    // Counted cells (the matrix) count up in their own chapter.
+    for (const el of $$('[data-metric]:not([data-count])'))
+      el.textContent = formatMetric(el.dataset.metric!, m)
   })
 
   for (const el of $$('[data-mood-follow]')) el.setAttribute('variant', currentMood())
   applyMood(currentMood(), { silent: true })
 
-  return () => io.disconnect()
+  return () => {
+    io.disconnect()
+    tracks.disconnect()
+    document.removeEventListener('surface:change', onSurface)
+  }
 })

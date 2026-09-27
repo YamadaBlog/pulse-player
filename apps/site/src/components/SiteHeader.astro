@@ -18,16 +18,27 @@ const base = import.meta.env.BASE_URL
       <a class="head__gh label" href="https://github.com/YamadaBlog/pulse-player" rel="noopener">
         GitHub <span data-metric="stars-badge" aria-hidden="true"></span>
       </a>
-      <button class="head__menu label" type="button" data-tracklist-open aria-haspopup="dialog">
+      <button
+        class="head__menu label"
+        type="button"
+        data-tracklist-open
+        aria-haspopup="dialog"
+        aria-label="Tracklist"
+      >
         <span class="head__bars" aria-hidden="true">
           <i></i>
           <i></i>
           <i></i>
         </span>
         Tracklist
+        <span class="head__track" aria-hidden="true">
+          <span data-now-track>A1</span>
+        </span>
       </button>
     </nav>
   </div>
+  <!-- Where the needle is on the side: the page's scroll progress. -->
+  <span class="head__playhead" aria-hidden="true" data-playhead></span>
 </header>
 
 <style>
@@ -38,7 +49,6 @@ const base = import.meta.env.BASE_URL
     height: var(--header);
     padding-top: env(safe-area-inset-top, 0px);
     color: var(--ink);
-    transition: color 0.5s var(--ease-out);
     pointer-events: none;
   }
   :global(html[data-side='b']) .head {
@@ -52,11 +62,16 @@ const base = import.meta.env.BASE_URL
     z-index: -1;
     background: linear-gradient(var(--paper) 30%, rgb(236 231 220 / 0));
     opacity: 0.92;
-    transition: opacity 0.5s var(--ease-out);
     pointer-events: none;
   }
   :global(html[data-side='b']) .head::before {
     background: linear-gradient(var(--night) 30%, rgb(12 11 10 / 0));
+  }
+  /* The header changes side in one frame — a cut (chrome.ts): a fade would
+     pass through grey type on a grey scrim. Hover transitions stay. */
+  :global(html.side-cut) .head,
+  :global(html.side-cut) .head * {
+    transition: none !important;
   }
   .head__gh [data-metric]:empty {
     display: none;
@@ -120,7 +135,7 @@ const base = import.meta.env.BASE_URL
     background: var(--signal);
     opacity: 1;
     box-shadow: 0 0 0 0 var(--signal);
-    animation: ping 1.4s var(--ease-out) infinite;
+    animation: ping calc(var(--beat) * 2) var(--ease-out) infinite;
   }
   .head__nav {
     display: flex;
@@ -141,14 +156,55 @@ const base = import.meta.env.BASE_URL
     text-decoration: none;
     cursor: pointer;
     transition:
-      background-color 0.3s var(--ease-out),
-      color 0.3s var(--ease-out);
+      background-color var(--beat-4) var(--ease-out),
+      color var(--beat-4) var(--ease-out);
   }
   .head__gh:hover,
   .head__menu:hover {
     background: var(--signal);
     border-color: var(--signal);
     color: var(--ink);
+  }
+  .head__track {
+    position: relative;
+    display: inline-block;
+    min-width: 2.3ch;
+    height: 1.2em;
+    margin-left: 0.15rem;
+    padding-left: 0.6rem;
+    overflow: hidden;
+    border-left: 1px solid currentColor;
+    line-height: 1.2em;
+    vertical-align: -0.2em;
+    color: var(--signal-ink);
+  }
+  :global(html[data-side='b']) .head__track {
+    color: var(--signal);
+  }
+  .head__track :global(span) {
+    display: block;
+  }
+  .head__playhead {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    pointer-events: none;
+  }
+  @supports (animation-timeline: scroll()) {
+    .head__playhead {
+      animation: playhead linear both;
+      animation-timeline: scroll(root);
+    }
+  }
+  @keyframes playhead {
+    to {
+      transform: scaleX(1);
+    }
   }
   .head__bars {
     display: inline-flex;
@@ -161,7 +217,7 @@ const base = import.meta.env.BASE_URL
     height: 100%;
     background: currentColor;
     transform-origin: bottom;
-    animation: bars 0.9s var(--ease-in-out) infinite alternate;
+    animation: bars var(--beat-2) var(--ease-in-out) infinite alternate;
     animation-play-state: paused;
   }
   .head__bars i:nth-child(2) {
