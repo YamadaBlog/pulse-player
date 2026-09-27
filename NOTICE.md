@@ -43,7 +43,7 @@ The reel is a 15-second motion piece rendered from code for this repository. Its
 
 - The soundtrack is “Projector Screen” (HoliznaCC0, CC0 1.0, see above), mixed with procedurally generated sound design.
 - The type is set in the three OFL typefaces listed below.
-- The artwork is the original Pulse mark and record labels (this section), and the reel's earlier demo covers, which were original.
+- The artwork is the original Pulse mark and record labels (this section), and the cover of “Projector Screen”, Hiroshige's _Fireworks at Ryōgoku_ (public domain, above).
 - The animation was authored with GSAP. It is rendered to video, so no GSAP code ships with these files.
 
 ## Fonts — SIL Open Font License 1.1
