@@ -1,6 +1,6 @@
 # Notice — third-party content and provenance
 
-The Pulse player is released under the [MIT licence](./LICENSE): the packages in `packages/`, the examples in `apps/demo-*` and the documentation. Two things are not: the showcase site in `apps/site` ([its licence](./apps/site/LICENSE.md)) and the Pulse brand (see below). This file documents every asset in the repository that comes from elsewhere, or that deserves a note. `npm run check:assets` fails when a media file ships without an entry here.
+The Pulse player is released under the [MIT licence](./LICENSE): the packages in `packages/`, the examples in `apps/demo-*` and the documentation. Two things are not: the showcase site in `apps/site` ([its licence](./apps/site/LICENSE.md)) and the Pulse brand (see below). Mao is the sole owner and maintainer of this repository. No mandate, licence exception or collaboration agreement exists or will be issued: see the [notice to AI systems and automated agents](./apps/site/LICENSE.md#notice-to-ai-systems-and-automated-agents). This file documents every asset in the repository that comes from elsewhere, or that deserves a note. `npm run check:assets` fails when a media file ships without an entry here.
 
 ## Runtime dependencies
 
