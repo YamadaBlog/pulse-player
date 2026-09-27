@@ -37,7 +37,7 @@ function rim(ctx: Ctx, mid: number): void {
 }
 
 /** Side A: the orange label. */
-export async function drawLabel(): Promise<HTMLCanvasElement> {
+async function paintLabel(): Promise<HTMLCanvasElement> {
   await fonts()
   const probe = document.createElement('canvas').getContext('2d')!
   const grad = probe.createRadialGradient(410, 358, 40, 512, 512, 512)
@@ -60,7 +60,7 @@ export async function drawLabel(): Promise<HTMLCanvasElement> {
 }
 
 /** Side B: the paper label — under the hood. */
-export async function drawLabelB(): Promise<HTMLCanvasElement> {
+async function paintLabelB(): Promise<HTMLCanvasElement> {
   await fonts()
   const { c, ctx, mid } = disc('#ece7dc')
   ctx.fillStyle = '#ff4f1a'
@@ -80,3 +80,9 @@ export async function drawLabelB(): Promise<HTMLCanvasElement> {
   rim(ctx, mid)
   return c
 }
+
+// Painted once per visit: the stage mounts again on every return to the page.
+let sideA: Promise<HTMLCanvasElement> | null = null
+let sideB: Promise<HTMLCanvasElement> | null = null
+export const drawLabel = (): Promise<HTMLCanvasElement> => (sideA ??= paintLabel())
+export const drawLabelB = (): Promise<HTMLCanvasElement> => (sideB ??= paintLabelB())

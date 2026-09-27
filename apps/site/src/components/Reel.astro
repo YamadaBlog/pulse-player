@@ -161,15 +161,19 @@ const poster = file('reel-poster-1920.webp')
   const tc = (t: number): string =>
     `00:00:${pad(Math.floor(t))}:${pad(Math.min(FPS - 1, Math.floor((t % 1) * FPS)))}`
 
-  type State = 'idle' | 'playing' | 'paused' | 'ended'
+  // preview: the film plays by itself, muted, while it is on screen; a
+  // click plays it for real, from the start, with its sound.
+  type State = 'idle' | 'preview' | 'playing' | 'paused' | 'ended'
   const CURSOR: Record<State, string> = {
     idle: 'Play · sound on',
+    preview: 'Sound on · from the top',
     playing: 'Pause',
     paused: 'Play',
     ended: 'Replay · sound on',
   }
   const LABEL: Record<State, string> = {
     idle: 'Play the reel, with sound',
+    preview: 'Play the reel from the start, with sound',
     playing: 'Pause the reel',
     paused: 'Resume the reel',
     ended: 'Replay the reel',
@@ -194,6 +198,7 @@ const poster = file('reel-poster-1920.webp')
     video.controls = false
     let state: State = 'idle'
     let covered = true
+    let sound = false // the real viewing, not the muted preview
     gsap.set(video, { clipPath: 'circle(0px at 50% 50%)' })
 
     // ─── The timeline follows the film, frame by frame ──────────────
@@ -311,7 +316,11 @@ const poster = file('reel-poster-1920.webp')
     }
 
     const play = (from?: number): void => {
-      if (engine.state.isPlaying) engine.pause() // one source at a time
+      // The film's sound and the site's music never talk over each other;
+      // the muted preview doesn't interrupt anything.
+      if (sound && engine.state.isPlaying) engine.pause()
+      video.muted = !sound
+      video.loop = !sound
       if (covered || state === 'ended') {
         // The ended film shows its last frame, which is the poster: covering
         // it again changes nothing on screen, and the reveal can run anew.
@@ -326,33 +335,50 @@ const poster = file('reel-poster-1920.webp')
         video.currentTime = from
         paint(from)
       }
+      // Already running (the preview): no 'play' event will say it.
+      if (!video.paused) setState(sound ? 'playing' : 'preview')
       void video.play().catch(() => setState(covered ? 'idle' : 'paused'))
     }
 
+    // From the preview to the real thing: the tape runs back, the sound
+    // comes on, the film starts over.
+    const withSound = (from = 0): void => {
+      sound = true
+      if (!covered && state !== 'ended') {
+        const was = video.currentTime
+        if (was !== from) rewind(was, from)
+        video.currentTime = from
+        return play() // already there, the rewind draws the way back
+      }
+      play(from)
+    }
     const onToggle = (e: MouseEvent): void => {
       if (state === 'playing') return video.pause()
       originFrom(e, toggle)
-      play()
+      if (state === 'preview' || state === 'idle' || state === 'ended') withSound()
+      else play()
     }
     const onFrame = (e: MouseEvent): void => {
       if (state === 'playing') return video.pause()
       originFrom(e)
-      play()
+      if (state === 'preview' || state === 'idle' || state === 'ended') withSound()
+      else play()
     }
     const onSeek = (e: MouseEvent): void => {
       const btn = (e.target as Element).closest<HTMLButtonElement>('[data-seek]')
       if (!btn) return
       originFrom(e, btn)
-      play(Number(btn.dataset.seek))
+      withSound(Number(btn.dataset.seek))
     }
 
     const onPlay = (): void => {
-      setState('playing')
+      setState(sound ? 'playing' : 'preview')
       follow()
     }
     const onPause = (): void => {
       unfollow()
-      if (!video.ended) setState(covered ? 'idle' : 'paused')
+      if (!video.ended)
+        setState(!sound ? (covered ? 'idle' : 'preview') : covered ? 'idle' : 'paused')
       paint(video.currentTime)
     }
     const onEnded = (): void => {
@@ -369,7 +395,7 @@ const poster = file('reel-poster-1920.webp')
 
     // The site's music and the film never talk over each other.
     const offEngine = engine.onStateChange((s) => {
-      if (s.isPlaying && !video.paused) video.pause()
+      if (s.isPlaying && sound && !video.paused) video.pause()
     })
 
     // Buffer the start as the section approaches (unless data is precious);
@@ -390,11 +416,30 @@ const poster = file('reel-poster-1920.webp')
     )
     io.observe(frame)
 
+    // The preview: on screen (half of it at least), the film plays by itself,
+    // muted and looping, from the frame's centre. Not with reduced motion,
+    // nor when data is precious; off screen it waits.
+    // (Not in a browser that can't decode the film: the poster stays.)
+    const decodable = !!video.canPlayType('video/mp4; codecs="avc1.640028"')
+    const watch = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry || sound || !decodable || reducedMotion() || conn?.saveData) return
+        if (entry.intersectionRatio >= 0.5 && video.paused && state !== 'ended') {
+          const r = frame.getBoundingClientRect()
+          origin = { x: r.width / 2, y: r.height / 2 }
+          play()
+        } else if (entry.intersectionRatio < 0.5 && !video.paused) video.pause()
+      },
+      { threshold: [0, 0.5] },
+    )
+    watch.observe(frame)
+
     paint(0)
     setState('idle')
 
     return () => {
       io.disconnect()
+      watch.disconnect()
       offEngine()
       unfollow()
       gsap.killTweensOf(video)

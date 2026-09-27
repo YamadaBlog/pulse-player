@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro'
 import Hero from '../components/Hero.astro'
-import Statement from '../components/Statement.astro'
+import Tour from '../components/Tour.astro'
 import Grows from '../components/Grows.astro'
 import Moods from '../components/Moods.astro'
 import Flip from '../components/Flip.astro'
@@ -18,8 +18,11 @@ import LinerNotes from '../components/LinerNotes.astro'
   title="Pulse · A music player that plays your page"
   description="One Custom Element music player for every framework. It grows with its container, wears nine moods, follows you across the page and listens to the music it plays."
 >
+  <div class="stage" data-stage aria-hidden="true">
+    <canvas></canvas>
+  </div>
   <Hero />
-  <Statement />
+  <Tour />
   <Grows />
   <Moods />
   <Flip />

@@ -1,7 +1,6 @@
-<section class="flip" data-surface="a" data-flip aria-labelledby="flip-title">
+<section class="flip" data-surface="a" data-flip data-stage-window aria-labelledby="flip-title">
   <div class="flip__night" aria-hidden="true"></div>
   <div class="flip__disc" aria-hidden="true" data-flip-disc>
-    <canvas class="flip__gl"></canvas>
     <div class="flip__face flip__face--a">
       <span>A</span>
     </div>
@@ -20,111 +19,152 @@
 </section>
 
 <script>
-  import { createFlipRecord } from '../scripts/flip-record'
   import { $, onPage, reducedMotion } from '../scripts/lifecycle'
   import { gsap } from '../scripts/motion'
-  import { BEAT, EASE, SIXTEENTH, THIRTY_SECOND } from '../scripts/tempo'
+  import { flip } from '../scripts/stage/director'
+  import { onStageFrame, stage, stageLive } from '../scripts/stage/stage'
+  import { BEAT, EASE, EIGHTH, SIXTEENTH, THIRTY_SECOND } from '../scripts/tempo'
 
+  /**
+   * The interlude. With the stage, it is the same record, in its box: it
+   * lifts off the table, turns over in the air while the camera leans in,
+   * lands on side B, and the night spreads over the table from under it like
+   * ink. Without WebGL2: the flat CSS disc turns and a circle of night grows.
+   */
   onPage(() => {
     const section = $('[data-flip]')
     const disc = $('[data-flip-disc]')
-    const canvas = $<HTMLCanvasElement>('.flip__gl')
-    if (!section || !disc || !canvas) return
-    // The hero's record in WebGL; the flat CSS disc only if WebGL is missing.
-    const record = createFlipRecord(canvas)
-    disc.classList.toggle('is-live', !!record)
-
-    if (reducedMotion()) {
-      section.classList.add('is-flipped')
-      section.dataset.surface = 'b'
-      void record?.ready.then(() => record.draw(Math.PI))
-      return () => record?.dispose()
-    }
-    // The night is a circle around the record; its radius is tweened in px.
-    const night = section.querySelector<HTMLElement>('.flip__night')!
+    if (!section || !disc) return
     const head = document.querySelector<HTMLElement>('.head')
-    const flood = { r: 0 }
-    const closed = (): number => disc.offsetWidth / 2
-    const open = (): number => Math.hypot(section.offsetWidth, section.offsetHeight) / 2 + 2
-    // The header changes side as the night reaches it — the moment the flood
-    // touches its lower edge; its night scrim then carries the flood over the
-    // last paper corners. Not when the flip starts (over paper), nor at the
-    // next scroll (a light header over the night until then).
-    const paintNight = (): void => {
-      night.style.clipPath = `circle(${flood.r.toFixed(1)}px at 50% 50%)`
-      const n = night.getBoundingClientRect()
-      const cy = n.top + n.height / 2
-      const hb = head?.getBoundingClientRect().bottom ?? 0
-      const spreading = flood.r > closed() + 0.5 // at rest the night is just the disc
-      const reached = spreading && (cy <= hb || cy - hb <= flood.r)
-      const side = reached ? 'b' : 'a'
+    const setSide = (side: 'a' | 'b'): void => {
       if (section.dataset.surface === side) return
       section.dataset.surface = side
       section.dispatchEvent(new CustomEvent('surface:change', { bubbles: true }))
     }
-    const turn = { flip: 0 }
-    let tl: gsap.core.Timeline | null = null
-    let spread: gsap.core.Tween | null = null
-    const ctx = gsap.context(() => {
-      flood.r = closed()
-      paintNight()
-      // The turn, then the night floods out of the record; the title rises
-      // with the turn. One beat each, on the site's grid.
-      tl = gsap.timeline({ paused: true })
-      spread = gsap.fromTo(
-        flood,
-        { r: closed },
-        {
-          r: open,
-          duration: BEAT * 1.5,
-          ease: EASE.inOut,
-          immediateRender: false,
-          onUpdate: paintNight,
-        },
-      )
-      tl.to(turn, {
-        flip: Math.PI,
-        duration: BEAT,
-        ease: EASE.inOut,
-        onUpdate: () =>
-          record
-            ? record.draw(turn.flip)
-            : gsap.set(disc, { rotateY: (turn.flip * 180) / Math.PI }),
+    return stageLive() ? staged() : flat()
+
+    function staged(): () => void {
+      section!.classList.add('is-staged')
+      flip.dock = disc
+      // The night must reach the farthest corner of the screen, in record radii.
+      const reach = (): number => {
+        const { x, y, r } = stage.shot
+        return (Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)) / r) * 1.06
+      }
+      // The header changes side as the ink reaches its lower edge.
+      const offFrame = onStageFrame(() => {
+        if (flip.dock !== disc || stage.flood < 1.02) return setSide('a')
+        const hb = head?.getBoundingClientRect().bottom ?? 0
+        const reached = stage.shot.y <= hb || stage.flood * stage.shot.r >= stage.shot.y - hb
+        setSide(reached ? 'b' : 'a')
       })
-        .add(spread, BEAT * 0.7)
+      if (reducedMotion()) {
+        stage.flip = Math.PI
+        stage.flood = 40
+        stage.night = 1
+        return () => {
+          offFrame()
+          flip.dock = null
+          stage.flip = 0
+          stage.flood = -1
+          stage.night = 0
+        }
+      }
+      stage.flood = 1
+      const tl = gsap.timeline({ paused: true, defaults: { ease: EASE.inOut } })
+      // Lift off, turn over in the air (one beat), land — the camera leans in
+      // to see it happen, and straightens as the record settles.
+      tl.to(stage, { lift: 1.3, duration: BEAT * 0.5, ease: EASE.out }, 0)
+        .to(stage, { flip: Math.PI, duration: BEAT }, 0)
+        .to(stage, { lift: 0.1, duration: BEAT * 0.5, ease: EASE.in }, BEAT * 0.5)
+        .to(flip, { el: 1.02, depth: 0.6, duration: BEAT * 0.6 }, 0)
+        .to(flip, { el: Math.PI / 2, depth: 0, duration: BEAT * 0.9 }, BEAT * 0.6)
+        // The ink, from under the record to the corners.
+        .fromTo(
+          stage,
+          { flood: 1 },
+          { flood: reach, night: 1, duration: BEAT * 1.5, immediateRender: false },
+          BEAT * 0.7,
+        )
         .from(
           '.flip__line',
           { yPercent: 110, duration: BEAT, stagger: THIRTY_SECOND * 2, ease: EASE.out },
           SIXTEENTH,
         )
-
-      // Played on entry, reversed when scrolling back above it. Not scrubbed:
-      // a flip is an event. Only continuous things follow the scrollbar —
-      // A2's width and B2's camera.
-      gsap.timeline({
+      const trigger = gsap.timeline({
         scrollTrigger: {
           trigger: section,
-          start: 'top 35%',
+          start: 'top 15%',
           end: 'bottom top',
-          onEnter: () => tl?.play(),
-          onLeaveBack: () => tl?.reverse(),
+          onEnter: () => tl.play(),
+          onLeaveBack: () => tl.reverse(),
         },
       })
-    }, section)
-    // A resize changes both radii: re-fit the night while it is at rest (and
-    // let the next spread measure again).
-    const onResize = (): void => {
-      if (!tl || !spread || tl.isActive()) return
-      spread.invalidate()
-      flood.r = spread.progress() === 1 ? open() : closed()
-      paintNight()
+      return () => {
+        offFrame()
+        tl.kill()
+        trigger.scrollTrigger?.kill()
+        trigger.kill()
+        flip.dock = null
+        Object.assign(stage, { flip: 0, flood: -1, night: 0, lift: 0.1 })
+        Object.assign(flip, { el: Math.PI / 2, depth: 0 })
+      }
     }
-    addEventListener('resize', onResize)
-    return () => {
-      removeEventListener('resize', onResize)
-      // Swapped out: stop, don't restore a DOM that is going away.
-      ctx.kill()
-      record?.dispose()
+
+    function flat(): () => void {
+      // No WebGL2: the CSS disc turns, and a circle of night grows from it.
+      const night = section!.querySelector<HTMLElement>('.flip__night')!
+      if (reducedMotion()) {
+        section!.classList.add('is-flipped')
+        setSide('b')
+        return () => undefined
+      }
+      const flood = { r: disc!.offsetWidth / 2 }
+      const paint = (): void => {
+        night.style.clipPath = `circle(${flood.r.toFixed(1)}px at 50% 50%)`
+        const n = night.getBoundingClientRect()
+        const cy = n.top + n.height / 2
+        const hb = head?.getBoundingClientRect().bottom ?? 0
+        setSide(
+          flood.r > disc!.offsetWidth / 2 + 0.5 && (cy <= hb || cy - hb <= flood.r) ? 'b' : 'a',
+        )
+      }
+      paint()
+      const turn = { deg: 0 }
+      const tl = gsap.timeline({ paused: true, defaults: { ease: EASE.inOut } })
+      tl.to(turn, {
+        deg: 180,
+        duration: BEAT,
+        onUpdate: () => void gsap.set(disc!, { rotateY: turn.deg }),
+      })
+        .to(
+          flood,
+          {
+            r: () => Math.hypot(section!.offsetWidth, section!.offsetHeight) / 2 + 2,
+            duration: BEAT * 1.5,
+            onUpdate: paint,
+          },
+          BEAT * 0.7,
+        )
+        .from(
+          '.flip__line',
+          { yPercent: 110, duration: EIGHTH * 2, stagger: THIRTY_SECOND * 2, ease: EASE.out },
+          SIXTEENTH,
+        )
+      const trigger = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 15%',
+          end: 'bottom top',
+          onEnter: () => tl.play(),
+          onLeaveBack: () => tl.reverse(),
+        },
+      })
+      return () => {
+        tl.kill()
+        trigger.scrollTrigger?.kill()
+        trigger.kill()
+      }
     }
   })
 </script>
@@ -186,22 +226,16 @@
   .flip__face--b span {
     background: var(--paper);
   }
-  .flip.is-flipped .flip__disc:not(.is-live) {
+  .flip.is-flipped .flip__disc {
     transform: rotateY(180deg);
   }
-  /* WebGL record: the canvas is larger than the disc (room for its shadow). */
-  .flip__gl {
-    position: absolute;
-    left: -12.5%;
-    top: -12.5%;
-    width: 125%;
-    height: 125%;
-    display: none;
+  /* With the stage, the section is a window: the record, the table and
+     the night are the scene's (the flat disc and circle are the fallback). */
+  .flip.is-staged {
+    background: transparent;
   }
-  .flip__disc.is-live .flip__gl {
-    display: block;
-  }
-  .flip__disc.is-live .flip__face {
+  .flip.is-staged .flip__night,
+  .flip.is-staged .flip__face {
     display: none;
   }
   .flip__copy {
