@@ -3,15 +3,20 @@ import { ClientRouter } from 'astro:transitions'
 import SiteHeader from '../components/SiteHeader.astro'
 import Tracklist from '../components/Tracklist.astro'
 import { createMotionCss } from '@pulse-music/tokens'
+import archivo from '@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2?url'
+import geistMono from '../assets/fonts/GeistMono-Variable.woff2?url'
+import Loader from '../components/Loader.astro'
 import '../styles/global.css'
 
 interface Props {
   title: string
   description: string
   side?: 'a' | 'b'
+  /** Show the loading sleeve on the first load of a visit (the home page). */
+  loader?: boolean
 }
 
-const { title, description, side = 'a' } = Astro.props
+const { title, description, side = 'a', loader = false } = Astro.props
 const base = import.meta.env.BASE_URL
 const canonical = new URL(Astro.url.pathname, Astro.site)
 const og = new URL(`${base}og-banner.png`, Astro.site)
@@ -27,6 +32,8 @@ const og = new URL(`${base}og-banner.png`, Astro.site)
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="preload" href={archivo} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={geistMono} as="font" type="font/woff2" crossorigin />
     <link rel="sitemap" href={`${base}sitemap-index.xml`} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Pulse" />
@@ -55,7 +62,7 @@ const og = new URL(`${base}og-banner.png`, Astro.site)
         },
       })}
     />
-    <script is:inline>
+    <script is:inline data-loader-page={loader ? '1' : undefined}>
       document.documentElement.classList.add('js')
       if (matchMedia('(prefers-reduced-motion: reduce)').matches)
         document.documentElement.classList.add('reduced')
@@ -64,6 +71,18 @@ const og = new URL(`${base}og-banner.png`, Astro.site)
         // If its script never runs, show everything anyway.
         document.documentElement.classList.add('intro')
         setTimeout(() => document.documentElement.classList.remove('intro'), 2500)
+        // The first load of a visit starts behind the loading sleeve
+        // (Loader.astro); never for longer than 9 s, even without scripts.
+        let seen = false
+        try {
+          seen = !!sessionStorage.getItem('pulse-loaded')
+        } catch {
+          /* storage unavailable: show the sleeve */
+        }
+        if (document.currentScript?.dataset.loaderPage && !seen) {
+          document.documentElement.classList.add('loading')
+          setTimeout(() => document.documentElement.classList.remove('loading'), 9000)
+        }
       }
       // Entrances start hidden. If the scripts haven't booted after 3 s, the
       // page is shown as it is, statically — nothing may stay invisible.
@@ -76,6 +95,7 @@ const og = new URL(`${base}og-banner.png`, Astro.site)
     <ClientRouter fallback="swap" />
   </head>
   <body>
+    {loader && <Loader />}
     <a class="skip" href="#main">
       Skip to content
     </a>

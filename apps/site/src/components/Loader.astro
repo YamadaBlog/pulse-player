@@ -1,0 +1,143 @@
+---
+// The first load of a visit: the inside of the sleeve. A tape counter runs
+// to 100 with what has really loaded (fonts, the stage, every asset), then
+// rolls away, and the black sleeve rises like a curtain over the room where
+// the camera's opening is already moving. Shown only when <html> has the
+// `loading` class (set before the first paint by Base.astro).
+const digits = [0, 1, 2]
+---
+
+<div class="loader" data-loader aria-hidden="true">
+  <p class="loader__top label">
+    <span class="loader__mask">
+      <span class="loader__roll">Pulse — LP · 2026</span>
+    </span>
+    <span class="loader__mask">
+      <span class="loader__roll">Side A · pressing</span>
+    </span>
+  </p>
+
+  <div class="loader__foot">
+    <div class="loader__line">
+      <i data-loader-bar></i>
+    </div>
+    <div class="loader__row">
+      <p class="loader__count" data-loader-count>
+        {digits.map(() => (
+          <span class="loader__slot">
+            <span class="loader__col">
+              {Array.from({ length: 11 }, (_, n) => (
+                <span>{n % 10}</span>
+              ))}
+            </span>
+          </span>
+        ))}
+      </p>
+      <p class="loader__rpm label">
+        <span class="loader__mask">
+          <span class="loader__roll">33⅓ RPM</span>
+        </span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  import '../scripts/loader'
+</script>
+
+<style is:global>
+  .loader {
+    display: none;
+  }
+  html.loading {
+    overflow: hidden;
+  }
+  html.loading .loader {
+    position: fixed;
+    inset: 0;
+    z-index: 250;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    padding: calc(1.1rem + env(safe-area-inset-top, 0px)) var(--gutter)
+      calc(1.1rem + env(safe-area-inset-bottom, 0px));
+    color: var(--paper);
+    background: var(--night);
+    clip-path: inset(0 0 0 0);
+  }
+  /* The words wait for their typefaces: no frame in a fallback font. */
+  html.loading:not(.loader-fonts) .loader__top,
+  html.loading:not(.loader-fonts) .loader__foot .loader__row {
+    visibility: hidden;
+  }
+  .loader__top {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0;
+  }
+  .loader__mask {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+  }
+  .loader__roll {
+    display: inline-block;
+  }
+  .loader__foot {
+    align-self: end;
+  }
+  .loader__line {
+    position: relative;
+    height: 1px;
+    margin-bottom: clamp(0.6rem, 1.5vw, 1.2rem);
+    background: rgb(236 231 220 / 0.18);
+  }
+  .loader__line i {
+    position: absolute;
+    inset: -0.5px 0;
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+  .loader__row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .loader__count {
+    display: flex;
+    /* The counter's own window: at the end it rolls out of it, whole. */
+    overflow: hidden;
+    margin: 0 0 -0.08em;
+    font-family: var(--display);
+    font-weight: 800;
+    font-variation-settings: 'wdth' 72;
+    font-size: clamp(6rem, 26vw, 19rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+  /* A tape counter: each digit is a wheel of 0–9 (and 0 again) behind a
+     window one digit tall. */
+  .loader__slot {
+    display: block;
+    height: 0.86em;
+    overflow: hidden;
+  }
+  .loader__col {
+    display: block;
+    will-change: transform;
+  }
+  .loader__col span {
+    display: block;
+    height: 0.86em;
+    line-height: 0.86em;
+  }
+  .loader__rpm {
+    margin: 0;
+    padding-bottom: 0.4rem;
+    color: rgb(236 231 220 / 0.64);
+  }
+</style>

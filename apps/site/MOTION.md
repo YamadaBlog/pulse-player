@@ -39,17 +39,18 @@ The curves are the component's `EASING` tokens (`@pulse-music/tokens`), the ones
 
 2. **One gesture per chapter.** A chapter opens the same way every time: the needle line draws, then its labels land a thirty-second apart and the headline rises out of its masks. After that it has a single gesture of its own:
 
-   | Chapter      | Gesture                                                                                                        | Trigger                     |
-   | ------------ | -------------------------------------------------------------------------------------------------------------- | --------------------------- |
-   | A1 Opening   | The camera starts low in a paper room and cranes up until the room is a page; the sleeve lands, the words rise | Arrival (any input skips)   |
-   | A1 Needle    | The arm swings, lowers and lands; one ring runs through the groove; the platter and the pitch spin up          | Press                       |
-   | A1 The tour  | Four shots around the record: lift-off, high above then down to the rim, three rooms lit by moods, the grooves | Scrubbed by scroll (pinned) |
-   | A2 Grows     | The player folds from 760 px down to a disc                                                                    | Scrubbed by scroll          |
-   | A3 Moods     | The new mood spreads from the swatch (view transition)                                                         | Press                       |
-   | Interlude    | The record lifts, turns to side B in the air and lands; the night spreads over the table like ink              | Once, reversed back         |
-   | B2 Listens   | The camera straightens over the landscape                                                                      | Scrubbed by scroll          |
-   | C1 The reel  | Previews itself, muted; a press rewinds it and plays it with sound, its timeline following frame by frame      | In view, then press         |
-   | C2 Pressings | The numbers count up                                                                                           | Once, in view               |
+   | Chapter      | Gesture                                                                                                                                                        | Trigger                     |
+   | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+   | Loading      | The inside of the sleeve: a tape counter follows what has really loaded (fonts, stage, assets), rolls away at 100, and the black sleeve rises over the opening | First load of a visit       |
+   | A1 Opening   | The camera starts low in a paper room and cranes up until the room is a page; the sleeve lands, the words rise                                                 | Arrival (any input skips)   |
+   | A1 Needle    | The arm swings, lowers and lands; one ring runs through the groove; the platter and the pitch spin up                                                          | Press                       |
+   | A1 The tour  | Four shots around the record: lift-off, high above then down to the rim, three rooms lit by moods, the grooves                                                 | Scrubbed by scroll (pinned) |
+   | A2 Grows     | The player folds from 760 px down to a disc                                                                                                                    | Scrubbed by scroll          |
+   | A3 Moods     | The new mood spreads from the swatch (view transition)                                                                                                         | Press                       |
+   | Interlude    | The record lifts, turns to side B in the air and lands; the night spreads over the table like ink                                                              | Once, reversed back         |
+   | B2 Listens   | The camera straightens over the landscape                                                                                                                      | Scrubbed by scroll          |
+   | C1 The reel  | Previews itself, muted; a press rewinds it and plays it with sound, its timeline following frame by frame                                                      | In view, then press         |
+   | C2 Pressings | The numbers count up                                                                                                                                           | Once, in view               |
 
 3. **Cause, then effect.** A change starts where it was caused:
    - moods, page changes and the reel open from the click or from the control's edge;
