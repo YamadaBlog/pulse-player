@@ -1,6 +1,6 @@
 {
   "name": "@pulse-music/tokens",
-  "version": "3.0.0-rc.3",
+  "version": "3.0.0",
   "description": "Design tokens for Pulse — nine theme variants and spring motion curves, as typed data and CSS.",
   "keywords": [
     "design-tokens",
@@ -36,7 +36,7 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "@pulse-music/types": "^3.0.0-rc.3"
+    "@pulse-music/types": "^3.0.0"
   },
   "publishConfig": {
     "access": "public",

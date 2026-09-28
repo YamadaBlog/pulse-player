@@ -1,6 +1,6 @@
 {
   "name": "@pulse-music/svelte",
-  "version": "3.0.0-rc.3",
+  "version": "3.0.0",
   "description": "Svelte 4 / 5 bindings for Pulse — Custom Elements plus a usePulseAudio() store.",
   "keywords": [
     "svelte",
@@ -38,9 +38,9 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "@pulse-music/core": "^3.0.0-rc.3",
-    "@pulse-music/types": "^3.0.0-rc.3",
-    "@pulse-music/web-component": "^3.0.0-rc.3"
+    "@pulse-music/core": "^3.0.0",
+    "@pulse-music/types": "^3.0.0",
+    "@pulse-music/web-component": "^3.0.0"
   },
   "peerDependencies": {
     "svelte": "^4.0.0 || ^5.0.0"

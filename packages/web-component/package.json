@@ -1,6 +1,6 @@
 {
   "name": "@pulse-music/web-component",
-  "version": "3.0.0-rc.3",
+  "version": "3.0.0",
   "description": "Drop-in music player Custom Elements — <pulse-player>, <pulse-fab>, <pulse-track>. Works in any framework or plain HTML.",
   "keywords": [
     "web-components",
@@ -42,9 +42,9 @@
     "build": "tsdown && cem analyze --litelement --globs \"src/Pulse*.ts\" --outdir ."
   },
   "dependencies": {
-    "@pulse-music/core": "^3.0.0-rc.3",
-    "@pulse-music/tokens": "^3.0.0-rc.3",
-    "@pulse-music/types": "^3.0.0-rc.3",
+    "@pulse-music/core": "^3.0.0",
+    "@pulse-music/tokens": "^3.0.0",
+    "@pulse-music/types": "^3.0.0",
     "lit": "^3.3.3"
   },
   "publishConfig": {

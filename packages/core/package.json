@@ -1,6 +1,6 @@
 {
   "name": "@pulse-music/core",
-  "version": "3.0.0-rc.3",
+  "version": "3.0.0",
   "description": "Framework-agnostic audio engine for Pulse — playback state, Web Audio visualiser frames, Media Session, typed events. SSR-safe.",
   "keywords": [
     "audio",
@@ -39,7 +39,7 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "@pulse-music/types": "^3.0.0-rc.3"
+    "@pulse-music/types": "^3.0.0"
   },
   "publishConfig": {
     "access": "public",
