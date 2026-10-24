@@ -1,6 +1,6 @@
 {
   "name": "@pulse-music/react",
-  "version": "3.0.0-rc.3",
+  "version": "3.0.0",
   "description": "React 18 / 19 bindings for Pulse — <PulsePlayer />, <PulseFab /> and the usePulseAudio() hook.",
   "keywords": [
     "react",
@@ -38,9 +38,9 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "@pulse-music/core": "^3.0.0-rc.3",
-    "@pulse-music/types": "^3.0.0-rc.3",
-    "@pulse-music/web-component": "^3.0.0-rc.3"
+    "@pulse-music/core": "^3.0.0",
+    "@pulse-music/types": "^3.0.0",
+    "@pulse-music/web-component": "^3.0.0"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0"

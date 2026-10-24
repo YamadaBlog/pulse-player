@@ -1,6 +1,6 @@
 {
   "name": "@pulse-music/types",
-  "version": "3.0.0-rc.3",
+  "version": "3.0.0",
   "description": "Shared TypeScript types for Pulse — Track, PulseState, EventMap, PulseVariant.",
   "keywords": [
     "pulse-player",

@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@pulse-music/svelte": "^3.0.0-rc.3",
+    "@pulse-music/svelte": "^3.0.0",
     "svelte": "^5.57.1"
   },
   "devDependencies": {
