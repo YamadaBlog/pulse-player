@@ -1,6 +1,6 @@
 # @pulse-music/react-native
 
-> **Experimental.** A separate native renderer for [Pulse](https://github.com/YamadaBlog/pulse-player) that shares the `Track` and theme contract with the web packages. It is released independently of them, is not at feature parity, and still relies on `expo-av`, which Expo is replacing with `expo-audio` — a migration is planned. Test on a device before shipping.
+> **Experimental.** A separate native renderer for [Pulse](https://github.com/maoxor/pulse-player) that shares the `Track` and theme contract with the web packages. It is released independently of them, is not at feature parity, and still relies on `expo-av`, which Expo is replacing with `expo-audio` — a migration is planned. Test on a device before shipping.
 
 ```bash
 npm install @pulse-music/react-native
@@ -51,7 +51,7 @@ export default function App() {
 A runnable Expo demo lives at `apps/demo-react-native/` in the monorepo. Boot it with:
 
 ```bash
-git clone https://github.com/YamadaBlog/pulse-player.git
+git clone https://github.com/maoxor/pulse-player.git
 cd pulse-player && npm install
 npm run android --workspace=@pulse-music/demo-react-native
 ```
@@ -60,7 +60,7 @@ Tested boot path: Expo SDK 56, React Native 0.85, Android emulator (Pixel_8a AVD
 
 ## API
 
-See [`docs/universal/API.md`](https://github.com/YamadaBlog/pulse-player/blob/main/docs/universal/API.md) for the canonical multi-framework API reference. The RN wrapper exposes the same props and the same event payload shapes — only the imports differ.
+See [`docs/universal/API.md`](https://github.com/maoxor/pulse-player/blob/main/docs/universal/API.md) for the canonical multi-framework API reference. The RN wrapper exposes the same props and the same event payload shapes — only the imports differ.
 
 ## Roadmap
 
@@ -70,4 +70,4 @@ See [`docs/universal/API.md`](https://github.com/YamadaBlog/pulse-player/blob/ma
 
 ## License
 
-MIT — see [LICENSE](https://github.com/YamadaBlog/pulse-player/blob/main/LICENSE).
+MIT — see [LICENSE](https://github.com/maoxor/pulse-player/blob/main/LICENSE).

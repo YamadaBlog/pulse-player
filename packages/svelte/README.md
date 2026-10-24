@@ -1,6 +1,6 @@
 # @pulse-music/svelte
 
-Svelte 4 / 5 bindings for [Pulse](https://github.com/YamadaBlog/pulse-player). Svelte renders Custom Elements natively, so this package registers `<pulse-player>` / `<pulse-fab>` and adds `usePulseAudio()`, a readable store over the audio session.
+Svelte 4 / 5 bindings for [Pulse](https://github.com/maoxor/pulse-player). Svelte renders Custom Elements natively, so this package registers `<pulse-player>` / `<pulse-fab>` and adds `usePulseAudio()`, a readable store over the audio session.
 
 ```bash
 npm i @pulse-music/svelte
@@ -19,6 +19,6 @@ npm i @pulse-music/svelte
 <pulse-fab pulso></pulse-fab>
 ```
 
-**Docs:** [Svelte guide](https://github.com/YamadaBlog/pulse-player/blob/main/docs/frameworks.md#svelte) · [element reference](https://github.com/YamadaBlog/pulse-player/blob/main/docs/reference/elements.md)
+**Docs:** [Svelte guide](https://github.com/maoxor/pulse-player/blob/main/docs/frameworks.md#svelte) · [element reference](https://github.com/maoxor/pulse-player/blob/main/docs/reference/elements.md)
 
-MIT © YamadaBlog
+MIT © maoxor

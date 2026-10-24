@@ -42,13 +42,13 @@ import type {
 const DEFAULT_TRACKS: Track[] = [
   {
     title: 'MIDNIGHT RUN',
-    src: 'https://yamadablog.github.io/pulse-player/audio/track1.webm',
-    cover: 'https://yamadablog.github.io/pulse-player/audio/cover.webp',
+    src: 'https://maoxor.github.io/pulse-player/audio/track1.webm',
+    cover: 'https://maoxor.github.io/pulse-player/audio/cover.webp',
   },
   {
     title: 'DEEP FOCUS',
-    src: 'https://yamadablog.github.io/pulse-player/audio/track2.webm',
-    cover: 'https://yamadablog.github.io/pulse-player/audio/cover2.webp',
+    src: 'https://maoxor.github.io/pulse-player/audio/track2.webm',
+    cover: 'https://maoxor.github.io/pulse-player/audio/cover2.webp',
   },
 ]
 

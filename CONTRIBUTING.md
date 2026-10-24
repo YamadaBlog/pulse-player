@@ -11,7 +11,7 @@ Opening an issue or a pull request doesn't make anyone a collaborator, partner o
 Requirements: **Node.js 22.18+ or 24** (see `.nvmrc`) and npm 11.
 
 ```bash
-git clone https://github.com/YamadaBlog/pulse-player.git
+git clone https://github.com/maoxor/pulse-player.git
 cd pulse-player
 npm install
 npm run dev          # the showcase site on http://localhost:5174

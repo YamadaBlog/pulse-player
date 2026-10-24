@@ -14,7 +14,7 @@ The release workflow publishes through [npm trusted publishing](https://docs.npm
 
 **Settings → Trusted publishing → GitHub Actions**, with
 
-- Organization or user: `YamadaBlog`
+- Organization or user: `maoxor`
 - Repository: `pulse-player`
 - Workflow filename: `release.yml`
 

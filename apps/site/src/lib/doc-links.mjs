@@ -1,7 +1,7 @@
 // The specs pages render the repository's Markdown reference. Links between
 // the two references stay on the site; any other relative link
 // (`../theming.md`) points at the file on GitHub.
-const REPO = 'https://github.com/YamadaBlog/pulse-player/blob/main/docs/reference/'
+const REPO = 'https://github.com/maoxor/pulse-player/blob/main/docs/reference/'
 const LOCAL = { 'elements.md': 'specs/', 'engine.md': 'specs/engine/' }
 
 /** @param {string} href @param {string} base */

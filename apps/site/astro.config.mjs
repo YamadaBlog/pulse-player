@@ -10,7 +10,7 @@ import { docLinks } from './src/lib/doc-links.mjs'
 const base = process.env.BASE_PATH ?? '/'
 
 export default defineConfig({
-  site: 'https://yamadablog.github.io',
+  site: 'https://maoxor.github.io',
   base,
   trailingSlash: 'always',
   integrations: [

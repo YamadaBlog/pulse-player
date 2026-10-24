@@ -30,6 +30,6 @@ npm i @pulse-music/web-component
 - SSR-safe import, ~23 kB brotli including Lit and the engine
 - Ships a [Custom Elements Manifest](./custom-elements.json) for editor tooling
 
-**Docs:** [element reference](https://github.com/YamadaBlog/pulse-player/blob/main/docs/reference/elements.md) · [getting started](https://github.com/YamadaBlog/pulse-player/blob/main/docs/getting-started.md) · [live demo](https://yamadablog.github.io/pulse-player/)
+**Docs:** [element reference](https://github.com/maoxor/pulse-player/blob/main/docs/reference/elements.md) · [getting started](https://github.com/maoxor/pulse-player/blob/main/docs/getting-started.md) · [live demo](https://maoxor.github.io/pulse-player/)
 
-MIT © YamadaBlog
+MIT © maoxor

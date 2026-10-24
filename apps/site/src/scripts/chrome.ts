@@ -165,7 +165,7 @@ async function loadMetrics(): Promise<Metrics> {
       forks_count: number
       open_issues_count: number
       pushed_at: string
-    }>('https://api.github.com/repos/YamadaBlog/pulse-player'),
+    }>('https://api.github.com/repos/maoxor/pulse-player'),
     get<{ downloads: number }>(
       'https://api.npmjs.org/downloads/point/last-month/@pulse-music/web-component',
     ),

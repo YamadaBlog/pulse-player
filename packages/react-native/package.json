@@ -35,12 +35,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YamadaBlog/pulse-player.git",
+    "url": "git+https://github.com/maoxor/pulse-player.git",
     "directory": "packages/react-native"
   },
-  "homepage": "https://github.com/YamadaBlog/pulse-player#readme",
+  "homepage": "https://github.com/maoxor/pulse-player#readme",
   "bugs": {
-    "url": "https://github.com/YamadaBlog/pulse-player/issues"
+    "url": "https://github.com/maoxor/pulse-player/issues"
   },
   "dependencies": {
     "@pulse-music/types": "3.0.0-rc.3"

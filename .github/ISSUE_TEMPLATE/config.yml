@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Report a security vulnerability
-    url: https://github.com/YamadaBlog/pulse-player/security/advisories/new
+    url: https://github.com/maoxor/pulse-player/security/advisories/new
     about: Please report vulnerabilities privately.
   - name: Documentation
-    url: https://github.com/YamadaBlog/pulse-player/tree/main/docs
+    url: https://github.com/maoxor/pulse-player/tree/main/docs
     about: Guides, references and troubleshooting.

@@ -54,7 +54,7 @@ async function paintLabel(): Promise<HTMLCanvasElement> {
   lines.forEach((line, i) => ctx.fillText(line, mid, mid + 150 + i * 38))
   ctx.font = '500 20px "Geist Mono", monospace'
   ctx.fillText('HOLIZNACC0 · PUBLIC DOMAIN', mid, mid + 300)
-  ctx.fillText('℗ 2026 YAMADABLOG · MIT', mid, mid + 332)
+  ctx.fillText('℗ 2026 MAOXOR · MIT', mid, mid + 332)
   rim(ctx, mid)
   return c
 }

@@ -8,11 +8,11 @@
 One Custom Element — `<pulse-player>` — that works in Vue, React, Svelte, Angular or plain HTML.
 
 [![npm](https://img.shields.io/npm/v/@pulse-music/web-component?label=npm&color=3dbda7)](https://www.npmjs.com/package/@pulse-music/web-component)
-[![CI](https://img.shields.io/github/actions/workflow/status/YamadaBlog/pulse-player/ci.yml?branch=main&label=CI)](https://github.com/YamadaBlog/pulse-player/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/maoxor/pulse-player/ci.yml?branch=main&label=CI)](https://github.com/maoxor/pulse-player/actions/workflows/ci.yml)
 [![Bundle size](https://img.shields.io/bundlejs/size/@pulse-music/web-component?label=gzip)](https://bundlejs.com/?q=@pulse-music/web-component)
 [![License: MIT](https://img.shields.io/badge/license-MIT-a78bfa)](./LICENSE)
 
-[**Live demo & playground →**](https://yamadablog.github.io/pulse-player/)
+[**Live demo & playground →**](https://maoxor.github.io/pulse-player/)
 
 <img src="./docs/screenshots/hero.webp" alt="The Pulse showcase: an LP sleeve reading “A music player that plays your page”, a WebGL vinyl record sliding out of it under a tonearm, and a live player card next to a “Lift the needle” button." width="100%" />
 

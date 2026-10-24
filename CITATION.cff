@@ -4,8 +4,8 @@ message: 'If you use Pulse in research or published work, please cite it as belo
 type: software
 authors:
   - alias: YamadaBlog
-repository-code: 'https://github.com/YamadaBlog/pulse-player'
-url: 'https://yamadablog.github.io/pulse-player/'
+repository-code: 'https://github.com/maoxor/pulse-player'
+url: 'https://maoxor.github.io/pulse-player/'
 abstract: >-
   Pulse is a drop-in music player for the web, shipped as standard Custom
   Elements with typed bindings for Vue, React and Svelte. A framework-agnostic

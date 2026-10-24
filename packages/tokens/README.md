@@ -1,6 +1,6 @@
 # @pulse-music/tokens
 
-Design tokens for [Pulse](https://github.com/YamadaBlog/pulse-player): the nine theme variants and the spring motion curves, as typed data plus CSS generators.
+Design tokens for [Pulse](https://github.com/maoxor/pulse-player): the nine theme variants and the spring motion curves, as typed data plus CSS generators.
 
 ```bash
 npm i @pulse-music/tokens
@@ -20,4 +20,4 @@ document.head.append(
 
 The Web Components consume these tokens; the React Native renderer reads the same data.
 
-MIT © YamadaBlog
+MIT © maoxor

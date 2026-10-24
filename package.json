@@ -4,12 +4,12 @@
   "description": "Pulse — a drop-in music player for every framework. Monorepo root.",
   "type": "module",
   "license": "MIT",
-  "author": "YamadaBlog",
+  "author": "maoxor",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YamadaBlog/pulse-player.git"
+    "url": "git+https://github.com/maoxor/pulse-player.git"
   },
-  "homepage": "https://yamadablog.github.io/pulse-player/",
+  "homepage": "https://maoxor.github.io/pulse-player/",
   "workspaces": [
     "packages/types",
     "packages/core",

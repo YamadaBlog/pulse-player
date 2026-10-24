@@ -1,6 +1,6 @@
 # @pulse-music/core
 
-The framework-agnostic audio engine behind [Pulse](https://github.com/YamadaBlog/pulse-player): playback state that mirrors the real `<audio>` element, a Web Audio spectrum for visualisers, Media Session integration and typed events. Plain TypeScript, SSR-safe, no dependencies besides `@pulse-music/types`.
+The framework-agnostic audio engine behind [Pulse](https://github.com/maoxor/pulse-player): playback state that mirrors the real `<audio>` element, a Web Audio spectrum for visualisers, Media Session integration and typed events. Plain TypeScript, SSR-safe, no dependencies besides `@pulse-music/types`.
 
 ```bash
 npm i @pulse-music/core
@@ -22,6 +22,6 @@ playButton.onclick = () => engine.toggle()
 
 You usually get it through `@pulse-music/web-component` or a framework package; use it directly for custom UIs and page-level logic.
 
-**Docs:** [engine reference](https://github.com/YamadaBlog/pulse-player/blob/main/docs/reference/engine.md)
+**Docs:** [engine reference](https://github.com/maoxor/pulse-player/blob/main/docs/reference/engine.md)
 
-MIT © YamadaBlog
+MIT © maoxor

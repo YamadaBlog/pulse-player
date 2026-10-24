@@ -63,4 +63,4 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test e2e/site.smoke.spec.ts --project=site
         env:
-          PULSE_SITE_URL: https://yamadablog.github.io/pulse-player/
+          PULSE_SITE_URL: https://maoxor.github.io/pulse-player/

@@ -1,6 +1,6 @@
 # @pulse-music/vue
 
-Vue 3 bindings for [Pulse](https://github.com/YamadaBlog/pulse-player): typed `<PulsePlayer>` / `<PulseFab>` components and a `usePulseAudio()` composable. No plugin, no store.
+Vue 3 bindings for [Pulse](https://github.com/maoxor/pulse-player): typed `<PulsePlayer>` / `<PulseFab>` components and a `usePulseAudio()` composable. No plugin, no store.
 
 ```bash
 npm i @pulse-music/vue
@@ -33,6 +33,6 @@ const { isPlaying, track, toggle } = usePulseAudio()
 </template>
 ```
 
-**Docs:** [Vue guide](https://github.com/YamadaBlog/pulse-player/blob/main/docs/frameworks.md#vue) · [element reference](https://github.com/YamadaBlog/pulse-player/blob/main/docs/reference/elements.md)
+**Docs:** [Vue guide](https://github.com/maoxor/pulse-player/blob/main/docs/frameworks.md#vue) · [element reference](https://github.com/maoxor/pulse-player/blob/main/docs/reference/elements.md)
 
-MIT © YamadaBlog
+MIT © maoxor
