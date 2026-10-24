@@ -1,6 +1,6 @@
 {
   "name": "@pulse-music/vue",
-  "version": "3.0.0-rc.3",
+  "version": "3.0.0",
   "description": "Vue 3 bindings for Pulse — <PulsePlayer>, <PulseFab> and the usePulseAudio() composable.",
   "keywords": [
     "vue",
@@ -39,9 +39,9 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "@pulse-music/core": "^3.0.0-rc.3",
-    "@pulse-music/types": "^3.0.0-rc.3",
-    "@pulse-music/web-component": "^3.0.0-rc.3"
+    "@pulse-music/core": "^3.0.0",
+    "@pulse-music/types": "^3.0.0",
+    "@pulse-music/web-component": "^3.0.0"
   },
   "peerDependencies": {
     "vue": "^3.4.0"
